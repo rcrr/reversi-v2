@@ -538,8 +538,8 @@ for rel in ("docs/src/reversi/lm/wrk_anova.md",
     check(f"F2  the D-007 mirror exists: {rel}", (ROOT / rel).exists())
 overview = (ROOT / "notes" / "overview.md").read_text()
 check("F3  the overview rows name the worker + its suite (the underscore-escaped forms)",
-      "src/reversi/lm/wrk\_anova.py" in overview
-      and "test\_wrk\_anova.py" in overview)
+      r"src/reversi/lm/wrk\_anova.py" in overview
+      and r"test\_wrk\_anova.py" in overview)
 check("F4  the level is OPT-IN in the shipped configs: no production fixture "
       "(rlm_01..rlm_04) enables it",
       all('"anova"' not in (ROOT / "test" / "reversi" / "data"

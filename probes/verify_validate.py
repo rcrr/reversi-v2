@@ -21,7 +21,7 @@ are none — the bring-in has no test file, T5):
      worker's ratio-line ZeroDivisionError demo on a perfect
      Y-space fit (M1)
 
-Run from the workspace root:  .venv/bin/python scratch/verify_validate.py
+Run from the workspace root:  .venv/bin/python probes/verify_validate.py
 """
 import contextlib
 import io

@@ -15,7 +15,7 @@
 #   G  helper functions (no DB)
 #   H  live pipeline through OPTIMIZE (DB required)
 #
-# Run:  .venv/bin/python scratch/verify_optimize.py
+# Run:  .venv/bin/python probes/verify_optimize.py
 #
 import contextlib
 import hashlib
@@ -56,7 +56,8 @@ def ws_lines(text):
 print("== tier A: hlp_optimize.py structure (post D-096)")
 a = read("hlp_optimize.py")
 al = a.splitlines()
-check("A1 line count 327 (D-327: the docstrings — the 17-arg save Args block — + the header cleanup + the 2 log reflows)", len(al) == 327, f"{len(al)}")
+check("A1 line count 327 (D-327: the docstrings — the 17-arg save Args block — + the header cleanup + "
+      "the 2 log reflows)", len(al) == 327, f"{len(al)}")
 check("A2 T13 header fixed (was 'rglm.py')",
       al[1] == "# hlp_optimize.py" and "rglm.py" not in a)
 check("A3 __future__ annotations", "from __future__ import annotations" in a)
@@ -168,7 +169,8 @@ print("== tier C: test_hlp_optimize.py structure (post D-096)")
 c = read("test/test_hlp_optimize.py")
 cl = c.splitlines()
 c_code = "\n".join(ln for ln in cl if not ln.strip().startswith("#"))
-check("C1 line count 347 (post D-139: 340 + the compressed-default pin + the kwarg lines)", len(cl) == 347, f"{len(cl)}")
+check("C1 line count 347 (post D-139: 340 + the compressed-default pin + "
+      "the kwarg lines)", len(cl) == 347, f"{len(cl)}")
 check("C2 T14: header fixed (no live regab DB required)",
       "no live regab DB required" in c and "SKIP_REGAB_DB" not in c
       and "logistic_model" not in c_code and "regab" not in c_code.lower())

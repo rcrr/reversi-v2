@@ -118,7 +118,8 @@ sm.move_to_last()
 f = TMP / "b2" / "full.log"
 check("B2  the enabled write: the file exists under base_dir", f.is_file())
 lines = f.read_text(encoding="utf-8").splitlines() if f.is_file() else []
-check("B2  the write-asymmetry: the file carries its own 'Starting' line, not the 'Completed' line (nor the 'full log written' confirmation — both post-write)",
+check("B2  the write-asymmetry: the file carries its own 'Starting' line, not the 'Completed' line "
+      "(nor the 'full log written' confirmation — both post-write)",
       any("Starting worker FINAL_LOG_PRINT, UP step" in ln for ln in lines)
       and not any("Completed UP step for FINAL_LOG_PRINT" in ln
                   for ln in lines)

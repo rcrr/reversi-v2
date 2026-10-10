@@ -13,7 +13,7 @@
 #   E  cross-file (logistic_model, schemas, pyproject, rlm_02.json)
 #   G  dedicated test_hlp_gradient.py (no DB)
 #
-# Run:  .venv/bin/python scratch/verify_gradient.py
+# Run:  .venv/bin/python probes/verify_gradient.py
 #
 import re
 import sys
@@ -65,7 +65,8 @@ check("A8 sigmoid docstring (descriptive)",
       "Compute the sigmoid (logistic) function element-wise" in a
       and "The scipy expit form is numerically stable for extreme "
       "values of x" in a)
-check("A9 four defs (I-013: the _hp_fg_kernel module def + the 4-space fg_hp; the classic fg is nested 8-space in the branch)",
+check("A9 four defs (I-013: the _hp_fg_kernel module def + the 4-space fg_hp; "
+      "the classic fg is nested 8-space in the branch)",
       re.findall(r"^(?:def |    def ).*$", a, re.M) ==
       ["def sigmoid(x: np.ndarray) -> np.ndarray:",
        "def _hp_fg_kernel(X, w, z, g_blocks, norm_blocks):",

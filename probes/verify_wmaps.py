@@ -14,7 +14,7 @@ Re-derives and verifies, independently of the test files:
 Re-pinned in D-087 to the post-campaign state (all T items pinned FIXED,
 R1 pinned as the documented no-guard contract). 64 checks.
 
-Run from the workspace root:  .venv/bin/python scratch/verify_wmaps.py
+Run from the workspace root:  .venv/bin/python probes/verify_wmaps.py
 """
 import re
 import sys
@@ -55,13 +55,17 @@ check("A3 __all__ lists the 5 public names",
       "'LMWMaps'," in read("src/reversi/lm/hlp_wmaps.py")
       and "'hlp_wmaps_is_cache_consistent']" in read("src/reversi/lm/hlp_wmaps.py"))
 check("A4 compute_sha3_256_hash is @validate_call-decorated",
-      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read("src/reversi/lm/hlp_wmaps.py"))
+      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read(
+          "src/reversi/lm/hlp_wmaps.py"))
 check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L205, the rlm_indexes style)",
-      "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_compute" not in read("src/reversi/lm/hlp_wmaps.py")
+      "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_compute" not in read(
+          "src/reversi/lm/hlp_wmaps.py")
       and rlm[204] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
       repr(rlm[207]))
 check("A6 hlp_wmaps_is_cache_consistent has NO @validate_call (same constraint, as in rlm_indexes)",
-      "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_is_cache_consistent" not in read("src/reversi/lm/hlp_wmaps.py"))
+      "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef "
+      "hlp_wmaps_is_cache_consistent" not in read(
+          "src/reversi/lm/hlp_wmaps.py"))
 check("A7 the R1 contract is documented in the compute docstring (D-087 R1 — dense by contract, no guard)",
       "The input pindexes matrix is dense by contract: every cell holds a" in read("src/reversi/lm/hlp_wmaps.py")
       and "are unsigned and never -1" in read("src/reversi/lm/hlp_wmaps.py"))
@@ -82,9 +86,11 @@ check("A12 the -1 input sentinel is unguarded at L272 — correct by the R1 dens
 # ----------------------------------------------------------------------
 w = lines("src/reversi/lm/wrk_wmaps.py")
 check("B1 wrk_wmaps.py is 99 lines", len(w) == 99, f"{len(w)}")
-check("B2 the pydantic import is present (L32 — D-087 T6)", w[31] == "from pydantic import validate_call, ConfigDict", repr(w[31]))
+check("B2 the pydantic import is present (L32 — D-087 T6)",
+      w[31] == "from pydantic import validate_call, ConfigDict", repr(w[31]))
 check("B3 the factory wrk_wmaps is @validate_call-decorated",
-      w[95] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" and w[96] == "def wrk_wmaps() -> Worker:",
+      w[95] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))"
+      and w[96] == "def wrk_wmaps() -> Worker:",
       repr(w[95:97]))
 check("B4 load_fn is the house lambda with checksum=False",
       w[60] == "        load_fn     = lambda path: hlp_wmaps_load_from_file(path, checksum=False),", repr(w[60]))
@@ -102,7 +108,8 @@ check("B7 _up sets the 6 ctx arrays + wmaps_obj_checksum (the 7 attributes)",
       and "ctx.wmaps_obj_checksum = wmaps_obj_checksum" in read("src/reversi/lm/wrk_wmaps.py"))
 ws_w = [i + 1 for i, l in enumerate(w) if l != l.rstrip() and not l.strip().startswith("#")]
 check("B8 0 whitespace-only lines (D-087 T9: 4 stripped)", ws_w == [], f"{ws_w}")
-check("B9 the triple blank line before _up is intact (L47-49, pre-existing)", w[46] == "" and w[47] == "" and w[48] == "")
+check("B9 the triple blank line before _up is intact (L47-49, pre-existing)",
+      w[46] == "" and w[47] == "" and w[48] == "")
 
 # ----------------------------------------------------------------------
 # C. test_hlp_wmaps.py structure (post D-087)
@@ -140,7 +147,8 @@ check("C12 the store/load cycle still pins checksum=False on both sides",
       and "hlp_wmaps_load_from_file(self.filepath, checksum=False)" in read("test/reversi/lm/test_hlp_wmaps.py"))
 check("C13 the golden-hash test is present with the pinned literal (D-087 T10)",
       "def test_compute_sha3_256_hash_golden" in read("test/reversi/lm/test_hlp_wmaps.py")
-      and "12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c861dfa" in read("test/reversi/lm/test_hlp_wmaps.py"))
+      and "12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c861dfa" in read(
+          "test/reversi/lm/test_hlp_wmaps.py"))
 check("C14 the 4 new load-path tests are present (D-087 T10: sidecar valid/mismatch, description, version)",
       all(f"def {n}" in read("test/reversi/lm/test_hlp_wmaps.py")
           for n in ("test_load_with_valid_sidecar", "test_load_with_mismatched_sidecar",
@@ -169,7 +177,8 @@ check("D5 both setUps use the TemporaryDirectory idiom",
       repr(t2[76]))
 check("D6 both setUps anchor json_config to WORKSPACE_ROOT",
       t2[78] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_00.json\")"
-      and t2[189] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_01.json\")",
+      and t2[189] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / "
+      "\"data\" / \"rlm_01.json\")",
       repr(t2[78]))
 check("D7 the paths import is present",
       t2[54] == "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[54]))

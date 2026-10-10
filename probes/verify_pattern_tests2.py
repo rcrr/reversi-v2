@@ -6,7 +6,7 @@ Does NOT import reversi.pattern, so the checks are non-circular.
 import sys
 import numpy as np
 sys.path.insert(0, 'src')
-from reversi.board import (Bitboard, Square, square_as_bitboard,
+from reversi.board import (Bitboard,
                          bitboard_ro000, bitboard_ro090, bitboard_ro180,
                          bitboard_ro270, bitboard_fvert, bitboard_fh1a8,
                          bitboard_fhori, bitboard_fa1h8)
@@ -14,8 +14,10 @@ from reversi.board import (Bitboard, Square, square_as_bitboard,
 TRS = [bitboard_ro000, bitboard_ro090, bitboard_ro180, bitboard_ro270,
        bitboard_fvert, bitboard_fh1a8, bitboard_fhori, bitboard_fa1h8]
 
+
 def B(v):
     return Bitboard(np.uint64(int(v)))
+
 
 def val(x):
     return int.from_bytes(x.data, 'little')

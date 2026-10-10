@@ -19,7 +19,7 @@ none — the bring-in has no test file, T6):
   D. unit facts (no DB): the worker factory, the reused
      is_cache_consistent override semantics (SimpleNamespace)
 
-Run from the workspace root:  .venv/bin/python scratch/verify_vld_positions.py
+Run from the workspace root:  .venv/bin/python probes/verify_vld_positions.py
 """
 import os
 import sys

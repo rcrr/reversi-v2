@@ -26,9 +26,11 @@ SRC = ROOT / 'src' / 'reversi'
 
 RESULTS = []
 
+
 def check(name, cond, detail=''):
     RESULTS.append((name, bool(cond), detail))
     return cond
+
 
 def lines_of(relpath):
     if relpath.startswith('test/'):
@@ -55,7 +57,8 @@ check('A5  compute_sha3_256_hash decorated (L67), hashes z.tobytes() only (L79)'
       and rlm[78] == '        hasher.update(self.z.tobytes())')
 check('A6  T7 DONE: zed_fun_factory decorated (L84) + def (L85)',
       rlm[83] == '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
-      and rlm[84] == 'def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],')
+      and rlm[84] == 'def zed_fun_factory(logit_clipping: float) -> '
+      'Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],')
 check('A7  factory math pins: a=0.5 (L98), b=(1-2c)/128 (L99), a1 (L105), b1 (L106)',
       rlm[97] == '    a = np.float32(0.5)'
       and rlm[98] == '    b = np.float32((1. - 2. * logit_clipping) / 128.)'
@@ -83,7 +86,8 @@ check('A12 T8 DONE: 0 trailing-ws lines',
 
 # ---------------------------------------------------------------- B tier
 wk = lines_of('wrk_zed.py')
-check('B1  wrk_zed.py is 75 lines (post T2 +1 import +1 decorator + the 2 docstrings in the cascade pass)', len(wk) == 75, f'{len(wk)}')
+check('B1  wrk_zed.py is 75 lines (post T2 +1 import +1 decorator + the 2 cascade docstrings)',
+      len(wk) == 75, f'{len(wk)}')
 check('B2  __all__ = ["wrk_zed"] (L42)', wk[41] == "__all__ = ['wrk_zed']")
 check('B3  T2 DONE: pydantic import (L32) + factory decorated (L72) + def (L73)',
       wk[31] == 'from pydantic import validate_call, ConfigDict'
@@ -104,12 +108,13 @@ check('B8  T8 DONE: trailing-ws lines = header only (6,11,16,21)',
 
 # ---------------------------------------------------------------- C tier
 tc = lines_of('test/test_wrk_zed.py')
-check('C1  test_wrk_zed.py is 160 lines (post T1/T4/T5 + the cascade pass: 1 bare-# + import os + comment rejoins)', len(tc) == 160, f'{len(tc)}')
+check('C1  test_wrk_zed.py is 160 lines (post T1/T4/T5 + the cascade pass: bare-#, os, comment rejoins)',
+      len(tc) == 160, f'{len(tc)}')
 check('C2  2 classes: TestZedFunFactory (L61, 1 test) + TestLMWorkerZed (L77, 2 tests)',
       tc[60] == 'class TestZedFunFactory(unittest.TestCase):'
       and tc[76] == 'class TestLMWorkerZed(unittest.TestCase):'
       and sum(1 for l in tc if l.startswith('    def test_')) == 3)
-check('C3  the db_long_gate idiom in setUp (L83) + paths import (L56) + NO os import (dead, dropped in the cascade pass)',
+check('C3  the db_long_gate idiom in setUp (L83) + paths import (L56) + NO os import (dead, dropped)',
       'import os' not in tc
       and tc[82] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
       and tc[55] == 'from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
@@ -118,7 +123,8 @@ check('C4  header CLAIMS the gate (L37-38, D-130 tier wording) — the claim is 
       'a live regab DB + LONG=1 is required;' in tc[36]
       and 'SKIP_REGAB_DB=1 skips the DB-gated tests' in tc[36]
       and 'VLONG=1 implies LONG, see test.reversi.tags' in tc[37])
-check('C5  T4 DONE: TemporaryDirectory FIRST (L90) under CUSTOM_TMP_BASE + tmp_dir = Path (L91) + WORKSPACE_ROOT json (L92)',
+check('C5  T4 DONE: TemporaryDirectory FIRST (L90) under CUSTOM_TMP_BASE + tmp_dir = Path (L91) + '
+      'WORKSPACE_ROOT json (L92)',
       tc[89] == '        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))'
       and tc[90] == '        self.tmp_dir = Path(self._tmp.name)'
       and tc[91] == '        self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")')
@@ -126,8 +132,10 @@ check('C6  T4 DONE: no dead imports — no shutil, Path is load-bearing (Path(se
       'import shutil' not in '\n'.join(tc) and tc[50] == 'from pathlib import Path'
       and '\n'.join(tc).count('Path(') == 1)
 check('C7  step pins (re-pinned: DESIGN_MTR = 8, ZED = 9)',
-      tc[98] == "        self.rlm.move_to_step('DESIGN_MTR')" and tc[99] == '        self.assertEqual(self.rlm.current_step, 8)'
-      and tc[121] == "        self.rlm.move_to_step('ZED')" and tc[122] == '        self.assertEqual(self.rlm.current_step, 9)')
+      tc[98] == "        self.rlm.move_to_step('DESIGN_MTR')"
+      and tc[99] == '        self.assertEqual(self.rlm.current_step, 8)'
+      and tc[121] == "        self.rlm.move_to_step('ZED')"
+      and tc[122] == '        self.assertEqual(self.rlm.current_step, 9)')
 check('C8  goldens: logit_clipping 0.03 (L112), y (10,) int8 (L116), z (10,) float32 (L132-141)',
       tc[111] == '        expected_logit_clipping = 0.03'
       and tc[115] == '        expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)'

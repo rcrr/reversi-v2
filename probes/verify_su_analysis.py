@@ -601,8 +601,8 @@ for rel in ("docs/src/reversi/lm/wrk_su_analysis.md",
 
 overview = (ROOT / "notes" / "overview.md").read_text()
 check("F4  the overview rows name the renamed module + its suite",
-      "src/reversi/lm/wrk\_su\_analysis.py" in overview
-      and "test\_wrk\_su\_analysis" in overview)
+      r"src/reversi/lm/wrk\_su\_analysis.py" in overview
+      and r"test\_wrk\_su\_analysis" in overview)
 
 mirror = (ROOT / "docs" / "src" / "reversi" / "lm" / "wrk_su_analysis.md").read_text()
 check("F5  the mirror's generator version == the module's constant "

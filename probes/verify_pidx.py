@@ -10,7 +10,9 @@ SLOTS = [bitboard_ro000, bitboard_ro090, bitboard_ro180, bitboard_ro270,
          bitboard_fvert, bitboard_fh1a8, bitboard_fhori, bitboard_fa1h8]
 SLOTN = ['ro000','ro090','ro180','ro270','fvert','fh1a8','fhori','fa1h8']
 
+
 def val(x): return int.from_bytes(x.data, 'little')
+
 
 def perm_of(mask, g):
     """Induced permutation on the pattern's squares (ascending bit order).
@@ -22,6 +24,7 @@ def perm_of(mask, g):
         img = val(g(Bitboard(np.uint64(1 << b))))
         perm.append(pos[img.bit_length() - 1])
     return perm
+
 
 def principal_dict(mask, sf_slots):
     """Recompute principal_index_dict. Applied = [ro000] + symmetry_fs."""

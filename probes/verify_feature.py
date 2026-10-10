@@ -19,7 +19,7 @@
 #   E. Live structural check (imports reversi.feature only here):
 #      factories, features order, n_instances, edge shapes, raises.
 #
-# Run: .venv/bin/python scratch/verify_feature.py
+# Run: .venv/bin/python probes/verify_feature.py
 #
 
 import hashlib
@@ -35,6 +35,7 @@ FULL = 0xFFFFFFFFFFFFFFFF
 # ---------------------------------------------------------------------------
 # Pure Python helpers (independent of reversi.feature)
 # ---------------------------------------------------------------------------
+
 
 def squares_of(mask):
     """Bit positions of a mask, ascending board order (A1 first)."""
@@ -159,6 +160,7 @@ GOLDEN_MSET_HASH = '2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f2120
 GOLDEN_PSET_HASH = 'ff97ce55dcb0ebc5f4b62272dde7c3ead438b0feec2411fd258f68a7210040ea'
 
 failures = 0
+
 
 def check(label, got, want):
     global failures

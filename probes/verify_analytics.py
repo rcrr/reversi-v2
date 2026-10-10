@@ -26,7 +26,7 @@ their existence; the C/D tiers re-derive what the suite pins):
  TRAINING-DENSE | VALIDATION layout (+ Population baseline line +
  Substitution Delta line; the Generalization Gap is dense-vs-dense).
 
-Run from the workspace root:  .venv/bin/python scratch/verify_analytics.py
+Run from the workspace root:  .venv/bin/python probes/verify_analytics.py
 """
 import contextlib
 import hashlib
@@ -162,7 +162,8 @@ check("B5 the schema has AnalyticsConfig (detailed_report default [], "
       "class AnalyticsConfig(LMBaseConfig)" in read("src/reversi/lm/hlp_config_schemas.py")
       and 'report_file_name: str = Field(' in read("src/reversi/lm/hlp_config_schemas.py")
       and 'default="model_analytics_report.txt"' in read("src/reversi/lm/hlp_config_schemas.py")
-      and "    analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)" in read("src/reversi/lm/hlp_config_schemas.py"))
+      and "    analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)" in read(
+          "src/reversi/lm/hlp_config_schemas.py"))
 
 # ----------------------------------------------------------------------
 # C. GOLDEN re-derivation (live DB) — the rlm_02.json pipeline to ANALYTICS
@@ -332,7 +333,8 @@ else:
               and float(np.mean(np.abs(rn))) == tm["train_mae_y"]
               and float(np.sqrt(np.dot(rn, rn) / len(rn))) == tm["train_rmse_y"]
               and float(np.mean(np.abs(y_true - np.mean(y_true)))) == tm["pop_mae_y"]
-              and float(np.sqrt(np.dot(y_true - np.mean(y_true), y_true - np.mean(y_true)) / len(y_true))) == tm["pop_rmse_y"])
+              and float(np.sqrt(np.dot(y_true - np.mean(y_true), y_true - np.mean(y_true))
+                              / len(y_true))) == tm["pop_rmse_y"])
         vld = ctx.vld_metrics
         _gap_line = next(l for l in ctx.analytics_report.splitlines()
                          if "Generalization Gap" in l)

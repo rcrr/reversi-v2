@@ -37,7 +37,6 @@ import atexit
 import contextlib
 import hashlib
 import io
-import json5
 import os
 import re
 import shutil
@@ -56,6 +55,7 @@ atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 CFG = "test/reversi/data/rlm_00.json"
 
 fails = 0
+
 
 def check(label, cond, detail=""):
     # stderr: stdout is redirected to StringIO around the pipeline
@@ -85,10 +85,12 @@ check("A2 __all__: the 5 public names",
       and "'hlp_indexes_load_from_file'" in src
       and "'hlp_indexes_compute'" in src
       and "'hlp_indexes_is_cache_consistent']" in src)
-check("A3 @validate_call on __init__ / compute_sha3_256_hash / __repr__ / store / load — and NOT on compute / is_cache_consistent (5 total; D-084 M6 __repr__)",
+check("A3 @validate_call on __init__ / compute_sha3_256_hash / __repr__ / store / load — "
+      "and NOT on compute / is_cache_consistent (5 total; D-084 M6 __repr__)",
       src.count("@validate_call") == 5)
 check("A4 compute: the deliberate no-validation comment (circular import)",
-      "#: Here validation is not possible, it brings in a convoluted issue with circular imports.\ndef hlp_indexes_compute(" in src)
+      "#: Here validation is not possible, it brings in a convoluted issue with circular imports.\n"
+      "def hlp_indexes_compute(" in src)
 i_hdr = src.index("w.write_header(description, version)")
 i_s1 = src.index("w.write_string(hlp_indexes.rds_checksum)")
 i_s2 = src.index("w.write_string(hlp_indexes.feature_set_hash)")
@@ -103,11 +105,13 @@ check("A6 load: checksum=True default + sidecar verify + header checks + the 3 R
       and "The checksum file signature doesn't match with current file." in src
       and "The file is not a proper" in src
       and "The file version is not consistent" in src)
-check("A7 is_cache_consistent: the 2-field metadata compare (feature_set_hash + rds_checksum), no DB params in the module",
+check("A7 is_cache_consistent: the 2-field metadata compare (feature_set_hash + rds_checksum), "
+      "no DB params in the module",
       "cached_feature_set_hash == expected_feature_set_hash" in src
       and "cached_rds_checksum == expected_rds_checksum" in src
       and "dbname" not in src and "bid" not in src)
-check("A8 the store docstring — the compression default + the true sidecar story (the stale D-084 R1 note corrected: the binio writer writes it, cache_manager re-writes it idempotently; D-326: the D-139 ref out)",
+check("A8 the store docstring — the compression default + the true sidecar story (the stale D-084 R1 note "
+      "corrected: the binio writer writes it, cache_manager re-writes it idempotently; D-326: the D-139 ref out)",
       "LZ4 whole-file compression by default." in src
       and "the SHA3-256 sidecar is written by the binio writer" in src
       and "no SHA3-256 sidecar is written by this function" not in src
@@ -264,12 +268,14 @@ check("C3 ctx.hlp_indexes set + the data checksum = sha3_256(indexes.tobytes()) 
       ri is not None
       and m1.context.hlp_indexes_checksum == hashlib.sha3_256(ri.indexes.tobytes()).hexdigest())
 sc = (TMP / "base1" / "rlmwf_05_INDEXES.dat.SHA3-256").read_text()
-check("C4 the sidecar is the flat sha3_256sum line over the .dat file (the FILE checksum — different from the data checksum)",
+check("C4 the sidecar is the flat sha3_256sum line over the .dat file "
+      "(the FILE checksum — different from the data checksum)",
       sc == f"{binio.compute_sha3_256(TMP / 'base1' / 'rlmwf_05_INDEXES.dat')}  rlmwf_05_INDEXES.dat\n"
       and sc.split()[0] != m1.context.hlp_indexes_checksum)
 n_pos = len(m1.context.positions)
 indep = m1.context.feature_set.compute_indexes(m1.context.positions)
-check("C5 indexes shape (N, 16) uint32 (N = the training position count, 16 = the fixture n_instances sum) and identical to the independent recompute",
+check("C5 indexes shape (N, 16) uint32 (N = the training position count, 16 = the fixture n_instances sum) "
+      "and identical to the independent recompute",
       ri.indexes.shape == (n_pos, 16) and ri.indexes.dtype == np.uint32
       and np.array_equal(ri.indexes, indep))
 
@@ -300,7 +306,8 @@ wsrc = (ROOT / "src" / "reversi" / "lm" / "wrk_indexes.py").read_text()
 
 check("D1 line count", len(wsrc.splitlines()) == 86)
 check("D2 __all__ = ['wrk_indexes']", "__all__ = ['wrk_indexes']" in wsrc)
-check("D3 D-084 M1: the factory returns Worker('INDEXES', _up, _down) WITH @validate_call (house convention, as in the other workers post-campaign)",
+check("D3 D-084 M1: the factory returns Worker('INDEXES', _up, _down) WITH @validate_call "
+      "(house convention, as in the other workers post-campaign)",
       '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_indexes() -> Worker:' in wsrc
       and 'return Worker("INDEXES", _up, _down)' in wsrc
       and "from pydantic import validate_call, ConfigDict" in wsrc)
@@ -328,12 +335,14 @@ check("E1 line count, 1 class / 2 tests",
       len(tsrc.splitlines()) == 150
       and "class TestLMWorkerIndexes" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 2)
-check("E2 D-084 T1 (D-085: re-anchored via test.reversi.paths): the idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
+check("E2 D-084 T1 (D-085: re-anchored via test.reversi.paths): the idiom — import of CUSTOM_TMP_BASE, "
+      "setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
       "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
       and "setUpClass" in tsrc
       and "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in tsrc
       and "mkdtemp" not in tsrc and "shutil" not in tsrc)
-check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the move to INDEXES runs POSITIONS — a DB hit on a fresh base dir, the FEATURES-before-POSITIONS order)",
+check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the move to INDEXES runs POSITIONS — "
+      "a DB hit on a fresh base dir, the FEATURES-before-POSITIONS order)",
       "SKIP_REGAB_DB" in tsrc and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates" in tsrc
       and "self.rlm.move_to_step('FEATURES')" in tsrc)
 check("E4 D-084 T3: header grammar 'How to run the wrk_indexes unit tests.' + the DB run note",
@@ -360,13 +369,15 @@ check("F1 312 lines, 5 classes / 15 tests (post D-139: the compressed=True mock 
       and len(re.findall(r"    def test_", fsrc)) == 15
       and "def test_is_cache_consistent_returns_false_rds_differs" in fsrc
       and "def test_repr_one_line_summary" in fsrc)
-check("F2 no temp-dir machinery at all (every file I/O is mocked — binio patched): no mkdtemp / TemporaryDirectory / CUSTOM_TMP_BASE",
+check("F2 no temp-dir machinery at all (every file I/O is mocked — binio patched): "
+      "no mkdtemp / TemporaryDirectory / CUSTOM_TMP_BASE",
       "mkdtemp" not in fsrc and "TemporaryDirectory" not in fsrc
       and "CUSTOM_TMP_BASE" not in fsrc and "@patch('reversi.lm.hlp_indexes.binio')" in fsrc)
 import ast as _ast
 _idx_name_uses = [n for n in _ast.walk(_ast.parse(fsrc))
                   if isinstance(n, _ast.Name) and n.id == "IndexArray"]
-check("F3 D-084 T1: the dead 'from reversi.pattern import IndexArray' import removed (only the docstring occurrence remains; zero code-level uses)",
+check("F3 D-084 T1: the dead 'from reversi.pattern import IndexArray' import removed "
+      "(only the docstring occurrence remains; zero code-level uses)",
       "from reversi.pattern import IndexArray" not in fsrc
       and len(re.findall(r"\bIndexArray\b", fsrc)) == 1
       and len(_idx_name_uses) == 0)
@@ -377,7 +388,8 @@ check("F5 D-084 T5: the Italian comment replaced with English (AGENTS.md rule 4)
       and "The module is not mocked; only a fake \"model\" object is created" in fsrc)
 check("F6 the shared dummy: np.zeros((2, 2), dtype=np.uint32)",
       "DUMMY_INDEXES = np.zeros((2, 2), dtype=np.uint32)" in fsrc)
-check("F7 D-084 T3+T4: the 2 assertRaises(ValidationError) pins (no broad Exception) + rds_checksum present in test_init_fails_with_invalid_indexes_type (the invalid indexes is what's under test)",
+check("F7 D-084 T3+T4: the 2 assertRaises(ValidationError) pins (no broad Exception) + rds_checksum "
+      "present in test_init_fails_with_invalid_indexes_type (the invalid indexes is what's under test)",
       fsrc.count("self.assertRaises(ValidationError)") == 2
       and fsrc.count("self.assertRaises(Exception)") == 0
       and "from pydantic import ValidationError" in fsrc

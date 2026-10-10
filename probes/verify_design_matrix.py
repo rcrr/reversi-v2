@@ -15,7 +15,7 @@ Re-derives and verifies, independently of the test files:
   F. Cross-fixture / context facts (LMContext fields, the rlm_01
      feature layout)
 
-Run from the workspace root:  .venv/bin/python scratch/verify_design_matrix.py
+Run from the workspace root:  .venv/bin/python probes/verify_design_matrix.py
 """
 import re
 import sys
@@ -47,10 +47,12 @@ def lines(p):
 # A. hlp_design_matrix.py structure (post the approved warning fix)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_design_matrix.py")
-check("A1 hlp_design_matrix.py is 143 lines (post D-139: 133 + the 2x compressed kwarg + the 8 standalone-quote docstring lines)", len(rlm) == 143, f"{len(rlm)}")
+check("A1 hlp_design_matrix.py is 143 lines (post D-139: 133 + the 2x compressed kwarg + the 8 standalone-quote "
+      "docstring lines)", len(rlm) == 143, f"{len(rlm)}")
 check("A2 the explicit-cast fix is in place (L129-132: astype on the source + the note)",
       rlm[128] == "    X = np.empty(pindexes.shape, dtype=np.uint32)"
-      and rlm[129] == "    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel), X is uint32 — the implicit"
+      and rlm[129] == "    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel), "
+      "X is uint32 — the implicit"
       and rlm[130] == "    #: output cast is deprecated (NumPy 2.5)."
       and rlm[131] == "    np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)",
       repr(rlm[128:132]))
@@ -60,7 +62,8 @@ check("A4 __all__ lists the 5 public names",
       "'LMDesignMatrix'," in read("src/reversi/lm/hlp_design_matrix.py")
       and "'hlp_design_matrix_is_cache_consistent']" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A5 exactly 4 @validate_call decorators (init, hash, store, load — NOT compute / is_cache_consistent)",
-      read("src/reversi/lm/hlp_design_matrix.py").count("@validate_call(config=ConfigDict(arbitrary_types_allowed=True))") == 4
+      read("src/reversi/lm/hlp_design_matrix.py").count(
+          "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))") == 4
       and "\ndef hlp_design_matrix_compute" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A6 T4 FIXED: the no-validation note sits above hlp_design_matrix_compute (the rlm_indexes L166 class)",
       rlm[116] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
@@ -79,12 +82,14 @@ check("A10 T5 FIXED: zero non-comment trailing-whitespace lines", ws_rl == [], f
 check("A11 X is allocated uint32 (the test pins the dtype contract)",
       "    X = np.empty(pindexes.shape, dtype=np.uint32)" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A12 col_offsets = repeat(iwmap_feature_offset[:-1], n_instances per feature)",
-      "col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)" in read("src/reversi/lm/hlp_design_matrix.py")
+      "col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)" in read(
+          "src/reversi/lm/hlp_design_matrix.py")
       and "pindexes_with_offsets = pindexes + col_offsets" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A13 the hash is over X.tobytes() (the single data array)",
       "hasher.update(self.X.tobytes())" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A14 is_cache_consistent compares wmaps_obj_checksum only (the 1-field compare)",
-      "is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum" in read("src/reversi/lm/hlp_design_matrix.py"))
+      "is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum" in read(
+          "src/reversi/lm/hlp_design_matrix.py"))
 check("A15 triple blank lines at L42/L50 (house precedent — rlm_indexes carries the same)",
       rlm[41] == "" and rlm[42] == "" and rlm[43] == "" and rlm[49] == "" and rlm[50] == "" and rlm[51] == "")
 
@@ -99,7 +104,8 @@ check("B3 T2 FIXED: the factory wrk_design_matrix is @validate_call-decorated",
       w[83] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))"
       and w[84] == "def wrk_design_matrix() -> Worker:")
 check("B4 T3 FIXED: load_fn is the lambda with checksum=False (single sidecar check)",
-      "        load_fn     = lambda path: hlp_design_matrix_load_from_file(path, checksum=False)," in read("src/reversi/lm/wrk_design_matrix.py"))
+      "        load_fn     = lambda path: hlp_design_matrix_load_from_file(path, checksum=False)," in read(
+          "src/reversi/lm/wrk_design_matrix.py"))
 check("B5 the 7-arg cache wiring matches the house key set",
       all(k in read("src/reversi/lm/wrk_design_matrix.py") for k in
           ("cache_path  = ctx.get_cache_file_full_path_for_current_level(),",
@@ -128,15 +134,20 @@ check("C2 2 classes / 3 tests",
 check("C3 T1 FIXED: the gate is in BOTH setUps (D-130: the db_long_gate idiom) and the header claim is now true",
       "# -1- Run the tests (a live regab DB + LONG=1 is required;" in read("test/reversi/lm/test_wrk_design_matrix.py")
       and "SKIP_REGAB_DB=1 skips the DB-gated tests" in read("test/reversi/lm/test_wrk_design_matrix.py")
-      and read("test/reversi/lm/test_wrk_design_matrix.py").count("db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates") == 2)
+      and read("test/reversi/lm/test_wrk_design_matrix.py").count(
+          "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates") == 2)
 check("C4 T7 FIXED: the D-085 idiom is applied (TemporaryDirectory under CUSTOM_TMP_BASE x2)",
-      read("test/reversi/lm/test_wrk_design_matrix.py").count("self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))") == 2
+      read("test/reversi/lm/test_wrk_design_matrix.py").count(
+          "self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))") == 2
       and "mkdtemp" not in read("test/reversi/lm/test_wrk_design_matrix.py"))
 check("C5 T7 FIXED: both json_config paths are WORKSPACE_ROOT-anchored (rlm_00 + rlm_01)",
-      'self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json")' in read("test/reversi/lm/test_wrk_design_matrix.py")
-      and 'self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")' in read("test/reversi/lm/test_wrk_design_matrix.py"))
+      'self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json")' in read(
+          "test/reversi/lm/test_wrk_design_matrix.py")
+      and 'self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")' in read(
+          "test/reversi/lm/test_wrk_design_matrix.py"))
 check("C6 T7 FIXED: the test.reversi.paths import is present (WORKSPACE_ROOT + CUSTOM_TMP_BASE)",
-      "from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in read("test/reversi/lm/test_wrk_design_matrix.py"))
+      "from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in read(
+          "test/reversi/lm/test_wrk_design_matrix.py"))
 check("C7 T7 FIXED: the (former) shutil import is gone with the rmtree teardowns",
       "shutil" not in read("test/reversi/lm/test_wrk_design_matrix.py"))
 check("C8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
@@ -242,7 +253,8 @@ check("F5 rlm_01 feature layout: n_instances [1,1,4,1] (sum 7), n_configurations
 #    tests for the data object, mirroring test_hlp_wmaps)
 # ----------------------------------------------------------------------
 g = lines("test/reversi/lm/test_hlp_design_matrix.py")
-check("G1 test_hlp_design_matrix.py is 304 lines (post D-139: 258 + the 2 D-139 pins + the compressed kwarg lines + the N-D parity + the str-filename test)", len(g) == 304, f"{len(g)}")
+check("G1 test_hlp_design_matrix.py is 304 lines (post D-139: 258 + the 2 D-139 pins + the compressed kwarg lines + "
+      "the N-D parity + the str-filename test)", len(g) == 304, f"{len(g)}")
 check("G2 4 classes / 16 tests (3 compute + 2 consistency + 9 IO + 2 init since D-139)",
       sum(1 for l in g if l.startswith("class ")) == 4 and
       sum(1 for l in g if l.strip().startswith("def test_")) == 16)
@@ -250,10 +262,12 @@ check("G3 the header makes NO DB claim (the file is DB-free, dummy ctx)",
       "# -1- Run the tests." in read("test/reversi/lm/test_hlp_design_matrix.py")
       and "SKIP_REGAB_DB" not in read("test/reversi/lm/test_hlp_design_matrix.py"))
 check("G4 the D-085 idiom is applied (TemporaryDirectory under CUSTOM_TMP_BASE, defensive tearDown)",
-      "self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in read("test/reversi/lm/test_hlp_design_matrix.py")
+      "self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in read(
+          "test/reversi/lm/test_hlp_design_matrix.py")
       and "if getattr(self, '_tmp', None) is not None:" in read("test/reversi/lm/test_hlp_design_matrix.py"))
 check("G5 the golden hash of the IO object is pinned",
-      "da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89ea9719757b" in read("test/reversi/lm/test_hlp_design_matrix.py"))
+      "da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89ea9719757b" in read(
+          "test/reversi/lm/test_hlp_design_matrix.py"))
 check("G6 the 3 RuntimeError pins + the ValidationError pin + the guard ValueError pin",
       read("test/reversi/lm/test_hlp_design_matrix.py").count("assertRaises(RuntimeError)") == 3
       and "assertRaises(ValidationError)" in read("test/reversi/lm/test_hlp_design_matrix.py")

@@ -23,7 +23,7 @@ E1/E11 + D6 behavior pins FAIL until the fix campaign is applied
 (R1 the _for_next_level name, T2 the missing version gate, the T/M
 hygiene items).
 
-Run from the workspace root:  .venv/bin/python scratch/verify_generate.py
+Run from the workspace root:  .venv/bin/python probes/verify_generate.py
 """
 import hashlib
 import os
@@ -81,7 +81,8 @@ check("A2 the house no-validation note sits directly above compute_w_dense",
       "Here validation is not possible" in "\n".join(above_compute.rsplit("\n", 8)[1:]),
       "last 8 lines above the def: " + repr(above_compute.rsplit("\n", 8)[-6:]))
 check("A3 hlp_generate_is_cache_consistent carries the no-validation note too",
-      "Here validation is not possible" in "\n".join(rlm_src.split("def hlp_generate_is_cache_consistent")[0].rsplit("\n", 8)[1:]))
+      "Here validation is not possible" in "\n".join(
+          rlm_src.split("def hlp_generate_is_cache_consistent")[0].rsplit("\n", 8)[1:]))
 check("A4 load gates the file version (the 4 sibling data modules all do — T2)",
       "expected_version" in rlm_src
       and "File version mismatch" in rlm_src)

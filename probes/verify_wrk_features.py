@@ -31,12 +31,10 @@ import atexit
 import contextlib
 import hashlib
 import io
-import json5
 import os
 import re
 import shutil
 import sys
-import types
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,6 +49,7 @@ ALL1 = 0xFFFFFFFFFFFFFFFF
 CFG = "test/reversi/data/rlm_00.json"
 
 fails = 0
+
 
 def check(label, cond, detail=""):
     # stderr: stdout is redirected to StringIO around the pipeline moves
@@ -82,7 +81,8 @@ check("A6 M1 FIXED (D-082): @validate_call on the factory + the pydantic import"
 check("A7 R1 FIXED (D-082): amask debug log prints m.amask",
       'amask = {m.amask:016X}' in src and 'amask = {m.mask:016X}' not in src)
 check("A8 M3 FIXED (D-082): the orphan 'Empty String SHA-256 Hash' comment removed",
-      "Empty String SHA-256 Hash" not in src and "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" not in src)
+      "Empty String SHA-256 Hash" not in src
+      and "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" not in src)
 check("A9 M2 FIXED (D-082): no non-comment trailing-whitespace lines",
       not any(line != line.rstrip() for line in src.splitlines() if not line.lstrip().startswith("#")))
 
@@ -92,13 +92,12 @@ check("A9 M2 FIXED (D-082): no non-comment trailing-whitespace lines",
 
 import numpy as np
 
-from reversi.tools.state_machine import Relevance, Verbosity
+from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
-from reversi.lm.hlp_config_schemas import LMConfig
-import reversi.lm.wrk_features as lwf
+
 
 
 def u(h):
@@ -225,16 +224,19 @@ check("C2 2 classes / 3 test methods (the D-106 step-3 guard class added; the D-
       "class TestLMWorkerFeatures" in tsrc
       and "class TestLMWorkerFeaturesGuards" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 3)
-check("C3 T1 FIXED (D-082, re-anchored D-085): the idiom via the shared test.reversi.paths module (import, setUpClass mkdir, TemporaryDirectory, defensive tearDown)",
+check("C3 T1 FIXED (D-082, re-anchored D-085): the idiom via the shared test.reversi.paths module "
+      "(import, setUpClass mkdir, TemporaryDirectory, defensive tearDown)",
       "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
       and "CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)" in tsrc
       and 'tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))' in tsrc
       and "mkdtemp" not in tsrc)
 check("C4 gate REMOVED (the setUp is DB-free — no POSITIONS in the path)",
       "db_long_gate" not in tsrc and "SKIP_REGAB_DB" not in tsrc)
-check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; D-085: CUSTOM_TMP_BASE moved to test.reversi.paths)",
+check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; "
+      "D-085: CUSTOM_TMP_BASE moved to test.reversi.paths)",
       "from pathlib import Path" in tsrc and len(re.findall(r"\bPath\b", tsrc)) > 1)
-check("C6 T4 FIXED (D-082; re-anchored): header grammar 'How to run the wrk_features unit tests.' + the DB-free run note",
+check("C6 T4 FIXED (D-082; re-anchored): header grammar 'How to run the wrk_features unit tests.' "
+      "+ the DB-free run note",
       "How to run the wrk_features unit tests." in tsrc
       and "Run the tests (DB-free: the setUp moves to" in tsrc)
 check("C7 M1 resolved (I-012 realized): the stale POSITIONS-dependency comment is gone",

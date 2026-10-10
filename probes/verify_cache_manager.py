@@ -1,6 +1,6 @@
 # verify_cache_manager.py — independent ground-truth probes for the
 # cache_manager.py analysis (session 20). Not part of the suite.
-# Run: .venv/bin/python scratch/verify_cache_manager.py
+# Run: .venv/bin/python probes/verify_cache_manager.py
 from __future__ import annotations
 
 import atexit

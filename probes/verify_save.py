@@ -9,9 +9,8 @@ Tiers:
      SU_ANALYSIS step 3 + the ANOVA step 6)
   D: live rlm_03 full 18-level chain (DB; run only with LONG=1)
 
-Run: .venv/bin/python scratch/verify_save.py [LONG]
+Run: .venv/bin/python probes/verify_save.py [LONG]
 """
-import os
 import re
 import sys
 import atexit
@@ -69,7 +68,8 @@ def tier_a():
     check('A6 model_weights: ModelWeights 12 fields (10 + the D-144 config provenance pair)',
           len([l for l in ds.splitlines() if re.match(r'^\s{4}\w+: ', l)]) == 12,
           str(len([l for l in ds.splitlines() if re.match(r'^\s{4}\w+: ', l)])))
-    check('A6b model_weights: D-144/C2 — the config section LEADS the body, the reader accepts v1|v2 + the corruption sentinel',
+    check('A6b model_weights: D-144/C2 — the config section LEADS the body, '
+          'the reader accepts v1|v2 + the corruption sentinel',
           "w.write_string(ctx.config_checksum)" in mt
           and mt.index("w.write_string(ctx.config_checksum)") < mt.index("w.write_string(ctx.cfg.name)")
           and "if version not in (1, 2):" in mt
@@ -84,7 +84,8 @@ def tier_a():
 
     t = WS / 'test' / 'reversi' / 'lm' / 'test_lm_worker_full_chain.py'
     tt = t.read_text()
-    check('A10 test: the DB+LONG gate via db_long_gate x2 (T5a, the D-130 tag function replaced the inline getenv idiom — the stale pin re-derived)',
+    check('A10 test: the DB+LONG gate via db_long_gate x2 (T5a, the D-130 tag function '
+          'replaced the inline getenv idiom — the stale pin re-derived)',
           tt.count("db_long_gate(self)") == 2
           and "from test.reversi.tags import db_long_gate" in tt)
     check('A11 test: D-085 idiom (T5b)',

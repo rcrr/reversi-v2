@@ -22,7 +22,6 @@ import json5
 import re
 import sys
 import tempfile
-import os
 import shutil
 import atexit
 from contextlib import contextmanager
@@ -47,9 +46,11 @@ CONFIG_JSON = WS / "test" / "reversi" / "data" / "rlm_00.json"
 
 RESULTS = []
 
+
 def check(label: str, ok: bool, detail: str = "") -> None:
     RESULTS.append((label, ok))
     print(f"[{'ok  ' if ok else 'FAIL'}] {label}" + (f" — {detail}" if detail and not ok else ""))
+
 
 @contextmanager
 def quiet_stdout():
@@ -61,10 +62,12 @@ def quiet_stdout():
     finally:
         sys.stdout = real
 
+
 def run_quiet(fn) -> str:
     with quiet_stdout() as buf:
         fn()
     return buf.getvalue()
+
 
 def run_model(cfg_path: Path, base_dir: Path, steps=("POSITIONS",)):
     """Build a model inside a quiet context, move through the steps,
@@ -78,14 +81,17 @@ def run_model(cfg_path: Path, base_dir: Path, steps=("POSITIONS",)):
     logs = run_quiet(_go)
     return holder["m"], logs
 
+
 def fresh(name: str) -> Path:
     d = PROBE_TMP / name
     d.mkdir(parents=True, exist_ok=False)
     return d
 
+
 def model_for(cfg_path: Path, base_dir: Path):
     return LogisticModel(str(cfg_path), verbosity=Verbosity.HIGH,
                          base_dir_override=str(base_dir))
+
 
 def cfg_dict_mutate(mutate=None) -> dict:
     d = json5.loads(CONFIG_JSON.read_text())

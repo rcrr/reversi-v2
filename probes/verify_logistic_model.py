@@ -83,6 +83,7 @@ TMP.mkdir(parents=True, exist_ok=True)
 
 failures = []
 
+
 def check(name, ok, detail=""):
     tag = "ok" if ok else "FAIL"
     print(f"[{tag}] {name}" + (f" — {detail}" if detail else ""))
@@ -91,7 +92,6 @@ def check(name, ok, detail=""):
 
 # --- V1: LMContext dataclass shape --------------------------------------
 from reversi.lm.logistic_model import LMContext, LogisticModel
-from reversi.base_model import BaseModel
 from reversi.tools.state_machine import Context
 
 check("V1a is_dataclass", dataclasses.is_dataclass(LMContext))
@@ -216,7 +216,8 @@ for target, label in [(1, "int 1"), ("POSITIONS", "str POSITIONS"), ("move_to_la
               f"got {type(e).__name__}: {e}; step {m.current_step}")
 
 # --- V10: LMContext artifact inventory (doc support) --------------------
-check("V10 checksum-typed fields: 9 (+ config_checksum), and NO features_checksum (feature_set is an in-memory derivation, no cache file)",
+check("V10 checksum-typed fields: 9 (+ config_checksum), and NO features_checksum "
+      "(feature_set is an in-memory derivation, no cache file)",
       sum(1 for n in fields if n.endswith("_checksum")) == 9
       and "features_checksum" not in fields,
       str([n for n in fields if n.endswith("_checksum")]))
