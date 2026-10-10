@@ -44,23 +44,29 @@ __all__ = ['wrk_save']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the SAVE level: write the lz4-compressed model weights file (the self-describing v2 artifact
+    with the embedded configuration provenance) to the configured output path.
+    """
     ctx.log_event(Relevance.INFO, "Saving model weights to disk...")
 
     output_path = ctx.cfg.base_dir / ctx.cfg.output
 
-    # D-144 (C2): the model file embeds the configuration provenance
-    # (the normalized dump + the fingerprint, the LEADING body section)
-    # — it is the single source of the run's configuration. The
-    # sidecar record (<output>.config.json) is RETIRED (Roberto's
-    # ruling: the record is eliminated, the model file stands alone).
+    # The model file embeds the configuration provenance (the normalized dump + the fingerprint, the
+    # LEADING body section) — it is the single source of the run's configuration. The sidecar record
+    # (<output>.config.json) is RETIRED (Roberto's ruling: the record is eliminated, the model file
+    # stands alone).
     model_weights_write_file(ctx, output_path, compressed=True)
     ctx.log_event(Relevance.INFO, f"Model weights saved to {output_path}")
 
+
 def _down(ctx: "LMContext") -> None:
+    """Log the clearing no-op (the worker is stateless — nothing on the context)."""
     ctx.log_event(Relevance.INFO, "Clearing save attributes...")
     # Nothing to clear from context, as we just read from it.
 
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_save() -> Worker:
-    """Factory function that returns the SAVE worker instance."""
+    """Return the SAVE worker instance."""
     return Worker("SAVE", _up, _down)

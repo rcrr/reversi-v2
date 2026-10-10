@@ -1,5 +1,6 @@
 # reversi/lm/wrk_save.py
-The SAVE worker — the 16th active level of the LM pipeline (step 16, after ANALYTICS; CLIENT_CHECK runs after it). The
+The SAVE worker of the LM pipeline — the 16th active level (step 16): the level after ANALYTICS, before
+CLIENT_CHECK. The
 non-cache worker — no `cache_manager` wiring, no rlmwf_16* file (the flat-file numbering skips every non-cache slot —
   only 03/04/05/07/08/12/13 materialize). A pure SINK on every up-move: reads context attributes, writes ONE artifact —
 `base_dir/<cfg.output>` (the model weights file, lz4-compressed by default, with the `.SHA3-256` sidecar written by
@@ -16,8 +17,6 @@ persist across runs).
 | `wrk_save()` | factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("SAVE", _up, _down)` |
 
 ## Architecture
-
-66 lines.
 
 - Imports: pydantic `validate_call`/`ConfigDict`, `TYPE_CHECKING`, `Worker`/`Relevance` from state_machine,
   `model_weights_write_file` (the writer embeds the config provenance itself, so no binio `write_sha3_256_sidecar`
@@ -40,7 +39,8 @@ ungated v2 micro + 4 DB-gated, A2050 additionally VLONG-gated).
 - Source shape (probe A1-A3, A10-A15): the `@validate_call` factory + pydantic import (A1), no pathlib (A2), 0
   non-comment trailing-ws lines (A3), the test's 2 SKIP_REGAB_DB gates + the gated-suite idiom (A10-A11), no dead
   imports (A13), the fixtures' `output` fields + cuts (A15: rlm_03 cut=1, rlm_04 cut=10).
-- The live rlm_04 chain (the A2030 suite + probe C5): the full 19-worker chain runs to step 18 (move_to_last(), "PLOT");
+- The live rlm_04 chain (the A2030 suite + probe C5): the full 19-worker chain runs to step 19 (move_to_last(),
+  "FINAL_LOG_PRINT");
   the v2 artifact `rglm_logistic_model_ec_20_TEST04.dat` is in the 23183-23283 B size band, sidecar valid (the embedded
   dump carries the run's base_dir, so the bytes are run-specific; the size is a band too: LZ4's match structure shifts
   by a few bytes with the 8 random base_dir chars — measured on A2050: 516459 / 516455 for the identical content;
@@ -67,7 +67,8 @@ None.
 ## Conventions
 
 - The no-cache design is a deviation from the uniform 7-kwargs `cache_manager` wiring — intentional (no rlmwf_16 file —
-  SAVE writes the config-named model artifact — and the non-cache slots 01/02/06/09/10/11/14/15/17/18 have none either).
+  SAVE writes the config-named model artifact — and the non-cache slots 01/02/06/09/10/11/14/15/17/18/19 have none
+  either).
 - `compressed=True` is the only call form in the repo; the `compressed` parameter default is True anyway (the read side
   mirrors it).
 - The A2030/A2050 test class names are the legacy production naming: A2xxx is the endgame-solver production model family
