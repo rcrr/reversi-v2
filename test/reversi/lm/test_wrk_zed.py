@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to run the wrk_zed unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -35,15 +34,13 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required;
-#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_zed
 #
 
 import unittest
-import os
 import tempfile
 
 import numpy as np
@@ -81,17 +78,15 @@ class TestLMWorkerZed(unittest.TestCase):
     """Tests the ZED worker integration and exact values using rlm_01.json."""
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab —
-        # the worker tests need the live regab DB (the setUp moves to
-        # DESIGN_MTR, which runs the positions chain on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need the live regab DB (the
+        # setUp moves to DESIGN_MTR, which runs the positions chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")
@@ -148,7 +143,7 @@ class TestLMWorkerZed(unittest.TestCase):
         nptest.assert_array_equal(expected_z, self.rlm.context.z)
 
     def test_down_clears_zed_attributes(self):
-        # Pin the _down clearing (live-verified, probe D12).
+        # Pin the _down clearing (the live-verified D12 scope, now in the suite).
         self.rlm.move_to_step('ZED')
         self.assertIsNotNone(self.rlm.context.z)
 

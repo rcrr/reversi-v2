@@ -44,6 +44,7 @@ __all__ = ['wrk_zed']
 
 
 def _up(ctx: "LMContext") -> None:
+    """Run the ZED level: the hlp_zed_compute call, the checksum, the 4 published attributes."""
     ctx.log_event(Relevance.INFO, "Computing Zed array (Z) and transformations...")
 
     # ZED computation is very fast (vectorized math), so we compute it on the fly without disk caching.
@@ -60,6 +61,7 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
+    """Clear the four Zed attributes (the failure recovery)."""
     ctx.log_event(Relevance.INFO, "Clearing Zed attributes...")
     ctx.y2z = None
     ctx.z2y = None
@@ -69,5 +71,5 @@ def _down(ctx: "LMContext") -> None:
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_zed() -> Worker:
-    """Factory function that returns the ZED worker instance."""
+    """Return the ZED worker instance."""
     return Worker("ZED", _up, _down)

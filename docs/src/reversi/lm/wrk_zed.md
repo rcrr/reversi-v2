@@ -1,9 +1,9 @@
 # reversi/lm/wrk_zed.py
-The ZED worker of the LM pipeline — the 9th active level, a NON-cache one (like CONFIG, FEATURES, ANOVA,
-GRADIENT): no `cache_manager` wiring at all (no load-or-compute cycle, no `is_allowed` switch, no rlmwf_09* file). The
-level is recomputed on every up-move: the computation is pure vectorized affine math over `ctx.game_values`, so the
-on-the-fly choice is documented in `_up`. The machine contract is unchanged: `_up` publishes the 4 context attributes,
-`_down` clears ALL FOUR.
+The ZED worker of the LM pipeline — the 9th active level (step 9), a NON-cache one (like CONFIG,
+FEATURES, ANOVA, GRADIENT): no `cache_manager` wiring at all (no load-or-compute cycle, no `is_allowed` switch,
+no rlmwf_09* file). The level is recomputed on every up-move: the computation is pure vectorized affine math over
+`ctx.game_values`, so the on-the-fly choice is documented in `_up`. The machine contract is unchanged: `_up`
+publishes the 4 context attributes, `_down` clears ALL FOUR.
 
 ## API
 
@@ -26,10 +26,10 @@ on-the-fly choice is documented in `_up`. The machine contract is unchanged: `_u
 
 Pinned by the `probes/verify_zed.py` B + C + D + F + G tiers + the 3-test suite.
 
-- Source shape (probe B1-B8): the 73-line file, `__all__ = ['wrk_zed']`, the factory WITH `@validate_call` + the
+- Source shape (probe B1-B8): the 75-line file, `__all__ = ['wrk_zed']`, the factory WITH `@validate_call` + the
   pydantic import, NO cache_manager import (the by-design comment pinned), `_up` sets the 4 ctx attributes, `_down`
   clears all four, `Worker("ZED", ...)`, 0 non-comment trailing-whitespace lines.
-- The worker-test source shape (probe C1-C10): the 165-line file, the 2 classes, the 3 tests, the gate + the header
+- The worker-test source shape (probe C1-C10): the 160-line file, the 2 classes, the 3 tests, the gate + the header
   claim, the idiom, no dead imports (`Path` load-bearing), the step pins, the goldens, the _down test, 0 non-comment ws
   lines.
 - The full pipeline through ZED (live DB, probe D1/D5-D11, rlm_01): the pre-state (all 4 ctx attrs None), step 9 +
@@ -56,7 +56,7 @@ None.
 ## Integration
 
 - The 9th LM level; the domain module (hlp_zed.py) carries the data object + the math, this worker the machine glue.
-- Consumes `ctx.game_values` (POSITIONS) + `ctx.cfg.stat_model. logit_clipping` (CONFIG) — the SM half-open interval
+- Consumes `ctx.game_values` (POSITIONS) + `ctx.cfg.stat_model.logit_clipping` (CONFIG) — the SM half-open interval
   semantics guarantee both are set. The worker-test setUp moves through DESIGN_MTR (step 8) first, so the full 9-level
   chain is exercised end-to-end on the live DB.
 - Publishes `ctx.z / ctx.y2z / ctx.z2y / ctx.zed_checksum` for the GRADIENT level onward.

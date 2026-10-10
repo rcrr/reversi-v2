@@ -83,62 +83,62 @@ check('A12 T8 DONE: 0 trailing-ws lines',
 
 # ---------------------------------------------------------------- B tier
 wk = lines_of('wrk_zed.py')
-check('B1  wrk_zed.py is 73 lines (post T2 +1 import +1 decorator)', len(wk) == 73, f'{len(wk)}')
+check('B1  wrk_zed.py is 75 lines (post T2 +1 import +1 decorator + the 2 docstrings in the cascade pass)', len(wk) == 75, f'{len(wk)}')
 check('B2  __all__ = ["wrk_zed"] (L42)', wk[41] == "__all__ = ['wrk_zed']")
-check('B3  T2 DONE: pydantic import (L32) + factory decorated (L70) + def (L71)',
+check('B3  T2 DONE: pydantic import (L32) + factory decorated (L72) + def (L73)',
       wk[31] == 'from pydantic import validate_call, ConfigDict'
-      and wk[69] == '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
-      and wk[70] == 'def wrk_zed() -> Worker:')
-check('B4  no cache_manager import (by design: no disk caching, L49 comment)',
+      and wk[71] == '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
+      and wk[72] == 'def wrk_zed() -> Worker:')
+check('B4  no cache_manager import (by design: no disk caching, L50 comment)',
       'cache_manager' not in '\n'.join(wk)
-      and 'ZED computation is very fast (vectorized math), so we compute it on the fly without disk caching.' in wk[48])
-check('B5  _up sets ctx.y2z / z2y / z / zed_checksum (L53-56)',
-      wk[52] == '    ctx.y2z = zed_obj.y2z' and wk[53] == '    ctx.z2y = zed_obj.z2y'
-      and wk[54] == '    ctx.z = zed_obj.z' and wk[55] == '    ctx.zed_checksum = zed_checksum')
-check('B6  _down clears ALL FOUR attributes to None (L64-67)',
-      wk[63] == '    ctx.y2z = None' and wk[64] == '    ctx.z2y = None'
-      and wk[65] == '    ctx.z = None' and wk[66] == '    ctx.zed_checksum = None')
-check('B7  Worker name is "ZED" (L73)', wk[72] == '    return Worker("ZED", _up, _down)')
+      and 'ZED computation is very fast (vectorized math), so we compute it on the fly without disk caching.' in wk[49])
+check('B5  _up sets ctx.y2z / z2y / z / zed_checksum (L54-57)',
+      wk[53] == '    ctx.y2z = zed_obj.y2z' and wk[54] == '    ctx.z2y = zed_obj.z2y'
+      and wk[55] == '    ctx.z = zed_obj.z' and wk[56] == '    ctx.zed_checksum = zed_checksum')
+check('B6  _down clears ALL FOUR attributes to None (L66-69)',
+      wk[65] == '    ctx.y2z = None' and wk[66] == '    ctx.z2y = None'
+      and wk[67] == '    ctx.z = None' and wk[68] == '    ctx.zed_checksum = None')
+check('B7  Worker name is "ZED" (L75)', wk[74] == '    return Worker("ZED", _up, _down)')
 check('B8  T8 DONE: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(wk) if l != l.rstrip()} == {6, 11, 16, 21})
 
 # ---------------------------------------------------------------- C tier
 tc = lines_of('test/test_wrk_zed.py')
-check('C1  test_wrk_zed.py is 165 lines (post T1/T4/T5; D-130: the tier note adds a header line)', len(tc) == 165, f'{len(tc)}')
-check('C2  2 classes: TestZedFunFactory (L64, 1 test) + TestLMWorkerZed (L80, 2 tests)',
-      tc[63] == 'class TestZedFunFactory(unittest.TestCase):'
-      and tc[79] == 'class TestLMWorkerZed(unittest.TestCase):'
+check('C1  test_wrk_zed.py is 160 lines (post T1/T4/T5 + the cascade pass: 1 bare-# + import os + comment rejoins)', len(tc) == 160, f'{len(tc)}')
+check('C2  2 classes: TestZedFunFactory (L61, 1 test) + TestLMWorkerZed (L77, 2 tests)',
+      tc[60] == 'class TestZedFunFactory(unittest.TestCase):'
+      and tc[76] == 'class TestLMWorkerZed(unittest.TestCase):'
       and sum(1 for l in tc if l.startswith('    def test_')) == 3)
-check('C3  T1 DONE: import os (L46) + the db_long_gate idiom in setUp (L87, D-130) + paths import (L59)',
-      tc[45] == 'import os'
-      and tc[86] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
-      and tc[58] == 'from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
+check('C3  the db_long_gate idiom in setUp (L83) + paths import (L56) + NO os import (dead, dropped in the cascade pass)',
+      'import os' not in tc
+      and tc[82] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
+      and tc[55] == 'from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
       and 'from test.reversi.tags import db_long_gate' in '\n'.join(tc))
-check('C4  header CLAIMS the gate (L38-40, D-130 tier wording) — the claim is NOW true (ties to C3)',
-      'a live regab DB + LONG=1 is required;' in tc[37]
-      and 'SKIP_REGAB_DB=1' in tc[38] and 'skips the DB-gated tests' in tc[38]
-      and 'VLONG=1 implies LONG, see test.reversi.tags' in tc[39])
-check('C5  T4 DONE: TemporaryDirectory FIRST (L95) under CUSTOM_TMP_BASE + tmp_dir = Path (L96) + WORKSPACE_ROOT json (L97)',
-      tc[94] == '        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))'
-      and tc[95] == '        self.tmp_dir = Path(self._tmp.name)'
-      and tc[96] == '        self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")')
+check('C4  header CLAIMS the gate (L37-38, D-130 tier wording) — the claim is NOW true (ties to C3)',
+      'a live regab DB + LONG=1 is required;' in tc[36]
+      and 'SKIP_REGAB_DB=1 skips the DB-gated tests' in tc[36]
+      and 'VLONG=1 implies LONG, see test.reversi.tags' in tc[37])
+check('C5  T4 DONE: TemporaryDirectory FIRST (L90) under CUSTOM_TMP_BASE + tmp_dir = Path (L91) + WORKSPACE_ROOT json (L92)',
+      tc[89] == '        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))'
+      and tc[90] == '        self.tmp_dir = Path(self._tmp.name)'
+      and tc[91] == '        self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")')
 check('C6  T4 DONE: no dead imports — no shutil, Path is load-bearing (Path(self._tmp.name))',
-      'import shutil' not in '\n'.join(tc) and tc[53] == 'from pathlib import Path'
+      'import shutil' not in '\n'.join(tc) and tc[50] == 'from pathlib import Path'
       and '\n'.join(tc).count('Path(') == 1)
 check('C7  step pins (re-pinned: DESIGN_MTR = 8, ZED = 9)',
-      tc[103] == "        self.rlm.move_to_step('DESIGN_MTR')" and tc[104] == '        self.assertEqual(self.rlm.current_step, 8)'
-      and tc[126] == "        self.rlm.move_to_step('ZED')" and tc[127] == '        self.assertEqual(self.rlm.current_step, 9)')
-check('C8  goldens: logit_clipping 0.03 (L117), y (10,) int8 (L121), z (10,) float32 (L137-146)',
-      tc[116] == '        expected_logit_clipping = 0.03'
-      and tc[120] == '        expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)'
-      and tc[136] == '        expected_z = np.array([0.5734375,'
-      and tc[145] == '                               0.5146875], dtype=np.float32)')
+      tc[98] == "        self.rlm.move_to_step('DESIGN_MTR')" and tc[99] == '        self.assertEqual(self.rlm.current_step, 8)'
+      and tc[121] == "        self.rlm.move_to_step('ZED')" and tc[122] == '        self.assertEqual(self.rlm.current_step, 9)')
+check('C8  goldens: logit_clipping 0.03 (L112), y (10,) int8 (L116), z (10,) float32 (L132-141)',
+      tc[111] == '        expected_logit_clipping = 0.03'
+      and tc[115] == '        expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)'
+      and tc[131] == '        expected_z = np.array([0.5734375,'
+      and tc[140] == '                               0.5146875], dtype=np.float32)')
 check('C9  T5 DONE: test_down_clears_zed_attributes — move(8), step 8, DESIGN_MTR name, 4 assertIsNone',
-      tc[149] == '    def test_down_clears_zed_attributes(self):'
-      and tc[154] == '        self.rlm.move_to_step(8)'
-      and tc[155] == '        self.assertEqual(self.rlm.current_step, 8)'
-      and tc[156] == "        self.assertEqual(self.rlm.current_worker_name, 'DESIGN_MTR')"
-      and tc[157:161] == ['        self.assertIsNone(self.rlm.context.y2z)',
+      tc[144] == '    def test_down_clears_zed_attributes(self):'
+      and tc[149] == '        self.rlm.move_to_step(8)'
+      and tc[150] == '        self.assertEqual(self.rlm.current_step, 8)'
+      and tc[151] == "        self.assertEqual(self.rlm.current_worker_name, 'DESIGN_MTR')"
+      and tc[152:156] == ['        self.assertIsNone(self.rlm.context.y2z)',
                           '        self.assertIsNone(self.rlm.context.z2y)',
                           '        self.assertIsNone(self.rlm.context.z)',
                           '        self.assertIsNone(self.rlm.context.zed_checksum)'])
@@ -209,7 +209,7 @@ try:
         rlm01.move_to_step(6)
     # (D12 _down live (step 6, 4 attrs None) deleted at D-106 step
     #  3, class c: test_down_clears_zed_attributes pins exactly this
-    #  scope — the 4 assertIsNone at L157-160)
+    #  scope — the 4 assertIsNone at L153-156)
 finally:
     tmp.cleanup()
 
