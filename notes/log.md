@@ -2996,3 +2996,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (enable default FALSE, il fixture non lo abilita — nessun rlmwf\_03). Reflow: no-op già canone.
   Probe 18 check verdi. Suite flat 1115/0/24 (full-chain 9/0/1, lo skip è il VLONG-gated). Restano 2
   coppie: wrk\_zed, wrk\_vld\_positions.
+- D-509 (wrk\_su\_analysis, un solo D — side pass): sorgente 90 -> 97: i 2 docstring mancanti
+  (\_up/\_down), il factory normalizzato (era in forma deviota 2 righe: “Factory function that
+  returns the SU\_ANALYSIS worker / instance.” — il wrap non serviva, 67 char in una riga), e lo
+  \_\_all\_\_ portato a 3 blank lines (corpus style — era a 2). Test 301 -> 274: il header 2 bare # + il
+  titolo con “module” (deviazione D-500), il MODULE DOCSTRING di 10 righe rimosso (ridondante col
+  blocco header; il corpus non ne ha), le 2 docstring pesanti compresse (\_make\_ctx 7 -> 4, la
+  classe VLONG 9 -> 4). Source doc 62 -> 63: header in canone (step 3), i 4 riferimenti a tag D
+  tolti (D-288 x3 + D-291 — i fatti restano), la claim “~100 lines” tolta. Test doc: la claim del
+  runner corretta (il predecessore è il suite hlp\_su\_analysis, non hlp\_anova — verificato nel
+  runner). Il modulo era il più pulito della cascata: zero ws, zero long lines, import clean, suite
+  completa (10 test: 9 no-DB + 1 VLONG, il down pinned). Probe: zero re-pin (44 check, 0 mismatch —
+  A1/A4/A5 non toccati). Reflow ultimo. Suite flat 1115/0/24. Restano 2 coppie: wrk\_zed,
+  wrk\_vld\_positions.

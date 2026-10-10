@@ -121,7 +121,8 @@ define the evaluation function.
   false TOP-20 report claim dropped); wrk\_positions the D-507 side pass (the 9 M3-leftover ws-lines swept + the 5
   over-120 code lines split — the f-string tuple lesson — + the 2 D-tags dropped); wrk\_save the D-508 pass (the only
   module with no dedicated test file by design — coverage: the 18-check probe + the 9-test full-chain — + the stale
-  step-18 claim corrected to 19); the 2 remaining worker pairs: wrk\_zed, wrk\_vld\_positions.
+  step-18 claim corrected to 19); wrk\_su\_analysis the D-509 side pass (the cleanest module — the module docstring
+  dropped + the 4 D-tag refs dropped); the 2 remaining worker pairs: wrk\_zed, wrk\_vld\_positions.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

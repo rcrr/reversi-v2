@@ -1323,3 +1323,20 @@ D-508 | 2026-10-07 | The wrk\_save source + mirror-doc pass (side pass; the thir
          post-pass. The reflow was a no-op (already canonical — my D-144 comment rewrite was pre-joined). No cell change
          (there is no wrk\_save cell), suite flat 1115/0/24 (the full-chain 9/0/1: the skip is the VLONG-gated A2050
          test). Two worker pairs now remain: wrk\_zed, wrk\_vld\_positions.
+
+D-509 | 2026-10-07 | The wrk\_su\_analysis source + test + mirror-docs pass (side pass): (1) source 90 -> 97: the 2
+         missing docstrings added (`_up` / `_down`), the factory docstring normalized (it was the deviant 2-line wrapped
+         form — the 67-char one-line fit, the wrap was a leftover), and the `__all__` block brought from 2 to 3 blank
+         lines (the corpus style, as in every other worker). (2) test 301 -> 274: the header's 2 bare '#' collapsed to 1
+         + the title's 'module' word dropped (the wrk\_final\_log\_print deviation family), the 10-line MODULE docstring
+         dropped (redundant with the 'How to run' header block; no corpus test file has a module docstring), the
+         `_make_ctx` 7-line and the VLONG scale-class 9-line docstrings compressed to 4. (3) the source mirror doc 62 ->
+         63: the header canon (the 3rd active level, step 3), the 4 D-tag references dropped (D-288 x3 + D-291 x2 — the
+         binio/signature facts kept, the tags gone), the 'the worker is ~100 lines' claim dropped (the cascade praxis).
+         (4) the test mirror doc 41 -> 41: the runner claim corrected — the suite sits between the hlp\_su\_analysis
+         logic suite and the POSITIONS worker test (the doc cited the `hlp_anova` module; verified against
+         `run_utests.sh`). (5) the cleanest module of the cascade: 0 ws lines, 0 long lines, all imports used, the suite
+         complete (10 tests: the 9 no-DB mock-ctx + the VLONG 1e7; the down is pinned by `test_down_clears`, so R-850 is
+         exempt — no micro-test). (6) the probe: zero re-pins (44 checks, 0 mismatches post-pass; the worker pins
+         A1/A4/A5 are untouched by these edits). Reflow last (canonical on both files). No cell change (10/0/1/1/0),
+         suite flat 1115/0/24.
