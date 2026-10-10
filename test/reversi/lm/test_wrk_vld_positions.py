@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to run the wrk_vld_positions unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -35,19 +34,16 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required;
-#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_vld_positions
 #
 
 import unittest
-import os
 import tempfile
 from types import SimpleNamespace
 
-import numpy as np
 import numpy.testing as nptest
 
 from unittest.mock import patch
@@ -70,17 +66,15 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab — all the tests need the
-        # live regab DB (the setUp moves to GENERATE, which runs the whole
-        # positions chain on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — all the tests need the live regab DB (the setUp
+        # moves to GENERATE, which runs the whole positions chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
@@ -93,8 +87,7 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 0)
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
 
-        # Move to GENERATE first, as VLD_POSITIONS sits after it in
-        # the pipeline.
+        # Move to GENERATE first, as VLD_POSITIONS sits after it in the pipeline.
         self.rlm.move_to_step('GENERATE')
         self.assertEqual(self.rlm.current_step, 12)
         self.assertEqual(self.rlm.current_worker_name, 'GENERATE')
@@ -116,8 +109,8 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 13)
         self.assertEqual(self.rlm.current_worker_name, 'VLD_POSITIONS')
 
-        # Verify the cache files were actually created on disk (the rlmwf_11
-        # slot — the flat closure {prefix}{level:02}_{worker_name}.dat)
+        # Verify the cache files were actually created on disk (the rlmwf_13 slot — the flat closure
+        # {prefix}{level:02}_{worker_name}.dat)
         cache_file = Path(self.tmp_dir) / 'rlmwf_13_VLD_POSITIONS.dat'
         checksum_file = Path(self.tmp_dir) / 'rlmwf_13_VLD_POSITIONS.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
@@ -128,8 +121,8 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         logs = self.mock_stdout.getvalue()
         self.assertIn("Executing heavy computation", logs)
 
-        # Verify the context was updated (the rlm_02 validation golden:
-        # bid [8], status CMS+CMR, the shared ec 20 → 200 positions)
+        # Verify the context was updated (the rlm_02 validation golden: bid [8], status CMS+CMR, the
+        # shared ec 20 → 200 positions)
         self.assertEqual(len(self.rlm.context.vld_positions), 200)
         self.assertEqual(self.rlm.context.vld_positions.dtype.names,
                          ("mover", "opponent"))
@@ -195,22 +188,18 @@ class TestLMWorkerVldPositions(unittest.TestCase):
 
 
 class TestIsCacheConsistentOverride(unittest.TestCase):
-    """Unit semantics of the VLD_POSITIONS is_cache_consistent override.
-
-    The worker reuses wrk_positions.is_cache_consistent and
-    must pass the validation_data_set bid/status explicitly (the
-    no-override call would compare against the TRAINING
-    regab_data_set params). SimpleNamespace stand-ins for the
-    context and the cached rds — no DB, so this class runs under
-    SKIP_REGAB_DB=1 too.
-
-    probe_rules.md §4: converted from the
-    verify_vld_positions.py D2-D7 probe."""
+    """
+    Unit semantics of the VLD_POSITIONS is_cache_consistent override (no DB — runs under
+    SKIP_REGAB_DB=1): the 6 branches of the probe's D2-D7. SimpleNamespace stand-ins for the context
+    and the cached rds. The worker must pass the validation bid/status explicitly (a bare call
+    compares against the TRAINING params).
+    """
 
     def _ctx(self):
-        """An rlm_02-shaped context: training bid [6, 7] /
-        ["CMR", "CMS"], validation bid [8] / ["CMS", "CMR"], shared
-        ec 20, tst_regab @ localhost:5432."""
+        """
+        An rlm_02-shaped context: training bid [6, 7] / ["CMR", "CMS"], validation bid [8] / ["CMS",
+        "CMR"], shared ec 20, tst_regab @ localhost:5432.
+        """
         conn = SimpleNamespace(dbname="tst_regab", user="tst_regab",
                                host="localhost", port=5432, password="x")
         vld = SimpleNamespace(bid=[8], status=["CMS", "CMR"])
@@ -247,34 +236,31 @@ class TestIsCacheConsistentOverride(unittest.TestCase):
                                           bid=[8], status=["CMS", "CMR"]), False)
 
     def test_no_override_uses_training_cfg(self):
-        """No override -> the TRAINING cfg params are used (they differ
-        from the vld rds -> False): the worker must pass bid/status
-        explicitly."""
+        """
+        No override -> the TRAINING cfg params are used (they differ from the vld rds -> False): the
+        worker must pass bid/status explicitly.
+        """
         self.assertIs(is_cache_consistent(self._ctx(), self._rds()), False)
 
 
 class TestVldIndependenceCheck(unittest.TestCase):
-    """The validation independence check (LOG ONLY, no action).
-
-    The VLD_POSITIONS worker counts how many validation records are
-    also present in the training data set and logs the trace.
-    There is no threshold/quality parameter family — the pipeline
-    keeps the record and takes no action."""
+    """
+    The validation independence check (log-only): how many validation records are also in the
+    training set. No threshold, no quality gate, no raise (0% and 100% both traced).
+    """
 
     @classmethod
     def setUpClass(cls):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate — the train chain runs on the live
-        # regab DB (the vld extraction too).
+        # The SKIP_REGAB_DB gate — the train chain runs on the live regab DB (the vld extraction too).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
 
@@ -283,8 +269,8 @@ class TestVldIndependenceCheck(unittest.TestCase):
                                 fixture),
                             verbosity=Verbosity.HIGH,
                             base_dir_override=self.tmp_dir)
-        # VLD_POSITIONS sits after GENERATE in the pipeline:
-        # the whole train chain must have populated ctx.positions.
+        # VLD_POSITIONS sits after GENERATE in the pipeline: the whole train chain must have
+        # populated ctx.positions.
         rlm.move_to_step('GENERATE')
         self.assertEqual(rlm.current_step, 12)
         return rlm
@@ -296,22 +282,30 @@ class TestVldIndependenceCheck(unittest.TestCase):
             self._tmp.cleanup()
 
     def test_zero_overlap_is_traced(self):
-        """rlm_02: train bid 6,7 / vld bid 8 — the production fixtures
-        are disjoint: 0 of 200, no action (the chain continues)."""
+        """
+        rlm_02: train bid 6,7 / vld bid 8 — the production fixtures are disjoint: 0 of 200, no
+        action (the chain continues).
+        """
         rlm = self._machine('rlm_02.json')
         rlm.move_to_step('VLD_POSITIONS')
         self.assertEqual(len(rlm.context.vld_positions), 200)
         logs = self.mock_stdout.getvalue()
-        self.assertIn("Validation independence check: [OVERLAP: 0 of 200 validation records], [PERCENT: 0.00%] — records present in both the validation and the training data sets (log only, no action).", logs)
+        self.assertIn(
+            "Validation independence check: [OVERLAP: 0 of 200 validation records], [PERCENT: 0.00%] — "
+            "records present in both the validation and the training data sets (log only, no action).", logs)
 
     def test_full_overlap_is_traced_not_raised(self):
-        """rlm_00: train and vld are the same bid 8 extraction — 100%
-        overlap is TRACED, not raised (the check is log-only)."""
+        """
+        rlm_00: train and vld are the same bid 8 extraction — 100% overlap is TRACED, not raised
+        (the check is log-only).
+        """
         rlm = self._machine('rlm_00.json')
         rlm.move_to_step('VLD_POSITIONS')
         self.assertEqual(len(rlm.context.vld_positions), 200)
         logs = self.mock_stdout.getvalue()
-        self.assertIn("Validation independence check: [OVERLAP: 200 of 200 validation records], [PERCENT: 100.00%] — records present in both the validation and the training data sets (log only, no action).", logs)
+        self.assertIn(
+            "Validation independence check: [OVERLAP: 200 of 200 validation records], [PERCENT: 100.00%] — "
+            "records present in both the validation and the training data sets (log only, no action).", logs)
 
 
 if __name__ == '__main__':

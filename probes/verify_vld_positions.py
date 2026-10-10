@@ -86,11 +86,9 @@ check("A5 no dead imports (the file delegates extraction to wrk_positions.extrac
       and "regab_load_data_set_from_file" in wk_src
       and "regab_store_data_set_to_file" in wk_src)
 _vld_ws = ws_lines("src/reversi/lm/wrk_vld_positions.py")
-check("A6 the 3 ws-only lines are gone; the only remaining code ws line is the "
-      "import-block line (the M3 house scope, as in lm_worker_positions)",
-      len(_vld_ws) == 1
-      and lines("src/reversi/lm/wrk_vld_positions.py")[_vld_ws[0] - 1].strip()
-      == "regab_load_data_set_from_file,",
+check("A6 no code ws lines (the import-block line swept in the cascade "
+      "formatting pass, as in wrk_positions)",
+      _vld_ws == [],
       f"lines {_vld_ws}")
 check("A7 reuses extract_and_prepare + is_cache_consistent from wrk_positions "
       "(D-143: the vld compute path is the shared extract-and-prepare; "
