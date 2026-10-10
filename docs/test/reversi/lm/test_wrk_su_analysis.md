@@ -36,6 +36,6 @@ VLONG 1e7 scale test) / no database.
 
 ## Integration
 
-- Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 3 worker position: between the hlp_anova
-  data module and the POSITIONS worker).
+- Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 3 worker position: between the
+  hlp\_su\_analysis logic suite and the POSITIONS worker test).
 - The worker (wrk_su_analysis) is registered at step 3 by the 19-level wiring (the 19 levels, the rlmwf_03 slot).

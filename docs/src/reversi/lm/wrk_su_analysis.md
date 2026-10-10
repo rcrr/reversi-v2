@@ -1,12 +1,12 @@
 # reversi/lm/wrk_su_analysis.py
-The SU_ANALYSIS worker (the SU level, step 3) — the level ORCHESTRATION SKELETON (the wrk_design_matrix
-minimalism): the enable guard (the disabled path logs and publishes None on the ctx — the ANOVA level's graceful
-degradation input), the CACHED corpus (phase 1, the expensive part — the cache_manager load-or-compute flow
-over the hlp callbacks, the ctx.use_cache gate; the hlp owns the binio I/O (D-288) + the consistency signature
-over the FeatureSet domain hash (D-291)), the statistics (phase 2 — the hlp, cheap, recomputed on EVERY run
-including the cache hit), and the ctx publication (the corpus frequency tables for the ANOVA level, the
-adherence, step 6). ALL the analysis logic lives in hlp_su_analysis.py (its mirror: the corpus engine, the
-binio layout, the signature, the statistics kernels).
+The SU_ANALYSIS worker of the LM pipeline — the 3rd active level (step 3): the level ORCHESTRATION SKELETON
+(the wrk_design_matrix minimalism): the enable guard (the disabled path logs and publishes None on the
+ctx — the ANOVA level's graceful degradation input), the CACHED corpus (phase 1, the expensive part — the
+cache_manager load-or-compute flow over the hlp callbacks, the ctx.use_cache gate; the hlp owns the binio
+I/O + the consistency signature over the FeatureSet domain hash), the statistics (phase 2 — the hlp, cheap,
+recomputed on EVERY run including the cache hit), and the ctx publication (the corpus frequency tables for
+the ANOVA level, the adherence, step 6). ALL the analysis logic lives in hlp_su_analysis.py (its mirror:
+the corpus engine, the binio layout, the signature, the statistics kernels).
 
 ## API
 
@@ -20,16 +20,17 @@ binio layout, the signature, the statistics kernels).
 
 - The skeleton: the wrk owns the LEVEL (the enable, the cache flow, the publication, the failure recovery); the hlp
   owns the LOGIC (the corpus, the binio I/O, the signature, the statistics) — the wrk_design_matrix split. The
-  worker is ~100 lines: no csv, no hashlib, no numpy, no analysis kernel.
+  worker: no csv, no hashlib, no numpy, no analysis kernel.
 - The two-tier flow: phase 1 (the corpus) is CACHED (the expensive part — the 1e7 corpus is ~18 s cold); phase 2
   (the statistics) is RECOMPUTED on every run (the cheap part — the cache hit runs the full statistics over the
   loaded tables), so the report always reflects the current spec.
-- The cache file: the rlmwf_03_SU_ANALYSIS.dat (the hlp binio, D-288: the header + the signature block + the
-  marginal + the joint, the LZ4) + the .SHA3-256 sidecar (the cache_manager, the 1 MiB-chunk verify).
-- The consistency signature (the hlp): the FeatureSet domain hash (the set's unique identifier, D-291) +
+- The cache file: the rlmwf_03_SU_ANALYSIS.dat (the hlp binio: the header + the signature block + the marginal
+  + the joint, the LZ4) + the .SHA3-256 sidecar (the cache_manager, the 1 MiB-chunk verify).
+- The consistency signature (the hlp): the FeatureSet domain hash (the set's unique identifier) +
   the generation spec (the seed, the total_positions,
   the ec, the generator version su-corpus-5, the PRNG version mt19937-64) + the su_pairs. A pair-list change
-  invalidates the corpus cache → a full regeneration. The old pickle caches self-invalidate (the D-288 R2 path).
+  invalidates the corpus cache → a full regeneration. The old pickle caches self-invalidate (the format-version
+  check).
 
 ## Verified invariants
 

@@ -44,10 +44,17 @@ if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
 
+
 __all__ = ['wrk_su_analysis']
 
 
+
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the SU_ANALYSIS level: the enable guard (opt-in), the CACHED corpus through the
+    cache_manager load-or-compute flow, the phase-2 statistics, and the ctx publication (the corpus
+    frequency tables for the ANOVA level).
+    """
     cfg_fa = ctx.cfg.su_analysis
     if not cfg_fa.enable:
         ctx.log_event(Relevance.INFO,
@@ -78,6 +85,7 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
+    """Clear the su_analysis_tables attribute (the failure recovery)."""
     ctx.log_event(Relevance.INFO,
                   "Clearing the su_analysis_tables attribute.")
     ctx.su_analysis_tables = None
@@ -85,6 +93,5 @@ def _down(ctx: "LMContext") -> None:
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_su_analysis() -> Worker:
-    """Factory function that returns the SU_ANALYSIS worker
-    instance."""
+    """Return the SU_ANALYSIS worker instance."""
     return Worker("SU_ANALYSIS", _up, _down)
