@@ -3080,3 +3080,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   al reflow di 3 file sono PRE-ESISTENTI (misurato sulle versioni HEAD: gli stessi 13/6/1 docstring
   prima delle mie modifiche — nessuna rule prescrive il fixpoint del reflow per wsutils).
   Post-sweep: i 5 tool leggeri ri-esecuiti GREEN, scan statico pulito. Suite intatta: 1115/0/24.
+- **Chiusura della sessione**: con questo si chiudono gli sweep di D-513 (le 24 probes) e D-514 (i 7
+  tool di wsutils), entrambi in un solo D per scelta di Roberto; suite 1115/0/24, tutti i probe e
+  tutti i tool green. Aperti: il re-review del register e il testo della guard rule R-200 (entrambi
+  a chiamata di Roberto).
