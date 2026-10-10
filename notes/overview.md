@@ -123,7 +123,8 @@ define the evaluation function.
   module with no dedicated test file by design — coverage: the 18-check probe + the 9-test full-chain — + the stale
   step-18 claim corrected to 19); wrk\_su\_analysis the D-509 side pass (the cleanest module — the module docstring
   dropped + the 4 D-tag refs dropped); wrk\_validate the D-510 side pass (the class docstring's wrong cache slot
-  corrected, rlmwf\_12 -> 14 + the 3 D-150 tags dropped); the 2 remaining worker pairs: wrk\_zed, wrk\_vld\_positions.
+  corrected, rlmwf\_12 -> 14 + the 3 D-150 tags dropped); wrk\_vld\_positions the D-511 side pass (the 5 over-120 code
+  lines + the 13th wrong cache slot corrected + the probe A6 re-pin); only wrk\_zed remains (the last worker pair).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

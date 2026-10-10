@@ -1360,3 +1360,26 @@ D-510 | 2026-10-07 | The wrk\_validate source + test + mirror-docs pass (side pa
          the probe: zero re-pins (18 checks, all green post-pass; A2 pins the decorator+def adjacency and A9 the 4
          assignment counts — both untouched). R-850 exempt: `test_down_clears_vld_metrics` pins the down (9-test suite.
          Reflow last (canonical on both files). No cell change (9/0/0/0/0), suite flat 1115/0/24.
+
+D-511 | 2026-10-07 | The wrk\_vld\_positions source + test + mirror-doc + probe pass (the second of the last two worker
+         pairs closes; only wrk\_zed remains): (1) source 130 -> 141: the 2 missing docstrings added (`_up` / `_down`),
+         the factory first line normalized to the imperative, the 5 over-120 code lines split byte-identically (L70 via
+         the PARENTHESESIZED LAMBDA BODY so the A8 pinned call text `is_cache_consistent`(ctx, `cached_vld_rds`,
+         bid=..., status=...) stays intact; L80 195, L95 180, L112 229, L118 135), the single import-block ws line
+         swept, and the 4 D-tag refs dropped from the comments (D-282 + D-100 M1 in the ec-root note block; D-143
+         twice). (2) test 318 -> 312: the header's 2 bare '#' collapsed to 1, the 2 dead imports dropped (os + numpy as
+         np — nptest is used, np is not), and the thirteenth wrong cache slot of the cascade (after wrk\_validate's
+         12 -> 14): the comment said 'the `rlmwf_11` slot' but the file is `rlmwf_13`; corrected. The 2 class docstrings
+         compressed (the 'probe\_rules.md §4: converted from the D2-D7 probe' provenance gone, the division-of-labor
+         kept) and the 2 over-200 assertIn lines split into two adjacent literals (byte-identical messages). (3) the
+         source mirror doc 93 -> 93: the header canon (the 13th active level, step 13), the D-282 tag dropped, the PROBE
+         COUNT CORRECTED 18 -> 17 (measured: A1-A8 + B4/B5 + C3a-d + C4 + D1/D8), the stale 'import-block trailing ws
+         stays, as in wrk\_positions' convention line dropped (the line is swept here and wrk\_positions was swept
+         by D-507), and the 2 spurious spaces fixed. (4) the test mirror doc needed NO fix (the most accurate of the
+         cascade: 11 tests matching the cell, the D2-D7 = the 6 migrated override branches, 'retains only C3a-C3d + C4
+         for the live-DB tier' verified against the real probe). (5) ONE probe re-pin — A6: it pinned exactly 1
+         remaining code-ws line (the import line, 'the M3 house scope, as in lm\_worker\_positions' — that cited file is
+         already clean since D-507); re-pinned to zero (`_vld_ws` == []) with the label updated. Zero other re-pins
+         (A1-A5/A7/A8 untouched; no line-count or factory-docstring pins; the C tier pins the log messages at runtime —
+         the splits are byte-identical). R-850 exempt: `test_down_clears_vld_positions_attributes` pins the down in the
+         11-test suite. Reflow last (canonical on both files). No cell change (11/0/0/0/0), suite flat 1115/0/24.
