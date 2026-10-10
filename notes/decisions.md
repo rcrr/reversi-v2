@@ -1429,3 +1429,25 @@ D-513 | 2026-10-07 | The full probes sweep (one D for the whole sweep, per the u
          contents, not comments), the PEP 563 future imports. Post-sweep: all 24 probes re-run green; the static scan is
          clean (0 over-120, 0 E301, 0 SyntaxWarning). The suite is untouched (the probes are outside it): flat
          1115/0/24.
+
+D-514 | 2026-10-07 | The full wsutils sweep (one D for the whole sweep, per the user's call): all 7 tools in wsutils/
+         (2.164 lines) audited and the house hygiene applied in 4 files. (1) Functionality: every tool runs green (exit
+         0) — the 5 light ones in check mode (docs\_format\_audit, notes\_lint, overview\_audit, notes\_format,
+         src\_reflow — all reports clean) and the 2 heavy ones re-run (measure\_suite -> build/tmp/test\_durations.txt:
+         1115 tests, 24 skipped; suite\_audit -> the scratch/ measurement, every module green). The
+         wsutils/hooks/pre-commit script exists, is tracked, and proves itself at every checkin (it rejected the red
+         notes commits during the sweeps). (2) the 3 E301 spots in src\_reflow.py fixed (the top-level defs
+         docstring\_nodes / reflow\_comments / transform with exactly 1 blank line). (3) the 2 over-120 lines in
+         notes\_lint.py split (the DPSPACE f-string messages at 125/124 into wrapped v.append calls). (4) the wsutils.md
+         §3 header gaps closed: the explicit SAFETY section added to notes\_format.py (the DEFAULT is a report, the
+         passed files rewritten ONLY with --write after the per-file verification) and the SAFETY line added to
+         docs\_format\_audit.py (writes nothing — a read-only report); the Origin/ORIGIN case normalized in the 3 files
+         using the older form (notes\_format, docs\_format\_audit, notes\_lint — the other 4 tools already used ORIGIN,
+         the §3 label). Non-findings verified and left: the 5 src\_reflow 'E261' hits are false positives (2 docstring
+         usage examples, 3 comment texts containing a hash), zero dead imports across all 7 files, the 3 tools that
+         never call sys.exit have a single implicit exit code (nothing to document — §2.2 is satisfied by the documented
+         USAGE), the naming is §4-clean (`snake_case` nouns, no `verify_` prefix), and the pre-existing
+         non-reflow-canonical docstrings in 3 files were MEASURED on the HEAD versions (the same 13/6/1 docstrings
+         before the edits — my changes shifted line counts only): no rule mandates the reflow fixpoint for wsutils
+         files, so they are left as historical house style. Post-sweep: the 5 light tools re-run green, the static scan
+         clean (0 over-120, 0 E301). The suite is untouched (the tools are outside it): flat 1115/0/24.

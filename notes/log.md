@@ -3064,3 +3064,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   label (i probe sono fuori R-540), gli E261 (contenuto di stringhe, non commenti), gli import PEP
   563. Post-sweep: tutti i 24 probe ri-esecuiti GREEN, scan statico pulito (0 over-120, 0 E301, 0
   SyntaxWarning). Suite intatta: 1115/0/24.
+- D-514 (sweep di WSUTILS, un solo D): audit dei 7 tool (2.164 righe) — **tutti e 7 funzionanti**
+  (exit 0): i 5 leggeri in check mode (docs\_format\_audit, notes\_lint, overview\_audit,
+  notes\_format, src\_reflow — tutti i report verdi) e i 2 pesanti ri-eseguiti (measure\_suite →
+  build/tmp/test\_durations.txt con 1115 test + 24 skip; suite\_audit → le misure in scratch/, tutti
+  i moduli verdi). Fix applicate (4 file): le 3 E301 di src\_reflow (i def top-level
+  docstring\_nodes/reflow\_comments/transform con 1 sola blank line), le 2 long lines di notes\_lint
+  (i messaggi f-string DPSPACE a 125/124 — split nell'append), **il completamento degli header §3**:
+  la sezione SAFETY mancante aggiunta a notes\_format (default = report, write solo con --write) e
+  la riga SAFETY a docs\_format\_audit (writes nothing) — più la normalizzazione Origin → ORIGIN nei
+  3 file che usavano la forma vecchia (notes\_format, docs\_format\_audit, notes\_lint; gli altri 4
+  tool già ORIGIN). Non-found verificati: i 5 E261 di src\_reflow sono falsi positivi (2 esempi
+  d'uso nella docstring + 3 commenti che contengono #), zero import morti in tutti e 7, i 3 tool
+  senza sys.exit hanno un solo exit implicito (niente da documentare), e i docstring non canonicali
+  al reflow di 3 file sono PRE-ESISTENTI (misurato sulle versioni HEAD: gli stessi 13/6/1 docstring
+  prima delle mie modifiche — nessuna rule prescrive il fixpoint del reflow per wsutils).
+  Post-sweep: i 5 tool leggeri ri-esecuiti GREEN, scan statico pulito. Suite intatta: 1115/0/24.
