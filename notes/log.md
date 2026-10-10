@@ -2981,3 +2981,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   intatti; solo il comment di A6 aggiornato). R-850: esente, il \_down è pinned a runtime dall'A3.
   Reflow ultimo. Suite flat 1115/0/24 (cella 12/0/0/0/0 invariata). Restano 3 coppie: da wrk\_zed a
   wrk\_save.
+- D-508 (wrk\_save, un solo D — side pass, è anche l'ultima delle 3 coppie “restanti”): sorgente 66
+  -> 72: i 2 docstring mancanti (\_up/\_down), il factory normalizzato, i 2 E301 (una sola blank
+  line tra i top-level defs), il tag D-144 tolto dal comment della provenance (il WHY resta; i pin
+  D-144 del probe sono marker dei label su model\_weights — intoccati, i marker nei probe sono
+  legittimi). **Novità di struttura**: il modulo NON ha un file di test dedicato (né
+  test\_wrk\_save.py né il suo mirror doc — verificato: nessun file della suite lo menziona,
+  l'overview non ha la test-row) — la copertura è di design: il probe verify\_save (18 check) + il
+  suite full-chain (9 test), documentato nel source doc; R-850 esente (il full-chain pinna le
+  semantiche di \_down — artifact persistence — come division of labor). Source doc 91 -> 92: la
+  claim “66 lines.” tolta, la claim STANTIA “runs to step 18 (move\_to\_last, PLOT)” corretta a step
+  19 (il test asserisce current\_step == 19), l'enumerazione degli slot no-cache completata (/19),
+  header in canone. Fedeltà verificata: i 6 cache-hits sono esatti perché SU\_ANALYSIS è opt-in
+  (enable default FALSE, il fixture non lo abilita — nessun rlmwf\_03). Reflow: no-op già canone.
+  Probe 18 check verdi. Suite flat 1115/0/24 (full-chain 9/0/1, lo skip è il VLONG-gated). Restano 2
+  coppie: wrk\_zed, wrk\_vld\_positions.

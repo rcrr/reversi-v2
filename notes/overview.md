@@ -119,8 +119,9 @@ define the evaluation function.
   docstrings + the R-850 down micro-test — first cell change, 4/0/0, suite 1115 — + the 11 probe re-pins); wrk\_plot
   the D-506 side pass (the broken license header restored + the R-760 mkdtemp to TemporaryDirectory conversion + the
   false TOP-20 report claim dropped); wrk\_positions the D-507 side pass (the 9 M3-leftover ws-lines swept + the 5
-  over-120 code lines split — the f-string tuple lesson — + the 2 D-tags dropped); the 3 remaining worker pairs:
-  wrk\_zed, wrk\_vld\_positions, wrk\_save.
+  over-120 code lines split — the f-string tuple lesson — + the 2 D-tags dropped); wrk\_save the D-508 pass (the only
+  module with no dedicated test file by design — coverage: the 18-check probe + the 9-test full-chain — + the stale
+  step-18 claim corrected to 19); the 2 remaining worker pairs: wrk\_zed, wrk\_vld\_positions.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

@@ -1302,3 +1302,24 @@ D-507 | 2026-10-07 | The wrk\_positions source + test + mirror-doc + probe pass 
          comprehensive (the round-trip, the 7 in-memory semantics, the 3 policy tests). (5) the probe: zero re-pins (no
          line-count, factory, or import pins; all 21 checks still pass). Reflow last (canonical on both files). No cell
          change (12/0/0/0/0), suite flat 1115/0/24.
+
+D-508 | 2026-10-07 | The wrk\_save source + mirror-doc pass (side pass; the third of the then-remaining three worker
+         pairs): (1) source 66 -> 72: the 2 missing docstrings added (`_up` / `_down`), the factory first line
+         normalized to the imperative, the 2x E301 fixed (a single blank line between the top-level defs -> 2), and
+         the D-144 campaign tag dropped from the provenance comment (the WHY kept; the D-144 markers in the probe are
+         `model_weights` label markers, legitimate — R-540 does not cover probes). (2) The structural finding: the
+         module has NO dedicated test file — neither test\_wrk\_save.py nor its mirror doc exists (verified: no suite
+         file mentions it, the overview has no test row, the suite audit has no cell). The coverage is by design: the
+         18-check verify\_save probe (the only wrk\_save pins are A1-A3: the factory, no pathlib, 0 ws-lines) + the
+         9-test full-chain suite (2 ungated + 3 v2 micro + 4 DB-gated, A2050 VLONG-gated). R-850 exempt: the full chain
+         pins the `_down` artifact-persistence semantics (the base-dir listing after a chain), documented as the
+         division of labor in the source doc. (3) the source mirror doc 91 -> 92: the '66 lines.' line-count claim
+         dropped, the stale '19-worker chain runs to step 18 (move\_to\_last, PLOT)' line corrected to step 19
+         (`FINAL_LOG_PRINT` — the test asserts `current_step == 19`), the non-cache slot enumeration completed (/19
+         added), and the header canon. (4) the fidelity verifications that PASSED: the 'exactly 6 cache hits' is correct
+         because SU\_ANALYSIS is opt-in (the SuAnalysisConfig enable default is FALSE, the rlm\_04 fixture has no
+         su\_analysis key — no rlmwf\_03 materializes; the 6 files are 04/05/07/08/12/13), the 18-check / 9-test counts,
+         the provenance-inside-the-model-file, the persistence subset. (5) the probe: zero re-pins, all 18 checks green
+         post-pass. The reflow was a no-op (already canonical — my D-144 comment rewrite was pre-joined). No cell change
+         (there is no wrk\_save cell), suite flat 1115/0/24 (the full-chain 9/0/1: the skip is the VLONG-gated A2050
+         test). Two worker pairs now remain: wrk\_zed, wrk\_vld\_positions.
