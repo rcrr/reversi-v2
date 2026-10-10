@@ -3027,3 +3027,22 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   ws-line residua (la riga import, “as in lm\_worker\_positions” — il file citato è già pulito) —
   re-pinnato a 0 (\_vld\_ws == []). Reflow ultimo. Suite flat 1115/0/24 (cella 11/0/0/0/0). Resta 1
   coppia: wrk\_zed.
+- D-512 (wrk\_zed, un solo D — CHIUDE L'ULTIMA COPPIA, la cascata worker è COMPLETA): sorgente 73 ->
+  75: i 2 docstring mancanti (\_up/\_down, one-line), il factory normalizzato — il sorgente più
+  pulito dopo su\_analysis (import tutti usati, zero ws, zero long lines, no tag D). Test 165 ->
+  160: il header 2 bare #, l'import os morto, e il comment stantio “Pin the \_down clearing
+  (live-verified, probe D12)” — D12 è stato CANCELLATO dal probe al D-106 (il comment del probe lo
+  dice: “deleted at D-106 … test\_down\_clears\_zed\_attributes pins exactly this scope”) —
+  riferimento corretto. Source doc 62 -> 62: header in canone (step 9), i claim di line-count
+  aggiornati ai nuovi count (73 -> 75, 165 -> 160), lo spazio spuro in stat\_model.logit\_clipping
+  fixato. Test doc: zero fix. Il re-pin più pesante della cascata: il probe verify\_zed.py (51
+  check, il più rigido) ha pin assoluti densi su entrambi i file — B1 73 -> 75, B3-B7 gli indici
+  rk[i] re-pinnati (+1/+2 per i 2 docstring), C1 165 -> 160, C2-C9 tutti i ~20 indici tc[i]
+  ricalcolati programmaticamente sul file post-edit (bare # + os + i rejoin dei comment del reflow —
+  il reflow ha riunito anche il comment header in 2 righe, C4 ricostruito). Caso interessante: C3
+  pinnavano la PRESENZA dell'import os morto (“T1 DONE: import os (L46)…”) — re-pinnato in ASSENZA
+  (“NO os import (dead, dropped in the cascade pass)”), coerente con lo scopo dichiarato del check
+  (“no dead imports”). Il comment interno del probe (“4 assertIsNone at L157-160”) aggiornato a
+  L153-156. Tier A/F/G intatti (hlp\_zed + test\_hlp\_zed non toccati). Reflow ultimo (src era già
+  canonical; test 165 -> 160). Suite flat 1115/0/24 (cella 3/0/0/0/0). Restano 0 coppie: la cascata
+  worker è completa (tutti i moduli worker passati).

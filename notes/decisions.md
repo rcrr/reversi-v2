@@ -1383,3 +1383,26 @@ D-511 | 2026-10-07 | The wrk\_vld\_positions source + test + mirror-doc + probe 
          (A1-A5/A7/A8 untouched; no line-count or factory-docstring pins; the C tier pins the log messages at runtime —
          the splits are byte-identical). R-850 exempt: `test_down_clears_vld_positions_attributes` pins the down in the
          11-test suite. Reflow last (canonical on both files). No cell change (11/0/0/0/0), suite flat 1115/0/24.
+
+D-512 | 2026-10-07 | The wrk\_zed source + test + mirror-doc + probe pass (the LAST worker pair — the worker cascade is
+         now COMPLETE, every worker module passed): (1) source 73 -> 75: the 2 missing docstrings added (one-line `_up`
+         / `_down`), the factory first line normalized to the imperative; the cleanest source of the cascade after
+         wrk\_su\_analysis (all imports used, zero ws, zero long lines, no D-tags, no bare returns). (2) test 165 ->
+         160: the header's 2 bare '#' collapsed to 1, the dead `import os` dropped, and the stale comment corrected —
+         'Pin the \_down clearing (live-verified, probe D12)': D12 was DELETED from the probe at D-106 (the probe's own
+         note says 'D12 \_down live … deleted at D-106 … test\_down\_clears\_zed\_attributes pins exactly this scope');
+         the reference now reads 'the live-verified D12 scope, now in the suite'. (3) the source mirror doc 62 -> 62:
+         the header canon (the 9th active level, step 9), the line-count claims updated to the re-pinned counts (73 ->
+         75, 165 -> 160), the spurious space in stat\_model.logit\_clipping fixed. (4) the test mirror doc needed NO fix
+         (2 classes / 3 tests matching the cell, the goldens, the conventions, no line-count claims). (5) the heaviest
+         probe re-pin of the cascade (verify\_zed.py, 51 checks — the strictest probe): dense absolute index pins on
+         BOTH files. B1 73 -> 75; B3-B7 index re-pins (+1/+2 for the 2 docstrings, labels updated); C1 165 -> 160; C2-C9
+         all ~20 absolute tc[i] indices RECOMPUTED PROGRAMMATICALLY on the post-edit file (the bare-# + the os drop +
+         the reflow comment rejoins — the reflow also rejoined the header comment into 2 lines, C4 rebuilt accordingly).
+         The interesting case: C3 pinned the PRESENCE of the dead `import os` as a structural fact ('T1 DONE: import os
+         (L46) …') — re-pinned as an ABSENCE pin ('NO os import (dead, dropped in the cascade pass)'), matching the
+         check's declared no-dead-imports purpose. The probe's internal note ('the 4 assertIsNone at L157-160') updated
+         to L153-156. The A/F/G tiers untouched (the hlp\_zed + test\_hlp\_zed files are not touched). R-850 exempt:
+         test\_down\_clears\_zed\_attributes pins the down (4 attrs None + step 8 + DESIGN\_MTR name) in the 3-test
+         suite. Reflow last (the source was already canonical; the test 165 -> 160). No cell change (3/0/0/0/0), suite
+         flat 1115/0/24.
