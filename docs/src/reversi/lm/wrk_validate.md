@@ -1,6 +1,7 @@
 # reversi/lm/wrk_validate.py
-The VALIDATE worker — the 14th step. A non-cache worker (like FEATURES, ANOVA, ZED, GRADIENT): no `cache_manager`
-wiring at all — no load-or-compute cycle, no `is_allowed` switch, no cache file (the level is recomputed on every
+The VALIDATE worker of the LM pipeline — the 14th active level (step 14). A non-cache worker (like FEATURES,
+ANOVA, ZED, GRADIENT): no `cache_manager` wiring at all — no load-or-compute cycle,
+no `is_allowed` switch, no cache file (the level is recomputed on every
 up-move, so the rlmwf_14 slot stays unused). The machine contract: `_up` publishes the validation outputs — the 7-key
 metrics dict plus the published series and records — and logs the metric block and the top-20 extreme-residual report;
 `_down` clears the four attributes.
@@ -36,7 +37,7 @@ Pinned by the `probes/verify_validate.py` sweep + `test_wrk_validate.py`.
   import, NO numpy import, NO cache_manager import, `_up` publishing the four attributes, `_down` clearing exactly them,
   `Worker("VALIDATE", _up, _down)`, no non-comment trailing-whitespace lines.
 - The live rlm_02 flow (probe C-tier + the worker suite): the full pipeline through VALIDATE (no crash), the 7 metric
-  goldens, the log lines (incl. "RMSE/MAE: 1.27" — the docstring indicator is 1.253), NO rlmwf_14* file (probe C5), and
+  goldens, the log lines (incl. "RMSE/MAE: 1.27"), NO rlmwf_14* file (probe C5), and
   the second instance: identical metrics (a deterministic recompute) + no DB re-extraction + exactly 6 "Cache
   successfully loaded and validated" hits (the 6 cache_manager levels).
 - The report: the header + exactly 20 "vld position" lines, the |residual| non-increasing down the list, and the

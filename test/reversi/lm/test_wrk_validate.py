@@ -25,7 +25,6 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 #
-#
 # How to run the wrk_validate unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -44,7 +43,6 @@
 import math
 import re
 import unittest
-import os
 import tempfile
 from types import SimpleNamespace
 
@@ -66,25 +64,21 @@ from reversi.board import Position
 
 
 class TestLMWorkerValidate(unittest.TestCase):
-    """Tests the VALIDATE worker integration and exact values using rlm_02.json.
-
-    The VALIDATE level is pure compute (no cache file — the rlmwf_12 slot
-    stays unused), so the metrics are recomputed on every run; the
-    second-instance test pins that recomputation as deterministic.
+    """
+    The VALIDATE worker integration (rlm_02.json): the 7-metric goldens, the log lines, the
+    deterministic recompute (no cache file — the rlmwf_14 slot stays unused), and the _down scope.
     """
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need
-        # the live regab DB (the setUp moves to VLD_POSITIONS, which runs
-        # the whole training chain on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need the live regab DB (the
+        # setUp moves to VLD_POSITIONS, which runs the whole training chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
@@ -104,11 +98,11 @@ class TestLMWorkerValidate(unittest.TestCase):
             self._tmp.cleanup()
 
     def test_validate_model_goldens(self):
-        """First run to VALIDATE: the 7-metric dict + the INFO log lines.
+        """
+        First run to VALIDATE: the 7-metric dict + the INFO log lines.
 
-        Goldens: rlm_02 live (bid [8] validation vs the bid [6,7]
-        training model), derived independently, not read back from
-        the worker output.
+        Goldens: rlm_02 live (bid [8] validation vs the bid [6,7] training model), derived
+        independently, not read back from the worker output.
         """
         self.assertIsNone(self.rlm.context.vld_metrics)
 
@@ -141,9 +135,10 @@ class TestLMWorkerValidate(unittest.TestCase):
         self.assertIn("  RMSE/MAE: 1.27", logs)
 
     def test_second_instance_deterministic(self):
-        """A second instance on the same base dir recomputes identical metrics
-        (VALIDATE has no cache file) while the 6 cache_manager levels hit and
-        the DB is not re-extracted."""
+        """
+        A second instance on the same base dir recomputes identical metrics (VALIDATE has no cache
+        file) while the 6 cache_manager levels hit and the DB is not re-extracted.
+        """
         self.rlm.move_to_step('VALIDATE')
         met = self.rlm.context.vld_metrics
         self.assertIsNotNone(met)
@@ -161,10 +156,9 @@ class TestLMWorkerValidate(unittest.TestCase):
         self.assertEqual(rlm2.current_step, 14)
 
         logs = self.mock_stdout.getvalue()
-        # The 6 cache_manager levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR,
-        # GENERATE, VLD_POSITIONS) hit; CONFIG and the OPTIMIZE checkpoint
-        # have their own load flows; FEATURES / ZED / GRADIENT / VALIDATE
-        # have no cache file and recompute.
+        # The 6 cache_manager levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR, GENERATE,
+        # VLD_POSITIONS) hit; CONFIG and the OPTIMIZE checkpoint have their own load flows; FEATURES
+        # / ZED / GRADIENT / VALIDATE have no cache file and recompute.
         self.assertEqual(logs.count("Cache successfully loaded and validated"), 6)
         self.assertNotIn("Extracted", logs,
                          "DB was queried even though a valid cache existed.")
@@ -186,17 +180,17 @@ class TestLMWorkerValidate(unittest.TestCase):
 
 
 class TestValidateModelUnit(unittest.TestCase):
-    """DB-free unit facts for the VALIDATE metric math.
+    """
+    DB-free unit facts for the VALIDATE metric math.
 
-    The checks pin the metric math directly: the hand-computed
-    2-position case and the zero-guard branch. Runs
-    under SKIP_REGAB_DB=1 (no DB)."""
+    The checks pin the metric math directly: the hand-computed 2-position case and the zero-guard
+    branch. Runs under SKIP_REGAB_DB=1 (no DB).
+    """
 
     def _fake_ctx(self, game_values, indexes, offsets, w_dense):
-        # The y2z/z2y lambdas mirror the zed factory (hlp_zed
-        # L80-83/L87-89): the float32 CAST BEFORE the affine (the
-        # real y2z does NOT overflow on int8 64 — a raw (y + 64)
-        # on int8 would wrap to -128).
+        # The y2z/z2y lambdas mirror the zed factory (hlp_zed L80-83/L87-89): the float32 CAST
+        # BEFORE the affine (the real y2z does NOT overflow on int8 64 — a raw (y + 64) on int8
+        # would wrap to -128).
         return SimpleNamespace(
             vld_positions=np.zeros(len(game_values), dtype=np.uint64),
             vld_game_values=np.asarray(game_values, dtype=np.int8),
@@ -210,16 +204,15 @@ class TestValidateModelUnit(unittest.TestCase):
             log_event=lambda rel, msg: None)
 
     def test_full_metric_math_on_hand_computed_case(self):
-        """The full metric math on the hand-computed 2-position case.
+        """
+        The full metric math on the hand-computed 2-position case.
 
-        1 feature / 2 instances, 2 positions. vld_indexes
-        [[0,1],[1,0]] + col_offsets [0,0] -> dense_indices
-        [[0,1],[1,0]]; w_dense [0.5,-0.5] -> linear_predictor
-        [0,0] -> z_pred [0.5,0.5]. y2z(y)=(y+64)/128: game
-        [0,64] -> vld_z [0.5,1.0]; rn_z [0,-0.5]: norm 0.25,
-        loss 0.0625, mse_z 0.125, mae_z 0.25. z2y(z)=128z-64:
-        y_pred [0,0], rn_y [0,-64]: mae_y 32, mse_y 2048,
-        rmse_y sqrt(2048)."""
+        1 feature / 2 instances, 2 positions. vld_indexes [[0,1],[1,0]] + col_offsets [0,0] ->
+        dense_indices [[0,1],[1,0]]; w_dense [0.5,-0.5] -> linear_predictor [0,0] -> z_pred
+        [0.5,0.5]. y2z(y)=(y+64)/128: game [0,64] -> vld_z [0.5,1.0]; rn_z [0,-0.5]: norm 0.25, loss
+        0.0625, mse_z 0.125, mae_z 0.25. z2y(z)=128z-64: y_pred [0,0], rn_y [0,-64]: mae_y 32, mse_y
+        2048, rmse_y sqrt(2048).
+        """
         d = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
                                           [0, 2], [0.5, -0.5])).metrics
         self.assertEqual(d["vld_loss"], 0.0625)
@@ -231,10 +224,11 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual(d["vld_samples"], 2)
 
     def test_validation_result_carries_the_f64_series(self):
-        """validate_model returns the per-position series it is
-        computed from (the single derivation PLOT and CLIENT_CHECK
-        consume), as f64 views: y_pred [0, 0] and rn_y [0, -64] on the
-        hand-computed 2-position case."""
+        """
+        validate_model returns the per-position series it is computed from (the single derivation
+        PLOT and CLIENT_CHECK consume), as f64 views: y_pred [0, 0] and rn_y [0, -64] on the
+        hand-computed 2-position case.
+        """
         r = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
                                           [0, 2], [0.5, -0.5]))
         self.assertIsInstance(r, ValidationResult)
@@ -246,9 +240,10 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual(r.metrics["vld_samples"], 2)
 
     def test_top_outliers_ranking_and_ties(self):
-        """The k largest |residual|, descending, with the
-        STABLE tie-break (the lower index first) — the report's
-        determinism rests on this."""
+        """
+        The k largest |residual|, descending, with the STABLE tie-break (the lower index first) —
+        the report's determinism rests on this.
+        """
         rn = np.array([1.0, -3.0, 2.0, -3.0, 0.5])
         np.testing.assert_array_equal(top_outliers(rn, k=3),
                                       np.array([1, 3, 2]))
@@ -262,22 +257,17 @@ class TestValidateModelUnit(unittest.TestCase):
         rn = np.arange(100, dtype=np.float64) - 50.0
         out = top_outliers(rn)
         self.assertEqual(len(out), 20)
-        # |-50| first, then the |49| tie: the STABLE argsort keeps the
-        # lower index (1) before 99, then |48| at 2
+        # |-50| first, then the |49| tie: the STABLE argsort keeps the lower index (1) before 99,
+        # then |48| at 2
         self.assertEqual([int(x) for x in out[:4]], [0, 1, 99, 2])
 
     def test_up_outlier_report(self):
-        """The top-20 extreme-outlier report, MOVED to VALIDATE:
-        the header + exactly 20 "vld position" lines, in
-        descending |residual| order, and the 20 records published in
-        ctx.vld_outliers.
-
-        The hand-computed ctx: 50 positions, w_dense [0] -> z_pred
-        [0.5] -> y_pred [0] -> rn_y = -gv; the game values run
-        -25..24, so the ranking is |25| (index 0) and then the
-        |24|..|16| pairs, each tie resolved by the STABLE argsort
-        toward the LOWER index: [0, 1, 49, 2, 48, ...] up to the 20th
-        (the |15| pair's lower index, 10)."""
+        """
+        The top-20 extreme-outlier report: the header + exactly 20 "vld position" lines, descending
+        |residual|, the 20 records in ctx.vld_outliers. Hand-computed ctx: 50 positions, w_dense [0]
+        -> y_pred [0] -> rn_y = -gv; game -25..24, the ties resolved by the STABLE argsort toward
+        the LOWER index.
+        """
         n = 50
         ctx = LMContext(config_file_path=Path("dummy.json"))
         ctx.vld_positions = np.zeros(n, dtype=Position)
@@ -315,15 +305,12 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual(ctx.vld_outliers[0]['opponent'], 0)
 
     def test_rmse_mae_line_is_zero_guarded(self):
-        """A perfect Y-space fit (mae_y == 0) must take
-        the worker's zero-guard branch — the n/a ratio line, no
-        ZeroDivisionError.
-
-        game [0,0] -> vld_z [0.5,0.5]; w_dense [0,0] -> z_pred
-        [0.5,0.5] -> y_pred [0,0] -> rn_y 0 -> mae_y 0.0,
-        rmse_y 0.0. (a REAL LMContext: Worker.up is
-        @validate_call-gated with context: Context,
-        state_machine L87-90 — a SimpleNamespace is rejected)"""
+        """
+        A perfect Y-space fit (mae_y == 0) takes the zero-guard branch — the n/a ratio line, no
+        ZeroDivisionError. game [0,0], w_dense [0,0] -> y_pred [0,0] -> rn_y 0 -> mae_y 0.0, rmse_y
+        0.0. (a REAL LMContext: Worker.up is @validate_call-gated with context: Context — a
+        SimpleNamespace is rejected)
+        """
         ctx = LMContext(config_file_path=Path("dummy.json"))
         ctx.vld_positions = np.zeros(2, dtype=Position)
         ctx.vld_game_values = np.asarray([0, 0], dtype=np.int8)

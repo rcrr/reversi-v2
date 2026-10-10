@@ -45,10 +45,9 @@ __all__ = ['wrk_validate']
 
 def _outlier_records(ctx: "LMContext", rn, y_pred, k: int = 20) -> list:
     """
-    The k extreme-residual records, descending by |residual| (the
-    stable argsort, hlp_validate.top_outliers): the position's
-    bitboards + the game value + the fitted value + the residual, as
-    raw values — the D-150 report's data.
+    The k extreme-residual records, descending by |residual| (the stable argsort,
+    hlp_validate.top_outliers): the position's bitboards + the game value + the fitted value + the
+    residual, as raw values — the outlier report's data.
 
     rn / y_pred are the f64 validation series of ValidationResult.
     """
@@ -67,6 +66,10 @@ def _outlier_records(ctx: "LMContext", rn, y_pred, k: int = 20) -> list:
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the VALIDATE level: the model validation (hlp_validate.validate_model), the four published
+    outputs, and the metric block + the top-20 extreme-residual report.
+    """
     ctx.log_event(Relevance.INFO, "Starting model validation...")
 
     result = validate_model(ctx)
@@ -86,9 +89,8 @@ def _up(ctx: "LMContext") -> None:
     else:
         ctx.log_event(Relevance.INFO, "  RMSE/MAE: n/a (vld_mae_y is 0 — perfect Y-space fit)")
 
-    # The top-20 extreme-residual report (the D-150 report: it belongs
-    # to the level that COMPUTES the residuals; the 20 records are
-    # published for the levels that consume them).
+    # The top-20 extreme-residual report: it belongs to the level that COMPUTES the residuals; the
+    # 20 records are published for the levels that consume them.
     ctx.log_event(Relevance.INFO,
                   "Top 20 extreme validation residuals (outlier report):")
     for rank, rec in enumerate(ctx.vld_outliers, 1):
@@ -103,6 +105,7 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
+    """Clear the four validation attributes (the failure recovery)."""
     ctx.log_event(Relevance.INFO, "Clearing validation attributes...")
     ctx.vld_metrics = None
     ctx.vld_y_pred = None
@@ -114,5 +117,5 @@ def _down(ctx: "LMContext") -> None:
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_validate() -> Worker:
-    """Factory function that returns the VALIDATE worker instance."""
+    """Return the VALIDATE worker instance."""
     return Worker("VALIDATE", _up, _down)
