@@ -286,7 +286,9 @@ class TestLBFGSWarmStart(unittest.TestCase):
 
 
 class TestLBFGSInfoContract(unittest.TestCase):
-    """Tests the info dict contract, the history cap, the x0 immutability and the float32 contract."""
+    """
+    Tests the info dict contract, the history cap, the x0 immutability and the float32 contract.
+    """
 
     def __init__(self, *args, **kwargs):
         super(TestLBFGSInfoContract, self).__init__(*args, **kwargs)

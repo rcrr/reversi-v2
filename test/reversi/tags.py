@@ -56,12 +56,12 @@ __all__ = ['db_long_gate', 'tier_vlong', 'tier_vvlong']
 
 
 def db_long_gate(testcase):
-    """Skip the DB-gated (LONG-tier) test when the live regab DB
-    is unavailable or the LONG tier was not requested.
+    """
+    Skip the DB-gated (LONG-tier) test when the live regab DB is unavailable or the LONG tier was
+    not requested.
 
-    LONG=1 enables the tier; VLONG=1 and VVLONG=1 imply it. A
-    no-DB environment (SKIP_REGAB_DB=1) always skips, before
-    the tier check.
+    LONG=1 enables the tier; VLONG=1 and VVLONG=1 imply it. A no-DB environment (SKIP_REGAB_DB=1)
+    always skips, before the tier check.
     """
     no_db = os.getenv('SKIP_REGAB_DB', '0') == '1'
     long_on = os.getenv('LONG', '0') == '1' or tier_vlong()
@@ -72,13 +72,17 @@ def db_long_gate(testcase):
 
 
 def tier_vlong() -> bool:
-    """True when the VLONG tier is on: VLONG=1, or VVLONG=1 (which
-    implies VLONG -> LONG). The LONG instruments gate on this."""
+    """
+    True when the VLONG tier is on: VLONG=1, or VVLONG=1 (which implies VLONG -> LONG). The LONG
+    instruments gate on this.
+    """
     return (os.getenv('VLONG', '0') == '1'
             or tier_vvlong())
 
 
 def tier_vvlong() -> bool:
-    """True when the VVLONG tier is on: VVLONG=1 only (it implies
-    VLONG -> LONG). The VERY-long instruments gate on this."""
+    """
+    True when the VVLONG tier is on: VVLONG=1 only (it implies VLONG -> LONG). The VERY-long
+    instruments gate on this.
+    """
     return os.getenv('VVLONG', '0') == '1'

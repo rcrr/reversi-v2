@@ -258,45 +258,49 @@ class TestFeatureSet(unittest.TestCase):
             feature_set.print_summary(output=buffer)
             actual_output = buffer.getvalue()
 
-        expected_output = """FeatureSet: name = TestFeatureSet, length = 17, hash = f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167
-  Intercept is present.
-  MobilitySet: name = TestMobilitySet, hash = 2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94
-    00 name = ALMC      , mask = 0x0000000000000000, amask = 0xFFFFFFFFFFFFFFFF
-    01 name = LMC       , mask = 0xFFFFFFFFFFFFFFFF, amask = 0x0000000000000000
-    02 name = DLMC      , mask = 0xFFFFFFFFFFFFFFFF, amask = 0xFFFFFFFFFFFFFFFF
-  PatternSet: name = TestPatternSet, hash = ff97ce55dcb0ebc5f4b62272dde7c3ead438b0feec2411fd258f68a7210040ea
-    00 name = 2X5COR    , mask = 0x0000000000001F1F
-    01 name = XEDGE     , mask = 0x00000000000042FF
-    02 name = R2        , mask = 0x000000000000FF00
-    03 name = CORNER    , mask = 0x0000000000070707
-    04 name = R3        , mask = 0x0000000000FF0000
-    05 name = DIAG4     , mask = 0x0000000001020408
-    06 name = R4        , mask = 0x00000000FF000000
-    07 name = DIAG5     , mask = 0x0000000102040810
-    08 name = CORE      , mask = 0x0000001818000000
-    09 name = RCT2X4    , mask = 0x0000003C3C000000
-    10 name = DIAG6     , mask = 0x0000010204081020
-    11 name = DIAG7     , mask = 0x0001020408102040
-    12 name = DIAG8     , mask = 0x0102040810204080
-  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]
-    00 0 INTERCEPT  1          1
-    01 1 ALMC       1         65
-    02 1 LMC        1         65
-    03 1 DLMC       1        129
-    04 2 2X5COR     8     59,049
-    05 2 XEDGE      4     59,049
-    06 2 R2         4      6,561
-    07 2 CORNER     4     19,683
-    08 2 R3         4      6,561
-    09 2 DIAG4      4         81
-    10 2 R4         4      6,561
-    11 2 DIAG5      4        243
-    12 2 CORE       1         81
-    13 2 RCT2X4     2      6,561
-    14 2 DIAG6      4        729
-    15 2 DIAG7      4      2,187
-    16 2 DIAG8      2      6,561
-"""
+        expected_output = (
+            "FeatureSet: name = TestFeatureSet, length = 17, hash ="
+            " f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167\n"
+            "  Intercept is present.\n"
+            "  MobilitySet: name = TestMobilitySet, hash ="
+            " 2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94\n"
+            "    00 name = ALMC      , mask = 0x0000000000000000, amask = 0xFFFFFFFFFFFFFFFF\n"
+            "    01 name = LMC       , mask = 0xFFFFFFFFFFFFFFFF, amask = 0x0000000000000000\n"
+            "    02 name = DLMC      , mask = 0xFFFFFFFFFFFFFFFF, amask = 0xFFFFFFFFFFFFFFFF\n"
+            "  PatternSet: name = TestPatternSet, hash ="
+            " ff97ce55dcb0ebc5f4b62272dde7c3ead438b0feec2411fd258f68a7210040ea\n"
+            "    00 name = 2X5COR    , mask = 0x0000000000001F1F\n"
+            "    01 name = XEDGE     , mask = 0x00000000000042FF\n"
+            "    02 name = R2        , mask = 0x000000000000FF00\n"
+            "    03 name = CORNER    , mask = 0x0000000000070707\n"
+            "    04 name = R3        , mask = 0x0000000000FF0000\n"
+            "    05 name = DIAG4     , mask = 0x0000000001020408\n"
+            "    06 name = R4        , mask = 0x00000000FF000000\n"
+            "    07 name = DIAG5     , mask = 0x0000000102040810\n"
+            "    08 name = CORE      , mask = 0x0000001818000000\n"
+            "    09 name = RCT2X4    , mask = 0x0000003C3C000000\n"
+            "    10 name = DIAG6     , mask = 0x0000010204081020\n"
+            "    11 name = DIAG7     , mask = 0x0001020408102040\n"
+            "    12 name = DIAG8     , mask = 0x0102040810204080\n"
+            "  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]\n"
+            "    00 0 INTERCEPT  1          1\n"
+            "    01 1 ALMC       1         65\n"
+            "    02 1 LMC        1         65\n"
+            "    03 1 DLMC       1        129\n"
+            "    04 2 2X5COR     8     59,049\n"
+            "    05 2 XEDGE      4     59,049\n"
+            "    06 2 R2         4      6,561\n"
+            "    07 2 CORNER     4     19,683\n"
+            "    08 2 R3         4      6,561\n"
+            "    09 2 DIAG4      4         81\n"
+            "    10 2 R4         4      6,561\n"
+            "    11 2 DIAG5      4        243\n"
+            "    12 2 CORE       1         81\n"
+            "    13 2 RCT2X4     2      6,561\n"
+            "    14 2 DIAG6      4        729\n"
+            "    15 2 DIAG7      4      2,187\n"
+            "    16 2 DIAG8      2      6,561\n"
+        )
         self.assertEqual(actual_output, expected_output)
 
     def test_print_summary_none_branches(self):
@@ -305,13 +309,15 @@ class TestFeatureSet(unittest.TestCase):
         with io.StringIO() as buffer:
             feature_set.print_summary(output=buffer)
             actual_output = buffer.getvalue()
-        expected_output = """FeatureSet: name = InterceptOnly, length = 1, hash = ab7c1b64b96fe0fb85350613ac69b258a4442f56c390d7f69e5a070611e14b12
-  Intercept is present.
-  MobilitySet is None.
-  PatternSet is None.
-  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]
-    00 0 INTERCEPT  1          1
-"""
+        expected_output = (
+            "FeatureSet: name = InterceptOnly, length = 1, hash ="
+            " ab7c1b64b96fe0fb85350613ac69b258a4442f56c390d7f69e5a070611e14b12\n"
+            "  Intercept is present.\n"
+            "  MobilitySet is None.\n"
+            "  PatternSet is None.\n"
+            "  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]\n"
+            "    00 0 INTERCEPT  1          1\n"
+        )
         self.assertEqual(actual_output, expected_output)
 
     def test_init_invalid_intercept_category_raises_value_error(self):
@@ -626,7 +632,9 @@ class TestFeatureSetComputeIndexesPerf(unittest.TestCase):
         I = computed_indexes.shape[1]
 
         duration = end - start
-        print(f"\n[PERF FeatureSet.compute_indexes()] Processed {size:,} positions ({I} index instances) in {duration:.4f}s ({(size/duration):,.0f} pos/sec)")
+        print(f"\n[PERF FeatureSet.compute_indexes()] Processed {size:,} positions "
+              f"({I} index instances) in {duration:.4f}s "
+              f"({(size/duration):,.0f} pos/sec)")
 
         # 5. Assert structural properties of the large array
         self.assertEqual(N, size)

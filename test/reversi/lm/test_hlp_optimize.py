@@ -35,8 +35,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (no live regab DB required — pure checkpoint IO
-#     and cache-validation tests, as in test_hlp_gradient).
+# -1- Run the tests (no live regab DB required — pure checkpoint IO and cache-validation tests, as
+# in test_hlp_gradient).
 #
 # time python3 -m unittest test.reversi.lm.test_hlp_optimize
 #
@@ -216,10 +216,10 @@ class TestHlpOptimizeIO(unittest.TestCase):
         self.assertIn("Checkpoint version mismatch: found 2, expected 1", str(cm.exception))
 
     def test_checksum_mismatch_raises(self):
-        """Load verifies the SHA3-256 sidecar; a mismatched sidecar is
-        rejected. A corrupted CONTENT file trips the LZ4 frame guard
-        first — a different guard, caught by the worker rather than
-        propagated."""
+        """
+        Load verifies the SHA3-256 sidecar; a mismatched sidecar is rejected. A corrupted CONTENT
+        file trips the LZ4 frame guard first — a different guard, caught by the worker rather than propagated.
+        """
         sidecar = self.filepath.parent / (self.filepath.name + ".SHA3-256")
         sidecar.write_text("deadbeef" * 8 + "\n", encoding="ascii")
         with self.assertRaises(RuntimeError) as cm:
@@ -227,8 +227,7 @@ class TestHlpOptimizeIO(unittest.TestCase):
         self.assertIn("Checkpoint checksum mismatch", str(cm.exception))
 
     def test_file_golden_hash(self):
-        """The deterministic checkpoint bytes have a pinned SHA3-256
-        (the LZ4-compressed frame)."""
+        """The deterministic checkpoint bytes have a pinned SHA3-256 (the LZ4-compressed frame)."""
         h = hashlib.sha3_256(self.filepath.read_bytes()).hexdigest()
         self.assertEqual(h, "2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978633f")
 
@@ -337,8 +336,10 @@ class TestHlpOptimizeStatusConverged(unittest.TestCase):
         self.assertTrue(is_optimization_status_converged(self.ctx, cp))
 
     def test_judged_against_new_tolerance(self):
-        """The stored g_norm is judged against the CURRENT min_grad
-        (a looser tolerance accepts a checkpoint that was not converged before)."""
+        """
+        The stored g_norm is judged against the CURRENT min_grad (a looser tolerance accepts a
+        checkpoint that was not converged before).
+        """
         self.ctx = _mock_ctx(ridge=0.01, min_grad=(1e-2, 3))
         self.assertTrue(is_optimization_status_converged(self.ctx, self._cp(5e-3)))
 

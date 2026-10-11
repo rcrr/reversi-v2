@@ -302,7 +302,8 @@ class HeaderTest(unittest.TestCase):
 
 
 class _OneByteAtATime:
-    """A minimal file-object surrogate whose read(n) yields at most one byte per call (exercises the
+    """
+    A minimal file-object surrogate whose read(n) yields at most one byte per call (exercises the
     short-read stitching in _read_exact).
     """
 
@@ -366,8 +367,9 @@ class FramingTest(unittest.TestCase):
 
 
 class LayoutGoldenTest(unittest.TestCase):
-    """The on-disk byte layout pinned against hand-built bytes: a writer/reader round-trip alone
-    would be self-referential.
+    """
+    The on-disk byte layout pinned against hand-built bytes: a writer/reader round-trip alone would
+    be self-referential.
     """
 
     MAGIC = struct.pack("<I", binio.DEFAULT_MAGIC)

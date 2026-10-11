@@ -117,15 +117,19 @@ class TestChecksumHelpers(BaseCacheTestCase):
         self.temp_path.write_text("Hello, Cache World!")
 
     def test_binio_sidecar_verifies(self):
-        """A sidecar written by binio's own API verifies through the _verify_checksum wrapper — both
-        modules share one sidecar format and one verifier."""
+        """
+        A sidecar written by binio's own API verifies through the _verify_checksum wrapper — both
+        modules share one sidecar format and one verifier.
+        """
         write_sha3_256_sidecar(self.temp_path)
         self.assertTrue(_verify_checksum(self.temp_path))
 
     def test_legacy_bare_hex_sidecar_still_verifies(self):
-        """A legacy bare-hexdigest sidecar (the old format: no filename, no newline) still verifies,
+        """
+        A legacy bare-hexdigest sidecar (the old format: no filename, no newline) still verifies,
         because binio's parser takes the first whitespace-separated token — no cache invalidation
-        for existing on-disk caches."""
+        for existing on-disk caches.
+        """
         checksum_path_for(self.temp_path).write_text(
             compute_sha3_256(self.temp_path)
         )
@@ -136,14 +140,18 @@ class TestChecksumHelpers(BaseCacheTestCase):
         self.assertFalse(_verify_checksum(self.temp_path))
 
     def test_verify_checksum_fails_if_sidecar_mismatched(self):
-        """Verify that a well-formed sidecar holding the WRONG digest fails the verification step
-        (binio compares it against the recomputed hash)."""
+        """
+        Verify that a well-formed sidecar holding the WRONG digest fails the verification step
+        (binio compares it against the recomputed hash).
+        """
         checksum_path_for(self.temp_path).write_text("0" * 64)
         self.assertFalse(_verify_checksum(self.temp_path))
 
     def test_verify_checksum_fails_if_sidecar_malformed(self):
-        """Verify that a malformed sidecar (binio's BinaryFormatError) or an undecodable one
-        (UnicodeDecodeError) maps to False via the wrapper, never to a raised exception."""
+        """
+        Verify that a malformed sidecar (binio's BinaryFormatError) or an undecodable one
+        (UnicodeDecodeError) maps to False via the wrapper, never to a raised exception.
+        """
         checksum_path = checksum_path_for(self.temp_path)
         checksum_path.write_text("not a hex digest at all")
         self.assertFalse(_verify_checksum(self.temp_path))
@@ -172,9 +180,11 @@ class TestChecksumHelpers(BaseCacheTestCase):
         _delete_cache_files(self.temp_path)
 
     def test_sidecar_content_is_binio_format(self):
-        """The sidecar holds binio's sha3_256sum-style line
+        """
+        The sidecar holds binio's sha3_256sum-style line
         "<hexdigest>  <basename>\n" — cache_manager no longer keeps
-        its own bare-hexdigest format (see the module doc)."""
+        its own bare-hexdigest format (see the module doc).
+        """
         write_sha3_256_sidecar(self.temp_path)
         digest = compute_sha3_256(self.temp_path)
         content = checksum_path_for(self.temp_path).read_text()
@@ -203,9 +213,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         path.write_text(str(data))
 
     def test_step0_not_allowed_forces_computation(self):
-        """
-        Step 0: If caching is not allowed, it must compute, store, and return cache_hit=False.
-        """
+        """Step 0: If caching is not allowed, it must compute, store, and return cache_hit=False."""
         self.cache_path.write_text("old data")
 
         cache_hit, result, checksum = cache_manager_load_or_compute(
@@ -577,13 +585,16 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
 
 class TestValidateCallCoercion(unittest.TestCase):
-    """The @validate_call on cache_manager_load_or_compute type-coerces the arguments in pydantic
-    lax mode."""
+    """
+    The @validate_call on cache_manager_load_or_compute type-coerces the arguments in pydantic lax mode.
+    """
 
     def test_str_cache_path_is_coerced_to_path(self):
-        """A str cache_path is coerced to a Path: the inner store_fn callback observes a pathlib
-        Path, and the flow then dies in the framework's sidecar write (FileNotFoundError — the
-        no-op store_fn never created the file)."""
+        """
+        A str cache_path is coerced to a Path: the inner store_fn callback observes a pathlib Path,
+        and the flow then dies in the framework's sidecar write (FileNotFoundError — the no-op
+        store_fn never created the file).
+        """
         seen = []
         with self.assertRaises(FileNotFoundError):
             cache_manager_load_or_compute(

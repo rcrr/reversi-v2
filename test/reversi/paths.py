@@ -33,8 +33,8 @@ __all__ = ['WORKSPACE_ROOT', 'CUSTOM_TMP_BASE']
 
 def _workspace_root() -> Path:
     """
-    Finds the workspace root by walking up from this file's
-    directory until the workspace marker (pyproject.toml) is found.
+    Finds the workspace root by walking up from this file's directory until the workspace marker
+    (pyproject.toml) is found.
     """
     here = Path(__file__).resolve().parent
     for parent in (here, *here.parents):
@@ -43,13 +43,11 @@ def _workspace_root() -> Path:
     raise RuntimeError("workspace root not found: no pyproject.toml upwards from test/reversi/")
 
 
-#: The workspace root: the first ancestor of this file holding the
-#: workspace marker (pyproject.toml) — keyed on the marker, not a
-#: level count, so it survives file moves (the old idiom recomputed
-#: it per test file via Path(__file__).resolve().parents[N]).
+#: The workspace root: the first ancestor of this file holding the workspace marker (pyproject.toml)
+#: — keyed on the marker, not a level count, so it survives file moves (the old idiom recomputed it
+#: per test file via Path(__file__).resolve().parents[N]).
 WORKSPACE_ROOT = _workspace_root()
 
-#: The shared test-artifact base directory (the house rule:
-#: unit tests write files ONLY under <workspace-root>/build/tmp and
-#: clean them up afterwards).
+#: The shared test-artifact base directory (the house rule: unit tests write files ONLY under
+#: <workspace-root>/build/tmp and clean them up afterwards).
 CUSTOM_TMP_BASE = WORKSPACE_ROOT / "build" / "tmp"

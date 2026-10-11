@@ -1,4 +1,5 @@
-"""Unit tests for the reversi package.
+"""
+Unit tests for the reversi package.
 
 Run from the project root:
 

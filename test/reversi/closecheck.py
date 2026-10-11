@@ -56,11 +56,9 @@ import math
 
 __all__ = ['assert_close', 'REL_TOL', 'ABS_TOL']
 
-# The goldens must agree to ~10 significant digits. The measured
-# environment drift is <= 4e-14 relative; a genuine pipeline
-# regression (a wrong feature, wrong samples, a broken reduction)
-# shows up at >= 1e-6, so this leaves ~5 orders of magnitude of
-# detection margin.
+# The goldens must agree to ~10 significant digits. The measured environment drift is <= 4e-14
+# relative; a genuine pipeline regression (a wrong feature, wrong samples, a broken reduction) shows
+# up at >= 1e-6, so this leaves ~5 orders of magnitude of detection margin.
 REL_TOL = 1e-9
 
 # Absolute floor for near-zero values (the small validation losses).
@@ -68,9 +66,10 @@ ABS_TOL = 1e-12
 
 
 def assert_close(testcase, got, want, label=''):
-    """Assert that got is within REL_TOL (relative) / ABS_TOL
-    (absolute) of the golden want, with a descriptive failure
-    message showing the actual relative difference."""
+    """
+    Assert that got is within REL_TOL (relative) / ABS_TOL (absolute) of the golden want, with a
+    descriptive failure message showing the actual relative difference.
+    """
     rel = abs(got - want) / max(abs(want), 1e-300)
     ok = math.isclose(got, want, rel_tol=REL_TOL, abs_tol=ABS_TOL)
     testcase.assertTrue(

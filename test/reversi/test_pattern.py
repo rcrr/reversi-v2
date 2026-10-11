@@ -167,9 +167,11 @@ class TestPattern(unittest.TestCase):
         self.assertEqual(p.snames_t, expected_snames_t)
 
     def test_repr(self):
-        """Golden for the one-line __repr__ summary (same info as the first line of print() — name
-        in repr form, mask as 16-digit lowercase hex). Pattern defines no __str__, so str() falls
-        back to __repr__ (pinned here too)."""
+        """
+        Golden for the one-line __repr__ summary (same info as the first line of print() — name in
+        repr form, mask as 16-digit lowercase hex). Pattern defines no __str__, so str() falls back
+        to __repr__ (pinned here too).
+        """
         p = Pattern('ELLE', Bitboard(0x0000000000000107))
         self.assertEqual(repr(p), "Pattern(name='ELLE', mask=0x0000000000000107)")
         self.assertEqual(str(p),  "Pattern(name='ELLE', mask=0x0000000000000107)")
@@ -189,9 +191,11 @@ class TestPattern(unittest.TestCase):
         self.assertIn("not principal", str(context.exception))
 
     def test_init_rejects_non_minimum_orbit_masks(self):
-        """Masks containing all 4 corners tie for minimal BSR in the whole orbit (all 8 transforms
-        have BSR 63). Only the numerically lowest orbit member is the unique principal: a mask is
-        a 64-bit integer, a bijection with 0..2^64-1, so the orbit minimum is well-defined and unique."""
+        """
+        Masks containing all 4 corners tie for minimal BSR in the whole orbit (all 8 transforms have
+        BSR 63). Only the numerically lowest orbit member is the unique principal: a mask is a
+        64-bit integer, a bijection with 0..2^64-1, so the orbit minimum is well-defined and unique.
+        """
         corners = Bitboard(0x8100000000000081)  # A1 H1 A8 H8
         # + b1 (bit 1) is the numerically lowest of the 8 orbit members.
         p = Pattern('FOURC_B1', corners | Bitboard(0x2))
@@ -205,8 +209,10 @@ class TestPattern(unittest.TestCase):
             self.assertIn("not principal", str(context.exception))
 
 class TestPatternType(unittest.TestCase):
-    """Direct tests of PatternType: from_fingerprint, .data, and the orbit-stabilizer relation
-    n_instances * n_stabilizers = 8."""
+    """
+    Direct tests of PatternType: from_fingerprint, .data, and the orbit-stabilizer relation
+    n_instances * n_stabilizers = 8.
+    """
 
     def test_from_fingerprint_roundtrip_all_members(self):
         self.assertEqual(len(PatternType), 12)
@@ -834,7 +840,8 @@ class TestPatternPack(unittest.TestCase):
             end_time = time.perf_counter()
             duration = end_time - start_time
             positions_per_sec = size / duration
-            print(f"\n[PERF Pattern._pack_bb, pattern={p.name}] Processed {size:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+            print(f"\n[PERF Pattern._pack_bb, pattern={p.name}] Processed {size:,} positions in {duration:.4f}s"
+                  f"({positions_per_sec:,.0f} b/s)")
 
             _ = p._unpack_bb(packed_array[:100])
             start_time = time.perf_counter()
@@ -842,7 +849,8 @@ class TestPatternPack(unittest.TestCase):
             end_time = time.perf_counter()
             duration = end_time - start_time
             positions_per_sec = size / duration
-            print(f"\n[PERF Pattern._unpack_bb, pattern={p.name}] Processed {size:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+            print(f"\n[PERF Pattern._unpack_bb, pattern={p.name}] Processed {size:,} positions in {duration:.4f}s"
+                  f"({positions_per_sec:,.0f} b/s)")
 
 
 class TestPatternSymmetries(unittest.TestCase):
@@ -1144,7 +1152,8 @@ class TestTransformationsCayleyTable(unittest.TestCase):
         self.verify_cayley_table(ar)
 
     def test_cayley_with_multiple_input(self):
-        tcs = [full, empty, sqa1, sqa8, sqh1, sqh8, row_1, row_8, column_a, column_h, half_left, half_right, half_top, half_bottom]
+        tcs = [full, empty, sqa1, sqa8, sqh1, sqh8, row_1, row_8, column_a, column_h, half_left, half_right, half_top,
+               half_bottom]
         for s in tcs:
             self.verify_cayley_table(s)
 
@@ -1194,15 +1203,21 @@ class TestPatternPrint(unittest.TestCase):
             '[Pattern: name = EDGE, mask = 0x00000000000000ff]',
             '  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizers = 2, type = 2]',
             '  Cells:                [A1, B1, C1, D1, E1, F1, G1, H1]',
-            '  Transformed masks:    [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101, 0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101]',
+            '  Transformed masks:    [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000'
+            ', 0x0101010101010101, 0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000'
+            ', 0x0101010101010101]',
             '  Mask indexes:         [0, 1, 2, 3, 0, 1, 2, 3]',
             '  Unique masks:         [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101]',
             '  Unique mask indexes:  [0, 1, 2, 3]',
             '  Transf. functions:    [ro000, ro090, ro180, ro270]',
             '  Anti-transf. f.:      [ro000, ro270, ro180, ro090]',
             '  Symmetry functions:   [fvert]',
-            '  Transformed cells:    [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [63, 62, 61, 60, 59, 58, 57, 56], [56, 48, 40, 32, 24, 16, 8, 0], [7, 6, 5, 4, 3, 2, 1, 0], [63, 55, 47, 39, 31, 23, 15, 7], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
-            '  Transf. sorted cells: [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56], [0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
+            '  Transformed cells:    [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [63, 62, 61'
+            ', 60, 59, 58, 57, 56], [56, 48, 40, 32, 24, 16, 8, 0], [7, 6, 5, 4, 3, 2, 1, 0], [63, 55, 47'
+            ', 39, 31, 23, 15, 7], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
+            '  Transf. sorted cells: [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58'
+            ', 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56], [0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31'
+            ', 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
             '  Fingerprint:          [I0, T1, T2, T3, S0, S1, S2, S3]',
         ]
         expected_output = '\n'.join(expected_output_multiline) + '\n'
@@ -1222,7 +1237,8 @@ class TestPatternMdpCsvFile(unittest.TestCase):
         # Real mdp_record() output of the EDGE pattern.
         self.mock_pattern1.mdp_record.return_value = (
             "EDGE,00000000000000FF,8,6561,4,2,A1:B1:C1:D1:E1:F1:G1:H1,"
-            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101:00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,"
+            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101:00000000000000FF"
+            "8080808080808080:FF00000000000000:0101010101010101,"
             "0:1:2:3:0:1:2:3,00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,0:1:2:3,"
             "ro000:ro090:ro180:ro270,ro000:ro270:ro180:ro090,fvert,"
             "A1:B1:C1:D1:E1:F1:G1:H1,H1:H2:H3:H4:H5:H6:H7:H8,H8:G8:F8:E8:D8:C8:B8:A8,A8:A7:A6:A5:A4:A3:A2:A1,"
@@ -1234,11 +1250,14 @@ class TestPatternMdpCsvFile(unittest.TestCase):
         # Real mdp_record() output of the CORNER pattern.
         self.mock_pattern2.mdp_record.return_value = (
             "CORNER,0000000000070707,9,19683,4,2,A1:B1:C1:A2:B2:C2:A3:B3:C3,"
-            "0000000000070707:0000000000E0E0E0:E0E0E00000000000:0707070000000000:0000000000E0E0E0:E0E0E00000000000:0707070000000000:0000000000070707,"
+            "0000000000070707:0000000000E0E0E0:E0E0E00000000000:0707070000000000:0000000000E0E0E0"
+            "E0E0E00000000000:0707070000000000:0000000000070707,"
             "0:1:2:3:1:2:3:0,0000000000070707:0000000000E0E0E0:E0E0E00000000000:0707070000000000,0:1:2:3,"
             "ro000:ro090:ro180:ro270,ro000:ro270:ro180:ro090,fa1h8,"
-            "A1:B1:C1:A2:B2:C2:A3:B3:C3,H1:H2:H3:G1:G2:G3:F1:F2:F3,H8:G8:F8:H7:G7:F7:H6:G6:F6,A8:A7:A6:B8:B7:B6:C8:C7:C6,"
-            "H1:G1:F1:H2:G2:F2:H3:G3:F3,H8:H7:H6:G8:G7:G6:F8:F7:F6,A8:B8:C8:A7:B7:C7:A6:B6:C6,A1:A2:A3:B1:B2:B3:C1:C2:C3,"
+            "A1:B1:C1:A2:B2:C2:A3:B3:C3,H1:H2:H3:G1:G2:G3:F1:F2:F3,H8:G8:F8:H7:G7:F7:H6:G6:F6,A8:A7:A6:B8:B7"
+            "B6:C8:C7:C6,"
+            "H1:G1:F1:H2:G2:F2:H3:G3:F3,H8:H7:H6:G8:G7:G6:F8:F7:F6,A8:B8:C8:A7:B7:C7:A6:B6:C6,A1:A2:A3:B1:B2"
+            "B3:C1:C2:C3,"
             "I0:T1:T2:T3:S1:S2:S3:S0,3"
         )
 
@@ -1270,7 +1289,9 @@ class TestPatternMdpCsvFile(unittest.TestCase):
 
     @patch("builtins.open", new_callable=mock_open)
     def test_mdp_csv_file_writes_correct_content(self, mock_file):
-        """Verify the file is opened correctly and the exact CSV payload (header + records) is written."""
+        """
+        Verify the file is opened correctly and the exact CSV payload (header + records) is written.
+        """
         # Execute the method under test
         Pattern.mdp_csv_file(self.patterns_list, self.filename)
 
@@ -1358,9 +1379,10 @@ class TestPatternComputeIndexes(unittest.TestCase):
         nptest.assert_array_equal(indexes, expected_array)
 
     def test_compute_indexes_on_position_multiple_positions(self):
-        """T9: array input with DISTINCT positions — every output row must be computed
-        independently. The existing array tests only feed uniform np.full tiles, which cannot
-        catch a row-mixing bug in the 2D kernel path.
+        """
+        T9: array input with DISTINCT positions — every output row must be computed independently.
+        The existing array tests only feed uniform np.full tiles, which cannot catch a row-mixing
+        bug in the 2D kernel path.
 
         EDGE has 4 unique instances (unique_mask_indexes [0,1,2,3]), so output column j is the
         base-3 configuration of row 1 read through the j-th anti-transformation: identity, ro270,
@@ -1393,7 +1415,9 @@ class TestPatternComputeIndexes(unittest.TestCase):
         nptest.assert_array_equal(indexes, expected)
 
     def test_compute_indexes_on_position_2d(self):
-        """T9-N: a (1, 3) position batch gives a (1, 3, 4) index array, element-wise as the 1-D call."""
+        """
+        T9-N: a (1, 3) position batch gives a (1, 3, 4) index array, element-wise as the 1-D call.
+        """
         pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
 
         positions = np.array([
@@ -1413,7 +1437,9 @@ class TestPatternComputeIndexes(unittest.TestCase):
         ], dtype=np.uint32))
 
     def test_compute_indexes_on_position_3d(self):
-        """T9-N: a (3, 1, 1) position batch gives a (3, 1, 1, 4) index array, element-wise as the 1-D call."""
+        """
+        T9-N: a (3, 1, 1) position batch gives a (3, 1, 1, 4) index array, element-wise as the 1-D call.
+        """
         pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
 
         positions = np.array([
@@ -1433,7 +1459,9 @@ class TestPatternComputeIndexes(unittest.TestCase):
         ], dtype=np.uint32))
 
     def test_compute_indexes_on_position_noncontiguous_2d(self):
-        """T9-N: an F-order (1, 3) position batch gives the same (1, 3, 4) values as the C-order call."""
+        """
+        T9-N: an F-order (1, 3) position batch gives the same (1, 3, 4) values as the C-order call.
+        """
         pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
 
         positions = np.asfortranarray(np.array([
@@ -1483,30 +1511,25 @@ class TestPatternComputeIndexes(unittest.TestCase):
         duration = end_time - start_time
         positions_per_sec = N / duration
 
-        print(f"\n[PERF Pattern.compute_indexes_on_position] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+        print(f"\n[PERF Pattern.compute_indexes_on_position] Processed {N:,} positions in {duration:.4f}s"
+              f"({positions_per_sec:,.0f} b/s)")
 
         expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
         expected_array = np.tile(expected_scalar, (N, 1))
         nptest.assert_array_equal(indexes, expected_array)
 
 class TestPatternSet(unittest.TestCase):
-    """
-    The TestPatternSet class contains unit tests for the PatternSet class.
-    """
+    """The TestPatternSet class contains unit tests for the PatternSet class."""
 
     def setUp(self):
-        """
-        Set up the test environment with sample patterns.
-        """
+        """Set up the test environment with sample patterns."""
         self.pattern1 = Pattern('ELLE', Bitboard(0x0000000000000107))
         self.pattern2 = Pattern('SNAKE', Bitboard(0x0000000C30000000))
         self.pattern3 = Pattern('EDGE', Bitboard(0x00000000000000FF))
         self.pattern_set = PatternSet('SamplePatternSet', [self.pattern1, self.pattern2, self.pattern3])
 
     def test_init(self):
-        """
-        Test the initialization of the PatternSet class.
-        """
+        """Test the initialization of the PatternSet class."""
         self.assertEqual(self.pattern_set.name, 'SamplePatternSet')
         self.assertEqual(len(self.pattern_set.patterns), 3)
         self.assertIn(self.pattern1, self.pattern_set.patterns)
@@ -1528,16 +1551,12 @@ class TestPatternSet(unittest.TestCase):
              "Pattern(name='SNAKE', mask=0x0000000c30000000)])")
 
     def test_init_invalid_type_arg_1_raises_validation_error(self):
-        """
-        Test that initializing with a non-string name raises a ValidationError.
-        """
+        """Test that initializing with a non-string name raises a ValidationError."""
         with self.assertRaises(ValidationError):
             PatternSet(1, [self.pattern1, self.pattern2, self.pattern3])
 
     def test_init_invalid_type_arg_2_raises_validation_error(self):
-        """
-        Test that initializing with a non-list patterns raises a ValidationError.
-        """
+        """Test that initializing with a non-list patterns raises a ValidationError."""
         with self.assertRaises(ValidationError):
             PatternSet('SamplePatternSet', 'NOT A LIST')
 
@@ -1549,21 +1568,18 @@ class TestPatternSet(unittest.TestCase):
             PatternSet('SamplePatternSet', [self.pattern1, 'NOT A PATTERN', self.pattern3])
 
     def test_names(self):
-        """
-        Test the names property returns the correct list of pattern names.
-        """
+        """Test the names property returns the correct list of pattern names."""
         expected_names = ['EDGE', 'ELLE', 'SNAKE']
         self.assertEqual(self.pattern_set.names, expected_names)
 
     def test_masks(self):
-        """
-        Test the masks property returns the correct numpy array of pattern masks.
-        """
+        """Test the masks property returns the correct numpy array of pattern masks."""
         expected_masks = np.array([self.pattern3.mask, self.pattern1.mask, self.pattern2.mask], dtype=np.uint64)
         nptest.assert_array_equal(self.pattern_set.masks, expected_masks)
 
     def test_print_summary(self):
-        """The print_summary golden: the pinned hash literal + the one-line-per-pattern format.
+        """
+        The print_summary golden: the pinned hash literal + the one-line-per-pattern format.
 
         The hash is sha3_256 over the raw bytes of the mask-sorted masks (ELLE 0x...107, EDGE
         0x...FF, SNAKE 0x...C30000000); pinning the literal (instead of self.pattern_set.hash) makes
@@ -1587,7 +1603,8 @@ class TestPatternSet(unittest.TestCase):
         self.assertEqual(actual_output, expected_output)
 
     def test_print(self):
-        """The print golden: the pinned hash literal + the set summary + every pattern's detailed report.
+        """
+        The print golden: the pinned hash literal + the set summary + every pattern's detailed report.
 
         The hash is sha3_256 over the raw bytes of the mask-sorted masks (ELLE 0x...107, EDGE
         0x...FF, SNAKE 0x...C30000000); pinning the literal (instead of self.pattern_set.hash) makes
@@ -1600,41 +1617,57 @@ class TestPatternSet(unittest.TestCase):
             '[Pattern: name = EDGE, mask = 0x00000000000000ff]',
             '  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizers = 2, type = 2]',
             '  Cells:                [A1, B1, C1, D1, E1, F1, G1, H1]',
-            '  Transformed masks:    [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101, 0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101]',
+            '  Transformed masks:    [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000'
+            ', 0x0101010101010101, 0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000'
+            ', 0x0101010101010101]',
             '  Mask indexes:         [0, 1, 2, 3, 0, 1, 2, 3]',
             '  Unique masks:         [0x00000000000000FF, 0x8080808080808080, 0xFF00000000000000, 0x0101010101010101]',
             '  Unique mask indexes:  [0, 1, 2, 3]',
             '  Transf. functions:    [ro000, ro090, ro180, ro270]',
             '  Anti-transf. f.:      [ro000, ro270, ro180, ro090]',
             '  Symmetry functions:   [fvert]',
-            '  Transformed cells:    [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [63, 62, 61, 60, 59, 58, 57, 56], [56, 48, 40, 32, 24, 16, 8, 0], [7, 6, 5, 4, 3, 2, 1, 0], [63, 55, 47, 39, 31, 23, 15, 7], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
-            '  Transf. sorted cells: [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56], [0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
+            '  Transformed cells:    [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [63, 62, 61'
+            ', 60, 59, 58, 57, 56], [56, 48, 40, 32, 24, 16, 8, 0], [7, 6, 5, 4, 3, 2, 1, 0], [63, 55, 47'
+            ', 39, 31, 23, 15, 7], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
+            '  Transf. sorted cells: [[0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31, 39, 47, 55, 63], [56, 57, 58'
+            ', 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56], [0, 1, 2, 3, 4, 5, 6, 7], [7, 15, 23, 31'
+            ', 39, 47, 55, 63], [56, 57, 58, 59, 60, 61, 62, 63], [0, 8, 16, 24, 32, 40, 48, 56]]',
             '  Fingerprint:          [I0, T1, T2, T3, S0, S1, S2, S3]',
             '[Pattern: name = ELLE, mask = 0x0000000000000107]',
             '  [n_squares = 4, n_configurations = 81, n_instances = 8, n_stabilizers = 1, type = 0]',
             '  Cells:                [A1, B1, C1, A2]',
-            '  Transformed masks:    [0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103]',
+            '  Transformed masks:    [0x0000000000000107, 0x00000000008080C0, 0xE080000000000000'
+            ', 0x0301010000000000, 0x00000000000080E0, 0xC080800000000000, 0x0701000000000000'
+            ', 0x0000000000010103]',
             '  Mask indexes:         [0, 1, 2, 3, 4, 5, 6, 7]',
-            '  Unique masks:         [0x0000000000000107, 0x00000000008080C0, 0xE080000000000000, 0x0301010000000000, 0x00000000000080E0, 0xC080800000000000, 0x0701000000000000, 0x0000000000010103]',
+            '  Unique masks:         [0x0000000000000107, 0x00000000008080C0, 0xE080000000000000'
+            ', 0x0301010000000000, 0x00000000000080E0, 0xC080800000000000, 0x0701000000000000'
+            ', 0x0000000000010103]',
             '  Unique mask indexes:  [0, 1, 2, 3, 4, 5, 6, 7]',
             '  Transf. functions:    [ro000, ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]',
             '  Anti-transf. f.:      [ro000, ro270, ro180, ro090, fvert, fh1a8, fhori, fa1h8]',
             '  Symmetry functions:   []',
-            '  Transformed cells:    [[0, 1, 2, 8], [7, 15, 23, 6], [63, 62, 61, 55], [56, 48, 40, 57], [7, 6, 5, 15], [63, 55, 47, 62], [56, 57, 58, 48], [0, 8, 16, 1]]',
-            '  Transf. sorted cells: [[0, 1, 2, 8], [6, 7, 15, 23], [55, 61, 62, 63], [40, 48, 56, 57], [5, 6, 7, 15], [47, 55, 62, 63], [48, 56, 57, 58], [0, 1, 8, 16]]',
+            '  Transformed cells:    [[0, 1, 2, 8], [7, 15, 23, 6], [63, 62, 61, 55], [56, 48, 40, 57], [7'
+            ', 6, 5, 15], [63, 55, 47, 62], [56, 57, 58, 48], [0, 8, 16, 1]]',
+            '  Transf. sorted cells: [[0, 1, 2, 8], [6, 7, 15, 23], [55, 61, 62, 63], [40, 48, 56, 57], [5'
+            ', 6, 7, 15], [47, 55, 62, 63], [48, 56, 57, 58], [0, 1, 8, 16]]',
             '  Fingerprint:          [I0, T1, T2, T3, T4, T5, T6, T7]',
             '[Pattern: name = SNAKE, mask = 0x0000000c30000000]',
             '  [n_squares = 4, n_configurations = 81, n_instances = 4, n_stabilizers = 2, type = 1]',
             '  Cells:                [E4, F4, C5, D5]',
-            '  Transformed masks:    [0x0000000C30000000, 0x0000101008080000, 0x0000000C30000000, 0x0000101008080000, 0x000000300C000000, 0x0000080810100000, 0x000000300C000000, 0x0000080810100000]',
+            '  Transformed masks:    [0x0000000C30000000, 0x0000101008080000, 0x0000000C30000000'
+            ', 0x0000101008080000, 0x000000300C000000, 0x0000080810100000, 0x000000300C000000'
+            ', 0x0000080810100000]',
             '  Mask indexes:         [0, 1, 0, 1, 4, 5, 4, 5]',
             '  Unique masks:         [0x0000000C30000000, 0x0000101008080000, 0x000000300C000000, 0x0000080810100000]',
             '  Unique mask indexes:  [0, 1, 4, 5]',
             '  Transf. functions:    [ro000, ro090, fvert, fh1a8]',
             '  Anti-transf. f.:      [ro000, ro270, fvert, fh1a8]',
             '  Symmetry functions:   [ro180]',
-            '  Transformed cells:    [[28, 29, 34, 35], [36, 44, 19, 27], [35, 34, 29, 28], [27, 19, 44, 36], [27, 26, 37, 36], [28, 20, 43, 35], [36, 37, 26, 27], [35, 43, 20, 28]]',
-            '  Transf. sorted cells: [[28, 29, 34, 35], [19, 27, 36, 44], [28, 29, 34, 35], [19, 27, 36, 44], [26, 27, 36, 37], [20, 28, 35, 43], [26, 27, 36, 37], [20, 28, 35, 43]]',
+            '  Transformed cells:    [[28, 29, 34, 35], [36, 44, 19, 27], [35, 34, 29, 28], [27, 19, 44, 36]'
+            ', [27, 26, 37, 36], [28, 20, 43, 35], [36, 37, 26, 27], [35, 43, 20, 28]]',
+            '  Transf. sorted cells: [[28, 29, 34, 35], [19, 27, 36, 44], [28, 29, 34, 35], [19, 27, 36, 44]'
+            ', [26, 27, 36, 37], [20, 28, 35, 43], [26, 27, 36, 37], [20, 28, 35, 43]]',
             '  Fingerprint:          [I0, T1, S0, S1, T4, T5, S4, S5]',
         ]
         expected_output[0] = expected_output[0].format(expected_hash)
@@ -1800,7 +1833,8 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         self.assertEqual(p.principal_index_count, len(unique_principal_indexes_list))
 
     def test_edge_pattern_compute_principal_index_dict(self):
-        """T10: EDGE's 6561-entry principal dict is never pinned directly (CORE pins its 81 entries,
+        """
+        T10: EDGE's 6561-entry principal dict is never pinned directly (CORE pins its 81 entries,
         the others are spot- checked). Pinned here with the full non-circular specification plus
         length, unique count and spot values.
 
@@ -1998,9 +2032,10 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
         nptest.assert_array_equal(computed, expected)
 
     def test_compute_principal_indexes_multiple_positions(self):
-        """T9: array input with DISTINCT positions — every output row must be computed
-        independently. test_large_set feeds uniform np.full tiles and only checks row 0, so a
-        row-mixing bug in the set-level kernel path would be invisible.
+        """
+        T9: array input with DISTINCT positions — every output row must be computed independently.
+        test_large_set feeds uniform np.full tiles and only checks row 0, so a row-mixing bug in the
+        set-level kernel path would be invisible.
 
         Single-pattern set (EDGE): one output column per unique mask
         (4 groups); column g is the principal index of that instance's
@@ -2042,7 +2077,9 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
         nptest.assert_array_equal(principal_indexes, expected)
 
     def test_compute_principal_indexes_2d_positions(self):
-        """T9-N: a (1, 4) position batch gives a (1, 4, 4) index matrix, element-wise as the 1-D call."""
+        """
+        T9-N: a (1, 4) position batch gives a (1, 4, 4) index matrix, element-wise as the 1-D call.
+        """
         pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
 
         positions = np.array([
@@ -2064,7 +2101,9 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
         ], dtype=Index))
 
     def test_compute_principal_indexes_3d_positions(self):
-        """T9-N: a (2, 2, 2) position batch gives a (2, 2, 2, 4) index matrix, element-wise as the 1-D call."""
+        """
+        T9-N: a (2, 2, 2) position batch gives a (2, 2, 2, 4) index matrix, element-wise as the 1-D call.
+        """
         pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
 
         positions = np.array([
@@ -2094,7 +2133,9 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
         ], dtype=Index))
 
     def test_compute_principal_indexes_noncontiguous_2d_positions(self):
-        """T9-N: an F-order (2, 2) position batch gives the same (2, 2, 4) values as the C-order call."""
+        """
+        T9-N: an F-order (2, 2) position batch gives the same (2, 2, 4) values as the C-order call.
+        """
         pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
 
         positions = np.asfortranarray(np.array([
@@ -2136,7 +2177,8 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
         end_time = time.perf_counter()
         duration = end_time - start_time
         positions_per_sec = N / duration
-        print(f"\n[PERF PatternSet.compute_principal_indexes] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+        print(f"\n[PERF PatternSet.compute_principal_indexes] Processed {N:,} positions in {duration:.4f}s"
+              f"({positions_per_sec:,.0f} b/s)")
 
         expected = np.array(self.expected_large_set_principal_indexes, dtype=Index)
         computed = principal_indexes[0]

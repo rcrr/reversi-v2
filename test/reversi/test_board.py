@@ -1061,7 +1061,9 @@ class TestBitboardTransformationRo000(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_3d)
 
     def test_nd_array_noncontiguous_conversion_valid(self):
-        """Transform a non-contiguous (Fortran-order) 2-D array, keeping the shape (the identity)."""
+        """
+        Transform a non-contiguous (Fortran-order) 2-D array, keeping the shape (the identity).
+        """
         input_2d = np.asfortranarray(np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
         expected_2d = np.array(
@@ -1090,7 +1092,9 @@ class TestBitboardTransformationRo090(unittest.TestCase, BaseBitboardTransformat
         ]
 
     def test_nd_array_2d_conversion_valid(self):
-        """Rotate a 2-D array of bitboards, keeping the input shape (the composition of two N-D reflections)."""
+        """
+        Rotate a 2-D array of bitboards, keeping the input shape (the composition of two N-D reflections).
+        """
         input_2d = np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
         expected_2d = np.array(
@@ -1188,7 +1192,9 @@ class TestBitboardTransformationRo270(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_3d)
 
     def test_nd_array_noncontiguous_conversion_valid(self):
-        """Rotate a non-contiguous (Fortran-order) 2-D array by 270 degrees clockwise, keeping the shape."""
+        """
+        Rotate a non-contiguous (Fortran-order) 2-D array by 270 degrees clockwise, keeping the shape.
+        """
         input_2d = np.asfortranarray(np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
         expected_2d = np.array(
@@ -1322,7 +1328,8 @@ class TestBitboardTransformations(unittest.TestCase):
         duration = end_time - start_time
         boards_per_sec = size / duration
 
-        print(f"\n[PERF bitboard_transformations] Processed {size:,} boards in {duration:.4f}s ({boards_per_sec:,.0f} b/s)")
+        print(f"\n[PERF bitboard_transformations] Processed {size:,} boards in {duration:.4f}s"
+              f"({boards_per_sec:,.0f} b/s)")
 
         # Performance output sanity check
         expected_output_seed = bitboard_transformations(fallback_seed)
@@ -1417,7 +1424,8 @@ class TestBitboardAntiTransformations(unittest.TestCase):
         duration = end_time - start_time
         boards_per_sec = size / duration
 
-        print(f"\n[PERF bitboard_anti_transformations] Processed {size:,} boards in {duration:.4f}s ({boards_per_sec:,.0f} b/s)")
+        print(f"\n[PERF bitboard_anti_transformations] Processed {size:,} boards in {duration:.4f}s"
+              f"({boards_per_sec:,.0f} b/s)")
 
         # Performance output sanity check
         expected_output_seed = bitboard_anti_transformations(fallback_seed)
@@ -2358,8 +2366,10 @@ class TestPositionLegalMoves(unittest.TestCase):
             (0x003078f8eb523810, 0x780c0706142c0400, 0x060300010000420a), # 087
             (0x780c0700142c0400, 0x003078ffeb523810, 0x00c080000081c368), # 088
             (0x002070fae8503810, 0x781c0f05172f0400, 0x0603000000004302), # 089
-            (0xFFFFFFFFFFFFFFFF, 0x0000000000000000, 0x0000000000000000), # 090 full mover board: no empty square, no move
-            (0x0000000000000000, 0xFFFFFFFFFFFFFFFF, 0x0000000000000000), # 091 empty mover vs full opponent board: no move
+            # 090 full mover board: no empty square, no move
+            (0xFFFFFFFFFFFFFFFF, 0x0000000000000000, 0x0000000000000000),
+            # 091 empty mover vs full opponent board: no move
+            (0x0000000000000000, 0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
             (0x78180705172f0400, 0x022478fae8503810, 0x04c2800000804068), # 090
             (0x020458eae0503810, 0x787827151f2f0400, 0x0483000000004306), # 091
             (0x78782511172f0400, 0x02055aeee8503810, 0x058280000080c028), # 092
@@ -2443,7 +2453,8 @@ class TestPositionLegalMoves(unittest.TestCase):
         end = time.perf_counter()
 
         duration = end - start
-        print(f"\n[PERF position_legal_moves] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
+        print(f"\n[PERF position_legal_moves] Processed {size:,} boards in {duration:.4f}s"
+              f"({(size/duration):,.0f} boards/sec)")
 
         expected_lms = np.full(size, 0x8000000000000000, dtype=Bitboard)
         nptest.assert_array_equal(lms, expected_lms)
@@ -2965,8 +2976,10 @@ class TestPositionFlips(unittest.TestCase):
                                                       positions[i]['mover'])))
 
     def test_position_flips_2d_valid(self):
-        """A (1, 2) PositionArray with a (1, 2) move array gives (1, 2) outputs, element-wise as the
-        scalar calls (a legal flip move and a PASS)."""
+        """
+        A (1, 2) PositionArray with a (1, 2) move array gives (1, 2) outputs, element-wise as the
+        scalar calls (a legal flip move and a PASS).
+        """
         positions = make_position(np.array([0x0000000000000001, 0x1], dtype=Bitboard),
                                   np.array([0x0040201008040200, 0x2], dtype=Bitboard))
         moves = np.array([[0x8000000000000000, 0]], dtype=Bitboard)
@@ -2982,8 +2995,10 @@ class TestPositionFlips(unittest.TestCase):
             self.assertTrue(position_eq(updated[0, i], su))
 
     def test_position_flips_3d_valid(self):
-        """A (2, 1, 2) PositionArray with a (2, 1, 2) move array gives (2, 1, 2) outputs,
-        element-wise as the scalar calls (one legal flip move and three PASSes)."""
+        """
+        A (2, 1, 2) PositionArray with a (2, 1, 2) move array gives (2, 1, 2) outputs, element-wise
+        as the scalar calls (one legal flip move and three PASSes).
+        """
         positions = make_position(
             np.array([[[0x0000000000000001, 0x2]],
                       [[0x0040201008040200, 0x8]]], dtype=Bitboard),
@@ -3018,7 +3033,9 @@ class TestPositionFlips(unittest.TestCase):
         np.testing.assert_array_equal(updated, c_updated)
 
     def test_position_flips_empty_2d_valid(self):
-        """An empty (0, 2) PositionArray with an empty (0, 2) move array gives empty (0, 2) outputs."""
+        """
+        An empty (0, 2) PositionArray with an empty (0, 2) move array gives empty (0, 2) outputs.
+        """
         positions = np.zeros((0, 2), dtype=Position)
         moves = np.zeros((0, 2), dtype=Bitboard)
 
@@ -3086,7 +3103,8 @@ class TestPositionFlips(unittest.TestCase):
         end = time.perf_counter()
 
         duration = end - start
-        print(f"\n[PERF position_flips] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
+        print(f"\n[PERF position_flips] Processed {size:,} boards in {duration:.4f}s"
+              f"({(size/duration):,.0f} boards/sec)")
 
         nptest.assert_array_equal(flips, np.full(size, 0x0040201008040200, dtype=Bitboard))
         nptest.assert_array_equal(updated['mover'], np.full(size, 0x0000000000000000, dtype=Bitboard))
@@ -3175,13 +3193,15 @@ class TestPositionMakeMove(unittest.TestCase):
         updated = position_make_move(positions, moves)
 
         # Legal square: the flip and the placed disc.
-        self.assertTrue(position_eq(updated[0], make_position(Bitboard(0x0000000000000000), Bitboard(0x0000000000000007))))
+        self.assertTrue(position_eq(updated[0], make_position(
+            Bitboard(0x0000000000000000), Bitboard(0x0000000000000007))))
         # Illegal square: the input position unchanged (no None in the array).
         self.assertTrue(position_eq(updated[1], positions[1]))
         # PA: the players swapped.
         self.assertTrue(position_eq(updated[2], make_position(positions[2]['opponent'], positions[2]['mover'])))
         # Legal again.
-        self.assertTrue(position_eq(updated[3], make_position(Bitboard(0x0000000000000000), Bitboard(0x0000000000000007))))
+        self.assertTrue(position_eq(updated[3], make_position(
+            Bitboard(0x0000000000000000), Bitboard(0x0000000000000007))))
 
     def test_position_make_move_array_pass_batch(self):
         # A batch of pure PASS moves: every element is the swap.
@@ -3215,8 +3235,10 @@ class TestPositionMakeMove(unittest.TestCase):
                 self.assertTrue(position_eq(updated[i], s))
 
     def test_position_make_move_2d_valid(self):
-        """A (1, 2) PositionArray with a (1, 2) move array gives a (1, 2) PositionArray,
-        element-wise as the scalar calls (a legal square and a PASS)."""
+        """
+        A (1, 2) PositionArray with a (1, 2) move array gives a (1, 2) PositionArray, element-wise
+        as the scalar calls (a legal square and a PASS).
+        """
         positions = make_position(np.array([0x0000000000000001, 0x1], dtype=Bitboard),
                                   np.array([0x0040201008040200, 0x2], dtype=Bitboard))
         moves = np.array([[63, 64]], dtype=np.uint8)
@@ -3263,7 +3285,9 @@ class TestPositionMakeMove(unittest.TestCase):
         np.testing.assert_array_equal(updated, c_updated)
 
     def test_position_make_move_empty_2d_valid(self):
-        """An empty (0, 2) PositionArray with an empty (0, 2) move array gives an empty (0, 2) PositionArray."""
+        """
+        An empty (0, 2) PositionArray with an empty (0, 2) move array gives an empty (0, 2) PositionArray.
+        """
         positions = np.zeros((0, 2), dtype=Position)
         moves = np.zeros((0, 2), dtype=np.uint8)
 
@@ -3336,7 +3360,8 @@ class TestPositionMakeMove(unittest.TestCase):
         end = time.perf_counter()
 
         duration = end - start
-        print(f"\n[PERF position_make_move] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
+        print(f"\n[PERF position_make_move] Processed {size:,} boards in {duration:.4f}s"
+              f"({(size/duration):,.0f} boards/sec)")
 
         nptest.assert_array_equal(updated['mover'], np.full(size, 0x0000000000000000, dtype=Bitboard))
         nptest.assert_array_equal(updated['opponent'], np.full(size, 0x8040201008040201, dtype=Bitboard))
@@ -3654,7 +3679,8 @@ class TestPydanticVersion(unittest.TestCase):
 
 
 class TestPositionHash(unittest.TestCase):
-    """The position_hash suite: the 64-bit Zobrist hash of the game position — the legacy C engine
+    """
+    The position_hash suite: the 64-bit Zobrist hash of the game position — the legacy C engine
     bitstrings (board.c zobrist_bitstrings[]), the SWAR byte-fold kernel, the dual scalar/array API.
 
     The goldens are derived from the legacy C source (game_position_x_hash_plain); the transcribed C
@@ -3862,8 +3888,9 @@ class TestPositionHash(unittest.TestCase):
 
 
 class TestPositionHashLegacyParity(unittest.TestCase):
-    """position_hash vs the LEGACY C engine: the FFO-12 solve-log sample (the game_tree_logger CSV,
-    21 columns; HASH/BLACKS/WHITES are signed int64 decimals — the bitboard_from_signed_int representation).
+    """
+    position_hash vs the LEGACY C engine: the FFO-12 solve-log sample (the game_tree_logger CSV, 21
+    columns; HASH/BLACKS/WHITES are signed int64 decimals — the bitboard_from_signed_int representation).
 
     The FULL log (571_141 rows, 89.7 MB) was verified 100% against the engine; the committed fixture
     is the deterministic uniform-stride sample (every 571st row + the root row) — 1002 rows, 154 KB,

@@ -140,7 +140,8 @@ class TestLMWorkerPositions(unittest.TestCase):
 
         # And confirm DB was NOT hit
         self.assertNotIn("Extracted", logs, "DB was queried even though a valid cache existed.")
-        self.assertNotIn("established successfully", logs, "DB connection was opened even though a valid cache existed.")
+        self.assertNotIn("established successfully", logs,
+                         "DB connection was opened even though a valid cache existed.")
 
 
 class TestIsCacheConsistent(unittest.TestCase):

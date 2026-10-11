@@ -43,8 +43,8 @@
 """
 Linear, copy-pasteable usage examples for reversi.tools.binio.
 
-These tests double as documentation. Each one is a single straight sequence
-with no helper methods, showing a complete write -> read cycle.
+These tests double as documentation. Each one is a single straight sequence with no helper methods,
+showing a complete write -> read cycle.
 
 Two styles are shown:
   1. context manager (`with`) + automatic checksum on close;
@@ -81,8 +81,8 @@ class UsageWithContextManagerTest(unittest.TestCase):
         arr_i64 = np.arange(6, dtype=np.int64).reshape(2, 3)
         arr_f32 = np.linspace(0.0, 1.0, 4, dtype=np.float32)
 
-        # 3. Write everything in order. checksum=True by default, so the
-        #    .SHA3_256 sidecar is written automatically when the block exits.
+        # 3. Write everything in order. checksum=True by default, so the .SHA3_256 sidecar is
+        # written automatically when the block exits.
         with binio.BinaryWriter(path) as w:
             w.write_header(description, version)
             w.write_string(text)
@@ -125,10 +125,9 @@ class UsageWithContextManagerTest(unittest.TestCase):
 
 class UsageManualOpenCloseTest(unittest.TestCase):
     def test_write_and_read_back(self):
-        # Same cycle, but without `with`. This is handy when the program
-        # structure is more complex and the writer/reader must live across
-        # several functions. try/finally guarantees the file is closed (and,
-        # for the writer, that the checksum sidecar is written on close).
+        # Same cycle, but without `with`. This is handy when the program structure is more complex
+        # and the writer/reader must live across several functions. try/finally guarantees the file
+        # is closed (and, for the writer, that the checksum sidecar is written on close).
         tmpdir = tempfile.mkdtemp(prefix="binio_usage_")
         self.addCleanup(shutil.rmtree, tmpdir)
         path = os.path.join(tmpdir, "manual.bin")
@@ -163,8 +162,8 @@ class UsageManualOpenCloseTest(unittest.TestCase):
 
 class UsageLz4CompressionTest(unittest.TestCase):
     def test_write_and_read_back(self):
-        # Same cycle, but with LZ4 whole-file compression.
-        # The API is identical, just pass compressed=True to both Writer and Reader.
+        # Same cycle, but with LZ4 whole-file compression. The API is identical, just pass
+        # compressed=True to both Writer and Reader.
         tmpdir = tempfile.mkdtemp(prefix="binio_usage_")
         self.addCleanup(shutil.rmtree, tmpdir)
         path = os.path.join(tmpdir, "compressed.bin")

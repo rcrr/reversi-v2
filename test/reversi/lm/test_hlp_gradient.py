@@ -35,8 +35,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (no live regab DB required — the compute test
-#     uses a handcrafted mock context, as in test_hlp_zed).
+# -1- Run the tests (no live regab DB required — the compute test uses a handcrafted mock context,
+# as in test_hlp_zed).
 #
 # time python3 -m unittest test.reversi.lm.test_hlp_gradient
 #
@@ -55,8 +55,8 @@ class TestSigmoid(unittest.TestCase):
     """Tests the sigmoid wrapper in isolation (no DB)."""
 
     def test_sigmoid_golden(self):
-        # sigmoid(x) = 1 / (1 + exp(-x)), re-derived in float64
-        # directly (independent of the scipy expit path).
+        # sigmoid(x) = 1 / (1 + exp(-x)), re-derived in float64 directly (independent of the scipy
+        # expit path).
         x = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
         x64 = x.astype(np.float64)
         expected = 1.0 / (1.0 + np.exp(-x64))
@@ -79,9 +79,8 @@ class TestHlpGradientCompute(unittest.TestCase):
             z=np.array(z, dtype=np.float32))
 
     def _reference(self, ctx, w):
-        # Independent float64 re-derivation of f and g: the hand-rolled
-        # sigmoid, the per-row w-INDEX sum, and np.add.at (a different
-        # accumulation than the closure's broadcast bincount).
+        # Independent float64 re-derivation of f and g: the hand-rolled sigmoid, the per-row w-INDEX
+        # sum, and np.add.at (a different accumulation than the closure's broadcast bincount).
         M, P = ctx.design_matrix.shape
         alpha = ctx.cfg.stat_model.ridge_regularization / M
         w64 = w.astype(np.float64)
@@ -96,10 +95,9 @@ class TestHlpGradientCompute(unittest.TestCase):
         return f_ref, g_ref
 
     def test_compute_zero_weights_golden(self):
-        # X (M=3, P=2), w (N=3) all zeros, ridge 0:
-        # f = 0.5 * mean((0.5 - z)^2) = 0.5 * (0.16 + 0.16 + 0) / 3 = 4/75
-        # g = [1/30, 0, -1/30] — each row spreads 0.25 * (0.5 - z[m])
-        # over its two cells, divided by M.
+        # X (M=3, P=2), w (N=3) all zeros, ridge 0: f = 0.5 * mean((0.5 - z)^2) = 0.5 * (0.16 + 0.16
+        # + 0) / 3 = 4/75 g = [1/30, 0, -1/30] — each row spreads 0.25 * (0.5 - z[m]) over its two
+        # cells, divided by M.
         ctx = self._mock_ctx(0.0, [0.0, 0.0, 0.0],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         fg = hlp_gradient_compute(ctx)
@@ -108,8 +106,7 @@ class TestHlpGradientCompute(unittest.TestCase):
         nptest.assert_allclose(g, [1 / 30, 0.0, -1 / 30], rtol=1e-6, atol=1e-8)
 
     def test_compute_nonzero_weights(self):
-        # The full math (sigmoid + residual + ridge) at w != 0 against
-        # the independent float64 re-derivation.
+        # The full math (sigmoid + residual + ridge) at w != 0 against the independent float64 re-derivation.
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         fg = hlp_gradient_compute(ctx)
@@ -119,10 +116,9 @@ class TestHlpGradientCompute(unittest.TestCase):
         nptest.assert_allclose(g, g_ref, rtol=1e-5, atol=1e-7)
 
     def test_ridge_scaling(self):
-        # g(ridge_b) - g(ridge_a) == (b - a) / M * w and
-        # f(ridge_b) - f(ridge_a) == 0.5 * (b - a) / M * ||w||^2
-        # (the leading 0.5 of the loss) — pins the per-position /M
-        # normalization of the ridge term.
+        # g(ridge_b) - g(ridge_a) == (b - a) / M * w and f(ridge_b) - f(ridge_a) == 0.5 * (b - a) /
+        # M * ||w||^2 (the leading 0.5 of the loss) — pins the per-position /M normalization of the
+        # ridge term.
         X = [[0, 1], [1, 2], [0, 2]]
         z = [0.1, 0.9, 0.5]
         w = np.array([0.1, -0.2, 0.05], dtype=np.float32)
@@ -134,9 +130,8 @@ class TestHlpGradientCompute(unittest.TestCase):
                                rtol=1e-6, atol=1e-9)
 
     def test_minlength_empty_bucket(self):
-        # Bucket 2 has no cell: g[2] is the pure ridge term
-        # alpha * w[2] = (0.03 / 2) * 0.3 = 0.0045, and g keeps the
-        # full (N,) shape regardless of the cell coverage.
+        # Bucket 2 has no cell: g[2] is the pure ridge term alpha * w[2] = (0.03 / 2) * 0.3 =
+        # 0.0045, and g keeps the full (N,) shape regardless of the cell coverage.
         ctx = self._mock_ctx(0.03, [0.1, 0.2, 0.3], [[0, 0], [1, 1]], [0.3, 0.7])
         fg = hlp_gradient_compute(ctx)
         f, g = fg(ctx.w)
@@ -154,8 +149,8 @@ class TestHlpGradientCompute(unittest.TestCase):
         self.assertEqual(g.shape, (3,))
 
     def test_closure_stateless(self):
-        # Two evaluations of the same w must be identical (the
-        # pre-allocated buffers must not leak state between calls).
+        # Two evaluations of the same w must be identical (the pre-allocated buffers must not leak
+        # state between calls).
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         fg = hlp_gradient_compute(ctx)
@@ -166,9 +161,10 @@ class TestHlpGradientCompute(unittest.TestCase):
 
 
 class TestHighPerformanceFg(unittest.TestCase):
-    """The high_performance=True variant (the numba single-pass kernel)
-    on handcrafted mock contexts (no DB). The default hi_perf_blocks
-    is 8, so M < T (empty blocks) is exercised by design."""
+    """
+    The high_performance=True variant (the numba single-pass kernel) on handcrafted mock contexts
+    (no DB). The default hi_perf_blocks is 8, so M < T (empty blocks) is exercised by design.
+    """
 
     def _mock_ctx(self, ridge, w, X, z):
         return SimpleNamespace(
@@ -178,9 +174,8 @@ class TestHighPerformanceFg(unittest.TestCase):
             z=np.array(z, dtype=np.float32))
 
     def _reference(self, ctx, w):
-        # Independent float64 re-derivation (same idiom as the
-        # classic-path tests: hand-rolled sigmoid, per-row w-index
-        # sum, np.add.at).
+        # Independent float64 re-derivation (same idiom as the classic-path tests: hand-rolled
+        # sigmoid, per-row w-index sum, np.add.at).
         M, P = ctx.design_matrix.shape
         alpha = ctx.cfg.stat_model.ridge_regularization / M
         w64 = w.astype(np.float64)
@@ -195,9 +190,8 @@ class TestHighPerformanceFg(unittest.TestCase):
         return f_ref, g_ref
 
     def test_hp_zero_weights_golden(self):
-        # Same goldens as the classic test (the variants are
-        # mathematically identical): M=3 < T=8 exercises the empty
-        # blocks. f = 4/75, g = [1/30, 0, -1/30].
+        # Same goldens as the classic test (the variants are mathematically identical): M=3 < T=8
+        # exercises the empty blocks. f = 4/75, g = [1/30, 0, -1/30].
         ctx = self._mock_ctx(0.0, [0.0, 0.0, 0.0],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         fg = hlp_gradient_compute(ctx, high_performance=True)
@@ -206,9 +200,8 @@ class TestHighPerformanceFg(unittest.TestCase):
         nptest.assert_allclose(g, [1 / 30, 0.0, -1 / 30], rtol=1e-6, atol=1e-8)
 
     def test_hp_nonzero_weights(self):
-        # A random M=5000 design matrix against the independent
-        # float64 re-derivation (the f64 per-block accumulators make
-        # the variant track the float64 reference to ~1e-9).
+        # A random M=5000 design matrix against the independent float64 re-derivation (the f64
+        # per-block accumulators make the variant track the float64 reference to ~1e-9).
         rng = np.random.default_rng(42)
         M, P, N = 5000, 12, 300
         X = rng.integers(0, N, (M, P), dtype=np.uint32)
@@ -222,9 +215,8 @@ class TestHighPerformanceFg(unittest.TestCase):
         nptest.assert_allclose(g, g_ref, rtol=1e-5, atol=1e-7)
 
     def test_hp_matches_classic(self):
-        # The two variants agree within a few ulps (the sigmoid
-        # implementation and the f32 sum order differ; measured max
-        # relative delta ~1e-7).
+        # The two variants agree within a few ulps (the sigmoid implementation and the f32 sum order
+        # differ; measured max relative delta ~1e-7).
         rng = np.random.default_rng(7)
         M, P, N = 2000, 8, 200
         X = rng.integers(0, N, (M, P), dtype=np.uint32)
@@ -237,8 +229,7 @@ class TestHighPerformanceFg(unittest.TestCase):
         nptest.assert_allclose(g_h, g_c, rtol=1e-5, atol=1e-7)
 
     def test_hp_output_dtypes(self):
-        # float32 contract: (np.float32, (N,) float32),
-        # same as the classic variant.
+        # float32 contract: (np.float32, (N,) float32), same as the classic variant.
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         fg = hlp_gradient_compute(ctx, high_performance=True)
@@ -248,9 +239,8 @@ class TestHighPerformanceFg(unittest.TestCase):
         self.assertEqual(g.shape, (3,))
 
     def test_hp_deterministic(self):
-        # The block split and the final accumulation order are fixed,
-        # so repeated evaluations are bit-identical (this is what
-        # keeps the 2nd-instance byte-identity guarantee).
+        # The block split and the final accumulation order are fixed, so repeated evaluations are
+        # bit-identical (this is what keeps the 2nd-instance byte-identity guarantee).
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         fg = hlp_gradient_compute(ctx, high_performance=True)
@@ -260,17 +250,16 @@ class TestHighPerformanceFg(unittest.TestCase):
         nptest.assert_array_equal(g1, g2)
 
     def test_hp_variant_markers(self):
-        # The returned closure carries the variant marker (the
-        # worker-wiring tests and the probes pin on it).
+        # The returned closure carries the variant marker (the worker-wiring tests and the probes
+        # pin on it).
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         self.assertFalse(hlp_gradient_compute(ctx).high_performance)
         self.assertTrue(hlp_gradient_compute(ctx, high_performance=True).high_performance)
 
     def test_hp_block_count(self):
-        # An explicit hi_perf_blocks value flows to the kernel (T=2
-        # row-blocks over M=3 rows): the result still tracks the
-        # independent float64 re-derivation.
+        # An explicit hi_perf_blocks value flows to the kernel (T=2 row-blocks over M=3 rows): the
+        # result still tracks the independent float64 re-derivation.
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         fg = hlp_gradient_compute(ctx, high_performance=True, hi_perf_blocks=2)

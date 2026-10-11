@@ -65,8 +65,7 @@ GOLDEN_PATH = (WORKSPACE_ROOT / "test" / "reversi" / "data"
 
 
 def _load_golden() -> "dict[str, list[str]]":
-    """Parses the golden file: the [section] markers group the
-    lines (the # header is skipped)."""
+    """Parses the golden file: the [section] markers group the lines (the # header is skipped)."""
     sections: "dict[str, list[str]]" = {}
     current = None
     with open(GOLDEN_PATH) as f:
@@ -83,23 +82,21 @@ def _load_golden() -> "dict[str, list[str]]":
 
 
 class TestPrng(unittest.TestCase):
-    """The smoke contracts: the determinism, the typing, the
-    wraps, the no-consume rules, the set extraction."""
+    """
+    The smoke contracts: the determinism, the typing, the wraps, the no-consume rules, the set extraction.
+    """
 
     def test_get_uint64_wrap_64bit(self):
-        # The full 64-bit domain: the max seed exercises the wrap
-        # arithmetic without any overflow error (the numpy
-        # errstate silences the by-design wraps).
+        # The full 64-bit domain: the max seed exercises the wrap arithmetic without any overflow
+        # error (the numpy errstate silences the by-design wraps).
         g = MT19937(np.uint64(0xFFFFFFFFFFFFFFFF))
         for _ in range(100):
             v = g.get_uint64()
             self.assertIsInstance(v, np.uint64)
 
     def test_get_uint64_batch_matches_scalar(self):
-        # The batch draw (get_uint64_batch) is bit-exact vs
-        # get_uint64 called n times (the same twist + the same
-        # 4-op temper, the single source); 500 draws cross the
-        # 312-word twist boundary.
+        # The batch draw (get_uint64_batch) is bit-exact vs get_uint64 called n times (the same
+        # twist + the same 4-op temper, the single source); 500 draws cross the 312-word twist boundary.
         g = MT19937(1234)
         ref = MT19937(1234)
         n = 500
@@ -112,8 +109,7 @@ class TestPrng(unittest.TestCase):
                              "scalar reference")
 
     def test_get_uint64_batch_zero(self):
-        # n == 0: an empty (0,) u64 array, and the stream position is
-        # untouched.
+        # n == 0: an empty (0,) u64 array, and the stream position is untouched.
         g = MT19937(7)
         out = g.get_uint64_batch(0)
         self.assertEqual(out.shape, (0,))
@@ -136,8 +132,7 @@ class TestPrng(unittest.TestCase):
             self.assertLess(float(o01), 1.0)
 
     def test_random_choice_contracts(self):
-        # k == 0 and k < 0: raise (the choice set [0, k-1] is defined
-        # for positive k only).
+        # k == 0 and k < 0: raise (the choice set [0, k-1] is defined for positive k only).
         g = MT19937(1)
         with self.assertRaises(ValueError):
             g.random_choice_from_finite_set(0)
@@ -196,8 +191,8 @@ class TestPrng(unittest.TestCase):
         self.assertEqual(sorted(i.tolist()), i0.tolist())
 
     def test_shuffle_n_exceeding_the_elements_raises(self):
-        # n beyond the element count is out of contract: the shuffle
-        # addresses the (n-1)-th element and raises IndexError.
+        # n beyond the element count is out of contract: the shuffle addresses the (n-1)-th element
+        # and raises IndexError.
         with self.assertRaises(IndexError):
             MT19937(1).shuffle_uint8(np.arange(4, dtype=np.uint8), 5)
         with self.assertRaises(IndexError):
@@ -205,10 +200,9 @@ class TestPrng(unittest.TestCase):
                 np.arange(4, dtype=np.float64).reshape(2, 2), 5)
 
     def test_shuffle_nd_corder_parity(self):
-        # The N-D C-order parity: shuffling an N-D array in
-        # place (the n first elements, C-order) with seed S equals
-        # shuffling the 1-D C-order ravel with the same seed S — the
-        # draw sequence is shape-agnostic.
+        # The N-D C-order parity: shuffling an N-D array in place (the n first elements, C-order)
+        # with seed S equals shuffling the 1-D C-order ravel with the same seed S — the draw
+        # sequence is shape-agnostic.
         seed = 42
         for shape in ((4, 6), (2, 3, 4)):
             base = np.arange(24, dtype=np.uint8).reshape(shape)
@@ -217,9 +211,8 @@ class TestPrng(unittest.TestCase):
             flat1 = base.copy().ravel()
             MT19937(seed).shuffle_uint8(flat1, 24)
             self.assertEqual(nd.ravel().tolist(), flat1.tolist())
-        # F-order: the C-order element sequence is addressed through
-        # .flat (no copy) — the parity target is still the C-order
-        # ravel.
+        # F-order: the C-order element sequence is addressed through .flat (no copy) — the parity
+        # target is still the C-order ravel.
         fbase = np.arange(24, dtype=np.uint8).reshape(4, 6, order='F')
         fnd = fbase.copy()
         MT19937(seed).shuffle_uint8(fnd, 24)
@@ -228,8 +221,8 @@ class TestPrng(unittest.TestCase):
         self.assertEqual(fnd.ravel().tolist(), flat1.tolist())
 
     def test_shuffle_nd_all_methods_parity(self):
-        # The C-order parity for the four methods (same seed, same
-        # data): the N-D result equals the 1-D C-order ravel result.
+        # The C-order parity for the four methods (same seed, same data): the N-D result equals the
+        # 1-D C-order ravel result.
         cases = (('shuffle_uint8', np.uint8),
                  ('shuffle_double', np.float64),
                  ('shuffle_int', np.int64),
@@ -251,8 +244,7 @@ class TestPrng(unittest.TestCase):
         MT19937(7).shuffle_double(shuffled, 12)
         self.assertEqual(sorted(shuffled.ravel().tolist()),
                          base.ravel().tolist())
-        # n counts ELEMENTS in C-order: n = 4 touches only the first
-        # row of a (3, 4).
+        # n counts ELEMENTS in C-order: n = 4 touches only the first row of a (3, 4).
         a = base.copy()
         MT19937(7).shuffle_double(a, 4)
         self.assertEqual(a[1:].tolist(), base[1:].tolist())
@@ -270,8 +262,7 @@ class TestPrng(unittest.TestCase):
                          [1.0, 2.0, 3.0, 4.0])
 
     def test_shuffle_strided_views(self):
-        # A strided 1-D view is shuffled in place (no ravel copy): the
-        # unviewed base slots survive.
+        # A strided 1-D view is shuffled in place (no ravel copy): the unviewed base slots survive.
         base = np.arange(16, dtype=np.uint8)
         even = base[::2]
         even0 = even.copy()
@@ -280,8 +271,7 @@ class TestPrng(unittest.TestCase):
         expected = np.arange(16, dtype=np.uint8)
         expected[::2] = even
         self.assertEqual(base.tolist(), expected.tolist())
-        # A strided N-D view: the C-order element sequence is
-        # shuffled, the rest of the base survives.
+        # A strided N-D view: the C-order element sequence is shuffled, the rest of the base survives.
         big = np.arange(36, dtype=np.int64).reshape(6, 6)
         sub = big[::2, ::2]
         sub0 = sub.copy()
@@ -296,8 +286,8 @@ class TestPrng(unittest.TestCase):
         s = g.random_string_az(100)
         self.assertEqual(len(s), 100)
         self.assertTrue(all("a" <= ch <= "z" for ch in s))
-        # Determinism: the same seed, the same string (two fresh
-        # instances — the draws advance the sequence position).
+        # Determinism: the same seed, the same string (two fresh instances — the draws advance the
+        # sequence position).
         self.assertEqual(MT19937(5).random_string_az(10),
                          MT19937(5).random_string_az(10))
         # The empty string (n == 0).
@@ -312,8 +302,8 @@ class TestPrng(unittest.TestCase):
         # The empty set: raises.
         with self.assertRaises(ValueError):
             g.extract_from_set64(np.array([np.uint64(0)], dtype=np.uint64))
-        # The full 64-bit set: 64 distinct bits come out, and the
-        # set empties exactly when the last one is picked.
+        # The full 64-bit set: 64 distinct bits come out, and the set empties exactly when the last
+        # one is picked.
         f = MT19937(10)
         full = np.array([np.uint64(0xFFFFFFFFFFFFFFFF)], dtype=np.uint64)
         seen = set()
@@ -323,9 +313,8 @@ class TestPrng(unittest.TestCase):
             seen.add(p)
         self.assertEqual(int(full[0]), 0)
         self.assertEqual(len(seen), 64)
-        # The returned position was a set bit BEFORE the call, and
-        # the picked bit is cleared from the ORIGINAL set (the
-        # skipped-lowest bits survive).
+        # The returned position was a set bit BEFORE the call, and the picked bit is cleared from
+        # the ORIGINAL set (the skipped-lowest bits survive).
         h = MT19937(11)
         for _ in range(200):
             s2 = np.array([np.uint64(0x5555555555555555)], dtype=np.uint64)
@@ -336,9 +325,8 @@ class TestPrng(unittest.TestCase):
 
 class TestPrngGolden(unittest.TestCase):
     """
-    The bit-exact golden: the committed reference sequences
-    (data/prng_golden.txt). Each section is mirrored with a
-    FRESH instance of MT19937 (seed 42).
+    The bit-exact golden: the committed reference sequences (data/prng_golden.txt). Each section is
+    mirrored with a FRESH instance of MT19937 (seed 42).
     """
 
     @classmethod
@@ -369,9 +357,8 @@ class TestPrngGolden(unittest.TestCase):
         self.assertEqual(seq, self.g["choice5"])
 
     def test_extract_full_sequence(self):
-        # 64 picks exhaust the full set: a permutation of 0..63,
-        # the set empties exactly at the end (the picked bit is
-        # cleared from the ORIGINAL set).
+        # 64 picks exhaust the full set: a permutation of 0..63, the set empties exactly at the end
+        # (the picked bit is cleared from the ORIGINAL set).
         g = MT19937(42)
         s = np.array([np.uint64(0xFFFFFFFFFFFFFFFF)], dtype=np.uint64)
         picks = [int(g.extract_from_set64(s)) for _ in range(64)]
@@ -382,9 +369,8 @@ class TestPrngGolden(unittest.TestCase):
 
 class TestPrngEquidistribution(unittest.TestCase):
     """
-    The statistical properties of the sequence itself: the
-    per-bit balance, the chi-square on the top-bit bins, and the
-    choice-64 uniformity (deterministic, the fixed seed 42).
+    The statistical properties of the sequence itself: the per-bit balance, the chi-square on the
+    top-bit bins, and the choice-64 uniformity (deterministic, the fixed seed 42).
     """
 
     N = 100000
@@ -395,10 +381,9 @@ class TestPrngEquidistribution(unittest.TestCase):
                         dtype=np.uint64)
 
     def test_first_100k_bit_balance(self):
-        # Every one of the 64 bit positions is set ~50% of the
-        # time (the per-bit sigma is ~158 at n = 100k; the 2%
-        # band is a ~12.6-sigma tolerance — generous and flake-
-        # proof, and still catches a stuck / shifted bit).
+        # Every one of the 64 bit positions is set ~50% of the time (the per-bit sigma is ~158 at n
+        # = 100k; the 2% band is a ~12.6-sigma tolerance — generous and flake- proof, and still
+        # catches a stuck / shifted bit).
         xs = self._draw(self.N)
         frac = np.array(
             [float(np.count_nonzero(xs & np.uint64(1) << b))
@@ -407,10 +392,9 @@ class TestPrngEquidistribution(unittest.TestCase):
         self.assertTrue(np.all(frac < 0.52))
 
     def test_first_100k_top_bits_chi_square(self):
-        # The 100k draws binned by the top 7 bits (128 bins, the
-        # expected 781.25 per bin): the chi-square statistic stays
-        # far below the conservative 250 threshold (the df=127
-        # 3.7-sigma critical is ~172).
+        # The 100k draws binned by the top 7 bits (128 bins, the expected 781.25 per bin): the
+        # chi-square statistic stays far below the conservative 250 threshold (the df=127 3.7-sigma
+        # critical is ~172).
         xs = self._draw(self.N)
         obs = np.bincount((xs >> 57).astype(np.int64), minlength=128)
         expected = self.N / 128
@@ -418,9 +402,8 @@ class TestPrngEquidistribution(unittest.TestCase):
         self.assertLess(chi2, 250.0)
 
     def test_choice_64_uniform(self):
-        # 100k random_choice_from_finite_set(64) draws: 64 bins,
-        # the expected 1562.5 — the conservative 130 threshold
-        # (the df=63 3.7-sigma critical is ~108).
+        # 100k random_choice_from_finite_set(64) draws: 64 bins, the expected 1562.5 — the
+        # conservative 130 threshold (the df=63 3.7-sigma critical is ~108).
         g = MT19937(42)
         draws = [int(g.random_choice_from_finite_set(64))
                  for _ in range(self.N)]
@@ -432,18 +415,15 @@ class TestPrngEquidistribution(unittest.TestCase):
 
 class TestChooseOneFromSet64(unittest.TestCase):
     """
-    choose_one_from_set64: the uniform NO-REMOVAL pick from a 64-bit
-    set. It returns (1 << p, p) for a random set bit p; it never
-    mutates the set; the empty set is the (0, 64) sentinel (no draw
-    is consumed).
+    choose_one_from_set64: the uniform NO-REMOVAL pick from a 64-bit set. It returns (1 << p, p) for
+    a random set bit p; it never mutates the set; the empty set is the (0, 64) sentinel (no draw is consumed).
     """
 
     # At least 3 distinct seeds (robust against a seed-specific fluke).
     SEEDS = [42, 7, 93]
 
-    # The 7 golden cases: (section, seed, set, the set's bit count).
-    # One full set + three distinct 2-bit sets + three distinct
-    # 3-bit sets.
+    # The 7 golden cases: (section, seed, set, the set's bit count). One full set + three distinct
+    # 2-bit sets + three distinct 3-bit sets.
     CASES = [
         ("choose_full",   42, 0xFFFFFFFFFFFFFFFF, 64),
         ("choose_2bit_a", 42, (1 << 0) | (1 << 63),        2),
@@ -466,9 +446,8 @@ class TestChooseOneFromSet64(unittest.TestCase):
     # -- the empty set: the (0, 64) sentinel, no draw consumed --------
 
     def test_empty_set_is_the_sentinel_and_consumes_nothing(self):
-        # The empty set returns the (0, 64) sentinel and the stream
-        # position is untouched: the next value equals a fresh
-        # instance's first value. Checked over 3 seeds.
+        # The empty set returns the (0, 64) sentinel and the stream position is untouched: the next
+        # value equals a fresh instance's first value. Checked over 3 seeds.
         for seed in self.SEEDS:
             g = MT19937(seed)
             h = MT19937(seed)
@@ -480,9 +459,8 @@ class TestChooseOneFromSet64(unittest.TestCase):
     # -- the return shape: (1 << p, p), p a set bit --------------------
 
     def test_the_return_is_the_single_bit_at_position_p(self):
-        # For a non-empty set the returned value is exactly the single
-        # bit at the returned position p, and p is a set bit of the
-        # input. 3 seeds x 4 sets x 20 picks.
+        # For a non-empty set the returned value is exactly the single bit at the returned position
+        # p, and p is a set bit of the input. 3 seeds x 4 sets x 20 picks.
         sets = [
             0xFFFFFFFFFFFFFFFF,
             (1 << 0) | (1 << 63),
@@ -500,10 +478,8 @@ class TestChooseOneFromSet64(unittest.TestCase):
     # -- the return types: the numpy dtypes, not Python ints ----------
 
     def test_the_return_types_are_numpy_uint64_and_uint8(self):
-        # The method's contract: the returned values are the numpy
-        # dtypes (the numba boundary re-wraps the kernel's Python
-        # ints) — checked for a non-empty set and the empty-set
-        # sentinel.
+        # The method's contract: the returned values are the numpy dtypes (the numba boundary
+        # re-wraps the kernel's Python ints) — checked for a non-empty set and the empty-set sentinel.
         g = MT19937(42)
         val, p = g.choose_one_from_set64(np.uint64(0xFF))
         self.assertIsInstance(val, np.uint64)
@@ -515,9 +491,8 @@ class TestChooseOneFromSet64(unittest.TestCase):
     # -- the no-removal contract --------------------------------------
 
     def test_the_set_is_never_mutated(self):
-        # Unlike extract_from_set64, the set is only READ: after many
-        # picks it still holds all its bits (it is never drained) and
-        # every pick is one of them. 3 seeds x 100 picks.
+        # Unlike extract_from_set64, the set is only READ: after many picks it still holds all its
+        # bits (it is never drained) and every pick is one of them. 3 seeds x 100 picks.
         s = 0x5555555555555555  # 32 set bits
         for seed in self.SEEDS:
             g = MT19937(seed)
@@ -529,11 +504,9 @@ class TestChooseOneFromSet64(unittest.TestCase):
     # -- the 1000-pick golden + the expected frequencies --------------
 
     def test_the_1000_pick_golden_and_expected_frequencies(self):
-        # Each of the 7 cases (the full set + the 3 two-bit + the 3
-        # three-bit sets) is replayed for 1000 picks: the exact
-        # position sequence matches the committed golden, and the
-        # observed frequencies match the golden's expected
-        # frequencies (the uniform spread over the set's bits).
+        # Each of the 7 cases (the full set + the 3 two-bit + the 3 three-bit sets) is replayed for
+        # 1000 picks: the exact position sequence matches the committed golden, and the observed
+        # frequencies match the golden's expected frequencies (the uniform spread over the set's bits).
         for section, seed, set64, nbits in self.CASES:
             g = MT19937(seed)
             positions = [
@@ -542,8 +515,8 @@ class TestChooseOneFromSet64(unittest.TestCase):
             ]
             # (a) The exact 1000-pick sequence is the golden.
             self.assertEqual([str(p) for p in positions], self.g[section])
-            # (b) The observed frequencies are the golden's expected
-            #     ones, and they cover exactly the set's bits.
+            # (b) The observed frequencies are the golden's expected ones, and they cover exactly
+            # the set's bits.
             freq = {}
             for p in positions:
                 freq[p] = freq.get(p, 0) + 1
@@ -557,9 +530,8 @@ class TestChooseOneFromSet64(unittest.TestCase):
     # -- the full set: a reasonable equi-distribution ------------------
 
     def test_the_full_set_is_reasonably_equidistributed(self):
-        # A large sample (200k picks) from the full 64-bit set: the
-        # 64 positions are each hit ~3125 times (200k / 64), and the
-        # chi-square over the 64 bins stays far below the ~3.7-sigma
+        # A large sample (200k picks) from the full 64-bit set: the 64 positions are each hit ~3125
+        # times (200k / 64), and the chi-square over the 64 bins stays far below the ~3.7-sigma
         # threshold for df = 63 — the pick is uniform over the set.
         N = 200000
         g = MT19937(42)
@@ -574,11 +546,9 @@ class TestChooseOneFromSet64(unittest.TestCase):
 
 class TestPickOneFromSet64(unittest.TestCase):
     """
-    The numba pick kernels: pick_one_from_set64 (the scalar
-    kernel — the single source of the pick technique, shared by
-    choose_one_from_set64 / extract_from_set64) and
-    pick_one_from_set64_batch (the vectorized form). The identity
-    pin: on identical streams the kernels and the class methods
+    The numba pick kernels: pick_one_from_set64 (the scalar kernel — the single source of the pick
+    technique, shared by choose_one_from_set64 / extract_from_set64) and pick_one_from_set64_batch
+    (the vectorized form). The identity pin: on identical streams the kernels and the class methods
     agree draw-for-draw.
     """
 
@@ -587,18 +557,14 @@ class TestPickOneFromSet64(unittest.TestCase):
             0x1248842104812448]
 
     def test_scalar_kernel_empty_set_raises(self):
-        # The kernel's precondition: the empty set raises ValueError
-        # (the class methods and the batch kernel guard it before
-        # delegating; without the guard the pop-position loop would
-        # not terminate).
+        # The kernel's precondition: the empty set raises ValueError (the class methods and the
+        # batch kernel guard it before delegating; without the guard the pop-position loop would not terminate).
         with self.assertRaises(ValueError):
             pick_one_from_set64(np.uint64(0), MT19937(1).get_uint64())
 
     def test_scalar_kernel_matches_the_method(self):
-        # For every set and 100 draws: two identical streams — the
-        # method consumes one draw, the kernel gets the same value
-        # explicitly; the (bitboard, index) results agree
-        # bit-for-bit.
+        # For every set and 100 draws: two identical streams — the method consumes one draw, the
+        # kernel gets the same value explicitly; the (bitboard, index) results agree bit-for-bit.
         for s in self.SETS:
             m = MT19937(93)
             k = MT19937(93)
@@ -610,9 +576,8 @@ class TestPickOneFromSet64(unittest.TestCase):
                 self.assertEqual(int(p_k), int(p_m))
 
     def test_batch_kernel_matches_the_method(self):
-        # A mixed batch (with empty sets): the batch kernel on a
-        # fresh stream is bit-identical to the sequential method
-        # loop — and the streams stay aligned afterwards.
+        # A mixed batch (with empty sets): the batch kernel on a fresh stream is bit-identical to
+        # the sequential method loop — and the streams stay aligned afterwards.
         sets = np.array([0x1, 0, 0xF0, 0xFFFF, 0,
                          0xFFFFFFFFFFFFFFFF, 0x1248842104812448],
                         dtype=np.uint64)
@@ -628,9 +593,8 @@ class TestPickOneFromSet64(unittest.TestCase):
         self.assertEqual(int(m.get_uint64()), int(k.get_uint64()))
 
     def test_batch_all_empty_sets(self):
-        # All-empty sets: every element is the pass signal (0) and
-        # no draw is consumed (the draws array is empty; the stream
-        # stays aligned with a fresh generator's first draw).
+        # All-empty sets: every element is the pass signal (0) and no draw is consumed (the draws
+        # array is empty; the stream stays aligned with a fresh generator's first draw).
         sets = np.zeros(5, dtype=np.uint64)
         slots = np.zeros(5, dtype=np.int64)
         k = MT19937(93)
