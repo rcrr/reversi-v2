@@ -284,7 +284,7 @@ class TestWrkPlot(unittest.TestCase):
         p = ctx.cfg.base_dir / "plots" / "parity.png"
         self.assertEqual(
             hashlib.sha3_256(p.read_bytes()).hexdigest(),
-            'fdb8162d8f1696ee86c3fa86157720f53aaf6d05abfffd70ecc5a58e41e22ab5')
+            '7939f3b3dceaa959a5683baf3dc4303e6e4df4ba252d19008e1033ba730b03c0')
 
     # -- the down step ----------------------------------------------------
 

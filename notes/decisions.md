@@ -1451,3 +1451,20 @@ D-514 | 2026-10-07 | The full wsutils sweep (one D for the whole sweep, per the 
          before the edits — my changes shifted line counts only): no rule mandates the reflow fixpoint for wsutils
          files, so they are left as historical house style. Post-sweep: the 5 light tools re-run green, the static scan
          clean (0 over-120, 0 E301). The suite is untouched (the tools are outside it): flat 1115/0/24.
+
+D-515 | 2026-10-11 | The parity PNG golden re-pinned (the env drift: the Ubuntu + Python upgrade). Roberto upgraded the
+         platform (Ubuntu + Python 3.12.3 -> 3.14.4, the venv rebuilt, pip refresh: matplotlib 3.11.1 -> 3.11.2,
+         numpy 2.5.4); the full suite (PERF=1 VVLONG=1, 1115 tests) failed exactly ONE test: `test_parity_png_golden`
+         (the rendered hash 7939f3b3... != the pinned fdb8162d...). Investigation (scratch/parity\_investigate.py): the
+         new hash reproduces the failed run EXACTLY; two consecutive renders are byte-identical (the in-environment
+         determinism is intact, `test_up_all_seven_png` passes); the PNG's own tEXt metadata embeds "Matplotlib
+         version3.11.2" — the writer's version string is part of the byte stream, so the patch bump alone moves the hash
+         even at an identical rendering; the figure is visually identical to the D-158 one (the two-line title, the
+         SYNTH\_PLOT subtitle, the fixed axes, the grid, the identity line, the jitter cloud). Not a bug: the documented
+         env-drift mode of the version-sensitive rendering golden (the D-127 pattern, already exercised at D-158 after
+         the 3.11.1 upgrade). Re-pinned to 7939f3b3dceaa959a5683baf3dc4303e6e4df4ba252d19008e1033ba730b03c0 in
+         `test_wrk_plot.py` + the mirror doc (Roberto's call, option (a) — the simplest and most coherent; the golden
+         stays environment-bound, the environment-independent variant stays open for his call). The journal volume
+         rotated (log.md at 3086 lines > the 2000 cap: vol 004 closed at session 101, vol 005 opened at 102); the
+         overview Environment bullet records Python 3.14.4. Suite via the R-210 wrapper (LONG=1, the live DB): 1115/0/24
+         GREEN.

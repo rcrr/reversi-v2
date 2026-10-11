@@ -14,7 +14,7 @@ figures → the save. No DB, no pipeline: the `Worker.up` @validate_call gate (c
 
 ## Goldens pinned
 
-- The parity PNG sha3_256: `fdb8162d8f1696ee86c3fa86157720f53aaf6d05abfffd70ecc5a58e41e22ab5` — the rendering golden of
+- The parity PNG sha3_256: `7939f3b3dceaa959a5683baf3dc4303e6e4df4ba252d19008e1033ba730b03c0` — the rendering golden of
   the synthetic context (it moves when matplotlib or numpy changes, as the f32 goldens do).
 - The per-up-move determinism: every one of the seven PNGs hashes equal across two up-moves (the seeded jitter, the KDE
   subsample seed, the Agg backend).

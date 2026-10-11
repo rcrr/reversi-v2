@@ -17,7 +17,7 @@ define the evaluation function.
 
 ## Environment
 
-- Venv: `.venv/` (gitignored), Python 3.12.3.
+- Venv: `.venv/` (gitignored), Python 3.14.4.
 - Packaging: `pyproject.toml` (setuptools, src layout) with the `reversi` package installed editable in .venv —
   `import reversi` works without PYTHONPATH, resolving to src/.
 - Dependencies (pyproject.toml): numpy ≥ 2.0 (bitboards / structured dtypes), pydantic ≥ 2 (@validate\_call), numba
@@ -46,6 +46,8 @@ define the evaluation function.
   `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
   `standard`), from the workspace root; the stop is target-driven — `run(target_level=…)` runs CONFIG first, then stops
   at the argument / `cfg.target_level` / the last step.
+- The workspace is on the upgraded platform (Python 3.14.4, matplotlib 3.11.2, numpy 2.5.4): the suite is green again
+  after the D-515 parity-golden re-pin (the env drift of the Ubuntu/Python upgrade).
 
 
 ## Next steps
@@ -275,4 +277,5 @@ Test data (test/reversi/data/):
 - notes/hist\_log/log\_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
 - notes/hist\_log/log\_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)
 - notes/hist\_log/log\_003.md — session journal, volume 003 (sessions 38–89, closed 2026-09-29)
-- notes/log.md — the session journal (volume 004, sessions 90–..., open)
+- notes/hist\_log/log\_004.md — session journal, volume 004 (sessions 90–101, closed 2026-10-11)
+- notes/log.md — the session journal (volume 005, sessions 102–..., open)
