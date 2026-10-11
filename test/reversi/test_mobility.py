@@ -25,8 +25,7 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-#
-# How to run the mobility module unit tests.
+# How to run the mobility unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -288,7 +287,7 @@ class TestMobilitySet(unittest.TestCase):
         nptest.assert_array_equal(indexes, expected_array)
 
     def test_compute_indexes_multi_position(self):
-        """Row independence: each output row depends only on its own position."""
+        """Pin row independence: each output row depends only on its own position."""
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
         # Row 0: the standard golden position (13 mover moves, 11 opponent pseudo-moves) -> ALMC 53,
@@ -307,7 +306,9 @@ class TestMobilitySet(unittest.TestCase):
         nptest.assert_array_equal(indexes, expected_array)
 
     def test_compute_indexes_2d_positions(self):
-        """A (1, 2) position batch gives a (1, 2, L) index matrix, element-wise as the 1-D call."""
+        """
+        Show a (1, 2) position batch gives a (1, 2, L) index matrix, element-wise as the 1-D call.
+        """
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
         mover0 = bitboard_from_signed_int(np.int64(4611717676283199524))
@@ -326,7 +327,7 @@ class TestMobilitySet(unittest.TestCase):
 
     def test_compute_indexes_3d_positions(self):
         """
-        A (2, 1, 2) position batch gives a (2, 1, 2, L) index matrix, element-wise as the 1-D call.
+        Show a (2, 1, 2) position batch gives a (2, 1, 2, L) index matrix, element-wise as the 1-D call.
         """
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
@@ -348,7 +349,9 @@ class TestMobilitySet(unittest.TestCase):
               [63, 0, 63]]]], dtype=Index))
 
     def test_compute_indexes_noncontiguous_2d_positions(self):
-        """An F-order (1, 2) position batch gives the same (1, 2, L) values as the C-order call."""
+        """
+        Show an F-order (1, 2) position batch gives the same (1, 2, L) values as the C-order call.
+        """
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
         mover0 = bitboard_from_signed_int(np.int64(4611717676283199524))
@@ -366,7 +369,7 @@ class TestMobilitySet(unittest.TestCase):
         nptest.assert_array_equal(indexes, c_indexes)
 
     def test_compute_indexes_empty_2d_positions(self):
-        """An empty (0, 2) position batch gives an empty (0, 2, L) index matrix."""
+        """Show an empty (0, 2) position batch gives an empty (0, 2, L) index matrix."""
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
         positions = np.zeros((0, 2), dtype=Position)
@@ -462,7 +465,7 @@ class TestMobilitySet(unittest.TestCase):
 
     def test_compute_indexes_prevents_underflow(self):
         """
-        Blinds the Numba kernel against 32-bit integer underflows. If alms_count > lms_count, the
+        Guard the Numba kernel against 32-bit integer underflows. If alms_count > lms_count, the
         register must not wrap around to ~4 billion.
         """
         # Create a situation where opponent has moves, but mover has ZERO moves in the mask. mask =

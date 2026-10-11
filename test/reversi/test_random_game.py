@@ -934,9 +934,8 @@ class TestRandomGamePlayPath(unittest.TestCase):
 
     def test_random_game_play_path_double_pass_game_over(self):
         # A game-over position (both players moveless, ec = 20 > the target): the double-pass break
-        # must stop the loop. The pass is PA = 64 — the stale pre-fix sentinel (Move(66) = UN) never
-        # matched and the loop span forever (the fix this test guards). The two consecutive passes
-        # swap the view twice: the returned position is the input one, with its own empty count.
+        # must stop the loop. The pass is PA = 64. The two consecutive passes swap the view twice:
+        # the returned position is the input one, with its own empty count.
         p = make_position(bitboard_from_signed_int(np.int64(0x00000FFFFFFFFFFF)),
                           Bitboard(0))
         self.assertEqual(int(position_empty_count(p)), 20)

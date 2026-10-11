@@ -41,6 +41,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   strettamente aperte. Segnalato per chiamata separata di Roberto: l'item adiacente "Verify the format of
   the WORKER sources" è a sua volta coperto dalla cascata worker completata (D-494..D-512).
 - Suite via wrapper R-210 (LONG=1, DB live, per D-516): 1115/0/24 GREEN.
-- Next: gli item aperti restano quelli dell'overview (i 5 tag DURATION, la verifica delle fonti TEST, il
-  rework MOBILITY, il README) + il re-review del register e il testo della guard rule R-200 (entrambi a
-  chiamata di Roberto).
+- D-517 (pulizia di formato completa delle fonti TEST, 3 commit parts 1-3): dopo l'audit file-per-file
+  (48 agenti: 37 dei 51 file con deviazioni reali — l'item non era fatto) Roberto approva lo sweep.
+  Part 1, pilota test\_logistic\_model: header in house shape, split over-120, 9 docstring light,
+  3 prose storiche. Part 2, meccanico: le 35 righe over-120 split value-identiche (literal golden per
+  concatenazione adiacente; i goldens triple-quoted multilinea di test\_feature in concatenazione
+  parentetica, valore byte-identico assertito), 17 file al punto fisso reflow canonico. Part 3,
+  semantico: 30 docstring test lunghe compresse alla forma light R-570 (i 4 con info assente dai mirror
+  doc mantengono 3-7 righe, per la tolleranza di Roberto), 10 prose storiche rimosse, 6 header
+  normalizzati, 12 aperture non imperative corrette. Stato finale: 0 over-120, 0 D-XXX/I-XXX nei .py,
+  51/51 al punto fisso reflow; le 2 item Next-steps (TEST + WORKER sources) rimosse dall'overview.
+- Suite via wrapper R-210 (LONG=1, DB live, per D-517): 1115/0/24 GREEN.
+- Next: gli item aperti restano quelli dell'overview (i 5 tag DURATION, il rework MOBILITY, il README,
+  il re-review del register e il testo della guard rule R-200 — entrambi a chiamata di Roberto).

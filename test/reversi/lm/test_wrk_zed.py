@@ -115,7 +115,7 @@ class TestLMWorkerZed(unittest.TestCase):
 
         expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)
 
-        # In the new design, game_values is already a numpy array in the context
+        # game_values is already a numpy array in the context
         y = np.asarray(self.rlm.context.game_values, dtype=np.int8)
         nptest.assert_array_equal(expected_y, y)
 
@@ -143,7 +143,7 @@ class TestLMWorkerZed(unittest.TestCase):
         nptest.assert_array_equal(expected_z, self.rlm.context.z)
 
     def test_down_clears_zed_attributes(self):
-        # Pin the _down clearing (the live-verified D12 scope, now in the suite).
+        # Pin the _down clearing.
         self.rlm.move_to_step('ZED')
         self.assertIsNotNone(self.rlm.context.z)
 

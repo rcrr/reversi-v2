@@ -108,9 +108,8 @@ class TestLMWorkerAnalytics(unittest.TestCase):
 
     def test_analytics_report_goldens(self):
         """
-        First run to ANALYTICS: the 7-metric + 4-key dense dicts, the console report, the report
-        file and the INFO log lines (the rlm_02 live goldens — the bid [6,7] training model, 199952
-        samples — derived independently, not read back from the worker output).
+        First run to ANALYTICS on rlm_02 (the bid [6,7] training model, 199952 samples): the
+        7-metric + 4-key dense dicts, the console report, the report file and the INFO log lines.
         """
         # Pre-state: the ANALYTICS blackboard fields are not set yet.
         self.assertIsNone(self.rlm.context.analytics_report)
@@ -298,9 +297,8 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
 
     def test_mobility_and_pattern_tables(self):
         """
-        First run to ANALYTICS on rlm_01: the 7-metric + 4-key dense goldens (frequency_cut_off=2 —
-        5/10 training positions touch IC slots, the substitution delta 3.36) + the mobility/pattern
-        table structure + the file-report hash (rlm_01 live, derived independently).
+        First run to ANALYTICS on rlm_01 (frequency_cut_off=2 — 5/10 training positions touch IC
+        slots): the 7-metric + 4-key dense goldens + the mobility/pattern tables + the file-report hash.
         """
         self.rlm.move_to_step('ANALYTICS')
         self.assertEqual(self.rlm.current_step, 15)
@@ -634,8 +632,7 @@ class TestSuSampleEndToEnd(unittest.TestCase):
     def test_su_columns_real_corpus(self):
         """
         The 10,000-position corpus vs the 200 training positions: the two SU columns + the 5
-        consistency lines (one per feature) in the file report — each line re-derived from the ctx
-        (the real corpus marginal vs the real indexes).
+        consistency lines in the file report, each re-derived from the ctx.
         """
         self.rlm.move_to_step('ANALYTICS')
         self.assertEqual(self.rlm.current_step, 15)

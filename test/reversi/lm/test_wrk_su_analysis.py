@@ -24,9 +24,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-#
-# How to run the wrk_su_analysis module unit tests.
+
 # How to run the wrk_su_analysis unit tests.
+#
 # Run from the workspace root (the directory containing .venv and src).
 #
 # -0- Activate the environment.

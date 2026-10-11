@@ -346,9 +346,8 @@ class TestFullChainA2030(unittest.TestCase):
 
     def test_config_provenance_single_source(self):
         """
-        The model file is the SINGLE source of the run's configuration: the <output>.config.json
-        sidecar record does not exist — the provenance lives INSIDE the model file (pinned in
-        test_full_worker_chain), with the CONFIG-level fingerprint semantics on the embedded fields.
+        The model file is the SINGLE source of the run's configuration: no <output>.config.json
+        sidecar — the provenance lives INSIDE the model file (pinned in test_full_worker_chain).
         """
         # The full chain with the plots disabled — this test asserts the FILE's provenance (the
         # record absence, the sidecar, the fingerprint) and nothing about the figures.

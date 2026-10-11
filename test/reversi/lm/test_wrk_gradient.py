@@ -143,8 +143,8 @@ class TestLMWorkerGradient(unittest.TestCase):
 
 class TestGradientFlagWiring(unittest.TestCase):
     """
-    The high_performance_fg flag wiring on a mock context (no DB): the worker builds the matching fg
-    variant (the high_performance marker pin).
+    Pin the high_performance_fg flag wiring on a mock context (no DB): the worker builds the
+    matching fg variant (the high_performance marker pin).
     """
 
     def _mock_ctx(self, high_performance):

@@ -25,9 +25,7 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-#
-#
-# How to use the unit tests regab module.
+# How to run the regab unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #

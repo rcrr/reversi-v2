@@ -25,7 +25,6 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-#
 # How to run the wrk_design_matrix unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).

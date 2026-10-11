@@ -24,7 +24,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-#
 # How to run the wrk_validate unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -65,7 +64,7 @@ from reversi.board import Position
 
 class TestLMWorkerValidate(unittest.TestCase):
     """
-    The VALIDATE worker integration (rlm_02.json): the 7-metric goldens, the log lines, the
+    Test the VALIDATE worker integration (rlm_02.json): the 7-metric goldens, the log lines, the
     deterministic recompute (no cache file — the rlmwf_14 slot stays unused), and the _down scope.
     """
 
@@ -99,10 +98,8 @@ class TestLMWorkerValidate(unittest.TestCase):
 
     def test_validate_model_goldens(self):
         """
-        First run to VALIDATE: the 7-metric dict + the INFO log lines.
-
-        Goldens: rlm_02 live (bid [8] validation vs the bid [6,7] training model), derived
-        independently, not read back from the worker output.
+        First run to VALIDATE on rlm_02 (bid [8] vs the bid [6,7] training model): the 7-metric dict
+        + the INFO log lines, the goldens derived independently.
         """
         self.assertIsNone(self.rlm.context.vld_metrics)
 
@@ -181,7 +178,7 @@ class TestLMWorkerValidate(unittest.TestCase):
 
 class TestValidateModelUnit(unittest.TestCase):
     """
-    DB-free unit facts for the VALIDATE metric math.
+    Pin the DB-free unit facts for the VALIDATE metric math.
 
     The checks pin the metric math directly: the hand-computed 2-position case and the zero-guard
     branch. Runs under SKIP_REGAB_DB=1 (no DB).
@@ -205,13 +202,8 @@ class TestValidateModelUnit(unittest.TestCase):
 
     def test_full_metric_math_on_hand_computed_case(self):
         """
-        The full metric math on the hand-computed 2-position case.
-
-        1 feature / 2 instances, 2 positions. vld_indexes [[0,1],[1,0]] + col_offsets [0,0] ->
-        dense_indices [[0,1],[1,0]]; w_dense [0.5,-0.5] -> linear_predictor [0,0] -> z_pred
-        [0.5,0.5]. y2z(y)=(y+64)/128: game [0,64] -> vld_z [0.5,1.0]; rn_z [0,-0.5]: norm 0.25, loss
-        0.0625, mse_z 0.125, mae_z 0.25. z2y(z)=128z-64: y_pred [0,0], rn_y [0,-64]: mae_y 32, mse_y
-        2048, rmse_y sqrt(2048).
+        The full metric math on the hand-computed 2-position case, every value EXACT (the full
+        derivation in the mirror doc).
         """
         d = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
                                           [0, 2], [0.5, -0.5])).metrics
@@ -225,9 +217,8 @@ class TestValidateModelUnit(unittest.TestCase):
 
     def test_validation_result_carries_the_f64_series(self):
         """
-        validate_model returns the per-position series it is computed from (the single derivation
-        PLOT and CLIENT_CHECK consume), as f64 views: y_pred [0, 0] and rn_y [0, -64] on the
-        hand-computed 2-position case.
+        validate_model returns the per-position series PLOT and CLIENT_CHECK consume, as f64 views:
+        y_pred [0, 0] and rn_y [0, -64] on the hand-computed case.
         """
         r = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
                                           [0, 2], [0.5, -0.5]))
@@ -264,9 +255,7 @@ class TestValidateModelUnit(unittest.TestCase):
     def test_up_outlier_report(self):
         """
         The top-20 extreme-outlier report: the header + exactly 20 "vld position" lines, descending
-        |residual|, the 20 records in ctx.vld_outliers. Hand-computed ctx: 50 positions, w_dense [0]
-        -> y_pred [0] -> rn_y = -gv; game -25..24, the ties resolved by the STABLE argsort toward
-        the LOWER index.
+        |residual|, the 20 records in ctx.vld_outliers; ties resolved by the STABLE argsort.
         """
         n = 50
         ctx = LMContext(config_file_path=Path("dummy.json"))
@@ -307,9 +296,7 @@ class TestValidateModelUnit(unittest.TestCase):
     def test_rmse_mae_line_is_zero_guarded(self):
         """
         A perfect Y-space fit (mae_y == 0) takes the zero-guard branch — the n/a ratio line, no
-        ZeroDivisionError. game [0,0], w_dense [0,0] -> y_pred [0,0] -> rn_y 0 -> mae_y 0.0, rmse_y
-        0.0. (a REAL LMContext: Worker.up is @validate_call-gated with context: Context — a
-        SimpleNamespace is rejected)
+        ZeroDivisionError (a REAL LMContext: Worker.up is @validate_call-gated).
         """
         ctx = LMContext(config_file_path=Path("dummy.json"))
         ctx.vld_positions = np.zeros(2, dtype=Position)

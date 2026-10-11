@@ -137,9 +137,8 @@ class TestLMWorkerConfig(unittest.TestCase):
 
     def test_config_fingerprint(self):
         """
-        The config fingerprint is the sha3_256 of the normalized dump (the effective configuration,
-        the base_dir override included) — the single source of truth for the SAVE config record and
-        the analytics report.
+        The config fingerprint is the sha3_256 of the normalized dump (the base_dir override
+        included) — the single source of truth for the SAVE config record and the analytics report.
         """
         self.rlm.move_to_step('CONFIG')
         ctx = self.rlm.context
@@ -149,8 +148,8 @@ class TestLMWorkerConfig(unittest.TestCase):
 
     def test_no_cache_file_written(self):
         """
-        The CONFIG level writes NOTHING to the base dir — the ad-hoc cache flow is gone (the config
-        record is a SAVE artifact, next to the model file).
+        The CONFIG level writes NOTHING to the base dir (the config record is a SAVE artifact, next
+        to the model file).
         """
         self.rlm.move_to_step('CONFIG')
         rlmwf = [p.name for p in self.tmp_dir.iterdir()

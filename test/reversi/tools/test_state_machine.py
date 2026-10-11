@@ -726,8 +726,7 @@ class TestContextInjection(unittest.TestCase):
     def test_cache_prefix_is_concatenated_verbatim(self):
         """
         The prefix is a *filename* prefix, concatenated verbatim onto the level name — a bare prefix
-        'cache' glues to 'cache01_CONFIG.dat'; a directory-like prefix must end with a separator (as
-        in the other tests of this class, 'cache/').
+        'cache' glues to 'cache01_CONFIG.dat'; a directory-like prefix ends with a separator.
         """
         self.context.cfg = SimpleNamespace(
             cache_files_prefix=Path("cache"), base_dir=Path("base"))
@@ -820,9 +819,8 @@ class TestDisplayGoldens(unittest.TestCase):
 
     def test_log_event_live_print_format(self):
         """
-        [ts UTC] [step][name       ] [rel:verb] message — full
-        golden line per event (the enum-name rendering and the UTC
-        marker are pinned too).
+        [ts UTC] [step][name       ] [rel:verb] message — a full golden line per event (the
+        enum-name rendering and the UTC marker pinned too).
         """
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
@@ -844,10 +842,9 @@ class TestDisplayGoldens(unittest.TestCase):
 
     def test_format_event_log_full_replay(self):
         """
-        The full-buffer render (the FINAL_LOG_PRINT file source): all buffered entries — every
-        relevance, independent of the verbosity gate — as live-line text. The machine runs verbosity
-        VERY_LOW (nothing but ERROR prints): the TRACE / DEBUG / INFO / WARN buffer entries still
-        all appear in the render, in the live line format.
+        The full-buffer render (the FINAL_LOG_PRINT file source): every buffered entry, independent
+        of the verbosity gate, as live-line text — at VERY_LOW the TRACE/DEBUG/INFO/WARN entries
+        still all appear.
         """
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
@@ -910,9 +907,8 @@ class TestDisplayGoldens(unittest.TestCase):
 
     def test_show_history_of_moves_golden(self):
         """
-        End-to-end golden: the move's live lines, then the table — header (Dur (s) right-aligned
-        over its values), 80-dash rule, one row per executed step (start at microsecond precision;
-        duration = finish - start, pinned at 0.003000 by the frozen clock).
+        End-to-end golden: the move's live lines, then the table — header, 80-dash rule, one row per
+        executed step (start at microsecond precision; duration pinned at 0.003000 by the frozen clock).
         """
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):

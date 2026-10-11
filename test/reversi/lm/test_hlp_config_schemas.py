@@ -282,11 +282,8 @@ class TestRlmConfigSchemas(unittest.TestCase):
 
     def test_plot_style_defaults_and_constraints(self):
         """
-        The 13 appearance/determinism knobs: the defaults are the historical rendering values (the
-        seeds 42/43, the 0.005 / 0.7 jitter amounts, the 512 KDE grid + 100k cap, the 64 / 72 axis
-        domains, the 8 tick step, the binned note, and the series-label placement), and the numeric
-        constraints reject the degenerate values (a negative seed, a non-positive axis / grid / cap
-        / step).
+        The 13 appearance/determinism knobs: the default values pin, and the numeric constraints
+        reject the degenerate ones (a negative seed, a non-positive axis / grid / cap / step).
         """
         p = PlotConfig()
         self.assertEqual(p.binned_note, r" $(binned\ every\ 2)$")
@@ -357,9 +354,8 @@ class TestRlmConfigSchemas(unittest.TestCase):
 
     def test_su_analysis_defaults(self):
         """
-        The opt-in sections: the su_analysis / the anova enable default FALSE, the target_level
-        default 'last', the corpus defaults (seed 42, 1e7), the su_pairs empty. The rlm_00 fixture
-        carries the sections — strip them to check the pure defaults (the absent-section no-op).
+        The opt-in section defaults (enable FALSE, target_level 'last', the corpus seed 42 / 1e7,
+        su_pairs empty): the rlm_00 fixture stripped to the pure defaults.
         """
         def _strip_sections(d):
             d.pop("su_analysis", None)
@@ -390,9 +386,8 @@ class TestRlmConfigSchemas(unittest.TestCase):
 
     def test_rarity_thresholds(self):
         """
-        The optional rarity thresholds (the report's 'Section B: Rarity report'): absent = None (the
-        section off), the fixture's [1, 2, 5, 10, 100] validates, the empty list is legal (off), and
-        the list must be positive strictly-increasing integers.
+        The optional rarity thresholds: absent = None (the section off), the fixture's [1, 2, 5, 10,
+        100] validates, the empty list is legal, positive strictly-increasing only.
         """
         def _strip(d):
             d.pop("su_analysis", None)

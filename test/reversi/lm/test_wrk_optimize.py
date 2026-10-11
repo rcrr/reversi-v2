@@ -140,8 +140,8 @@ class TestLMWorkerOptimize(unittest.TestCase):
         self.assertIn("Checkpoint: optimization already completed.", logs)
         self.assertIn("Iterations", logs)
 
-        # And confirm L-BFGS did NOT run (no per-iteration optimizer logs). "L-BFGS - [" is the
-        # actual lbfgs marker — the old "Starting L-BFGS optimization" string was never logged (vacuous).
+        # And confirm L-BFGS did NOT run (no per-iteration optimizer logs): "L-BFGS - [" is the
+        # actual lbfgs per-iteration marker.
         self.assertNotIn("L-BFGS - [", logs)
 
         # Weights must be identical to the first run (loaded from checkpoint)

@@ -25,6 +25,7 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
+#
 # How to run the wrk_plot unit tests. Run from the workspace root (the directory containing .venv
 # and src).
 #
@@ -193,10 +194,9 @@ class TestWrkPlot(unittest.TestCase):
 
     def test_up_all_seven_png(self):
         """
-        The full whitelist in png: the seven figures in base_dir/plots (the relative dir_name
-        default), the PNG magic + a non-trivial size, the per-plot save lines and the completion
-        line. The second up-move REGENERATES byte- identical files (the seeded jitter + the
-        deterministic Agg rendering).
+        The full whitelist in png: the seven figures in base_dir/plots, the PNG magic + a
+        non-trivial size, the per-plot save lines and the completion line; the second up-move
+        REGENERATES byte-identical files (seeded jitter + deterministic Agg rendering).
         """
         ctx = self._ctx
         wrk_plot().up(ctx)
@@ -273,10 +273,8 @@ class TestWrkPlot(unittest.TestCase):
     def test_parity_png_golden(self):
         """
         The rendering golden: the parity figure of the synthetic context (SEED 42, N_TRN 1200 /
-        N_VLD 1000, the rlm_04 mirror, png at 150 dpi, the fixed axes + the two-line title) hashes
-        to the pinned value. Version- sensitive like the other f32 goldens: it moves when matplotlib
-        or numpy changes, and the font rasterization bytes follow the environment's fonts (the
-        rendering stays visually identical).
+        N_VLD 1000, the rlm_04 mirror, 150 dpi) hashes to the pinned value; version-sensitive like
+        the f32 goldens — it moves when matplotlib, numpy or the environment fonts change.
         """
         ctx = self._ctx
         ctx.cfg.plot = self._plot_cfg(plots=["parity"])

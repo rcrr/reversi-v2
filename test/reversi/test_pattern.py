@@ -168,9 +168,8 @@ class TestPattern(unittest.TestCase):
 
     def test_repr(self):
         """
-        Golden for the one-line __repr__ summary (same info as the first line of print() — name in
-        repr form, mask as 16-digit lowercase hex). Pattern defines no __str__, so str() falls back
-        to __repr__ (pinned here too).
+        Golden for the one-line __repr__ summary (name in repr form, mask as 16-digit lowercase
+        hex); Pattern defines no __str__, so str() falls back to __repr__.
         """
         p = Pattern('ELLE', Bitboard(0x0000000000000107))
         self.assertEqual(repr(p), "Pattern(name='ELLE', mask=0x0000000000000107)")
@@ -192,9 +191,8 @@ class TestPattern(unittest.TestCase):
 
     def test_init_rejects_non_minimum_orbit_masks(self):
         """
-        Masks containing all 4 corners tie for minimal BSR in the whole orbit (all 8 transforms have
-        BSR 63). Only the numerically lowest orbit member is the unique principal: a mask is a
-        64-bit integer, a bijection with 0..2^64-1, so the orbit minimum is well-defined and unique.
+        Masks containing all 4 corners tie for minimal BSR in the whole orbit: only the numerically
+        lowest orbit member is the unique principal (a mask is a 64-bit int, a bijection with 0..2^64-1).
         """
         corners = Bitboard(0x8100000000000081)  # A1 H1 A8 H8
         # + b1 (bit 1) is the numerically lowest of the 8 orbit members.
@@ -962,9 +960,8 @@ class TestPatternSymmetries(unittest.TestCase):
 
     def test_burnside_counts_invariants(self):
         """
-        General invariants of the Burnside counts: 1 <= n_invariant_configs <= n_unique_configs <=
-        n_configurations, with equality to n_configurations (3^S) when symmetry_fs is empty (trivial
-        action on the squares).
+        General invariants of the Burnside counts: 1 <= n_invariant <= n_unique <= n_configurations,
+        with equality to n_configurations (3^S) when symmetry_fs is empty.
         """
         for mask_val, name, _ in self.test_data:
             with self.subTest(name=name):
@@ -1380,21 +1377,13 @@ class TestPatternComputeIndexes(unittest.TestCase):
 
     def test_compute_indexes_on_position_multiple_positions(self):
         """
-        T9: array input with DISTINCT positions — every output row must be computed independently.
-        The existing array tests only feed uniform np.full tiles, which cannot catch a row-mixing
-        bug in the 2D kernel path.
-
-        EDGE has 4 unique instances (unique_mask_indexes [0,1,2,3]), so output column j is the
-        base-3 configuration of row 1 read through the j-th anti-transformation: identity, ro270,
-        ro180, ro090. Digits: 0 = empty, 1 = mover, 2 = opponent; square k (squares in ascending
-        board order A1..H1) contributes digit * 3**k.
-
-        Hand-derived goldens from the D8 geometry (ro090: A1->H1,
-        ro180: A1->H8, ro270: A1->A8, ro270: H1->A1) and verified
-        against the live output:
-        - empty position:                   [0, 0, 0, 0]
-        - mover on A1 (bit 0) only:         [1, 0, 0, 3**7]
-        - mover A1 + opponent H1 (bit 7):   [1 + 2*3**7, 2, 0, 3**7]
+        T9: array input with DISTINCT positions — every output row must be computed independently
+        (the uniform np.full tiles of the other array tests cannot catch a row-mixing bug in the 2D
+        kernel path). EDGE has 4 unique instances, so output column j is row 1's base-3
+        configuration read through the j-th anti-transformation (identity, ro270, ro180, ro090);
+        digits 0 = empty, 1 = mover, 2 = opponent, square k (A1..H1 ascending) contributes digit *
+        3**k. Goldens hand-derived from the D8 geometry (ro090: A1->H1, ro180: A1->H8, ro270: A1->A8
+        / H1->A1).
         """
         pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
 
@@ -1579,11 +1568,8 @@ class TestPatternSet(unittest.TestCase):
 
     def test_print_summary(self):
         """
-        The print_summary golden: the pinned hash literal + the one-line-per-pattern format.
-
-        The hash is sha3_256 over the raw bytes of the mask-sorted masks (ELLE 0x...107, EDGE
-        0x...FF, SNAKE 0x...C30000000); pinning the literal (instead of self.pattern_set.hash) makes
-        the line a real golden.
+        The print_summary golden: the pinned hash literal (sha3_256 over the raw bytes of the
+        mask-sorted masks) + the one-line-per-pattern format; the literal, not self.pattern_set.hash.
         """
         expected_hash = '5e5abf79c30a75f13b296efff45c78554924f772f94f74a311025c425ac9d10b'
 
@@ -1604,11 +1590,8 @@ class TestPatternSet(unittest.TestCase):
 
     def test_print(self):
         """
-        The print golden: the pinned hash literal + the set summary + every pattern's detailed report.
-
-        The hash is sha3_256 over the raw bytes of the mask-sorted masks (ELLE 0x...107, EDGE
-        0x...FF, SNAKE 0x...C30000000); pinning the literal (instead of self.pattern_set.hash) makes
-        the line a real golden.
+        The print golden: the pinned hash literal (sha3_256 over the mask-sorted masks) + the set
+        summary + every pattern's detailed report; the literal, not self.pattern_set.hash.
         """
         expected_hash = '5e5abf79c30a75f13b296efff45c78554924f772f94f74a311025c425ac9d10b'
 
@@ -1834,18 +1817,11 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
 
     def test_edge_pattern_compute_principal_index_dict(self):
         """
-        T10: EDGE's 6561-entry principal dict is never pinned directly (CORE pins its 81 entries,
-        the others are spot- checked). Pinned here with the full non-circular specification plus
-        length, unique count and spot values.
-
-        EDGE has one non-identity stabilizer element (fvert), so dict[c] = min(c, flip(c)): fvert
-        reads row 1 in the reversed square order, i.e. flip reverses the base-3 digits. Unique
-        principal count = orbits under {id, fvert} = (6561 + 81) / 2 = 3321 (Burnside: 81
-        configurations are fixed by the digit reversal — 4 free digit pairs).
-
-        NOTE: int(p.n_squares) on purpose — n_squares is np.uint8 and 3 ** p.n_squares overflows
-        (6561 wraps to 161) for patterns with >= 7 squares; the production code already casts to int
-        where needed (compute_principal_index_dict).
+        T10: EDGE's 6561-entry principal dict, pinned with the full non-circular specification plus
+        length, unique count and spot values. EDGE has one non-identity stabilizer (fvert, which
+        reverses the base-3 digits), so dict[c] = min(c, flip(c)); unique count = (6561 + 81) / 2 =
+        3321 by Burnside (81 configurations fixed by the digit reversal). int(p.n_squares) on
+        purpose: n_squares is np.uint8 and 3 ** p.n_squares overflows for >= 7-square patterns.
         """
         p = Pattern('EDGE', Bitboard(0x00000000000000FF))
         S = int(p.n_squares)
@@ -2033,28 +2009,13 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
 
     def test_compute_principal_indexes_multiple_positions(self):
         """
-        T9: array input with DISTINCT positions — every output row must be computed independently.
-        test_large_set feeds uniform np.full tiles and only checks row 0, so a row-mixing bug in the
-        set-level kernel path would be invisible.
-
-        Single-pattern set (EDGE): one output column per unique mask
-        (4 groups); column g is the principal index of that instance's
-        configuration — the min over the two stabilizer elements that
-        map the pattern onto the same unique mask:
-        g0 = min(ro000, fvert)   row 1, forward vs reversed reading
-        g1 = min(ro090, fh1a8)   col h, H1-first vs H8-first
-        g2 = min(ro180, fhori)   row 8, H8-first vs A8-first
-        g3 = min(ro270, fa1h8)   col a, A8-first vs A1-first
-        Digits: 0 = empty, 1 = mover, 2 = opponent; square k (ascending
-        order of the instance frame) contributes digit * 3**k.
-
-        Hand-derived goldens (each row cross-checked against the
-        per-slot base-3 indexes reconstructed via _pack_bb) and
-        verified against the live output:
-        - empty position:                   [0, 0, 0, 0]
-        - mover on A1 (bit 0) only:         [1, 0, 0, 1]
-        - mover A1 + opponent H1 (bit 7):   [2189, 2, 0, 1]
-        - mover on A1 + A8 (bits 0, 56):    [1, 0, 1, 2188]
+        T9 (set level): array input with DISTINCT positions — every output row must be computed
+        independently (test_large_set feeds uniform tiles and checks row 0 only). Single-pattern set
+        (EDGE): one column per unique mask (4 groups); column g is the principal index — the min
+        over the two stabilizer elements mapping the pattern onto that unique mask (g0 ro000/fvert,
+        g1 ro090/fh1a8, g2 ro180/fhori, g3 ro270/fa1h8). Digits 0 = empty, 1 = mover, 2 = opponent;
+        square k (instance-frame ascending) contributes digit * 3**k. Goldens hand-derived and
+        cross-checked against the per-slot base-3 indexes via _pack_bb.
         """
         pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
 

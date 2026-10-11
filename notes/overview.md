@@ -54,12 +54,8 @@ define the evaluation function.
 
 - Select the tests by DURATION with the 5 tags (VVLONG, VLONG, LONG, PERF, DB); re-verify the tag-assignment technique;
   analyze every LONG / VLONG / VVLONG test for a possible shorter equivalent.
-- Verify all the TEST sources: the code + docstring format, the documentation criteria; remove the documentation that
-  describes the history.
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
 - Add the project README (English, like everything else).
-- Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow via
-  wsutils/src\_reflow.py, the docstring conversion).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

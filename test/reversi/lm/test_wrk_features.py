@@ -108,8 +108,8 @@ class TestLMWorkerFeatures(unittest.TestCase):
         # The fixture has no name key: the schema default applies.
         self.assertEqual(fs.name, 'NoNameFeatureSet')
 
-        # Golden hashes (independently re-derived): the FeatureSet hash is sha3_256 over
-        # b'INTERCEPT' + the mset hash hex string + the pset hash hex string.
+        # Golden hashes: the FeatureSet hash is sha3_256 over b'INTERCEPT' + the mset hash hex
+        # string + the pset hash hex string.
         self.assertEqual(fs.hash,
                          '453e918aeabfa3f7ff43f110ab72719b3f1d1906158933436234b7bab075a159')
         self.assertEqual(fs.mset.hash,

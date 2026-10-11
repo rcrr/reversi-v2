@@ -126,9 +126,8 @@ class TestChecksumHelpers(BaseCacheTestCase):
 
     def test_legacy_bare_hex_sidecar_still_verifies(self):
         """
-        A legacy bare-hexdigest sidecar (the old format: no filename, no newline) still verifies,
-        because binio's parser takes the first whitespace-separated token — no cache invalidation
-        for existing on-disk caches.
+        A legacy bare-hexdigest sidecar (no filename, no newline) still verifies: binio's parser
+        takes the first whitespace-separated token, so existing on-disk caches are not invalidated.
         """
         checksum_path_for(self.temp_path).write_text(
             compute_sha3_256(self.temp_path)
@@ -181,9 +180,8 @@ class TestChecksumHelpers(BaseCacheTestCase):
 
     def test_sidecar_content_is_binio_format(self):
         """
-        The sidecar holds binio's sha3_256sum-style line
-        "<hexdigest>  <basename>\n" — cache_manager no longer keeps
-        its own bare-hexdigest format (see the module doc).
+        The sidecar holds binio's sha3_256sum-style line "<hexdigest>  <basename>\n" (see the
+        module doc).
         """
         write_sha3_256_sidecar(self.temp_path)
         digest = compute_sha3_256(self.temp_path)
@@ -592,8 +590,7 @@ class TestValidateCallCoercion(unittest.TestCase):
     def test_str_cache_path_is_coerced_to_path(self):
         """
         A str cache_path is coerced to a Path: the inner store_fn callback observes a pathlib Path,
-        and the flow then dies in the framework's sidecar write (FileNotFoundError — the no-op
-        store_fn never created the file).
+        and the flow dies in the sidecar write (the no-op store_fn never created the file).
         """
         seen = []
         with self.assertRaises(FileNotFoundError):

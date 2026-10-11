@@ -44,8 +44,7 @@ def _workspace_root() -> Path:
 
 
 #: The workspace root: the first ancestor of this file holding the workspace marker (pyproject.toml)
-#: — keyed on the marker, not a level count, so it survives file moves (the old idiom recomputed it
-#: per test file via Path(__file__).resolve().parents[N]).
+#: — keyed on the marker, not a level count, so it survives file moves.
 WORKSPACE_ROOT = _workspace_root()
 
 #: The shared test-artifact base directory (the house rule: unit tests write files ONLY under

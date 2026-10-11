@@ -1490,3 +1490,21 @@ D-516 | 2026-10-11 | The 70-line campaign-log bullet removed from the overview N
          for a legitimate 4-line comment). Next steps is back to short, strictly open bullets. Flagged for Roberto's
          separate call: the adjacent "Verify the format of the WORKER sources" item is likewise fully covered by the
          completed worker cascade (D-494..D-512).
+
+D-517 | 2026-10-11 | The TEST sources format sweep — the "Verify all the TEST sources" item (and, with it, the adjacent
+         "Verify the format of the WORKER sources" item) closed: all 51 .py files under test/reversi/ (the 48 tracked +
+         the 3 \_\_init\_\_) audited one by one (48 agents + the mechanical sweeps) and cleaned in three commits (parts
+         1-3). The audit verdict: the item was NOT done — 37 of the 51 files carried real deviations (the 11 clean ones
+         are exactly the files the recent campaigns had touched). Part 1 (the pilot, test\_logistic\_model, on Roberto's
+         call to see the shape): the house header, the over-120 split, 9 light docstrings, 3 history prose. Part 2 (the
+         mechanical pass): the 35 over-120 lines split value-identically — the golden literals by adjacent-string
+         concatenation, the two multi-line triple-quoted goldens of test\_feature converted to parenthesized
+         single-quoted line concatenations with explicit \n (the value asserted byte-identical) — and the 17 files
+         brought to the canonical reflow fixpoint (wsutils/src\_reflow.py --write). Part 3 (the semantic pass): the 30
+         long test docstrings compressed to the R-570 light form (the four carrying information absent from the mirror
+         docs — the test\_pattern T9/T10 derivations, the test\_wrk\_plot parity golden — keep 3-7 lines, Roberto's
+         tolerance rule); the 10 history prose removed (the "Converted from the verify\_X probe" provenance lines, the
+         closecheck ULP-study header, the pre-fix narratives, the "D12" comment reference); the 6 headers normalized to
+         the house shape; the 12 non-imperative docstring openings fixed. End state: 0 over-120 lines, 0 D-XXX/I-XXX in
+         the .py sources, 51/51 at the reflow fixpoint; both Next-steps items removed from the overview (the worker side
+         covered by the completed D-494..D-512 cascade). Suite green at every commit via the R-210 wrapper (1115/0/24).

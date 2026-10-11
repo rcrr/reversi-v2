@@ -41,7 +41,7 @@
 #
 
 """
-Linear, copy-pasteable usage examples for reversi.tools.binio.
+Show linear, copy-pasteable usage of reversi.tools.binio.
 
 These tests double as documentation. Each one is a single straight sequence with no helper methods,
 showing a complete write -> read cycle.
