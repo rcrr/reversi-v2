@@ -26,8 +26,7 @@
 #
 
 #
-#
-# How to use the unit tests logistic_model module.
+# How to run the logistic_model unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -97,7 +96,8 @@ class TestLogisticModel(unittest.TestCase):
         self.patcher_config = patch('reversi.lm.logistic_model.wrk_config',
                                     return_value=Worker("CONFIG", self.config_up_mock, self.config_down_mock))
         self.patcher_positions = patch('reversi.lm.logistic_model.wrk_positions',
-                                       return_value=Worker("POSITIONS", self.positions_up_mock, self.positions_down_mock))
+                                      return_value=Worker("POSITIONS", self.positions_up_mock,
+                                                           self.positions_down_mock))
         # The FEATURES dummy — the string move to POSITIONS crosses it, and the real FEATURES worker
         # would hit the None cfg.
         self.features_up_mock = MagicMock()
@@ -156,21 +156,15 @@ class TestLogisticModel(unittest.TestCase):
     def test_init_non_str_config_path_raises_validation_error(self):
         """
         The @validate_call on __init__ rejects a non-str/Path config_file_path with a pydantic
-        ValidationError before any worker factory runs (fail-fast guard).
-
-        Converted from the verify_logistic_model.py V6f probe (probe_rules.md §4: cheap
-        deterministic unit behavior of one module belongs in the tests, not the probes).
+        ValidationError before any worker factory runs (the fail-fast guard).
         """
         with self.assertRaises(ValidationError):
             LogisticModel(123)
 
     def test_injected_cache_closure_requires_cfg(self):
         """
-        The injected _for_current_level closure dereferences ctx.cfg; before the CONFIG worker runs,
-        cfg is None and the call must fail with AttributeError (the injection-order fact; a bare
-        LMContext instead keeps the no-op lambda default).
-
-        Converted from the verify_wrk_config.py E4b probe (probe_rules.md §4).
+        The injected _for_current_level closure dereferences ctx.cfg: before CONFIG runs, cfg is
+        None and the call fails with AttributeError (a bare LMContext keeps the no-op lambda default).
         """
         with self.assertRaises(AttributeError):
             self.model.context.get_cache_file_path_for_current_level()
@@ -274,9 +268,8 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_run_last_resolution(self):
         """
-        'last' means the whole pipeline: the field default, the upper/lower case, a blank value and
-        an absent config all delegate to move_to_last (patched — the tail levels need the DB). The
-        CONFIG level still runs first.
+        'last' means the whole pipeline: the default, the case variants, a blank value and an absent
+        config all delegate to move_to_last (patched — the tail levels need the DB); CONFIG runs first.
         """
         for cfg, label in [(SimpleNamespace(target_level="last"), "last"),
                            (SimpleNamespace(target_level="LAST"), "LAST"),
@@ -346,9 +339,8 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_run_base_default_is_the_last_step(self):
         """
-        BaseModel.run is the GENERIC entry (every domain facade gets it): the base hook returns None
-        -> the last step, and an explicit target still resolves. The domain hook is the only
-        override (LogisticModel reads its config).
+        BaseModel.run is the GENERIC entry: the base hook returns None -> the last step, and an
+        explicit target still resolves (the domain hook is the only override).
         """
         workers = [Worker("CREATED", MagicMock(), MagicMock()),
                    Worker("ONLY", MagicMock(), MagicMock())]
@@ -408,9 +400,8 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_injected_cache_helpers_are_the_machine_closures(self):
         """
-        Post-construction, the context's *_for_current_level attributes ARE the closures
-        StateMachine injected under those names (a regression to the old names would have left the
-        no-op lambda defaults and returned None — this pin would have caught it).
+        Post-construction, the context's *_for_current_level attributes ARE the closures the
+        StateMachine injected under those names (checked by their __name__).
         """
         ctx = self.model.context
         self.assertEqual(ctx.get_cache_file_path_for_current_level.__name__,
@@ -422,7 +413,7 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_pre_injection_fallback_is_no_op_lambda(self):
         """
-        A bare (un-injected) LMContext keeps the lambda no-op defaults — the cache helpers return
+        A bare (un-injected) LMContext keeps the lambda no-op defaults: the cache helpers return
         None and log_event does nothing, without crashing.
         """
         bare = LMContext(config_file_path=Path(self.dummy_config_path))
@@ -432,9 +423,8 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_injected_cache_helper_computes_the_worker_path(self):
         """
-        With a dummy cfg, the injected path closures compute the per-level cache path by
-        filename-prefix concatenation: <prefix><level:02>_<worker>.dat, and the full variant
-        prepends cfg.base_dir.
+        With a dummy cfg, the injected path closures compute the per-level cache path
+        <prefix><level:02>_<worker>.dat, and the full variant prepends cfg.base_dir.
         """
         ctx = self.model.context
         ctx.cfg = SimpleNamespace(cache_files_prefix="cache",
@@ -458,7 +448,7 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_config_path_helper_edge_branches(self):
         """
-        _check_config_file_path edge branches — non-str/Path -> TypeError, missing ->
+        _check_config_file_path edge branches: non-str/Path -> TypeError, missing ->
         FileNotFoundError, a directory -> IsADirectoryError.
         """
         with self.assertRaisesRegex(
@@ -486,9 +476,8 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_export_history_of_moves_as_csv_pass_through(self):
         """
-        The CSV export pass-through writes a real file (the SM's exporter, parent-dir creation);
-        with an empty history the file is header-only. The artifact stays under build/tmp and the
-        temp dir is removed in tearDown.
+        The CSV export pass-through writes a real file via the SM's exporter; with an empty history
+        the file is header-only (the artifact stays under build/tmp).
         """
         csv_path = Path(self.temp_dir.name) / "history.csv"
         self.model.export_history_of_moves_as_csv(csv_path)
