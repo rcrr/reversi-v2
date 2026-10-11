@@ -52,5 +52,5 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   normalizzati, 12 aperture non imperative corrette. Stato finale: 0 over-120, 0 D-XXX/I-XXX nei .py,
   51/51 al punto fisso reflow; le 2 item Next-steps (TEST + WORKER sources) rimosse dall'overview.
 - Suite via wrapper R-210 (LONG=1, DB live, per D-517): 1115/0/24 GREEN.
-- Next: gli item aperti restano quelli dell'overview (i 5 tag DURATION, il rework MOBILITY, il README,
   il re-review del register e il testo della guard rule R-200 — entrambi a chiamata di Roberto).
+- Su richiesta di Roberto: rimossa dall'overview (Current state) la bullet dello stato piattaforma (la narrativa env-drift del re-pin D-515): irrilevante, e la piattaforma è già registrata in Environment.

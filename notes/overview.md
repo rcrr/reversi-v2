@@ -46,9 +46,6 @@ define the evaluation function.
   `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
   `standard`), from the workspace root; the stop is target-driven — `run(target_level=…)` runs CONFIG first, then stops
   at the argument / `cfg.target_level` / the last step.
-- The workspace is on the upgraded platform (Python 3.14.4, matplotlib 3.11.2, numpy 2.5.4): the suite is green again
-  after the D-515 parity-golden re-pin (the env drift of the Ubuntu/Python upgrade).
-
 
 ## Next steps
 
