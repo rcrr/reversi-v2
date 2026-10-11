@@ -1468,3 +1468,25 @@ D-515 | 2026-10-11 | The parity PNG golden re-pinned (the env drift: the Ubuntu 
          rotated (log.md at 3086 lines > the 2000 cap: vol 004 closed at session 101, vol 005 opened at 102); the
          overview Environment bullet records Python 3.14.4. Suite via the R-210 wrapper (LONG=1, the live DB): 1115/0/24
          GREEN.
+
+D-516 | 2026-10-11 | The 70-line campaign-log bullet removed from the overview Next steps (the format-campaign progress
+         board). Roberto flagged the "Verify the format of the lm and test sources" item as completely out of norm: 70
+         lines / ~8.4 KB against the 1-2 lines of the other items, dense with historical D-pointers, and no longer true.
+         The git reconstruction: the bullet was born 2026-09-29 (D-337, e4b3627) as a one-line OPEN item of Roberto's
+         six-point to-do; the rigid overview rules were born the same day (D-343, 0b0cbfb: "Next steps: OPEN items only,
+         no Done bullets" + "NO bullet-per-campaign: the campaign lives in the session journal + the decisions log, and
+         its state leaves this section when the campaign ends"); from the first campaign wave (D-476, 4816fa8, session
+         99) every wave commit appended the day's module pass (45 commits between D-476 and D-512) until the item became
+         the running campaign progress board — the journal records the practice openly ("il bullet Next-steps segnato —
+         board COMPLETE"). Violations: "OPEN items only, no Done bullets" (the item is ~100% completion record), the
+         no-bullet-per-campaign principle (the campaign ended 2026-10-10 and the record never left the overview), and
+         the single-home principle (every fact already lives, more fully, in the open decisions log D-476..D-514 + the
+         journal sessions 99-101 in log\_004). The guard stayed green because notes\_lint checks the overview's
+         structure and the R-210 auditor the lists/tables — no mechanical check expresses the "no Done bullets"
+         semantics. The same anti-pattern had been spotted and repaired on 2026-09-29 (the closed-ideas record out of
+         the Next-steps backlog line) and recurred during the campaign. Roberto's call: option (A) — the item is deleted
+         in full; no rewrite (no open content remains — the open test-sources scope is carried by the adjacent "Verify
+         all the TEST sources" item) and no mechanical tripwire (a length cap would become an antipathetic constraint
+         for a legitimate 4-line comment). Next steps is back to short, strictly open bullets. Flagged for Roberto's
+         separate call: the adjacent "Verify the format of the WORKER sources" item is likewise fully covered by the
+         completed worker cascade (D-494..D-512).

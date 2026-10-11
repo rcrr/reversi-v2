@@ -2,7 +2,7 @@
 
 Format rules: notes/log_rules.md (rigid — follow when editing this file).
 
-## 2026-10-11 — session 102 (D-515 — re-pin del parity PNG golden: il drift di ambiente post-upgrade Ubuntu/Python, rotazione journal vol 004 → 005)
+## 2026-10-11 — session 102 (D-515/D-516 — re-pin del parity PNG golden post-upgrade Ubuntu/Python + la rimozione della bullet-campagna dai Next steps, rotazione journal vol 004 → 005)
 
 - Roberto: upgrade di Ubuntu + Python, venv ricostruita, librerie aggiornate con pip; la suite completa
   (PERF=1 VVLONG=1, 1115 test) passa tutto tranne `test_parity_png_golden` (hash generato 7939f3b3... ≠ pin
@@ -25,6 +25,22 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (notes/hist\_log/log\_004.md), il volume 005 apre a questa session 102; l'Index dell'overview segue.
 - L'Environment dell'overview registra la nuova piattaforma: Python 3.12.3 → 3.14.4.
 - Suite via wrapper R-210 (LONG=1, DB live): 1115/0/24 GREEN.
+- D-516 (rimozione della bullet-campagna dai Next steps dell'overview): Roberto segnala l'item "Verify the
+  format of the lm and test sources" "completamente fuori norma" — 70 righe / ~8,4 KB contro le 1-2 righe
+  delle altre, piena di riferimenti storici D-NNN, e non più vera. Archeologia git: nata il 29-09 (D-337)
+  come item aperto di una riga del to-do a 6 punti; le rules rigide dell'overview nate lo stesso giorno
+  (D-343: "OPEN items only, no Done bullets" + "no bullet-per-campaign, lo stato di campagna esce
+  dall'overview a campagna finita"); dal primo wave (D-476, session 99) ogni wave-commit ci ha aggiunto il
+  pass del giorno (45 commit fino a D-512) — la bullet era diventata il tabellone di progressi di campagna
+  (il journal lo diceva apertamente: "il bullet Next-steps segnato — X COMPLETE"). La guard era rimasta
+  green perché notes\_lint controlla la struttura e l'auditore R-210 le tabelle: nessuna check meccanica
+  esprime la semantica "no Done bullets". Anti-pattern già sanato il 29-09 (il record closed-ideas fuori
+  dal Next-steps) e ricomparso in campagna. Chiamata di Roberto: opzione (A) — rimozione integrale,
+  nessuna riscrittura (zero contenuto aperto residuo; lo scope test-sources resta nell'item adiacente) e
+  nessun tripwire meccanico ("diventano vincoli antipatici"). I Next steps tornano a bullet corte e
+  strettamente aperte. Segnalato per chiamata separata di Roberto: l'item adiacente "Verify the format of
+  the WORKER sources" è a sua volta coperto dalla cascata worker completata (D-494..D-512).
+- Suite via wrapper R-210 (LONG=1, DB live, per D-516): 1115/0/24 GREEN.
 - Next: gli item aperti restano quelli dell'overview (i 5 tag DURATION, la verifica delle fonti TEST, il
   rework MOBILITY, il README) + il re-review del register e il testo della guard rule R-200 (entrambi a
   chiamata di Roberto).
