@@ -56,6 +56,7 @@ from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.wrk_gradient import wrk_gradient
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_long_gate
+from reversi.index import Index
 
 
 
@@ -155,7 +156,7 @@ class TestGradientFlagWiring(unittest.TestCase):
                                          hi_perf_blocks=8),
             stat_model=SimpleNamespace(ridge_regularization=0.01))
         ctx.w = np.zeros(3, dtype=np.float32)
-        ctx.design_matrix = np.array([[0, 1], [1, 2], [0, 2]], dtype=np.uint32)
+        ctx.design_matrix = np.array([[0, 1], [1, 2], [0, 2]], dtype=Index)
         ctx.z = np.array([0.1, 0.9, 0.5], dtype=np.float32)
         ctx.log_event = lambda *args: None
         ctx.fg = None

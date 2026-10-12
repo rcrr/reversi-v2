@@ -58,6 +58,7 @@ from reversi.lm.hlp_design_matrix import (LMDesignMatrix,
                                      hlp_design_matrix_load_from_file,
                                      hlp_design_matrix_is_cache_consistent)
 from test.reversi.paths import CUSTOM_TMP_BASE
+from reversi.index import Index
 
 
 class TestHlpDesignMatrixCompute(unittest.TestCase):
@@ -91,7 +92,7 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
                 [0, 1, 1],  # F0=0, F1=1,1
                 [2, 0, 1],  # F0=2, F1=0,1
                 [1, 1, 0],  # F0=1, F1=1,0
-            ], dtype=np.uint32)
+            ], dtype=Index)
         )
 
     def test_compute(self):
@@ -107,13 +108,13 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
         # [0,3,3] = [2,3,4] -> iwmap -> (0, 2, 3) row 3: pindexes [1,1,0] + [0,3,3] = [1,4,3] ->
         # iwmap -> (0, 3, 2)
         self.assertEqual(dm.X.shape, (4, 3))
-        self.assertEqual(dm.X.dtype, np.uint32)
+        self.assertEqual(dm.X.dtype, Index)
         nptest.assert_array_equal(dm.X, np.array([
             [1, 2, 2],
             [1, 3, 3],
             [0, 2, 3],
             [0, 3, 2]
-        ], dtype=np.uint32))
+        ], dtype=Index))
 
     def test_compute_nd_indexes(self):
         """
@@ -154,12 +155,12 @@ class TestHlpDesignMatrixCacheConsistency(unittest.TestCase):
 
         self.dm_valid = LMDesignMatrix(
             wmaps_obj_checksum="abc123",
-            X=np.array([[0, 1], [2, 3]], dtype=np.uint32)
+            X=np.array([[0, 1], [2, 3]], dtype=Index)
         )
 
         self.dm_wrong_checksum = LMDesignMatrix(
             wmaps_obj_checksum="wrong",
-            X=np.array([[0, 1], [2, 3]], dtype=np.uint32)
+            X=np.array([[0, 1], [2, 3]], dtype=Index)
         )
 
     def test_consistent_cache(self):
@@ -185,7 +186,7 @@ class TestHlpDesignMatrixIO(unittest.TestCase):
         # Create a fully populated Design Matrix object to serialize
         self.dm_original = LMDesignMatrix(
             wmaps_obj_checksum="io_test_hash",
-            X=np.array([[1, 2, 2], [1, 3, 3]], dtype=np.uint32)
+            X=np.array([[1, 2, 2], [1, 3, 3]], dtype=Index)
         )
 
     def tearDown(self):
@@ -205,7 +206,7 @@ class TestHlpDesignMatrixIO(unittest.TestCase):
         self.assertEqual(dm_loaded.wmaps_obj_checksum, "io_test_hash")
 
         # Validate the numpy array (the dtype contract must survive the round-trip)
-        self.assertEqual(dm_loaded.X.dtype, np.uint32)
+        self.assertEqual(dm_loaded.X.dtype, Index)
         nptest.assert_array_equal(dm_loaded.X, self.dm_original.X)
 
     def test_store_and_load_with_str_filename(self):
@@ -287,7 +288,7 @@ class TestHlpDesignMatrixInit(unittest.TestCase):
     def _make_valid(self, **overrides):
         kwargs = dict(
             wmaps_obj_checksum="abc123",
-            X=np.array([[0, 0, 1], [0, 1, 2]], dtype=np.uint32),
+            X=np.array([[0, 0, 1], [0, 1, 2]], dtype=Index),
         )
         kwargs.update(overrides)
         return LMDesignMatrix(**kwargs)

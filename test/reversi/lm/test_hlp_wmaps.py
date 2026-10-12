@@ -58,6 +58,7 @@ from reversi.lm.hlp_wmaps import (LMWMaps,
                                  hlp_wmaps_load_from_file,
                                  hlp_wmaps_is_cache_consistent)
 from test.reversi.paths import CUSTOM_TMP_BASE
+from reversi.index import Index
 
 
 class TestHlpWmapsCompute(unittest.TestCase):
@@ -92,7 +93,7 @@ class TestHlpWmapsCompute(unittest.TestCase):
                 [0, 0, 0],  # F0=0, F1=0,0
                 [1, 1, 1],  # F0=1, F1=1,1
                 [2, 1, 1],  # F0=2, F1=1,1
-            ], dtype=np.uint32)
+            ], dtype=Index)
         )
 
     def test_compute_with_fallback(self):

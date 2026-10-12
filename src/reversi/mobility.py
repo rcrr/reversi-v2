@@ -276,7 +276,7 @@ def _numba_compute_indexes_kernel(lms: np.ndarray, alms: np.ndarray,
     L = masks.shape[0]
 
     # Pre-allocate only the final output matrix to optimize memory
-    indexes = np.empty((N, L), dtype=np.uint32)
+    indexes = np.empty((N, L), dtype=Index)
 
     for i in range(N):
         lms_val = lms[i]
@@ -291,6 +291,6 @@ def _numba_compute_indexes_kernel(lms: np.ndarray, alms: np.ndarray,
             alms_count = _numba_popcount64_kernel(alms_masked)
 
             # Accumulate the final index value. Order matters, we must avoid incurring in an underflow.
-            indexes[i, j] = lms_count + (np.uint32(shifts[j]) - alms_count)
+            indexes[i, j] = lms_count + (Index(shifts[j]) - alms_count)
 
     return indexes

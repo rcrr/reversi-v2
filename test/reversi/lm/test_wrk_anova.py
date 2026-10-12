@@ -49,6 +49,7 @@ from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.wrk_anova import _down, _up, wrk_anova
 from reversi.tools.state_machine import Verbosity
 from test.reversi.paths import WORKSPACE_ROOT
+from reversi.index import Index
 
 
 class _MockIndexes:
@@ -92,7 +93,7 @@ def _make_ctx(tmp, enable=True, tables=None, n_positions=100, seed=7):
     cfg.anova.enable = enable
     max_col = max(c1 for (_n, c0, c1, _nc, _ni) in blocks)
     rng = np.random.default_rng(seed)
-    indexes = np.zeros((n_positions, max_col), dtype=np.uint32)
+    indexes = np.zeros((n_positions, max_col), dtype=Index)
     for (name, c0, c1, n_conf, n_inst) in blocks:
         for i in range(n_inst):
             indexes[:, c0 + i] = rng.integers(

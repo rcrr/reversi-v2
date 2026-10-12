@@ -58,6 +58,7 @@ from reversi.lm.wrk_plot import wrk_plot
 from reversi.lm.hlp_validate import validate_model
 from reversi.lm.hlp_analytics import hlp_analytics_compute_training_dense_metrics
 from test.reversi.paths import CUSTOM_TMP_BASE
+from reversi.index import Index
 
 SEED = 42
 N_TRN = 1200
@@ -122,7 +123,7 @@ class TestWrkPlot(unittest.TestCase):
         # contract, as in the real INDEXES level).
         indexes = np.concatenate([
             rng.integers(0, f.n_configurations,
-                         size=(N_TRN, f.n_instances), dtype=np.uint32)
+                         size=(N_TRN, f.n_instances), dtype=Index)
             for f in fs.features], axis=1)
 
         # Training game values + seeded collision-free validation positions (the EF caller contract)

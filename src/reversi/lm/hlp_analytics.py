@@ -39,6 +39,7 @@ from datetime import datetime
 from reversi.lm.hlp_anova import hlp_anova_adherence, hlp_anova_eta_omega
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
+from reversi.index import Index
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -333,7 +334,7 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
         max_str = f"Max Weight (w)              : N/A"
         min_str = f"Min Weight (w)              : N/A"
 
-    all_configs = np.arange(n_configurations, dtype=np.uint32)
+    all_configs = np.arange(n_configurations, dtype=Index)
     principal_configs = feature.ref.convert_to_principal_index(all_configs)
 
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))

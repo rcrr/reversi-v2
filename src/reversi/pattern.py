@@ -716,7 +716,7 @@ class Pattern:
         def _compute_indexes_on_ss_packed_tensor(p: Pattern,
                                                  m: npt.NDArray[np.uint64],
                                                  o: npt.NDArray[np.uint64]
-                                                 ) -> npt.NDArray[np.uint32]:
+                                                 ) -> npt.NDArray[Index]:
             """
             Compute the base-3 configuration indexes on the packed mover/opponent tensors.
 
@@ -730,7 +730,7 @@ class Pattern:
             combined = np.stack([m, o])
             bits = (combined[..., np.newaxis] >> p.bit_shifts) & 1
             idxs = bits @ p.powers_3
-            indexes = (idxs[0] + 2 * idxs[1]).astype(np.uint32)
+            indexes = (idxs[0] + 2 * idxs[1]).astype(Index)
             return indexes
 
         # -1- Compute the packed configurations of mover and opponent. This code is executed the
@@ -1202,14 +1202,14 @@ def _numba_compute_principal_indexes_kernel(
                     bit_m = (packed_m >> shift_val) & BITBOARD_ONE
                     bit_o = (packed_o >> shift_val) & BITBOARD_ONE
 
-                    idx_m += np.uint32(bit_m) * p3
-                    idx_o += np.uint32(bit_o) * p3
+                    idx_m += Index(bit_m) * p3
+                    idx_o += Index(bit_o) * p3
 
                 local_symmetry_indexes[s] = (INDEX_TWO * idx_o) + idx_m
 
             # --- LOOP FUSION 3: Structural Group Minimum Reduction Layer ---
             for g in range(n_groups):
-                min_val = np.uint32(4294967295) # Initialize with UINT32_MAX
+                min_val = Index(4294967295) # Initialize with UINT32_MAX
                 start_idx = g * group_size
 
                 for k in range(group_size):

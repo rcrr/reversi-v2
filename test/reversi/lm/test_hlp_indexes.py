@@ -51,9 +51,10 @@ from pydantic import ValidationError
 from reversi.lm import hlp_indexes
 
 import numpy as np
+from reversi.index import Index
 
 # A dummy 2D array of uint32 to be used across tests
-DUMMY_INDEXES = np.zeros((2, 2), dtype=np.uint32)
+DUMMY_INDEXES = np.zeros((2, 2), dtype=Index)
 
 
 class TestLMIndexes(unittest.TestCase):
@@ -72,7 +73,7 @@ class TestLMIndexes(unittest.TestCase):
         self.assertEqual(obj.feature_set_hash, hash_val)
         self.assertEqual(obj.rds_checksum, hash_val)
         self.assertIsInstance(obj.indexes, np.ndarray)
-        self.assertEqual(obj.indexes.dtype, np.uint32)
+        self.assertEqual(obj.indexes.dtype, Index)
         self.assertIs(obj.indexes, DUMMY_INDEXES)
 
     def test_init_fails_with_invalid_hash_type(self):
@@ -179,7 +180,7 @@ class TestHlpIndexesLoadFromFile(unittest.TestCase):
         self.assertIsInstance(result, hlp_indexes.LMIndexes)
         self.assertEqual(result.feature_set_hash, "stored_hash")
         self.assertIsInstance(result.indexes, np.ndarray)
-        self.assertEqual(result.indexes.dtype, np.uint32)
+        self.assertEqual(result.indexes.dtype, Index)
         self.assertIs(result.indexes, DUMMY_INDEXES)
 
     @patch('reversi.lm.hlp_indexes.binio')

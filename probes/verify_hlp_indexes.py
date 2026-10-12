@@ -2,35 +2,25 @@
 #
 # verify_hlp_indexes.py
 #
-# Probe pinning the verified behaviour of the INDEXES level:
-# the domain module (src/reversi/lm/hlp_indexes.py) and the worker
-# (src/reversi/lm/wrk_indexes.py), plus the source structure of
-# their two test files (test_hlp_indexes.py,
-# test_wrk_indexes.py), session 23.
+# Probe pinning the verified behaviour of the INDEXES level: the domain module
+# (src/reversi/lm/hlp_indexes.py) and the worker (src/reversi/lm/wrk_indexes.py), plus the source
+# structure of their two test files (test_hlp_indexes.py, test_wrk_indexes.py), session 23.
 #
-# The B tier is pure (no DB): the store/load round-trip, the
-# sidecar flow, the is_cache_consistent logic and the compute
-# path are exercised with a real FeatureSet (fixture constants,
-# public API) and fabricated 2-position arrays. The C tier
-# needs the live regab test DB (the pipeline moves through
-# POSITIONS): the flat rlmwf_05_INDEXES.dat naming, the data
-# checksum, the sidecar format, the cross-run cache round-trip
-# and the _down clearing.
+# The B tier is pure (no DB): the store/load round-trip, the sidecar flow, the is_cache_consistent
+# logic and the compute path are exercised with a real FeatureSet (fixture constants, public API)
+# and fabricated 2-position arrays. The C tier needs the live regab test DB (the pipeline moves
+# through POSITIONS): the flat rlmwf_05_INDEXES.dat naming, the data checksum, the sidecar format,
+# the cross-run cache round-trip and the _down clearing.
 #
-# House convention: writes only under build/tmp, self-cleans via
-# atexit; exit code 1 on any mismatch.
+# House convention: writes only under build/tmp, self-cleans via atexit; exit code 1 on any mismatch.
 #
-# Re-pinned in session 23 (D-084) to the post-campaign state:
-# hlp_indexes R1 (A8 docstring corrected) + M1 (imports gone) +
-# M2 (A9 typo fixed) + M3 (A10 4→0 whitespace) + M4 (version
-# gate via expected_version) + M6 (__repr__ added — A3 4→5);
-# wrk_indexes M1 (D3 @validate_call) + M2 (D6 2→0) +
-# M3 (D5 load_fn checksum=False); test_hlp_indexes T1-T5 +
-# M1-M2 (F3 import gone, F4 header, F5 English comment, F7
-# ValidationError pins + rds_checksum present, F8 both branches,
-# F9 19→0, 13→14 tests); test_wrk_indexes T1-T3 + M1
-# (E2 the tmp-dir idiom, E3 gate, E4 header, E7 13→0 + defensive
-# tearDown).
+# Re-pinned in session 23 (D-084) to the post-campaign state: hlp_indexes R1 (A8 docstring
+# corrected) + M1 (imports gone) + M2 (A9 typo fixed) + M3 (A10 4→0 whitespace) + M4 (version gate
+# via expected_version) + M6 (__repr__ added — A3 4→5); wrk_indexes M1 (D3 @validate_call) + M2 (D6
+# 2→0) + M3 (D5 load_fn checksum=False); test_hlp_indexes T1-T5 + M1-M2 (F3 import gone, F4 header,
+# F5 English comment, F7 ValidationError pins + rds_checksum present, F8 both branches, F9 19→0,
+# 13→14 tests); test_wrk_indexes T1-T3 + M1 (E2 the tmp-dir idiom, E3 gate, E4 header, E7 13→0 +
+# defensive tearDown).
 #
 
 import atexit
@@ -43,6 +33,7 @@ import shutil
 import sys
 import types
 from pathlib import Path
+from reversi.index import Index
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))  # the root test/ tree (the test.reversi helpers)
@@ -58,8 +49,8 @@ fails = 0
 
 
 def check(label, cond, detail=""):
-    # stderr: stdout is redirected to StringIO around the pipeline
-    # moves (the C6 log-content pins read the captured stream).
+    # stderr: stdout is redirected to StringIO around the pipeline moves (the C6 log-content pins
+    # read the captured stream).
     global fails
     if not cond:
         fails += 1
@@ -153,13 +144,11 @@ my_pset = PatternSet("BasicPatternSet", [
 ])
 my_fs = FeatureSet("NoNameFeatureSet", Feature.new_intercept(), my_mset, my_pset)
 
-idx = np.arange(32, dtype=np.uint32).reshape(2, 16)
+idx = np.arange(32, dtype=Index).reshape(2, 16)
 obj = hlp_indexes.LMIndexes("RDSHASH", my_fs.hash, idx)
-# (B1 init attribute identity (c? resolves to c) deleted at D-106
-#  step 3, class c: test_hlp_indexes.py::TestLMIndexes
-#  ::test_init_success pins all three — the two equalities +
-#  assertIs(obj.indexes, DUMMY_INDEXES). The obj binding stays:
-#  B2/B3 use it.)
+# (B1 init attribute identity (c? resolves to c) deleted at D-106 step 3, class c:
+# test_hlp_indexes.py::TestLMIndexes ::test_init_success pins all three — the two equalities +
+# assertIs(obj.indexes, DUMMY_INDEXES). The obj binding stays: B2/B3 use it.)
 check("B2 data checksum: sha3_256 over indexes.tobytes() (independent recompute)",
       obj.compute_sha3_256_hash() == hashlib.sha3_256(idx.tobytes()).hexdigest())
 
@@ -212,11 +201,9 @@ try:
 except RuntimeError as e:
     check("B8 wrong version -> RuntimeError", "version is not consistent" in str(e))
 
-# (B9/B10/B11 is_cache_consistent True/False branches deleted at
-#  D-106 step 3, class c: test_hlp_indexes.py pins all three —
-#  test_is_cache_consistent_returns_true / _returns_false /
-#  _returns_false_rds_differs. The ok_ctx scaffolding was used only
-#  by them.)
+# (B9/B10/B11 is_cache_consistent True/False branches deleted at D-106 step 3, class c:
+# test_hlp_indexes.py pins all three — test_is_cache_consistent_returns_true / _returns_false /
+# _returns_false_rds_differs. The ok_ctx scaffolding was used only by them.)
 
 # compute: a REAL FeatureSet (fixture constants) + a fabricated 2-position array.
 positions2 = np.array([[0x0280820280828002, 0x0041414141414100],
@@ -230,10 +217,9 @@ check("B12 compute: (2, 16) uint32 matrix identical to FeatureSet.compute_indexe
 check("B13 compute: the checksums come from the ctx (rds_checksum + feature_set.hash)",
       res.rds_checksum == "RDSFAKE" and res.feature_set_hash == my_fs.hash)
 
-# (B14 init rejects a non-str hash (c? resolves to c) deleted at
-#  D-106 step 3, class c: test_hlp_indexes.py::
-#  test_init_fails_with_invalid_hash_type is exactly this case
-#  (feature_set_hash=12345 -> ValidationError))
+# (B14 init rejects a non-str hash (c? resolves to c) deleted at D-106 step 3, class c:
+# test_hlp_indexes.py:: test_init_fails_with_invalid_hash_type is exactly this case
+# (feature_set_hash=12345 -> ValidationError))
 
 #
 # C — pipeline integration (live regab DB required).
@@ -250,9 +236,8 @@ with contextlib.redirect_stdout(out1):
     m1.move_to_step("INDEXES")
 s1 = out1.getvalue()
 
-# (C1 step 4 / 'INDEXES' deleted at D-106 step 3, class c:
-#  test_wrk_indexes.py pins step 4 / name INDEXES in three
-#  places — the compute test, the pre-state, and the cache test)
+# (C1 step 4 / 'INDEXES' deleted at D-106 step 3, class c: test_wrk_indexes.py pins step 4 / name
+# INDEXES in three places — the compute test, the pre-state, and the cache test)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
 check("C2 flat cache files: SU_ANALYSIS (the rlm_00 opt-in, D-175) + "
       "POSITIONS + INDEXES — no rlmwf_01_CONFIG*, no rlmwf_02_FEATURES* "
@@ -285,10 +270,9 @@ with contextlib.redirect_stdout(out2):
     m2.move_to_step("INDEXES")
 s2 = out2.getvalue()
 ri2 = m2.context.hlp_indexes
-# (C6a/C6b second-run cache-hit log pins deleted at D-106 step 3,
-#  class c: test_read_cache_on_new_instance pins the same two log
-#  facts — assertIn 'Cache successfully loaded and validated' +
-#  assertNotIn 'Executing heavy computation')
+# (C6a/C6b second-run cache-hit log pins deleted at D-106 step 3, class c:
+# test_read_cache_on_new_instance pins the same two log facts — assertIn 'Cache successfully loaded
+# and validated' + assertNotIn 'Executing heavy computation')
 check("C6c second run: identical hlp_indexes (checksum + indexes)",
       m2.context.hlp_indexes_checksum == m1.context.hlp_indexes_checksum
       and np.array_equal(ri2.indexes, ri.indexes))
@@ -363,8 +347,8 @@ check("E7 0 non-comment trailing-whitespace lines (D-084 M1); the tearDown is de
 
 fsrc = (ROOT / "test" / "reversi" / "lm" / "test_hlp_indexes.py").read_text()
 
-check("F1 312 lines, 5 classes / 15 tests (post D-139: the compressed=True mock pins + the one-line repr pin)",
-      len(fsrc.splitlines()) == 312
+check("F1 313 lines, 5 classes / 15 tests (post D-139: the compressed=True mock pins + the one-line repr pin)",
+      len(fsrc.splitlines()) == 313
       and len(re.findall(r"^class Test", fsrc, flags=re.M)) == 5
       and len(re.findall(r"    def test_", fsrc)) == 15
       and "def test_is_cache_consistent_returns_false_rds_differs" in fsrc
@@ -387,7 +371,7 @@ check("F5 D-084 T5: the Italian comment replaced with English (AGENTS.md rule 4)
       "Non mockiamo il modulo" not in fsrc
       and "The module is not mocked; only a fake \"model\" object is created" in fsrc)
 check("F6 the shared dummy: np.zeros((2, 2), dtype=np.uint32)",
-      "DUMMY_INDEXES = np.zeros((2, 2), dtype=np.uint32)" in fsrc)
+      "DUMMY_INDEXES = np.zeros((2, 2), dtype=Index)" in fsrc)
 check("F7 D-084 T3+T4: the 2 assertRaises(ValidationError) pins (no broad Exception) + rds_checksum "
       "present in test_init_fails_with_invalid_indexes_type (the invalid indexes is what's under test)",
       fsrc.count("self.assertRaises(ValidationError)") == 2

@@ -1335,7 +1335,7 @@ class TestPatternComputeIndexes(unittest.TestCase):
 
         indexes = pat.compute_indexes_on_position(pos)
 
-        expected = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
+        expected = np.array([1764, 5940, 1517, 81], dtype=Index)
 
         nptest.assert_array_equal(indexes, expected)
 
@@ -1355,7 +1355,7 @@ class TestPatternComputeIndexes(unittest.TestCase):
 
         indexes = pat.compute_indexes_on_position(pos_array)
 
-        expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
+        expected_scalar = np.array([1764, 5940, 1517, 81], dtype=Index)
         expected_array = np.tile(expected_scalar, (N, 1))
         nptest.assert_array_equal(indexes, expected_array)
 
@@ -1384,7 +1384,7 @@ class TestPatternComputeIndexes(unittest.TestCase):
             [0, 0, 0, 0],
             [1, 0, 0, 3**7],
             [1 + 2 * 3**7, 2, 0, 3**7],
-        ], dtype=np.uint32)
+        ], dtype=Index)
         nptest.assert_array_equal(indexes, expected)
 
     def test_compute_indexes_on_position_2d(self):
@@ -1407,7 +1407,7 @@ class TestPatternComputeIndexes(unittest.TestCase):
             [[0, 0, 0, 0],
              [1, 0, 0, 3**7],
              [1 + 2 * 3**7, 2, 0, 3**7]],
-        ], dtype=np.uint32))
+        ], dtype=Index))
 
     def test_compute_indexes_on_position_3d(self):
         """
@@ -1429,7 +1429,7 @@ class TestPatternComputeIndexes(unittest.TestCase):
             [[[0, 0, 0, 0]]],
             [[[1, 0, 0, 3**7]]],
             [[[1 + 2 * 3**7, 2, 0, 3**7]]],
-        ], dtype=np.uint32))
+        ], dtype=Index))
 
     def test_compute_indexes_on_position_noncontiguous_2d(self):
         """
@@ -1487,7 +1487,7 @@ class TestPatternComputeIndexes(unittest.TestCase):
         print(f"\n[PERF Pattern.compute_indexes_on_position] Processed {N:,} positions in {duration:.4f}s"
               f"({positions_per_sec:,.0f} b/s)")
 
-        expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
+        expected_scalar = np.array([1764, 5940, 1517, 81], dtype=Index)
         expected_array = np.tile(expected_scalar, (N, 1))
         nptest.assert_array_equal(indexes, expected_array)
 
@@ -1694,7 +1694,7 @@ class TestPatternPrincipalIndex(unittest.TestCase):
                             f"Index {i} mapped to {p.principal_index_dict[i]}, which is greater!")
 
         # 4. Test the conversion method
-        test_indexes = np.array([0, 1, 80], dtype=np.uint32)
+        test_indexes = np.array([0, 1, 80], dtype=Index)
         principal = p.convert_to_principal_index(test_indexes)
 
         self.assertIsInstance(principal, np.ndarray)

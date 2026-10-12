@@ -36,6 +36,7 @@ from pathlib import Path
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools import binio
+from reversi.index import Index
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -126,7 +127,7 @@ def hlp_design_matrix_compute(ctx: "LMContext") -> LMDesignMatrix:
     if np.any(ctx.iwmap[pindexes_with_offsets] == -1):
         raise ValueError("It should never happen, pindexes is referring an invalid value.")
 
-    X = np.empty(pindexes.shape, dtype=np.uint32)
+    X = np.empty(pindexes.shape, dtype=Index)
     #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel), X is uint32 — the implicit
     #: output cast is deprecated (NumPy 2.5).
     np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)

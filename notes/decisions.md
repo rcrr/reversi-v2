@@ -1580,3 +1580,19 @@ D-523 | 2026-10-12 | Two small calls from Roberto: (1) pattern.py's sample\_patt
          Emacs temp / lock files (the \#\* and .\#\* patterns — the literal # needs escaping, a bare # opens a gitignore
          comment); the two stray #pattern.py# / .#pattern.py lock files left by an editor session are now invisible to
          git and to the overview audit.
+
+D-524 | 2026-10-12 | The Index-notation sweep (Roberto's convention, after the D-522 index extraction): where a variable
+         HOLDS a feature-configuration index, the notation is Index / IndexArray, not the raw np.uint32; plain numbers
+         (counts, offsets, the generic u32 I/O) stay np.uint32. The conversion is pure notation — Index IS np.uint32
+         (the identity is pinned in test\_index.py) — zero runtime change. Src: pattern (the
+         \_compute\_indexes\_on\_ss\_packed\_tensor annotation + astype, the principal-index kernel scalar casts + the
+         UINT32\_MAX sentinel), mobility (the kernel output matrix + the shifts cast), hlp\_design\_matrix (the X
+         allocation — the int64 iwmap cast STAYS np.uint32, Roberto: the int64 side is a later call), hlp\_analytics +
+         hlp\_generate (all\_configs), hlp\_su\_analysis (the codes in the 2 private type aliases + the 4 construction
+         sites). Tests: 11 files, ~39 sites (the golden config indexes, the design-matrix fixtures + dtype asserts, the
+         codes, the synthetic index matrices); the offset fixtures (iwmap\_feature\_offset, the cumsum offsets) and the
+         counts (iters, samples, popcount) deliberately UNCHANGED. Probes: verify\_design\_matrix re-pinned (A1 143→144,
+         A2/A6/A7/A15 line-shift +1 for the new import, A11/C12/C13 the Index notation; C1 disclosed STALE pre-D-524:
+         218 pinned on a 217-line file, now 218 = 217 + the import); verify\_hlp\_indexes (F1 312→313, F6 + the
+         section-D data to Index, the import to the top block). Suite green via the R-210 wrapper; the 8 touched probes
+         fully green; all 19 touched .py at the reflow fixpoint.

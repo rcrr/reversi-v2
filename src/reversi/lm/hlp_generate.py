@@ -36,6 +36,7 @@ from pydantic import validate_call, ConfigDict
 
 from reversi.tools import binio
 from reversi.tools.state_machine import Relevance
+from reversi.index import Index
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -200,7 +201,7 @@ def hlp_generate_compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
             # --- Populate w_dense propagating Principal Index weights ---
 
             # 1. Get all theoretical configuration IDs for this pattern (MUST BE uint32 for Pydantic validation)
-            all_configs = np.arange(f.n_configurations, dtype=np.uint32)
+            all_configs = np.arange(f.n_configurations, dtype=Index)
 
             # 2. Map every config to its Principal Index
             principal_configs = f.ref.convert_to_principal_index(all_configs)

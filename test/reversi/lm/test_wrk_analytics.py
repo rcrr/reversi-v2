@@ -59,6 +59,7 @@ from reversi.lm.logistic_model import LogisticModel
 from test.reversi.closecheck import assert_close
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_long_gate
+from reversi.index import Index
 
 
 def _masked_report_hash(text):
@@ -400,13 +401,13 @@ def _make_su_ctx(tmp, total_positions, corpus_kind='match'):
     blocks = fset.feature_blocks
     n_positions = 100
     max_col = max(c1 for (_n, c0, c1, _nc, _ni) in blocks)
-    indexes = np.zeros((n_positions, max_col), dtype=np.uint32)
+    indexes = np.zeros((n_positions, max_col), dtype=Index)
     sub_counts = {}
     for (name, c0, c1, n_conf, n_inst) in blocks:
         for i in range(n_inst):
             # The 2-code concentration: 50 positions per code.
             indexes[:, c0 + i] = (
-                np.arange(n_positions) >= 50).astype(np.uint32)
+                np.arange(n_positions) >= 50).astype(Index)
             sub_counts[(name, i)] = {0: 50, 1: 50}
     marginal = []
     for (name, c0, c1, n_conf, n_inst) in blocks:
@@ -420,7 +421,7 @@ def _make_su_ctx(tmp, total_positions, corpus_kind='match'):
                 base = {c: 0 for c in base}
                 base[0] = total_positions
             base = {c: n for c, n in base.items() if n > 0}
-            codes = np.array(sorted(base), dtype=np.uint32)
+            codes = np.array(sorted(base), dtype=Index)
             counts = np.array([base[c] for c in sorted(base)],
                               dtype=np.int64)
             marginal.append((name, i, n_conf, codes, counts))

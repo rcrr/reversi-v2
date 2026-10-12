@@ -48,6 +48,7 @@ import numpy as np
 import numpy.testing as nptest
 
 from reversi.lm.hlp_gradient import hlp_gradient_compute, sigmoid
+from reversi.index import Index
 
 
 
@@ -75,7 +76,7 @@ class TestHlpGradientCompute(unittest.TestCase):
         return SimpleNamespace(
             cfg=SimpleNamespace(stat_model=SimpleNamespace(ridge_regularization=ridge)),
             w=np.array(w, dtype=np.float32),
-            design_matrix=np.array(X, dtype=np.uint32),
+            design_matrix=np.array(X, dtype=Index),
             z=np.array(z, dtype=np.float32))
 
     def _reference(self, ctx, w):
@@ -170,7 +171,7 @@ class TestHighPerformanceFg(unittest.TestCase):
         return SimpleNamespace(
             cfg=SimpleNamespace(stat_model=SimpleNamespace(ridge_regularization=ridge)),
             w=np.array(w, dtype=np.float32),
-            design_matrix=np.array(X, dtype=np.uint32),
+            design_matrix=np.array(X, dtype=Index),
             z=np.array(z, dtype=np.float32))
 
     def _reference(self, ctx, w):
@@ -204,7 +205,7 @@ class TestHighPerformanceFg(unittest.TestCase):
         # per-block accumulators make the variant track the float64 reference to ~1e-9).
         rng = np.random.default_rng(42)
         M, P, N = 5000, 12, 300
-        X = rng.integers(0, N, (M, P), dtype=np.uint32)
+        X = rng.integers(0, N, (M, P), dtype=Index)
         w = (rng.standard_normal(N) * 0.3).astype(np.float32)
         z = (0.5 + 0.4 * rng.standard_normal(M)).astype(np.float32)
         ctx = self._mock_ctx(0.01, w, X, z)
@@ -219,7 +220,7 @@ class TestHighPerformanceFg(unittest.TestCase):
         # differ; measured max relative delta ~1e-7).
         rng = np.random.default_rng(7)
         M, P, N = 2000, 8, 200
-        X = rng.integers(0, N, (M, P), dtype=np.uint32)
+        X = rng.integers(0, N, (M, P), dtype=Index)
         w = (rng.standard_normal(N) * 0.3).astype(np.float32)
         z = (0.5 + 0.4 * rng.standard_normal(M)).astype(np.float32)
         ctx = self._mock_ctx(0.01, w, X, z)

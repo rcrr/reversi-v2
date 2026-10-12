@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-verify_design_matrix.py — scratch probe for the DESIGN_MTR bring-in
-(session 23, the 7th pipeline level).
+verify_design_matrix.py — scratch probe for the DESIGN_MTR bring-in (session 23, the 7th pipeline level).
 
 Re-derives and verifies, independently of the test files:
   A. hlp_design_matrix.py structure (post warning-fix: explicit cast,
@@ -47,15 +46,15 @@ def lines(p):
 # A. hlp_design_matrix.py structure (post the approved warning fix)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_design_matrix.py")
-check("A1 hlp_design_matrix.py is 143 lines (post D-139: 133 + the 2x compressed kwarg + the 8 standalone-quote "
-      "docstring lines)", len(rlm) == 143, f"{len(rlm)}")
-check("A2 the explicit-cast fix is in place (L129-132: astype on the source + the note)",
-      rlm[128] == "    X = np.empty(pindexes.shape, dtype=np.uint32)"
-      and rlm[129] == "    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel), "
+check("A1 hlp_design_matrix.py is 144 lines (post D-139: 133 + the 2x compressed kwarg + the 8 standalone-quote "
+      "docstring lines + the D-524 Index import)", len(rlm) == 144, f"{len(rlm)}")
+check("A2 the explicit-cast fix is in place (L130-133: astype on the source + the note)",
+      rlm[129] == "    X = np.empty(pindexes.shape, dtype=Index)"
+      and rlm[130] == "    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel), "
       "X is uint32 — the implicit"
-      and rlm[130] == "    #: output cast is deprecated (NumPy 2.5)."
-      and rlm[131] == "    np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)",
-      repr(rlm[128:132]))
+      and rlm[131] == "    #: output cast is deprecated (NumPy 2.5)."
+      and rlm[132] == "    np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)",
+      repr(rlm[129:133]))
 check("A3 no raw int64->uint32 np.take remains",
       "np.take(ctx.iwmap, pindexes_with_offsets, out=X)" not in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A4 __all__ lists the 5 public names",
@@ -66,11 +65,11 @@ check("A5 exactly 4 @validate_call decorators (init, hash, store, load — NOT c
           "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))") == 4
       and "\ndef hlp_design_matrix_compute" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A6 T4 FIXED: the no-validation note sits above hlp_design_matrix_compute (the rlm_indexes L166 class)",
-      rlm[116] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
-      and rlm[117] == "def hlp_design_matrix_compute(ctx: \"LMContext\") -> LMDesignMatrix:")
-check("A7 R1 FIXED: the single -1 guard remains (L126-127) with the precise ValueError",
-      rlm[125] == "    if np.any(ctx.iwmap[pindexes_with_offsets] == -1):"
-      and rlm[126] == "        raise ValueError(\"It should never happen, pindexes is referring an invalid value.\")")
+      rlm[117] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
+      and rlm[118] == "def hlp_design_matrix_compute(ctx: \"LMContext\") -> LMDesignMatrix:")
+check("A7 R1 FIXED: the single -1 guard remains (L127-128) with the precise ValueError",
+      rlm[126] == "    if np.any(ctx.iwmap[pindexes_with_offsets] == -1):"
+      and rlm[127] == "        raise ValueError(\"It should never happen, pindexes is referring an invalid value.\")")
 check("A8 R1 FIXED: the redundant count_nonzero guard is GONE",
       "count_nonzero" not in read("src/reversi/lm/hlp_design_matrix.py")
       and "mismatch between indexes and valid values" not in read("src/reversi/lm/hlp_design_matrix.py"))
@@ -79,8 +78,8 @@ check("A9 store docstring: the compression line (the standalone-quote form), no 
       and "LZ4 whole-file compression by default." in read("src/reversi/lm/hlp_design_matrix.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A10 T5 FIXED: zero non-comment trailing-whitespace lines", ws_rl == [], f"{ws_rl}")
-check("A11 X is allocated uint32 (the test pins the dtype contract)",
-      "    X = np.empty(pindexes.shape, dtype=np.uint32)" in read("src/reversi/lm/hlp_design_matrix.py"))
+check("A11 X is allocated Index (the test pins the dtype contract)",
+      "    X = np.empty(pindexes.shape, dtype=Index)" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A12 col_offsets = repeat(iwmap_feature_offset[:-1], n_instances per feature)",
       "col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)" in read(
           "src/reversi/lm/hlp_design_matrix.py")
@@ -90,8 +89,8 @@ check("A13 the hash is over X.tobytes() (the single data array)",
 check("A14 is_cache_consistent compares wmaps_obj_checksum only (the 1-field compare)",
       "is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum" in read(
           "src/reversi/lm/hlp_design_matrix.py"))
-check("A15 triple blank lines at L42/L50 (house precedent — rlm_indexes carries the same)",
-      rlm[41] == "" and rlm[42] == "" and rlm[43] == "" and rlm[49] == "" and rlm[50] == "" and rlm[51] == "")
+check("A15 triple blank lines at L43/L51 (house precedent — rlm_indexes carries the same)",
+      rlm[42] == "" and rlm[43] == "" and rlm[44] == "" and rlm[50] == "" and rlm[51] == "" and rlm[52] == "")
 
 # ----------------------------------------------------------------------
 # B. wrk_design_matrix.py structure
@@ -127,7 +126,8 @@ check("B9 the worker name is DESIGN_MTR (Worker('DESIGN_MTR', _up, _down))",
 # C. test_wrk_design_matrix.py structure
 # ----------------------------------------------------------------------
 t = lines("test/reversi/lm/test_wrk_design_matrix.py")
-check("C1 test_wrk_design_matrix.py is 218 lines", len(t) == 218, f"{len(t)}")
+check("C1 test_wrk_design_matrix.py is 218 lines (post D-524: 217 + the Index import; the pre-D-524 pin "
+      "was stale at 218 on a 217-line file)", len(t) == 218, f"{len(t)}")
 check("C2 2 classes / 3 tests",
       sum(1 for l in t if l.startswith("class ")) == 2 and
       sum(1 for l in t if l.strip().startswith("def test_")) == 3)
@@ -161,29 +161,26 @@ check("C10 step pins (re-pinned: WMAPS=7 x2 setUps, DESIGN_MTR=8 x2 self.rlm + x
       and read("test/reversi/lm/test_wrk_design_matrix.py").count("self.assertEqual(rlm2.current_step, 8)") == 1)
 ws_t = [i + 1 for i, l in enumerate(t) if l != l.rstrip() and not l.strip().startswith("#")]
 check("C11 T5 FIXED: zero whitespace-only lines", len(ws_t) == 0, f"{ws_t}")
-check("C12 the golden literal is (10,7) uint32 with the 10 pinned rows",
+check("C12 the golden literal is (10,7) Index with the 10 pinned rows",
       "self.assertEqual(X.shape, (10, 7))" in read("test/reversi/lm/test_wrk_design_matrix.py")
-      and "], dtype=np.uint32)" in read("test/reversi/lm/test_wrk_design_matrix.py")
+      and "], dtype=Index)" in read("test/reversi/lm/test_wrk_design_matrix.py")
       and "nptest.assert_array_equal(expected_X, X)" in read("test/reversi/lm/test_wrk_design_matrix.py"))
-check("C13 the uint32 dtype contract is pinned 4x (the 3 dtype asserts + the golden literal)",
-      read("test/reversi/lm/test_wrk_design_matrix.py").count("np.uint32") == 4)
-check("C14 the before-DESIGN_MTR None-ness is pinned (L189)",
+check("C13 the Index dtype contract is pinned 3x (the 3 dtype asserts; the golden literal is C12)",
+      read("test/reversi/lm/test_wrk_design_matrix.py").count(", Index)") == 3)
+check("C14 the before-DESIGN_MTR None-ness is pinned (L190)",
       "self.assertIsNone(self.rlm.context.design_matrix)" in read("test/reversi/lm/test_wrk_design_matrix.py"))
 
 # ----------------------------------------------------------------------
-# D. GOLDEN re-derivation (live DB) — rlm_01.json
-#    The literal is extracted from the test source (single source of
-#    truth); the pipeline output is compared, and X is independently
-#    recomputed from iwmap + pindexes + col_offsets.
+# D. GOLDEN re-derivation (live DB) — rlm_01.json The literal is extracted from the test source
+# (single source of truth); the pipeline output is compared, and X is independently recomputed from
+# iwmap + pindexes + col_offsets.
 # ----------------------------------------------------------------------
 import json5
 import tempfile
 
-# (D0 + the test-source extraction machinery deleted at D-106 step 3,
-#  class c: the pinned expected_X literal is pinned by the test
-#  itself — C12 meta-pins the nptest.assert_array_equal
-#  (expected_X, X) call in the test source, and the literal's
-#  (10,7) shape is the shape the test compares against.)
+# (D0 + the test-source extraction machinery deleted at D-106 step 3, class c: the pinned expected_X
+# literal is pinned by the test itself — C12 meta-pins the nptest.assert_array_equal (expected_X, X)
+# call in the test source, and the literal's (10,7) shape is the shape the test compares against.)
 
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
@@ -200,12 +197,10 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     seen_n_inst = [f.n_instances for f in ctx.feature_set.features]
     seen_n_conf = [f.n_configurations for f in ctx.feature_set.features]
 
-    # (D1-D4 deleted at D-106 step 3, class c: step 6 / the (10,7)
-    #  shape / the uint32 dtype / X == the pinned literal are all
-    #  pinned by test_wrk_design_matrix.py — the step in both
-    #  setUps, the dtype 3x, and
-    #  nptest.assert_array_equal(expected_X, X))
-    # Independent recomputation: X[i,j] = iwmap[pindexes[i,j] + col_offsets[j]]
+    # (D1-D4 deleted at D-106 step 3, class c: step 6 / the (10,7) shape / the uint32 dtype / X ==
+    # the pinned literal are all pinned by test_wrk_design_matrix.py — the step in both setUps, the
+    # dtype 3x, and nptest.assert_array_equal(expected_X, X)) Independent recomputation: X[i,j] =
+    # iwmap[pindexes[i,j] + col_offsets[j]]
     n_inst = [f.n_instances for f in ctx.feature_set.features]
     col_off = np.repeat(ctx.iwmap_feature_offset[:-1], n_inst)
     X_recomputed = ctx.iwmap[ctx.hlp_indexes.indexes + col_off].astype(np.uint32)
@@ -225,8 +220,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     check("D7 per feature: X's instance columns stay within the owning feature's iwmap region", ok)
     check("D8 the intercept column is all zeros (single config 0 -> w index 0)",
           (ctx.design_matrix[:, 0] == 0).all(), ctx.design_matrix[:, 0].tolist())
-    # (D9 deleted at D-106 step 3, class c: both flat files'
-    #  existence is asserted by the DB test, L109-110)
+    # (D9 deleted at D-106 step 3, class c: both flat files' existence is asserted by the DB test, L110-111)
     check("D10 design_matrix_checksum == sha3_256(X.tobytes()) (the DATA checksum)",
           ctx.design_matrix_checksum == __import__("hashlib").sha3_256(ctx.design_matrix.tobytes()).hexdigest())
 
@@ -237,8 +231,7 @@ lm_src = read("src/reversi/lm/logistic_model.py")
 check("F1 LMContext declares design_matrix_checksum + design_matrix (pre-existing, as in the WMAPS fields)",
       "    design_matrix_checksum: str | None = None" in lm_src
       and "    design_matrix: Any = None" in lm_src)
-# (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
-# V3c/V3d at D-106)
+# (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py V3c/V3d at D-106)
 import json5 as _j
 fix = _j.loads((WS / "test" / "reversi" / "data" / "rlm_01.json").read_text())
 check("F4 rlm_01 stat_model == {cut_off 2, logit 0.03, ridge 0.0} (the WMAPS fixture, reused)",
@@ -249,12 +242,12 @@ check("F5 rlm_01 feature layout: n_instances [1,1,4,1] (sum 7), n_configurations
       f"n_inst={seen_n_inst} n_conf={seen_n_conf}")
 
 # ----------------------------------------------------------------------
-# G. test_hlp_design_matrix.py (new in D-090 T6 — the dedicated unit
-#    tests for the data object, mirroring test_hlp_wmaps)
+# G. test_hlp_design_matrix.py (new in D-090 T6 — the dedicated unit tests for the data object,
+# mirroring test_hlp_wmaps)
 # ----------------------------------------------------------------------
 g = lines("test/reversi/lm/test_hlp_design_matrix.py")
-check("G1 test_hlp_design_matrix.py is 304 lines (post D-139: 258 + the 2 D-139 pins + the compressed kwarg lines + "
-      "the N-D parity + the str-filename test)", len(g) == 304, f"{len(g)}")
+check("G1 test_hlp_design_matrix.py is 305 lines (post D-139: 258 + the 2 D-139 pins + the compressed kwarg lines + "
+      "the N-D parity + the str-filename test + the D-524 Index import)", len(g) == 305, f"{len(g)}")
 check("G2 4 classes / 16 tests (3 compute + 2 consistency + 9 IO + 2 init since D-139)",
       sum(1 for l in g if l.startswith("class ")) == 4 and
       sum(1 for l in g if l.strip().startswith("def test_")) == 16)

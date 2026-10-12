@@ -53,6 +53,7 @@ from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_long_gate
+from reversi.index import Index
 
 
 
@@ -116,7 +117,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
         self.assertEqual(self.rlm.context.design_matrix.shape, expected_shape)
 
         # And must be of type uint32
-        self.assertEqual(self.rlm.context.design_matrix.dtype, np.uint32)
+        self.assertEqual(self.rlm.context.design_matrix.dtype, Index)
 
     def test_read_cache_on_new_instance(self):
         """A second instance should read from the cache and NOT recompute."""
@@ -150,7 +151,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
         self.assertIsNotNone(rlm2.context.design_matrix)
         expected_shape = rlm2.context.hlp_indexes.indexes.shape
         self.assertEqual(rlm2.context.design_matrix.shape, expected_shape)
-        self.assertEqual(rlm2.context.design_matrix.dtype, np.uint32)
+        self.assertEqual(rlm2.context.design_matrix.dtype, Index)
 
 
 class TestLMWorkerDesignMatrixExactValues(unittest.TestCase):
@@ -195,7 +196,7 @@ class TestLMWorkerDesignMatrixExactValues(unittest.TestCase):
 
         # Matrix X must have the same shape of principal indexes.
         self.assertEqual(X.shape, (10, 7))
-        self.assertEqual(X.dtype, np.uint32)
+        self.assertEqual(X.dtype, Index)
 
         expected_X = np.array([
             [ 0, 4,  7, 11, 10,  6, 18 ],
@@ -208,7 +209,7 @@ class TestLMWorkerDesignMatrixExactValues(unittest.TestCase):
             [ 0, 3, 10, 10, 13,  7, 20 ],
             [ 0, 2, 13,  8,  7,  7, 19 ],
             [ 0, 2, 14, 13,  8,  7, 17 ],
-        ], dtype=np.uint32)
+        ], dtype=Index)
 
         nptest.assert_array_equal(expected_X, X)
 

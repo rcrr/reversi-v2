@@ -74,6 +74,7 @@ from reversi.pattern import Pattern, PatternSet
 from reversi.random_game import random_game_play_path
 from reversi.tools.prng import MT19937
 from test.reversi.paths import WORKSPACE_ROOT
+from reversi.index import Index
 
 FIXTURE = (WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json")
 
@@ -445,7 +446,7 @@ class TestMarginalAccumulator(unittest.TestCase):
             expected[code] = expected.get(code, 0) + 1
         nc, codes, counts = res[('LMC', 0)]
         self.assertEqual(nc, 65)
-        exp_codes = np.array(sorted(expected), dtype=np.uint32)
+        exp_codes = np.array(sorted(expected), dtype=Index)
         exp_counts = np.array([expected[c] for c in sorted(expected)],
                               dtype=np.int64)
         np.testing.assert_array_equal(codes, exp_codes)
@@ -469,7 +470,7 @@ class TestMarginalAccumulator(unittest.TestCase):
         row = [r for r in acc.result() if r[0] == 'R2' and r[1] == 0][0]
         name, i, nc, codes, counts = row
         self.assertEqual(nc, 6561)
-        exp_codes = np.array(sorted(expected), dtype=np.uint32)
+        exp_codes = np.array(sorted(expected), dtype=Index)
         exp_counts = np.array([expected[c] for c in sorted(expected)],
                               dtype=np.int64)
         np.testing.assert_array_equal(codes, exp_codes)
@@ -517,7 +518,7 @@ class TestMarginalAccumulator(unittest.TestCase):
         for res in (acc1.result(), acc2.result()):
             row = [r for r in res if r[0] == 'W14' and r[1] == 0][0]
             name, i, nc, codes, counts = row
-            exp_codes = np.array(sorted(expected), dtype=np.uint32)
+            exp_codes = np.array(sorted(expected), dtype=Index)
             exp_counts = np.array([expected[c] for c in sorted(expected)],
                                   dtype=np.int64)
             np.testing.assert_array_equal(codes, exp_codes)
@@ -672,7 +673,7 @@ class TestPrngIntegration(unittest.TestCase):
             code = int(position_legal_moves(P[k])).bit_count()
             expected[code] = expected.get(code, 0) + 1
         nc, codes, counts = res[('LMC', 0)]
-        exp_codes = np.array(sorted(expected), dtype=np.uint32)
+        exp_codes = np.array(sorted(expected), dtype=Index)
         exp_counts = np.array([expected[c] for c in sorted(expected)],
                               dtype=np.int64)
         np.testing.assert_array_equal(codes, exp_codes)

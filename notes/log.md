@@ -126,3 +126,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   nessun import esterno — test\_pattern lo prende a star import).
 - .gitignore: sezione Emacs (\#\* e .\#\*) — i lock file #pattern.py# / .#pattern.py non sono più visibili a git (e
   all'audit overview).
+
+## 2026-10-12 — session 109 (D-524 — il sweep della notazione Index)
+
+- Su chiamata di Roberto (dopo la ricognizione del turno precedente): dove la variabile contiene un INDICE di
+  configurazione di feature → Index/IndexArray; numeri puri (conteggi, offset, I/O u32 generico) → np.uint32 invariato.
+- Toccato: 6 sorgenti (15 siti) + 11 test (~39 siti) + 2 probe ri-pinnati. Zero cambio runtime (Index IS np.uint32,
+  identità pinzata in test\_index).
+- Il cast int64→uint32 di iwmap in hlp\_design\_matrix resta np.uint32 (chiamata di Roberto: gli int64 non si toccano,
+  si pensa dopo).
+- In corso emersa la C1 STALE pre-D-524 (218 pin su file da 217 righe) — corretta a 217+1.
+- Suite via wrapper R-210 (LONG=1, DB live): 1117/0/24 GREEN (invariata — cambio puramente notazionale). I 8 probe toccati: all green.

@@ -41,7 +41,7 @@ from pydantic import ConfigDict, validate_call
 
 from reversi.board import initial_game_position
 from reversi.feature import FeatureSet
-from reversi.index import IndexArray
+from reversi.index import Index, IndexArray
 from reversi.random_game import random_game_play_path
 from reversi.tools import binio
 from reversi.tools.binio import BinaryReader, BinaryWriter
@@ -118,7 +118,7 @@ _DENSE_THRESHOLD = 1_000_000
 #: The marginal table shape (the _MarginalAccumulator.result() output, the binio marginal block, the
 #: statistics input): the per-sub-variable list (the expanded block order) of (name, instance_idx,
 #: n_conf, codes, counts) — the observed support, the codes uint32, the counts int64.
-_MarginalTable = list[tuple[str, int, int, npt.NDArray[np.uint32], npt.NDArray[np.int64]]]
+_MarginalTable = list[tuple[str, int, int, npt.NDArray[Index], npt.NDArray[np.int64]]]
 
 
 #: The joint table shape (the _JointAccumulator.result() output, the binio joint block, the
@@ -127,7 +127,7 @@ _MarginalTable = list[tuple[str, int, int, npt.NDArray[np.uint32], npt.NDArray[n
 #: int64. (None at the tables level when no pairs are configured — the _JointAccumulator is not
 #: built; the binio joint block carries the presence flag.)
 _JointTable = list[tuple[str, str,
-                         dict[tuple[int, int], tuple[npt.NDArray[np.uint32], npt.NDArray[np.uint32],
+                         dict[tuple[int, int], tuple[npt.NDArray[Index], npt.NDArray[Index],
                                                npt.NDArray[np.int64]]]]]
 
 
@@ -231,11 +231,11 @@ class _MarginalAccumulator:
             if self._dense[sidx] is not None:
                 cnt = self._dense[sidx]
                 nz = cnt > 0
-                codes = np.nonzero(nz)[0].astype(np.uint32)
+                codes = np.nonzero(nz)[0].astype(Index)
                 out.append((name, i, n_conf, codes, cnt[nz].astype(np.int64)))
             else:
                 items = sorted(self._sparse[sidx].items())
-                codes = np.array([k for k, _ in items], dtype=np.uint32)
+                codes = np.array([k for k, _ in items], dtype=Index)
                 c = np.array([v for _, v in items], dtype=np.int64)
                 out.append((name, i, n_conf, codes, c))
         return out
@@ -387,8 +387,8 @@ class _JointAccumulator:
             for (ii, jj) in self.joints[pi]:
                 # The (K, C) ARE the observed joint (the sorted keys + the counts) — no sort, no dict.
                 K, C = self.joints[pi][(ii, jj)]
-                codes_i = (K // ncj).astype(np.uint32)
-                codes_j = (K % ncj).astype(np.uint32)
+                codes_i = (K // ncj).astype(Index)
+                codes_j = (K % ncj).astype(Index)
                 cnt = C
                 pd[(ii, jj)] = (codes_i, codes_j, cnt)
             out.append((ni, nj, pd))
