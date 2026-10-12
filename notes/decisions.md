@@ -1676,3 +1676,14 @@ D-529 | 2026-10-12 | The hlp\_validate module API (Roberto's call): the two func
          unchanged), verify\_analytics (1 description prose), 3 mirror docs (11 sites). No collisions; no star imports;
          no suite count change. Suite green via the R-210 wrapper; verify\_validate + verify\_analytics fully green; all
          7 touched .py at the reflow fixpoint.
+
+D-530 | 2026-10-12 | The exported-symbols generator becomes a wsutils tool (Roberto's call at the session close):
+         wsutils/exported\_symbols.py — walks every .py under src/ (sorted), extracts the module-level \_\_all\_\_ with
+         the AST (a literal string list; an annotated assignment accepted), and writes the per-file snapshot
+         scratch/exported\_symbols.md (one section per file, the exported names as backticked tokens, the files without
+         an \_\_all\_\_marked, the header counts). The snapshot is a REVIEW artifact (the public API surface of the
+         whole package on one page), regenerated — never hand-edited — after any rename wave or \_\_all\_\_ edit.
+         Motivation: the hand-kept scratch snapshot went stale across the D-518..D-529 rename wave
+         (the D-526/D-528/D-529 refreshes were ad-hoc inline scripts). Verified: the tool's output is byte-identical to
+         the current snapshot (52 files, 49 with \_\_all\_\_, 3 without). One row in the wsutils.md table (the
+         generation category). No src/ or test/ change — no suite impact; the guard is green on the notes.

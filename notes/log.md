@@ -186,6 +186,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   discussed, his form chosen).
 - Touched: 2 src + 3 test (15 sites) + 2 probes (text-only re-pins) + 3 docs (11 sites). The module-qualified docstring
   mentions were handled before the bulk (no double prefix).
-- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN
-  (counts unchanged — pure rename). verify\_validate + verify\_analytics: green. All 7
-  touched .py at the reflow fixpoint.
+- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (counts unchanged — pure rename). verify\_validate +
+  verify\_analytics: green. All 7 touched .py at the reflow fixpoint.
+## 2026-10-12 — session 115 (D-530 — the exported-symbols generator in wsutils + session close)
+
+- Roberto's call: the ad-hoc `\_\_all\_\_` snapshot generator becomes wsutils/exported\_symbols.py (one-liner refresh;
+  output verified byte-identical to the current snapshot). One row in the wsutils.md table (the generation category).
+- Session close: the D-518..D-530 rename wave is complete for the hlp\_zed / hlp\_validate / hlp\_plot / prng / index
+  modules; the exported-symbols snapshot is in sync.
