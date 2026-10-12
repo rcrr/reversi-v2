@@ -67,7 +67,7 @@ integration-only — are tracked in the test doc's Integration section.)
 ## Conventions
 
 - The float32 contract: `x0` float32 stays float32 end-to-end (`x0.copy()`) — what the OPTIMIZE level relies on (the
-  `NDArray[np.float32]` gate of `weights_compute_sha3_256_hash` never rejects a live weight vector).
+  `NDArray[np.float32]` gate of `hlp_optimize_weights_compute_hash` never rejects a live weight vector).
 - `matplotlib` is imported lazily in `_display_line_search` with try/except — the display helper is optional at call
   time (matplotlib IS a declared project dependency).
 - `FixedSizeMaxList.max()` is O(n) per call — fine for the small `min_grad_count` convergence-history usage (3 by
@@ -81,4 +81,4 @@ integration-only — are tracked in the test doc's Integration section.)
 - Consumed ONLY by the OPTIMIZE level (wrk_optimize step 3): the worker call passes 16 kwargs — fg, x0, the 8 config
   scalars (c1, c2, min_grad, min_p_fun_decrease, max_iters, m, log_every_n, save_every_n) + logger + save_fn + the 4
   warm-start kwargs (initial_sl/initial_yl/initial_rho/initial_iter).
-- The `info` dict returned at the end carries the 9 keys `optimization_info_dict` projects to the context.
+- The `info` dict returned at the end carries the 9 keys `hlp_optimize_info_dict` projects to the context.

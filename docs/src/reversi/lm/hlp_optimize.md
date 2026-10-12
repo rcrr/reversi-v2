@@ -8,31 +8,31 @@ projection and the duck-typed weight hash. The OPTIMIZE level (after GRADIENT).
 
 | name | contract |
 |---|---|
-| `save_optimization_checkpoint(filepath, ..., compressed=True)` | `@validate_call` — the binary write (header "RGLM Optimization Checkpoint" v1 + checksums + scalars + metadata + the history triples); LZ4 whole-file frame by default |
-| `load_optimization_checkpoint(filepath, compressed=True)` | `@validate_call` — the mirror read (LZ4 guard + decompress by default); returns the 15-key checkpoint dict |
-| `is_optimization_cache_consistent(ctx, checkpoint)` | the 3-gate check (NO `@validate_call` — see Conventions) |
-| `is_optimization_status_converged(ctx, checkpoint)` | the g_norm-vs-tolerance judgement (NO `@validate_call` — the note) |
-| `optimization_info_dict(lbfgs_info)` | `@validate_call` — projects the lbfgs 9-key info to the 5 context keys; `KeyError` on a missing key |
-| `weights_compute_sha3_256_hash(w)` | `@validate_call`, `NDArray[np.float32]` gate — plain `sha3_256(w.tobytes())` (no data class at this level) |
+| `hlp_optimize_save_checkpoint(filepath, ..., compressed=True)` | `@validate_call` — the binary write (header "RGLM Optimization Checkpoint" v1 + checksums + scalars + metadata + the history triples); LZ4 whole-file frame by default |
+| `hlp_optimize_load_checkpoint(filepath, compressed=True)` | `@validate_call` — the mirror read (LZ4 guard + decompress by default); returns the 15-key checkpoint dict |
+| `hlp_optimize_is_cache_consistent(ctx, checkpoint)` | the 3-gate check (NO `@validate_call` — see Conventions) |
+| `hlp_optimize_is_status_converged(ctx, checkpoint)` | the g_norm-vs-tolerance judgement (NO `@validate_call` — the note) |
+| `hlp_optimize_info_dict(lbfgs_info)` | `@validate_call` — projects the lbfgs 9-key info to the 5 context keys; `KeyError` on a missing key |
+| `hlp_optimize_weights_compute_hash(w)` | `@validate_call`, `NDArray[np.float32]` gate — plain `sha3_256(w.tobytes())` (no data class at this level) |
 
 ## Architecture
 
-- `save_optimization_checkpoint`: header + the two upstream checksum strings (design-matrix, zed) + ridge/min_grad as
+- `hlp_optimize_save_checkpoint`: header + the two upstream checksum strings (design-matrix, zed) + ridge/min_grad as
   f32 + max_iters/m/converged/reason/iters + f/g_norm as f32 + the `len(sl)` length prefix + w + one (s, y, rho) triple
   per history entry (zip). Fail-fast `ValueError` on asymmetric history lengths, before the writer opens. The writer
   runs with `compressed=True` by default — the LZ4 whole-file frame; the sidecar is written by the binio writer
   (cache_manager re-writes it idempotently in the pipeline flow).
-- `load_optimization_checkpoint`: the LZ4 guard + decompress (default) → the header gates (description + version, 2
+- `hlp_optimize_load_checkpoint`: the LZ4 guard + decompress (default) → the header gates (description + version, 2
   `RuntimeError`) → the R3 SHA3-256 sidecar verify BEFORE any payload is trusted → the 15-key dict.
-- `is_optimization_cache_consistent` (the no-validation note — the hlp_indexes class): THREE gates: the design-matrix
+- `hlp_optimize_is_cache_consistent` (the no-validation note — the hlp_indexes class): THREE gates: the design-matrix
   checksum, the zed checksum, `math.isclose(ridge, cp_ridge, rel_tol=1e-5, abs_tol=1e-8)` (the ridge is part of the
   objective — a change invalidates the checkpoint exactly like a zed change). Each failed gate emits its own 3×WARN
   diagnostic block (keep+document).
-- `optimization_info_dict`: the 5 context keys (converged/reason/iters/f/g_norm), extras dropped.
-- `is_optimization_status_converged` (the note): compare the stored g_norm with the CURRENT `min_grad[0]` tolerance — a
+- `hlp_optimize_info_dict`: the 5 context keys (converged/reason/iters/f/g_norm), extras dropped.
+- `hlp_optimize_is_status_converged` (the note): compare the stored g_norm with the CURRENT `min_grad[0]` tolerance — a
   judgement criterion, NOT part of the objective: a looser tolerance accepts a not-converged checkpoint, a stricter one
   forces further iterations.
-- `weights_compute_sha3_256_hash`: the duck-typed data-checksum hook.
+- `hlp_optimize_weights_compute_hash`: the duck-typed data-checksum hook.
 
 ## Verified invariants
 

@@ -84,3 +84,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - I 3 .py al punto fisso reflow.
 - Suite via wrapper R-210 (LONG=1, DB live, per D-519): 1115/0/24 GREEN. Probe verify\_generate: all
   checks passed.
+
+## 2026-10-12 — session 105 (D-520 — rename dei 6 nomi pubblici di hlp\_optimize + reflow canonico + pin del probe)
+
+- Su richiesta di Roberto: i 6 nomi pubblici di hlp\_optimize rinominati col prefisso del modulo
+  (forma accorciata: hlp\_optimize\_save\_checkpoint, \_load\_checkpoint, \_is\_cache\_consistent,
+  \_info\_dict, \_is\_status\_converged, \_weights\_compute\_hash). Aggiornati: wrk\_optimize,
+  test\_hlp\_optimize, il probe verify\_optimize e i 5 mirror doc.
+- Accompagnato: hlp\_optimize.py portato al punto fisso canonico (5 blocchi di prosa oltre i 100
+  preferiti, preesistenti — net -4 righe). Pin del probe aggiornati: A1 (327→323), A6 (forma
+  canonica del commento), A16 (frase ora su 2 righe — regex tollerante), C1 (347→348: pin stantio
+  PREESISTENTE della campagna D-517, discloso — il file era già a 348 a HEAD).
+- I 3 .py al punto fisso reflow.
+- Suite via wrapper R-210 (LONG=1, DB live, per D-520): 1115/0/24 GREEN. Probe verify\_optimize:
+  78/78 green.

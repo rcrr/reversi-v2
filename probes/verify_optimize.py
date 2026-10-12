@@ -56,8 +56,8 @@ def ws_lines(text):
 print("== tier A: hlp_optimize.py structure (post D-096)")
 a = read("hlp_optimize.py")
 al = a.splitlines()
-check("A1 line count 327 (D-327: the docstrings — the 17-arg save Args block — + the header cleanup + "
-      "the 2 log reflows)", len(al) == 327, f"{len(al)}")
+check("A1 line count 323 (D-327: the docstrings — the 17-arg save Args block — + the header cleanup + "
+      "the 2 log reflows; the D-520 canonical reflow net -4)", len(al) == 323, f"{len(al)}")
 check("A2 T13 header fixed (was 'rglm.py')",
       al[1] == "# hlp_optimize.py" and "rglm.py" not in a)
 check("A3 __future__ annotations", "from __future__ import annotations" in a)
@@ -65,14 +65,14 @@ check("A4 T9: Tuple dead import removed",
       "from typing import List, Dict, Any, TYPE_CHECKING" in a
       and a.count("Tuple") == 0, f"Tuple occurrences: {a.count('Tuple')}")
 check("A5 __all__ 6 names",
-      re.search(r"__all__ = \['optimization_info_dict',.*?'weights_compute_sha3_256_hash'\]",
+      re.search(r"__all__ = \['hlp_optimize_info_dict',.*?'hlp_optimize_weights_compute_hash'\]",
                 a, re.S) is not None)
 check("A6 checkpoint-dict design comment",
-      al[55] == "#: Unlike the other layers, where the cache—when present—is organized using a class and a data object,"
-      and al[56] == "#: the OPTIMIZE layer cache (called a checkpoint) consists of a dictionary.")
+      al[55] == "#: Unlike the other layers, where the cache—when present—is organized using a class and a data"
+      and al[56] == "#: object, the OPTIMIZE layer cache (called a checkpoint) consists of a dictionary.")
 check("A7 save @validate_call + header",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n"
-      "def save_optimization_checkpoint(filepath: Path," in a
+      "def hlp_optimize_save_checkpoint(filepath: Path," in a
       and 'bw.write_header("RGLM Optimization Checkpoint", 1)' in a)
 check("A8 len(sl) written + zip(sl, yl, rho) written",
       "bw.write_i32(len(sl))" in a and "for s, y, r in zip(sl, yl, rho):" in a)
@@ -84,7 +84,7 @@ check("A10 M6: history lists must have equal length (fail fast)",
       and "(the L-BFGS history is stored as (s, y, rho) triples)" in a)
 check("A11 load @validate_call + 2 RuntimeError gates (D-139: the compressed kwarg in the signature)",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n"
-      "def load_optimization_checkpoint(filepath: Path, compressed: bool = True) -> Dict[str, Any]:" in a
+      "def hlp_optimize_load_checkpoint(filepath: Path, compressed: bool = True) -> Dict[str, Any]:" in a
       and 'The file is not a proper optimization checkpoint. Found: {description}' in a
       and "Checkpoint version mismatch: found {version}, expected 1" in a)
 check("A12 R3: load verifies the SHA3-256 sidecar",
@@ -96,15 +96,15 @@ check("A14 T11: two no-validation notes (L204 + L277, post D-327 line shift)",
       a.count("#: Here validation is not possible, it brings in a convoluted issue with circular imports.") == 2
       and al[203].startswith("#: Here validation is not possible")
       and al[276].startswith("#: Here validation is not possible"))
-check("A15 R1: ridge gate in is_optimization_cache_consistent (3rd gate)",
+check("A15 R1: ridge gate in hlp_optimize_is_cache_consistent (3rd gate)",
       "The ridge regularization parameter has changed." in a
       and "math.isclose(ctx.cfg.stat_model.ridge_regularization," in a
       and "rel_tol=1e-5, abs_tol=1e-8)" in a)
 check("A16 R1b+M3: status_converged slimmed (no rr gate, no dead mg isclose)",
       "mg_is_consistent" not in a and "rr_is_consistent" not in a
-      and "judgement criterion, not part of the objective" in a)
+      and re.search(r"judgement\s+criterion, not part of the objective", a) is not None)
 check("A17 weights hash NDArray[np.float32]",
-      "def weights_compute_sha3_256_hash(w: npt.NDArray[np.float32]) -> str:" in a
+      "def hlp_optimize_weights_compute_hash(w: npt.NDArray[np.float32]) -> str:" in a
       and "hasher.update(w.tobytes())" in a)
 check("A18 no code ws lines (house sweep)", ws_lines(a) == set(),
       str(sorted(ws_lines(a))))
@@ -135,7 +135,7 @@ check("B7 M1: min_grad unpack discards the unused count",
       "min_grad_value, _ = opt_cfg.min_grad" in b
       and b.count("min_grad_count") == 0)
 check("B8 'or' disjunction kept (completed branch)",
-      "elif is_optimization_status_converged(ctx, cp) or cp['iters'] >= ctx.cfg.optimization.max_iters:" in b)
+      "elif hlp_optimize_is_status_converged(ctx, cp) or cp['iters'] >= ctx.cfg.optimization.max_iters:" in b)
 check("B9 M4: 'cecksum' typo fixed x2",
       "cecksum" not in b and b.count("Weight vector checksum") == 2)
 check("B10 M2: unreachable else removed (comment kept)",
@@ -169,8 +169,8 @@ print("== tier C: test_hlp_optimize.py structure (post D-096)")
 c = read("test/test_hlp_optimize.py")
 cl = c.splitlines()
 c_code = "\n".join(ln for ln in cl if not ln.strip().startswith("#"))
-check("C1 line count 347 (post D-139: 340 + the compressed-default pin + "
-      "the kwarg lines)", len(cl) == 347, f"{len(cl)}")
+check("C1 line count 348 (post D-139: 340 + the compressed-default pin + the kwarg lines; "
+      "the D-517 sweep net +1 — the pin lagged)", len(cl) == 348, f"{len(cl)}")
 check("C2 T14: header fixed (no live regab DB required)",
       "no live regab DB required" in c and "SKIP_REGAB_DB" not in c
       and "logistic_model" not in c_code and "regab" not in c_code.lower())
@@ -307,14 +307,14 @@ check("E8 rlm_02 optimization block",
 #  test_sidecar_produced_and_matches (existence + verify),
 #  test_checksum_mismatch_raises (R3: corrupted content rejected),
 #  test_history_length_mismatch_raises (M6: asymmetric history).
-#  The save_optimization_checkpoint / load_optimization_checkpoint /
+#  The hlp_optimize_save_checkpoint / hlp_optimize_load_checkpoint /
 #  binio imports they used are removed with them.)
-# (weights_compute_sha3_256_hash is still imported for the G3 oracle
+# (hlp_optimize_weights_compute_hash is still imported for the G3 oracle
 #  check, which stays — in the G-tier import below.)
 
 # ---------------------------------------------------------------- G tier
 print("== tier G: helper functions (no DB)")
-from reversi.lm.hlp_optimize import weights_compute_sha3_256_hash
+from reversi.lm.hlp_optimize import hlp_optimize_weights_compute_hash
 
 
 def g_main():
@@ -328,7 +328,7 @@ def g_main():
     #  scaffolding was used only by G4/G5.)
     try:
         w = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-        h = weights_compute_sha3_256_hash(w)
+        h = hlp_optimize_weights_compute_hash(w)
         assert h == "78a7baac51aedf442b3de09a583af1a0704c8aece3b156aaf630780b2d7dc060", h
         assert h == hashlib.sha3_256(w.tobytes()).hexdigest()
         check("G3 weights hash golden + independent", True)
@@ -342,8 +342,8 @@ g_main()
 print("== tier H: live pipeline through OPTIMIZE (DB required)")
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
-from reversi.lm.hlp_optimize import (load_optimization_checkpoint,
-                                save_optimization_checkpoint)
+from reversi.lm.hlp_optimize import (hlp_optimize_load_checkpoint,
+                                hlp_optimize_save_checkpoint)
 
 
 def h_main():
@@ -381,7 +381,7 @@ def h_main():
 
         def h2():
             ctx = rlm.context
-            cp = load_optimization_checkpoint(Path(tmp) / "checkpoint_optimize.dat")
+            cp = hlp_optimize_load_checkpoint(Path(tmp) / "checkpoint_optimize.dat")
             np.testing.assert_array_equal(cp["w"], ctx.w)
             f_final, g_final = ctx.fg(ctx.w)
             assert abs(float(cp["f"]) - float(f_final)) <= 1e-6 * abs(float(f_final)) + 1e-9, \
@@ -425,8 +425,8 @@ def h_main():
             check("H4 second instance: completed path, no lbfgs", False, f"{exc!r}\n{traceback.format_exc()}")
         # H5: crafted INCOMPLETE checkpoint -> resume path
         try:
-            cp = load_optimization_checkpoint(Path(tmp) / "checkpoint_optimize.dat")
-            save_optimization_checkpoint(
+            cp = hlp_optimize_load_checkpoint(Path(tmp) / "checkpoint_optimize.dat")
+            hlp_optimize_save_checkpoint(
                 filepath=Path(tmp) / "checkpoint_optimize.dat",
                 design_matrix_checksum=rlm.context.design_matrix_checksum,
                 zed_checksum=rlm.context.zed_checksum,
@@ -442,7 +442,7 @@ def h_main():
             logs3 = out3.getvalue()
             assert "Resuming optimization from iteration 5." in logs3, logs3[-2000:]
             assert "L-BFGS - [" in logs3, "lbfgs did not run in the resume"
-            cp3 = load_optimization_checkpoint(Path(tmp) / "checkpoint_optimize.dat")
+            cp3 = hlp_optimize_load_checkpoint(Path(tmp) / "checkpoint_optimize.dat")
             assert cp3["iters"] > 5, cp3["iters"]
             check("H5 crafted INCOMPLETE checkpoint: resume path", True)
         except Exception as exc:
@@ -460,7 +460,7 @@ def h_main():
             assert "Checkpoint config mismatch. Starting from scratch." in logs4, logs4[-2000:]
             assert "The definition of the Z array has changed." in logs4
             assert "L-BFGS - [" in logs4
-            cp4 = load_optimization_checkpoint(Path(tmp) / "checkpoint_optimize.dat")
+            cp4 = hlp_optimize_load_checkpoint(Path(tmp) / "checkpoint_optimize.dat")
             assert cp4["zed_checksum"] == rlm4.context.zed_checksum
             assert cp4["zed_checksum"] != rlm.context.zed_checksum
             check("H6 changed clipping: inconsistent -> scratch", True)
@@ -487,7 +487,7 @@ def h_main():
                 assert "Checkpoint config mismatch. Starting from scratch." in logs6b, logs6b[-2000:]
                 assert "L-BFGS - [" in logs6b
                 assert rlm6b.context.zed_checksum == zed_before, "zed is unchanged (only ridge)"
-                cp6b = load_optimization_checkpoint(Path(tmp6b) / "checkpoint_optimize.dat")
+                cp6b = hlp_optimize_load_checkpoint(Path(tmp6b) / "checkpoint_optimize.dat")
                 assert np.float32(cp6b["ridge_regularization"]) == np.float32(0.02)
                 assert cp6b["zed_checksum"] == zed_before
                 check("H6b R1: ridge-only change -> scratch (same as clipping)", True)
@@ -548,7 +548,7 @@ def h_main():
                 assert "Deleting it and starting from scratch." in logs8
                 assert "L-BFGS - [" in logs8
                 assert cp_path.exists(), "the final checkpoint was re-saved"
-                cp8 = load_optimization_checkpoint(cp_path)
+                cp8 = hlp_optimize_load_checkpoint(cp_path)
                 assert cp8["converged"] == (str(cp8["reason"]).startswith("CONVERGED"))
                 check("H8 R2: corrupted checkpoint -> delete + scratch + re-save", True)
         except Exception as exc:

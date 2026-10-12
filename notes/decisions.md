@@ -1528,3 +1528,15 @@ D-519 | 2026-10-12 | The last unprefixed public name of hlp\_generate renamed to
          import / call sites + the check-A1 golden \_\_all\_\_ entry + the A2 split anchor), and the two mirror docs.
          The 3 .py files at the reflow fixpoint; the suite green via the R-210 wrapper (1115/0/24); the probe fully
          green.
+
+D-520 | 2026-10-12 | The 6 public names of hlp\_optimize renamed to the module-prefix convention (Roberto's call,
+         the D-518/D-519 sweep's continuation — with shortened prefixes where the full name would be redundant):
+         hlp\_optimize\_{save\_checkpoint, load\_checkpoint, is\_cache\_consistent, info\_dict, is\_status\_converged,
+         weights\_compute\_hash}. Consumers updated: wrk\_optimize, test\_hlp\_optimize, the probe verify\_optimize, and
+         the 5 mirror docs (incl. the two tools docs referencing the names). Accompanying reflow: hlp\_optimize.py
+         brought to the canonical fixpoint — 5 prose blocks over the preferred 100 width (pre-existing since
+         before D-517) re-wrapped, net -4 lines. Probe pins updated to the new reality: A1 (327 → 323), A6 (the
+         canonical 2-line comment form), A16 (the phrase now spans a line break — whitespace-tolerant regex), and C1
+         (347 → 348: a PRE-EXISTING stale pin from the D-517 test sweep, disclosed — the file was already 348 at HEAD).
+         The 3 .py files at the reflow fixpoint; the suite green via the R-210 wrapper (1115/0/24); the probe 78/78
+         green.

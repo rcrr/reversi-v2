@@ -28,8 +28,8 @@ and read only when `checkpoint_path.exists() and ctx.use_cache` (a cache-disable
   - step 2: `logger_fn` (INFO) + `save_fn` (7 params, matches the lbfgs hint; writes an INCOMPLETE/non-converged
     checkpoint; `iters=k+1` — completed-count semantics, as the final save).
   - step 3: the `lbfgs` call: `fg=ctx.fg`, `x0=w_init`, the 8 config scalars, both wrappers, the 4 warm-start kwargs.
-  - step 4: `ctx.w = w_opt`, `ctx.opt_info = optimization_info_dict(info)`,
-    `ctx.w_checksum = weights_compute_sha3_256_hash(w_opt)`, the final `save_optimization_checkpoint` (the `info` dict
+  - step 4: `ctx.w = w_opt`, `ctx.opt_info = hlp_optimize_info_dict(info)`,
+    `ctx.w_checksum = hlp_optimize_weights_compute_hash(w_opt)`, the final `hlp_optimize_save_checkpoint` (the `info` dict
     carries the 9 keys: w/converged/reason/iters/f/g_norm/sl/yl/rho).
 - `_down`: clears `ctx.fg` and `ctx.w_checksum` + `ctx.opt_info`. `ctx.w` is deliberately KEPT: it is the re-optimized
   WMAPS weight vector; the WMAPS cache restores the zero-initialized value when that level recomputes.
@@ -46,7 +46,7 @@ Pinned by the `probes/verify_optimize.py` B + D + H tiers + the 3-test suite.
 - The 6 live decision paths (probe H4-H8 + H6b): completed (no lbfgs in run 2, byte-identical weights), resume (warm
   start consumed), zed-inconsistent → scratch, ridge-only-inconsistent → scratch, use_cache=False → no load + checkpoint
   still saved (H7), corrupted checkpoint → delete + scratch + valid re-save (H8).
-- The float32 contract flows through: `ctx.w` is float32 after 50 lbfgs iterations; `weights_compute_sha3_256_hash`
+- The float32 contract flows through: `ctx.w` is float32 after 50 lbfgs iterations; `hlp_optimize_weights_compute_hash`
   (gated `NDArray[np.float32]`) never rejects.
 - The base dir after a full run holds the 5 rlmwf_ cache pairs (03/04/05/07/08) + the checkpoint pair; no
   rlmwf_01*/02*/09*/10*/11* file (H1).

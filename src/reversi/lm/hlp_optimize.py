@@ -44,20 +44,20 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['optimization_info_dict',
-           'save_optimization_checkpoint',
-           'load_optimization_checkpoint',
-           'is_optimization_cache_consistent',
-           'is_optimization_status_converged',
-           'weights_compute_sha3_256_hash']
+__all__ = ['hlp_optimize_info_dict',
+           'hlp_optimize_save_checkpoint',
+           'hlp_optimize_load_checkpoint',
+           'hlp_optimize_is_cache_consistent',
+           'hlp_optimize_is_status_converged',
+           'hlp_optimize_weights_compute_hash']
 
 
 
-#: Unlike the other layers, where the cache—when present—is organized using a class and a data object,
-#: the OPTIMIZE layer cache (called a checkpoint) consists of a dictionary.
+#: Unlike the other layers, where the cache—when present—is organized using a class and a data
+#: object, the OPTIMIZE layer cache (called a checkpoint) consists of a dictionary.
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def save_optimization_checkpoint(filepath: Path,
+def hlp_optimize_save_checkpoint(filepath: Path,
                                  design_matrix_checksum: str,
                                  zed_checksum: str,
                                  ridge_regularization: float,
@@ -81,7 +81,8 @@ def save_optimization_checkpoint(filepath: Path,
 
     Args:
         filepath (Path): the destination checkpoint path.
-        design_matrix_checksum (str): the design-matrix checksum of the run (gate 1 of the consistency check).
+        design_matrix_checksum (str): the design-matrix checksum of the run (gate 1 of the
+            consistency check).
         zed_checksum (str): the z-array checksum of the run (gate 2 of the consistency check).
         ridge_regularization (float): the ridge coefficient (gate 3, stored as f32).
         min_grad_value (float): the min_grad stopping tolerance value (stored as f32).
@@ -98,9 +99,8 @@ def save_optimization_checkpoint(filepath: Path,
         rho (List[float]): the L-BFGS scaling factors (one per (s, y) pair).
         compressed (bool): True (the default) — the LZ4 whole-file compression.
     """
-    # The file stores a single length prefix plus one
-    # (s, y, rho) triple per entry, so the three history lists must
-    # have equal length (fail fast instead of a framing error at load).
+    # The file stores a single length prefix plus one (s, y, rho) triple per entry, so the three
+    # history lists must have equal length (fail fast instead of a framing error at load).
     if not (len(sl) == len(yl) == len(rho)):
         raise ValueError("sl, yl and rho must have the same length "
                          "(the L-BFGS history is stored as (s, y, rho) triples)")
@@ -121,9 +121,8 @@ def save_optimization_checkpoint(filepath: Path,
         bw.write_i32(len(sl))
         bw.write_array(w)
 
-        # Serialize the L-BFGS history vectors chronologically:
-        # zip() pairs each displacement vector (s) with its corresponding
-        # gradient change (y) and scaling factor (rho) and writes them
+        # Serialize the L-BFGS history vectors chronologically: zip() pairs each displacement vector
+        # (s) with its corresponding gradient change (y) and scaling factor (rho) and writes them
         # sequentially into the binary file for a seamless warm start.
         for s, y, r in zip(sl, yl, rho):
             bw.write_array(s)
@@ -132,12 +131,13 @@ def save_optimization_checkpoint(filepath: Path,
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def load_optimization_checkpoint(filepath: Path, compressed: bool = True) -> Dict[str, Any]:
+def hlp_optimize_load_checkpoint(filepath: Path, compressed: bool = True) -> Dict[str, Any]:
     """
     Load the L-BFGS state from a binary checkpoint file.
 
-    LZ4 whole-file compression by default (as in model_weights). Verifies the header (description and
-    version) and the SHA3-256 sidecar before trusting any payload: the sidecar exists precisely for this.
+    LZ4 whole-file compression by default (as in model_weights). Verifies the header (description
+    and version) and the SHA3-256 sidecar before trusting any payload: the sidecar exists precisely
+    for this.
 
     Args:
         filepath (Path): the checkpoint path.
@@ -202,7 +202,7 @@ def load_optimization_checkpoint(filepath: Path, compressed: bool = True) -> Dic
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def is_optimization_cache_consistent(ctx: "LMContext", checkpoint: Dict[str, Any]) -> bool:
+def hlp_optimize_is_cache_consistent(ctx: "LMContext", checkpoint: Dict[str, Any]) -> bool:
     """
     Validate the checkpoint against the current configuration.
 
@@ -252,7 +252,7 @@ def is_optimization_cache_consistent(ctx: "LMContext", checkpoint: Dict[str, Any
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def optimization_info_dict(lbfgs_info: dict) -> dict:
+def hlp_optimize_info_dict(lbfgs_info: dict) -> dict:
     """
     Filter the unused entries given by the lbfgs function.
 
@@ -275,18 +275,14 @@ def optimization_info_dict(lbfgs_info: dict) -> dict:
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def is_optimization_status_converged(ctx: "LMContext", checkpoint: Dict[str, Any]) -> bool:
+def hlp_optimize_is_status_converged(ctx: "LMContext", checkpoint: Dict[str, Any]) -> bool:
     """
-    Validate the checkpoint convergence status against the current
-    stopping tolerance.
-    The configuration consistency (design matrix, z array and ridge
-    gates) is checked by is_optimization_cache_consistent before this
-    function is reached, so here only the stored gradient norm is
-    compared with the CURRENT min_grad tolerance: the tolerance is a
-    judgement criterion, not part of the objective, so a changed
-    tolerance re-judges the stored state (a looser tolerance may accept
-    a not-converged checkpoint, a stricter one forces further
-    iterations).
+    Validate the checkpoint convergence status against the current stopping tolerance. The
+    configuration consistency (design matrix, z array and ridge gates) is checked by
+    hlp_optimize_is_cache_consistent before this function is reached, so here only the stored
+    gradient norm is compared with the CURRENT min_grad tolerance: the tolerance is a judgement
+    criterion, not part of the objective, so a changed tolerance re-judges the stored state (a
+    looser tolerance may accept a not-converged checkpoint, a stricter one forces further iterations).
 
     Args:
         ctx ("LMContext"): the live context (the current min_grad tolerance).
@@ -314,7 +310,7 @@ def is_optimization_status_converged(ctx: "LMContext", checkpoint: Dict[str, Any
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def weights_compute_sha3_256_hash(w: npt.NDArray[np.float32]) -> str:
+def hlp_optimize_weights_compute_hash(w: npt.NDArray[np.float32]) -> str:
     """
     Compute the SHA3-256 hash of the raw bytes of the weight vector.
 

@@ -25,7 +25,7 @@ no DB, no PERF gate (~0.050s).
 - The hard-bug regression: `max()` on an empty `FixedSizeMaxList` raises `RuntimeError`.
 - The stop-reason literals: `CONVERGED_MIN_GRAD`, `MAX_ITERS_REACHED`, `CONVERGED_LOW_PROGRESS` — each pinned by a
   dedicated run (the reason strings the worker logs and projects into the context).
-- The `info` dict key set (the 9 keys the worker's `optimization_info_dict` projects).
+- The `info` dict key set (the 9 keys the worker's `hlp_optimize_info_dict` projects).
 
 ## Conventions
 
