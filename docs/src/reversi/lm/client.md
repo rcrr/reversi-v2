@@ -15,9 +15,9 @@ the shape the endgame-solver production models (the `A2xxx` family) plug into.
 ## Architecture
 
 - Imports: numpy + numpy.typing, `typing.Callable`, `pydantic.validate_call/ConfigDict`, `ModelWeights`,
-  `zed_fun_factory`, `sigmoid`, `Position`/`PositionArray` (annotation-only use).
+  `hlp_zed_fun_factory`, `sigmoid`, `Position`/`PositionArray` (annotation-only use).
 - `_prepare_weights`: the closure setup shared by BOTH factories: `offsets = mw.iwmap_feature_offset`,
-  `z2y = zed_fun_factory(mw.logit_clipping)` (only the z→y half — the client never transforms observations),
+  `z2y = hlp_zed_fun_factory(mw.logit_clipping)` (only the z→y half — the client never transforms observations),
   `expanded_offsets = np.repeat(offsets[:-1], n_instances_per_feature)` (the per-INSTANCE w_dense start offsets: each
   feature's start repeated n_instances times — e.g. EDGE's start, 4 times for its 4 instances).
 - `make_evaluation_function`: `ef(p)` — 1. `indexes = mw.feature_set.compute_indexes(np.array([p]))[0]` (the length-1

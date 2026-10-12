@@ -1,6 +1,6 @@
 # reversi/lm/hlp_zed.py
 The ZED domain module of the LM pipeline: the `LMZed` data object (the z (N,) float32 vector — the affine image of the
-per-position game values — + the two affine transformation closures `y2z` / `z2y`) + `zed_fun_factory` (the pure math) +
+per-position game values — + the two affine transformation closures `y2z` / `z2y`) + `hlp_zed_fun_factory` (the pure math) +
 `hlp_zed_compute` + the duck-typed `compute_sha3_256_hash`. The data object of the 9th active level (CREATED sentinel →
 CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES → ANOVA → WMAPS → DESIGN_MTR → ZED) and a non-cache level,
 like CONFIG / FEATURES / ANOVA (no store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09*
@@ -11,7 +11,7 @@ file — see the worker doc).
 | name | contract |
 |---|---|
 | `LMZed` | plain class — 3 fields, assigned BY REFERENCE: `y2z` (int8 → float32), `z2y` (float32 → float32), `z: NDArray[float32]` |
-| `zed_fun_factory(logit_clipping)` | `@validate_call` — returns the two affine closures |
+| `hlp_zed_fun_factory(logit_clipping)` | `@validate_call` — returns the two affine closures |
 | `hlp_zed_compute(ctx)` | builds the object from `ctx.game_values` + the clipping (NO `@validate_call` — see Conventions) |
 
 ## Architecture
@@ -19,11 +19,11 @@ file — see the worker doc).
 - `LMZed.__init__` is `@validate_call(arbitrary_types_allowed)`; `compute_sha3_256_hash` (validated) = sha3_256 over
   `z.tobytes()` ONLY (the single data vector — the duck-typed data-checksum hook; the closures are NOT covered, see
   Conventions).
-- `zed_fun_factory(logit_clipping)` (validated): `a = float32(0.5)`, `b = float32((1 − 2c)/128)`; `y_to_z(y)`: `y` cast
+- `hlp_zed_fun_factory(logit_clipping)` (validated): `a = float32(0.5)`, `b = float32((1 − 2c)/128)`; `y_to_z(y)`: `y` cast
   to float32, `z = a + y·b` — maps the int8 range [−64, +64] onto [c, 1−c] (c = logit_clipping). `z_to_y(z)`: the EXACT
   inverse, `a1 = float32(−64/(1 − 2c))`, `b1 = float32(128/(1 − 2c))`, `y = a1 + z·b1`.
 - `hlp_zed_compute`: NO `@validate_call` (the no-validation note — the hlp_indexes class). Body:
-  `alpha = ctx.cfg.stat_model.logit_clipping`; `y2z, z2y = zed_fun_factory(alpha)`; `y = ctx.game_values`; `z = y2z(y)`;
+  `alpha = ctx.cfg.stat_model.logit_clipping`; `y2z, z2y = hlp_zed_fun_factory(alpha)`; `y = ctx.game_values`; `z = y2z(y)`;
   returns the object.
 - NO store / load / is_cache_consistent functions — a non-cache level by design, like CONFIG / FEATURES / ANOVA
   (vectorized math, "very fast" per the worker comment; no rlmwf_09* file ever materializes).

@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 
 __all__ = ['LMZed',
            'hlp_zed_compute',
-           'zed_fun_factory']
+           'hlp_zed_fun_factory']
 
 
 class LMZed:
@@ -82,8 +82,8 @@ class LMZed:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
-                                                     Callable[[npt.NDArray[np.float32]], npt.NDArray[np.float32]]]:
+def hlp_zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
+                                                            Callable[[npt.NDArray[np.float32]], npt.NDArray[np.float32]]]:
     """
     Returns two functions that perform an affine transformation. One on int8 arrays, it maps the
     range [-64, 64] to [logit_clipping, 1 - logit_clipping]. The second does the inverted transformation.
@@ -123,7 +123,7 @@ def hlp_zed_compute(ctx: "LMContext") -> LMZed:
         LMZed: the object (the two closures + the computed z vector).
     """
     alpha = ctx.cfg.stat_model.logit_clipping
-    y2z, z2y = zed_fun_factory(alpha)
+    y2z, z2y = hlp_zed_fun_factory(alpha)
     y = ctx.game_values
     z = y2z(y)
     return LMZed(y2z=y2z, z2y=z2y, z=z)

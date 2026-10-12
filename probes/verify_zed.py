@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 #
-# verify_zed.py — scratch probe (gitignored) for the ZED level, re-pinned
-# to the POST-CAMPAIGN state (D-092: T1-T8 applied).
+# verify_zed.py — scratch probe (gitignored) for the ZED level, re-pinned to the POST-CAMPAIGN state
+# (D-092: T1-T8 applied).
 #
-# Tiers:
-#   A  hlp_zed.py structural pins (post T6/T7/T8)
-#   B  wrk_zed.py structural pins (post T2/T8)
-#   C  test_wrk_zed.py structural pins (post T1/T4/T5/T8)
-#   D  live golden (rlm_01.json pipeline through ZED, independent recompute)
-#   F  cross-module facts (logistic_model.py, repo state)
-#   G  dedicated test_hlp_zed.py (post T3)
+# Tiers: A  hlp_zed.py structural pins (post T6/T7/T8) B  wrk_zed.py structural pins (post T2/T8) C
+# test_wrk_zed.py structural pins (post T1/T4/T5/T8) D  live golden (rlm_01.json pipeline through
+# ZED, independent recompute) F  cross-module facts (logistic_model.py, repo state) G  dedicated
+# test_hlp_zed.py (post T3)
 #
 import contextlib
 import hashlib
@@ -46,7 +43,7 @@ check('A1  hlp_zed.py is 129 lines (post T6 note + T7 decorator)', len(rlm) == 1
 check('A2  __all__ = class + compute + factory (L41-43)',
       rlm[40] == "__all__ = ['LMZed',"
       and rlm[41] == "           'hlp_zed_compute',"
-      and rlm[42] == "           'zed_fun_factory']")
+      and rlm[42] == "           'hlp_zed_fun_factory']")
 check('A3  class LMZed at L46', rlm[45].startswith('class LMZed'))
 check('A4  __init__ @validate_call (L49-50) w/ arbitrary_types_allowed',
       rlm[48] == '    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
@@ -55,9 +52,9 @@ check('A5  compute_sha3_256_hash decorated (L67), hashes z.tobytes() only (L79)'
       rlm[66] == '    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
       and rlm[67] == '    def compute_sha3_256_hash(self) -> str:'
       and rlm[78] == '        hasher.update(self.z.tobytes())')
-check('A6  T7 DONE: zed_fun_factory decorated (L84) + def (L85)',
+check('A6  T7 DONE: hlp_zed_fun_factory decorated (L84) + def (L85)',
       rlm[83] == '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
-      and rlm[84] == 'def zed_fun_factory(logit_clipping: float) -> '
+      and rlm[84] == 'def hlp_zed_fun_factory(logit_clipping: float) -> '
       'Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],')
 check('A7  factory math pins: a=0.5 (L98), b=(1-2c)/128 (L99), a1 (L105), b1 (L106)',
       rlm[97] == '    a = np.float32(0.5)'
@@ -78,11 +75,9 @@ check('A11 TYPE_CHECKING guard for LMContext (L37-38)',
       rlm[36] == 'if TYPE_CHECKING:' and rlm[37] == '    from reversi.lm.logistic_model import LMContext')
 check('A12 T8 DONE: 0 trailing-ws lines',
       {i + 1 for i, l in enumerate(rlm) if l != l.rstrip()} == set())
-# (A13/A14/A15 factory(0.02) golden + round-trip + endpoints deleted
-#  at D-106 step 3, class c: test_hlp_zed.py::TestZedFunFactory pins
-#  the same — test_factory_alpha_0.02_golden (the same literal),
-#  test_round_trip, and the endpoints for TWO clippings (0.02 AND
-#  0.03, a superset of the probe's))
+# (A13/A14/A15 factory(0.02) golden + round-trip + endpoints deleted at D-106 step 3, class c:
+# test_hlp_zed.py::TestZedFunFactory pins the same — test_factory_alpha_0.02_golden (the same
+# literal), test_round_trip, and the endpoints for TWO clippings (0.02 AND 0.03, a superset of the probe's))
 
 # ---------------------------------------------------------------- B tier
 wk = lines_of('wrk_zed.py')
@@ -167,22 +162,19 @@ try:
     with contextlib.redirect_stdout(buf):
         rlm01 = LogisticModel(str(ROOT / 'test' / 'reversi' / 'data' / 'rlm_01.json'),
                               verbosity=Verbosity.HIGH, base_dir_override=base)
-        # (D1 c? resolves to a (KEEP): the test pins only the y2z +
-        #  z pre-state; z2y / zed_checksum pre-state are probe-unique)
+        # (D1 c? resolves to a (KEEP): the test pins only the y2z + z pre-state; z2y / zed_checksum
+        # pre-state are probe-unique)
         check('D1  pre-state before the first ZED up: y2z/z2y/z/zed_checksum all None',
               rlm01.context.y2z is None and rlm01.context.z2y is None
               and rlm01.context.z is None and rlm01.context.zed_checksum is None)
         rlm01.move_to_step('ZED')
-    # (D2 step 7 / name ZED deleted at D-106 step 3, class c:
-    #  test_wrk_zed.py::test_compute_zed pins it)
+    # (D2 step 7 / name ZED deleted at D-106 step 3, class c: test_wrk_zed.py::test_compute_zed pins it)
     y = rlm01.context.game_values
-    # (D3 game_values == golden y deleted at D-106 step 3, class c:
-    #  the test pins expected_y verbatim. The y binding stays: D5
-    #  and D10 use it.)
+    # (D3 game_values == golden y deleted at D-106 step 3, class c: the test pins expected_y
+    # verbatim. The y binding stays: D5 and D10 use it.)
     z = rlm01.context.z
-    # (D4 ctx.z == golden z deleted at D-106 step 3, class c: the
-    #  test pins expected_z verbatim (the same 10 floats). The z
-    #  binding stays: D5-D7 use it.)
+    # (D4 ctx.z == golden z deleted at D-106 step 3, class c: the test pins expected_z verbatim (the
+    # same 10 floats). The z binding stays: D5-D7 use it.)
     c = rlm01.context.cfg.stat_model.logit_clipping
     b64 = np.float32((1. - 2. * c) / 128.)
     z_ref = np.float32(0.5) + y.astype(np.float32) * b64
@@ -195,8 +187,7 @@ try:
           rlm01.context.zed_checksum == hashlib.sha3_256(z.tobytes()).hexdigest(),
           rlm01.context.zed_checksum)
     y2z, z2y = rlm01.context.y2z, rlm01.context.z2y
-    # (D8 a? resolves to a (KEEP): the test pins y2z not-None but
-    #  never the z2y pre-down wiring)
+    # (D8 a? resolves to a (KEEP): the test pins y2z not-None but never the z2y pre-down wiring)
     check('D8  ctx.y2z / ctx.z2y are callables (closures from the factory)',
           callable(y2z) and callable(z2y))
     check('D9  live endpoints: y2z(-64) ~= 0.03, y2z(0) == 0.5, y2z(64) ~= 0.97',
@@ -215,9 +206,8 @@ try:
           files == expected_files, str(files))
     with contextlib.redirect_stdout(io.StringIO()):
         rlm01.move_to_step(6)
-    # (D12 _down live (step 6, 4 attrs None) deleted at D-106 step
-    #  3, class c: test_down_clears_zed_attributes pins exactly this
-    #  scope — the 4 assertIsNone at L153-156)
+    # (D12 _down live (step 6, 4 attrs None) deleted at D-106 step 3, class c:
+    # test_down_clears_zed_attributes pins exactly this scope — the 4 assertIsNone at L153-156)
 finally:
     tmp.cleanup()
 
@@ -229,8 +219,7 @@ check('F1  LMContext zed fields pre-declared (the block shifts with every '
       and lm_lines[148] == '    y2z: Any = None'
       and lm_lines[149] == '    z2y: Any = None'
       and lm_lines[150] == '    z: Any = None')
-# (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
-# V3c/V3d at D-106)
+# (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py V3c/V3d at D-106)
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
       (ROOT / 'test' / 'reversi' / 'lm' / 'test_hlp_zed.py').exists()
       and sum(1 for l in lines_of('test/test_hlp_zed.py') if l.startswith('    def test_')) == 10
@@ -271,10 +260,10 @@ check('G8  header: no-DB claim ("no live regab DB required — the compute test"
       'no live regab DB required' in '\n'.join(gd))
 check('G9  T8 clean: 0 trailing-ws lines',
       {i + 1 for i, l in enumerate(gd) if l != l.rstrip()} == set())
-check('G10 the 3 domain names imported (LMZed / hlp_zed_compute / zed_fun_factory)',
+check('G10 the 3 domain names imported (LMZed / hlp_zed_compute / hlp_zed_fun_factory)',
       'from reversi.lm.hlp_zed import (LMZed,' in '\n'.join(gd)
       and 'hlp_zed_compute,' in '\n'.join(gd)
-      and 'zed_fun_factory)' in '\n'.join(gd))
+      and 'hlp_zed_fun_factory)' in '\n'.join(gd))
 
 # ---------------------------------------------------------------- report
 n_fail = 0

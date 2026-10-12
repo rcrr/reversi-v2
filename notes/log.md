@@ -168,7 +168,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   contract). Empirically verified before the change: value-identical slots, bit-identical kernel output, aligned
   streams.
 - Touched: 3 code files + 2 mirror docs. No probe pins the names (zero re-pins).
-- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (counts
-  unchanged — rename + annotations + the slots dtype). The random\_game LONG tests
-  cover the engine path with the new uint64 specialization. All 3 touched .py at the
+- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (counts unchanged — rename + annotations + the slots
+  dtype). The random\_game LONG tests cover the engine path with the new uint64 specialization. All 3 touched .py at the
+  reflow fixpoint.
+## 2026-10-12 — session 113 (D-528 — the hlp\_zed factory rename)
+
+- Roberto's call: zed\_fun\_factory -> hlp\_zed\_fun\_factory (the last un-prefixed public of the module; LMZed keeps
+  its name with the LM family).
+- Touched: 2 src + 4 test (17 sites) + verify\_zed (3 text-only pins, no index shift) + 2 docs (6 sites). The G10 pin
+  re-tightened (the old substring would have kept passing inside the new name — false green).
+- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN
+  (counts unchanged — pure rename). verify\_zed: 51/51. All 7 touched .py at the
   reflow fixpoint.

@@ -52,18 +52,18 @@ from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
-from reversi.lm.hlp_zed import zed_fun_factory
+from reversi.lm.hlp_zed import hlp_zed_fun_factory
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_long_gate
 
 
 
 class TestZedFunFactory(unittest.TestCase):
-    """Tests the mathematical zed_fun_factory in isolation."""
+    """Tests the mathematical hlp_zed_fun_factory in isolation."""
 
-    def test_zed_fun_factory(self):
+    def test_hlp_zed_fun_factory(self):
         alpha = 0.02
-        y2z, z2y = zed_fun_factory(alpha)
+        y2z, z2y = hlp_zed_fun_factory(alpha)
 
         values = np.array([-64, 0, 6, +64], dtype=np.int8)
         transformed_values = y2z(values)

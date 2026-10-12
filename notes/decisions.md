@@ -1651,3 +1651,15 @@ D-527 | 2026-10-12 | The prng pick-kernel API (Roberto's call, after the investi
          prefix follows the rename (no test asserts on it). One-time cost: numba recompiles the two kernels with the new
          uint64 specialization (cached after). Suite green via the R-210 wrapper (the random\_game LONG tests cover the
          engine path); all 3 touched .py at the reflow fixpoint.
+
+D-528 | 2026-10-12 | The hlp\_zed factory rename (Roberto's call): zed\_fun\_factory → hlp\_zed\_fun\_factory — the last
+         public name of the module without the hlp\_zed\_ prefix, completing the module scheme (LMZed /
+         hlp\_zed\_compute / hlp\_zed\_fun\_factory; the LMZed class keeps its name with the LM data-object family).
+         Touched: hlp\_zed (the def + the \_\_all\_\_ + the internal call; the 2-line def signature keeps its alignment,
+         +4 on the continuation), client (import + call + comment — pure notation on the client hot path), 4 test files
+         (17 sites, incl. the test method name test\_hlp\_zed\_fun\_factory), verify\_zed (3 pins, ALL text-only: the
+         rename is in-line, 129 lines unchanged — the \_all\_ line, the def line, and the G10 substring on the test's
+         parenthesized import), 2 mirror docs (6 sites). The G10 subtlety: the old substring 'zed\_fun\_factory)' is a
+         SUBSTRING of the new text — without the re-pin the check would have kept passing opaquely (false green); the
+         pin now carries the full new name. No probe index shifts; no suite count change. Suite green via the R-210
+         wrapper; verify\_zed 51/51; all 7 touched .py at the reflow fixpoint.

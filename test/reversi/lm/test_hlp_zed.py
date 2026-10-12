@@ -52,14 +52,14 @@ from pydantic import ValidationError
 
 from reversi.lm.hlp_zed import (LMZed,
                                hlp_zed_compute,
-                               zed_fun_factory)
+                               hlp_zed_fun_factory)
 
 
 class TestZedFunFactory(unittest.TestCase):
-    """Tests the zed_fun_factory math in isolation (no DB)."""
+    """Tests the hlp_zed_fun_factory math in isolation (no DB)."""
 
     def test_y2z_golden(self):
-        y2z, z2y = zed_fun_factory(0.02)
+        y2z, z2y = hlp_zed_fun_factory(0.02)
         values = np.array([-64, 0, 6, 64], dtype=np.int8)
         transformed = y2z(values)
         expected = np.array([0.02, 0.5, 0.545, 0.98], dtype=np.float32)
@@ -67,20 +67,20 @@ class TestZedFunFactory(unittest.TestCase):
         nptest.assert_allclose(expected, transformed, rtol=1e-6, atol=1e-7)
 
     def test_z2y_inverse(self):
-        y2z, z2y = zed_fun_factory(0.02)
+        y2z, z2y = hlp_zed_fun_factory(0.02)
         z = np.array([0.02, 0.5, 0.545, 0.98], dtype=np.float32)
         expected_y = np.array([-64, 0, 6, 64], dtype=np.float32)
         nptest.assert_allclose(expected_y, z2y(z), rtol=1e-6, atol=1e-7)
 
     def test_round_trip(self):
-        y2z, z2y = zed_fun_factory(0.03)
+        y2z, z2y = hlp_zed_fun_factory(0.03)
         values = np.array([-64, -22, 0, 18, 63, 64], dtype=np.int8)
         nptest.assert_allclose(z2y(y2z(values)), values.astype(np.float32),
                                rtol=1e-6, atol=1e-7)
 
     def test_endpoints_for_two_clipplings(self):
         for alpha, lo, hi in ((0.02, 0.02, 0.98), (0.03, 0.03, 0.97)):
-            y2z, z2y = zed_fun_factory(alpha)
+            y2z, z2y = hlp_zed_fun_factory(alpha)
             self.assertAlmostEqual(float(y2z(np.int8(-64))), lo, places=6)
             self.assertAlmostEqual(float(y2z(np.int8(0))), 0.5, places=6)
             self.assertAlmostEqual(float(y2z(np.int8(64))), hi, places=6)
@@ -119,7 +119,7 @@ class TestLMZed(unittest.TestCase):
     """Tests the data-object init validation and the hash golden."""
 
     def _closures(self):
-        return zed_fun_factory(0.03)
+        return hlp_zed_fun_factory(0.03)
 
     def test_init_stores_by_reference(self):
         y2z, z2y = self._closures()

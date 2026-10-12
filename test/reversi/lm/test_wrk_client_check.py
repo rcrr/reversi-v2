@@ -53,7 +53,7 @@ from reversi.board import Bitboard, make_position
 from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
-from reversi.lm.hlp_zed import zed_fun_factory
+from reversi.lm.hlp_zed import hlp_zed_fun_factory
 from reversi.lm.model_weights import model_weights_write_file
 from reversi.lm.logistic_model import LMContext
 from reversi.lm.wrk_client_check import wrk_client_check
@@ -108,7 +108,7 @@ class TestWrkClientCheck(unittest.TestCase):
 
         # The real ZED transforms (the f32 affine pair of logit clipping 0.01, the rlm_03/rlm_04
         # fixture value).
-        y2z, z2y = zed_fun_factory(ALPHA)
+        y2z, z2y = hlp_zed_fun_factory(ALPHA)
 
         ctx = LMContext(
             config_file_path=Path(self.tmp_dir) / "config.json")

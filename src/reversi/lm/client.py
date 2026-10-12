@@ -35,7 +35,7 @@ from typing import Callable
 from pydantic import validate_call, ConfigDict
 
 from reversi.lm.model_weights import ModelWeights
-from reversi.lm.hlp_zed import zed_fun_factory
+from reversi.lm.hlp_zed import hlp_zed_fun_factory
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.board import Position, PositionArray
 
@@ -60,10 +60,10 @@ def _prepare_weights(mw: ModelWeights) -> tuple:
     Returns:
         tuple: (expanded_offsets, z2y) — expanded_offsets: the per-instance w_dense start offsets
             (the boundary array without its last entry, each start repeated n_instances times); z2y:
-            the z→y affine transform (the zed_fun_factory z→y half).
+            the z→y affine transform (the hlp_zed_fun_factory z→y half).
     """
     offsets = mw.iwmap_feature_offset
-    _, z2y = zed_fun_factory(mw.logit_clipping)
+    _, z2y = hlp_zed_fun_factory(mw.logit_clipping)
 
     # Pre-compute the expanded offsets for all instances
     n_instances_per_feature = [f.n_instances for f in mw.feature_set.features]
