@@ -19,7 +19,7 @@ DB-gated worker tests.
 ## Conventions
 
 - The 2 worker tests are DB-gated because the setUp's move to DESIGN_MTR runs the positions chain (the live regab DB) on
-  a fresh base dir — the same gate class as test_wrk_design_matrix; the gate is the db_long_gate (SKIP_REGAB_DB + LONG).
+  a fresh base dir — the same gate class as test_wrk_design_matrix; the gate is the db_gate (SKIP_REGAB_DB, the D-532 default tier).
   The factory test is NOT gated (no DB) — 3/0/2 under the gate.
 - The `TemporaryDirectory` idiom in setUp (the temp dir under `CUSTOM_TMP_BASE`, the `WORKSPACE_ROOT`-anchored json
   config).

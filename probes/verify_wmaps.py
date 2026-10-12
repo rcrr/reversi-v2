@@ -166,9 +166,9 @@ check("D1 test_wrk_wmaps.py is 320 lines", len(t2) == 320, f"{len(t2)}")
 check("D2 2 classes / 4 tests",
       sum(1 for l in t2 if l.startswith("class ")) == 2 and
       sum(1 for l in t2 if l.strip().startswith("def test_")) == 4)
-check("D3 the SKIP_REGAB_DB gate exists in BOTH setUps (the db_long_gate idiom)",
-      t2[70] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
-      and t2[182] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates",
+check("D3 the SKIP_REGAB_DB gate exists in BOTH setUps (the db_gate idiom, D-532: the default tier)",
+      t2[70] == "        db_gate(self)  # the SKIP_REGAB_DB gate"
+      and t2[182] == "        db_gate(self)  # the SKIP_REGAB_DB gate",
       repr(t2[70:72]))
 check("D4 import os removed (dead import — the gate lives in test.reversi.tags)", "import os" not in t2)
 check("D5 both setUps use the TemporaryDirectory idiom",

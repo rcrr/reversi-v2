@@ -33,8 +33,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
-# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_design_matrix
 #
@@ -52,7 +52,7 @@ from pathlib import Path
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-from test.reversi.tags import db_long_gate
+from test.reversi.tags import db_gate
 from reversi.index import Index
 
 
@@ -63,7 +63,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — all three tests need the live regab DB (the
         # setUp moves to WMAPS, which runs the WMAPS chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
+        db_gate(self)  # the SKIP_REGAB_DB gate
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -160,7 +160,7 @@ class TestLMWorkerDesignMatrixExactValues(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the golden-content test needs the live regab DB
         # (the setUp moves to WMAPS, which runs the WMAPS chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
+        db_gate(self)  # the SKIP_REGAB_DB gate
 
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()

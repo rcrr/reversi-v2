@@ -202,3 +202,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - The classifier verified EXACT against unittest discovery (1122 = 1122, both diffs empty) after three in-flight fixes
   (the Call.id slip, the class-level VLONG decorators, the multiple-inheritance bases).
 - The 3-launch measurement: in flight as a background job (≈45-60 min).
+- The 3 launches landed in ~9 min (the A2050 chain is 96 s, not 10 min): 1122/1122 VERDE, zero FLAKY — VLONG 61.1% of
+  the time, LONG 25.9%, NORMAL 13.0%.
+- D-532: the 21 fast DB tests (<0.4 s) re-classified LONG -> NORMAL via the new db\_gate (DB-only, default tier) +
+  tier\_long (the method-level LONG check for the mixed TestVldIndependenceCheck, whose 1.7-s sibling stays tiered). 8
+  test files, 3 probes re-pinned, 9 mirror docs, the classifier's db -> (db\_long, db) split. Suite 1122/0/24. NO COMMIT
+  (further adjustments in flight).
+- D-533: the 11 slow non-DB tests (2 plot, 2 prng, 2 board, 2 client, 4 PERF 1M) moved NORMAL -> LONG via the
+  @skipUnless(tier\_long(), ...) decorator (the house VLONG/VVLONG idiom); 8 test files, the 4 PERF ones stack it over
+  the PERF gate. The classifier needed no change (its ast.walk sees the decorator): 33 LONG = 22 + 11. test\_wrk\_plot
+  default 9/2skip/OK, LONG=1 9/0/0; 3 probes green.
+- D-534: the A2050 chain (96.5 s) moved VLONG -> VVLONG — the FIRST VVLONG instrument: the class decorator
+  tier\_vlong() -> tier\_vvlong() (one line + the import). The classifier needed no change: NORMAL 1087 / LONG 33 /
+  VLONG 1 / VVLONG 1. VLONG=1 alone skips it; VVLONG=1 runs the module 9/0/0 in 105.8 s.

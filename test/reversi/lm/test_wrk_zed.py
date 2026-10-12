@@ -34,8 +34,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
-# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_zed
 #
@@ -54,7 +54,7 @@ from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.hlp_zed import hlp_zed_fun_factory
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-from test.reversi.tags import db_long_gate
+from test.reversi.tags import db_gate
 
 
 
@@ -80,7 +80,7 @@ class TestLMWorkerZed(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need the live regab DB (the
         # setUp moves to DESIGN_MTR, which runs the positions chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
+        db_gate(self)  # the SKIP_REGAB_DB gate
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())

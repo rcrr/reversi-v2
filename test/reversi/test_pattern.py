@@ -67,6 +67,7 @@ from reversi.board import (
 )
 from reversi.pattern import *
 from reversi.index import Index, IndexArray, validate_index_array
+from test.reversi.tags import tier_long
 
 
 
@@ -2107,6 +2108,7 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
 
         self.assertEqual(principal_indexes.shape, (0, 2, 4))
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
 

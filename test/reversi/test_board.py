@@ -58,6 +58,7 @@ from reversi.board import *
 
 # The white-box import for the Zobrist table pin: the star import above skips the underscore names.
 from reversi.board import _zobrist_bitstrings
+from test.reversi.tags import tier_long
 
 from test.reversi.paths import WORKSPACE_ROOT
 
@@ -1494,6 +1495,7 @@ class TestNumbaReflectionOverloads(unittest.TestCase):
                           Bitboard(0x240040EBCA1C0040),
                           Bitboard(0x2003853D7020024)))
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_array_overloads_in_jit(self):
         jit_out = _jit_reflections_array(self.x)
         direct = (bitboard_fa1h8(np.array([self.x, Bitboard(0x1)], dtype=Bitboard)),
@@ -3861,6 +3863,7 @@ class TestPositionHash(unittest.TestCase):
         self.assertTrue(np.all(counts >= 40) and np.all(counts <= 88),
                         f"avalanche out of band: {counts}")
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_no_collisions(self):
         # Random (mover, opponent) pairs over the full 2^128 space: zero collisions up to the
         # birthday bound (expected collisions ~ n^2 / 2^65; 1e6 -> ~3e-8). N escalates under LONG=1.

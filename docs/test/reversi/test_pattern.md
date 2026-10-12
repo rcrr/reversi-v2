@@ -20,7 +20,7 @@ The pattern unit suite — 13 classes / 76 tests, 3 PERF-gated (1M-size pack, `c
 | `TestPatternPrincipalIndex` | 2 | the single-pattern principal-index dict + the public convert array pin (the uint32 array converts; the
   uint64 array raises `ValidationError`) |
 | `TestPatternComputePrincipalIndexDict` | 7 | the full principal-index dicts (9, 27, 81 entries) as `np.array` goldens |
-| `TestPatternSetComputePrincipalIndexes` | 8 | scalar + 1-D + multi-position + the N-D shape tests (2-D, 3-D,
+| `TestPatternSetComputePrincipalIndexes` | 8 | scalar + 1-D + multi-position + the N-D shape tests (2-D, 3-D, the `test_performance_1m` PERF benchmark gated on the LONG tier — D-533;
 non-contiguous 2-D, empty 2-D) + PERF 1M |
 
 ## Goldens pinned

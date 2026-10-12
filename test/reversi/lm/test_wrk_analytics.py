@@ -34,8 +34,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
-# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB is required; LONG=1 for the TestLMWorkerAnalytics class;
+# SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_analytics
 #
@@ -58,7 +58,7 @@ from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from test.reversi.closecheck import assert_close
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-from test.reversi.tags import db_long_gate
+from test.reversi.tags import db_gate, db_long_gate
 from reversi.index import Index
 from reversi.index import ExtendedIndex
 
@@ -272,7 +272,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need the live regab DB (the
         # setUp moves to VALIDATE, which runs the whole 14-level chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
+        db_gate(self)  # the SKIP_REGAB_DB gate
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -612,7 +612,7 @@ class TestSuSampleEndToEnd(unittest.TestCase):
     """
 
     def setUp(self):
-        db_long_gate(self)
+        db_gate(self)
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
@@ -689,7 +689,7 @@ class TestEtaSquaredCrossLevel(unittest.TestCase):
     """
 
     def setUp(self):
-        db_long_gate(self)
+        db_gate(self)
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))

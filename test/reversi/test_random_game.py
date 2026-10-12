@@ -63,6 +63,7 @@ from reversi.board import (MOVE_PA, Move, move_to_str,
 from reversi.random_game import (random_game_choose_move,
                                  random_game_make_move,
                                  random_game_play_path)
+from test.reversi.tags import tier_long
 
 
 
@@ -529,6 +530,7 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PERF') == '1',
                          "Skipping performance test (set PERF=1 to run)")
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_perf_play_path_million_games_to_ec0(self):
         # The PERF benchmark: one million games from the canonical start played to ec = 0 (the full
         # random game) by the array engine. Print-only, no gate: the wall time, the throughput, the

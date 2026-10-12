@@ -59,6 +59,7 @@ from reversi.lm.hlp_validate import hlp_validate_model
 from reversi.lm.hlp_analytics import hlp_analytics_compute_training_dense_metrics
 from test.reversi.paths import CUSTOM_TMP_BASE
 from reversi.index import Index
+from test.reversi.tags import tier_long
 
 SEED = 42
 N_TRN = 1200
@@ -193,6 +194,7 @@ class TestWrkPlot(unittest.TestCase):
 
     # -- the happy path ----------------------------------------------------
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_up_all_seven_png(self):
         """
         The full whitelist in png: the seven figures in base_dir/plots, the PNG magic + a
@@ -222,6 +224,7 @@ class TestWrkPlot(unittest.TestCase):
         self.assertIn(f"PLOT done: 7 plot(s) written to {plot_dir}.",
                       messages)
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_up_format_pair_writes_both(self):
         """
         The 'pdf,png' pair: each whitelisted name is written in BOTH formats (the pdf is the vector

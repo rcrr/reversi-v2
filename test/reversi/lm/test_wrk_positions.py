@@ -34,8 +34,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
-# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_positions
 #
@@ -56,7 +56,7 @@ from reversi.lm.hlp_config_schemas import LMConfig
 from reversi.regab import RegabDBConnection, RegabDataSet
 from reversi.lm.wrk_positions import wrk_positions_is_cache_consistent
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
-from test.reversi.tags import db_long_gate
+from test.reversi.tags import db_gate
 
 
 class TestLMWorkerPositions(unittest.TestCase):
@@ -68,7 +68,7 @@ class TestLMWorkerPositions(unittest.TestCase):
 
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — both tests need the live regab DB.
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
+        db_gate(self)  # the SKIP_REGAB_DB gate
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -224,7 +224,7 @@ class TestLMWorkerPositionsDuplicates(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
+        db_gate(self)  # the SKIP_REGAB_DB gate
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())

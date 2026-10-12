@@ -34,7 +34,7 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (the NO-DB class; the end-to-end class needs the live regab DB + LONG=1, as in test_wrk_analytics).
+# -1- Run the tests (the NO-DB class; the end-to-end class needs the live regab DB, as in test_wrk_analytics).
 #
 # time PERF=0 python3 -m unittest test.reversi.lm.test_wrk_final_log_print
 #
@@ -49,7 +49,7 @@ from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.wrk_final_log_print import _down, _up, wrk_final_log_print
 from reversi.tools.state_machine import Verbosity
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
-from test.reversi.tags import db_long_gate
+from test.reversi.tags import db_gate
 
 
 class _MockCtx:
@@ -138,7 +138,7 @@ class TestFinalLogPrintEndToEnd(unittest.TestCase):
     """
 
     def setUp(self):
-        db_long_gate(self)
+        db_gate(self)
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         # The config: the rlm_00 fixture + the log_file_name entry, written to a tmp copy BEFORE the

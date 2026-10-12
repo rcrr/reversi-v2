@@ -30,8 +30,10 @@
 # Suite tier gates. The
 # suite runs in four tiers, each implying the previous ones:
 #
-#   default    the fast tier (no DB)
-#   LONG=1     + the DB-gated pipeline tests
+#   default    the fast tier (no DB) — plus the db_gate tests
+#              (DB tests in the DEFAULT tier: they run when the live
+#              regab DB is available, no env var needed)
+#   LONG=1     + the db_long_gate pipeline tests
 #   VLONG=1    + the long instruments (the ~10-min A2050 end-to-end
 #                chain; implies LONG)
 #   VVLONG=1   + the very-long instruments (currently uninstrumented;
@@ -52,7 +54,26 @@
 
 import os
 
-__all__ = ['db_long_gate', 'tier_vlong', 'tier_vvlong']
+__all__ = ['db_gate', 'db_long_gate', 'tier_long', 'tier_vlong', 'tier_vvlong']
+
+
+def db_gate(testcase):
+    """
+    Skip the DB test in a no-DB environment (SKIP_REGAB_DB=1) — NO tier requirement: the test
+    sits in the DEFAULT tier and runs whenever the live regab DB is available. The D-532
+    re-classification of the fast DB tests out of the LONG tier.
+    """
+    if os.getenv('SKIP_REGAB_DB', '0') == '1':
+        testcase.skipTest('DB test: live regab DB required (SKIP_REGAB_DB=1 set)')
+
+
+def tier_long() -> bool:
+    """
+    True when the LONG tier is on: LONG=1, or VLONG=1 / VVLONG=1 (which imply LONG). The
+    METHOD-level LONG check for the mixed classes (D-532: the fast DB tests moved to the
+    default tier via db_gate, the slow siblings keep the tier gate in the method body).
+    """
+    return os.getenv('LONG', '0') == '1' or tier_vlong()
 
 
 def db_long_gate(testcase):

@@ -93,28 +93,34 @@ def _tier_of(vvlong, vlong, db):
 
 def _class_gates(cls):
     """
-    The class-level gate facts: (db, vvlong, vlong, perf) from the setUp calls + the class-level decorators.
+    The class-level gate facts: (db_long, db, vvlong, vlong, perf) from the setUp calls + the
+    class-level decorators. db_long = the db_long_gate (the LONG tier); db = any DB gate (the
+    db_long_gate OR the D-532 db_gate — the default-tier DB tests).
     """
     setup = next((n for n in cls.body if isinstance(n, ast.FunctionDef)
                   and n.name == "setUp"), None)
     calls = _setup_calls(setup)
-    db = "db_long_gate" in calls
+    db_long = "db_long_gate" in calls
+    db = db_long or "db_gate" in calls
     vv = "tier_vvlong" in calls
     vl = "tier_vlong" in calls
     perf = False
     for dec in cls.decorator_list:
         p, vlx, vvx = _decorator_tags(dec)
         perf, vl, vv = perf or p, vl or vlx, vv or vvx
-    return db, vv, vl, perf
+    return db_long, db, vv, vl, perf
 
 
 def _method_gates(fn):
-    """The method-level gate facts: (perf, vlong, vvlong) from the decorators."""
+    """The method-level gate facts: (perf, vlong, vvlong, long) from the decorators + the
+    method-body tier_long() check (the D-532 mixed classes)."""
     perf = vlong = vvlong = False
     for dec in fn.decorator_list:
         p, vl, vv = _decorator_tags(dec)
         perf, vlong, vvlong = perf or p, vlong or vl, vvlong or vv
-    return perf, vlong, vvlong
+    long = any(isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+               and n.func.id == "tier_long" for n in ast.walk(fn))
+    return perf, vlong, vvlong, long
 
 
 def _own_tests(cls):
@@ -187,12 +193,13 @@ def classify_tree():
                 # the class-level gates of an INHERITED method are the OWNER's (the setUp that
                 # carries the gate calls lives where the method is defined)
                 owner = next(c for c in classes.values() if fn in _own_tests(c))
-                odb, ovv, ovl, operf = _class_gates(owner)
-                m_perf, m_vl, m_vv = _method_gates(fn)
+                o_db_long, o_db, ovv, ovl, operf = _class_gates(owner)
+                m_perf, m_vl, m_vv, m_long = _method_gates(fn)
                 tags[(module, name, fn.name)] = {
                     "perf": m_perf or operf,
-                    "db_required": odb,
-                    "tier": _tier_of(m_vv or ovv, m_vl or ovl, odb),
+                    "db_required": o_db,
+                    "tier": _tier_of(m_vv or ovv, m_vl or ovl,
+                                      o_db_long or m_long),
                 }
     return tags
 

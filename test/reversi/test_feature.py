@@ -49,6 +49,7 @@ from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 from reversi.index import Index
+from test.reversi.tags import tier_long
 
 import numpy as np
 
@@ -573,6 +574,7 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
 
 class TestFeatureSetComputeIndexesPerf(unittest.TestCase):
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
 

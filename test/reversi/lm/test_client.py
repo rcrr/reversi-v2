@@ -55,6 +55,7 @@ from reversi.lm.model_weights import ModelWeights
 from reversi.lm.client import (make_evaluation_function,
                                make_evaluation_function_array)
 from reversi.index import Index
+from test.reversi.tags import tier_long
 
 SEED = 42
 
@@ -125,6 +126,7 @@ class TestClientEvaluationFunction(unittest.TestCase):
         np.testing.assert_array_equal(self.ef_array(raw),
                                       self.ef_array(positions))
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_2d_structured_corder_parity(self):
         """
         A 2-D structured PositionArray is evaluated in C-order element order: the (K, N) result
@@ -180,6 +182,7 @@ class TestClientEvaluationFunction(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PERF') == '1',
                          "Skipping performance test (set PERF=1 to run)")
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_performance_1m(self):
         """
         Measure the vectorized EF over a dense 1,000,000-board batch (the house print pattern).

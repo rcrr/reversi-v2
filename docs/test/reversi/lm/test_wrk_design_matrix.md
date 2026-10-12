@@ -21,7 +21,7 @@ through WMAPS on a fresh base dir).
 ## Conventions
 
 - The `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (both classes).
-- The db_long_gate (the SKIP_REGAB_DB + LONG tier gates) at the top of both setUps — 3/0/3 under the gate.
+- The db_gate (the SKIP_REGAB_DB gate, the D-532 default tier) at the top of both setUps — 3/0/3 under the gate.
 - The `verbosity=Verbosity.HIGH` house pattern of the worker tests.
 
 ## Integration

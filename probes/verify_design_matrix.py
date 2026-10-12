@@ -131,11 +131,12 @@ check("C1 test_wrk_design_matrix.py is 218 lines (post D-524: 217 + the Index im
 check("C2 2 classes / 3 tests",
       sum(1 for l in t if l.startswith("class ")) == 2 and
       sum(1 for l in t if l.strip().startswith("def test_")) == 3)
-check("C3 T1 FIXED: the gate is in BOTH setUps (D-130: the db_long_gate idiom) and the header claim is now true",
-      "# -1- Run the tests (a live regab DB + LONG=1 is required;" in read("test/reversi/lm/test_wrk_design_matrix.py")
+check("C3 T1 FIXED: the gate is in BOTH setUps (D-532: the db_gate idiom, the default tier) and the "
+      "header claim is true",
+      "# -1- Run the tests (a live regab DB is required;" in read("test/reversi/lm/test_wrk_design_matrix.py")
       and "SKIP_REGAB_DB=1 skips the DB-gated tests" in read("test/reversi/lm/test_wrk_design_matrix.py")
       and read("test/reversi/lm/test_wrk_design_matrix.py").count(
-          "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates") == 2)
+          "db_gate(self)  # the SKIP_REGAB_DB gate") == 2)
 check("C4 T7 FIXED: the D-085 idiom is applied (TemporaryDirectory under CUSTOM_TMP_BASE x2)",
       read("test/reversi/lm/test_wrk_design_matrix.py").count(
           "self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))") == 2

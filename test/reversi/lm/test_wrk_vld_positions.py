@@ -34,8 +34,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
-# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB is required; LONG=1 for the TestLMWorkerVldPositions class;
+# SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_vld_positions
 #
@@ -55,7 +55,7 @@ from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.wrk_positions import wrk_positions_is_cache_consistent
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
-from test.reversi.tags import db_long_gate
+from test.reversi.tags import db_gate, db_long_gate, tier_long
 
 
 class TestLMWorkerVldPositions(unittest.TestCase):
@@ -255,7 +255,7 @@ class TestVldIndependenceCheck(unittest.TestCase):
 
     def setUp(self):
         # The SKIP_REGAB_DB gate — the train chain runs on the live regab DB (the vld extraction too).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
+        db_gate(self)  # the SKIP_REGAB_DB gate
 
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
@@ -286,6 +286,8 @@ class TestVldIndependenceCheck(unittest.TestCase):
         rlm_02: train bid 6,7 / vld bid 8 — the production fixtures are disjoint: 0 of 200, no
         action (the chain continues).
         """
+        if not tier_long():
+            self.skipTest('LONG tier: LONG=1 required (D-532: the slow sibling stays tiered)')
         rlm = self._machine('rlm_02.json')
         rlm.move_to_step('VLD_POSITIONS')
         self.assertEqual(len(rlm.context.vld_positions), 200)

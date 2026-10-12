@@ -57,6 +57,7 @@ import numpy as np
 
 from test.reversi.paths import WORKSPACE_ROOT
 from reversi.tools.prng import MT19937, prng_pick_one_from_set64, prng_pick_one_from_set64_batch
+from test.reversi.tags import tier_long
 
 
 #: The committed reference golden.
@@ -401,6 +402,7 @@ class TestPrngEquidistribution(unittest.TestCase):
         chi2 = float(np.sum((obs - expected) ** 2 / expected))
         self.assertLess(chi2, 250.0)
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_choice_64_uniform(self):
         # 100k random_choice_from_finite_set(64) draws: 64 bins, the expected 1562.5 — the
         # conservative 130 threshold (the df=63 3.7-sigma critical is ~108).
@@ -529,6 +531,7 @@ class TestChooseOneFromSet64(unittest.TestCase):
 
     # -- the full set: a reasonable equi-distribution ------------------
 
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_the_full_set_is_reasonably_equidistributed(self):
         # A large sample (200k picks) from the full 64-bit set: the 64 positions are each hit ~3125
         # times (200k / 64), and the chi-square over the 64 bins stays far below the ~3.7-sigma

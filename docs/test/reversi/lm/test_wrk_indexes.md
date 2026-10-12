@@ -7,7 +7,7 @@ The suite of the INDEXES worker. 1 class / 2 tests / no PERF — both DB-gated.
 |---|---|
 | `TestLMWorkerIndexes` (2, `SKIP_REGAB_DB` gated) | `test_compute_and_populate_cache` — move to INDEXES (step 5 pinned): the FLAT `rlmwf_05_INDEXES.dat` + `rlmwf_05_INDEXES.dat.SHA3-256` exist on disk (the machine-level naming is pinned end-to-end), the logs contain "Executing heavy computation", `ctx.hlp_indexes` non-None. `test_read_cache_on_new_instance` — the first instance warms the cache; a SECOND instance on the same cache dir (move to FEATURES, the StringIO cleared, then to INDEXES): the logs contain "Cache successfully loaded and validated" and do NOT contain "Executing heavy computation" (cache hit, nothing recomputed); `ctx.hlp_indexes` non-None |
 
-The shared setUp: the db_long_gate FIRST (the SKIP_REGAB_DB + LONG gates; the move to INDEXES runs POSITIONS — a DB hit
+The shared setUp: the db_gate FIRST (the SKIP_REGAB_DB gate, the D-532 default tier; the move to INDEXES runs POSITIONS — a DB hit
 on a fresh base dir) + stdout patched to a StringIO + the `TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from
 `test.reversi.paths`, `setUpClass` mkdir, the temp dir created FIRST so a mid-setup failure still leaves a cleanable
 dir) + a `LogisticModel` on the `rlm_00.json` fixture (anchored to `WORKSPACE_ROOT`, `base_dir_override` = the tmp dir)

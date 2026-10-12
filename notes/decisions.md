@@ -1704,3 +1704,49 @@ D-531 | 2026-10-12 | The test duration classification tool (Roberto's call, the 
          method-level) VLONG decorators, the multiple-inheritance base resolution. measure\_suite.py is untouched (the
          1-run ancestor; its retirement is a separate call). One row in the wsutils.md table. The 3-launch measurement
          (≈45-60 min) runs as a background job; the reports land in scratch/ (gitignored).
+
+D-532 | 2026-10-12 | The 21 fast DB tests re-classified LONG → NORMAL (Roberto's list, all under 0.4 s per the D-531
+         duration report): the new wsutils/test\_duration.py tier column drove the pick. Mechanism: tags.py gains (1)
+         db\_gate(testcase) — the DB-only gate (the SKIP\_REGAB\_DB=1 skip, NO tier requirement): the test sits in the
+         DEFAULT tier and runs whenever the live regab DB is available; (2) tier\_long() — the METHOD-level LONG
+         predicate for the mixed classes. Thirteen classes in eight test files move to db\_gate in setUp
+         (final\_log\_print, positions, wmaps, design\_matrix, indexes, zed all-in; analytics 3 of 4 classes,
+         vld\_positions 1 of 2); the six all-in file headers drop the "LONG=1" claim, the two mixed ones keep it for the
+         worker class. THE MIXED CASE (disclosed): TestVldIndependenceCheck carries a SECOND test —
+         test\_zero\_overlap\_is\_traced at 1.7 s, NOT on Roberto's sub-0.4-s list — which the class-level gate would
+         have swept in: it now self-gates with tier\_long() FIRST in the method body and stays LONG (22 LONG tests
+         remain, not 21). Three probes re-pinned (verify\_wmaps D3, verify\_zed C3+C4, verify\_design\_matrix C3); nine
+         mirror docs updated (tags.md gains the db\_gate / tier\_long rows + the mixed-class convention); the
+         wsutils/test\_duration.py classifier splits db → (db\_long, db) and reads the method-body tier\_long() call.
+         Verified: the 8 modules at the default tier 56 run / 8 skip / OK (the 21 now RUN); LONG=1 56/0/0; full suite
+         1122/0/24 (the 24 = the 22 PERF + 2 VLONG). NO COMMIT — Roberto: other adjustments follow, then the D-532
+         commit with its file set.
+
+D-533 | 2026-10-12 | The 11 SLOW NON-DB tests moved NORMAL → LONG (Roberto's list from the D-531 duration report): the 2
+         plot renders (test\_wrk\_plot, 3.8 s + 1.3 s), the 2 prng equidistribution tests, the 2 test\_board tests (the
+         numba overload reflection, the Zobrist no-collisions), the 2 test\_client tests (the 2-D c-order parity, the 1M
+         PERF), the 4 PERF 1M benchmarks (test\_feature / test\_pattern / test\_client / test\_random\_game). Mechanism:
+         the house @skipUnless DECORATOR shape with the D-532 tier\_long() predicate — @skipUnless(tier\_long(),
+         "Skipping the LONG-tier test (set LONG=1 to run)") — the same idiom as the class-level VLONG/ VVLONG gates; the
+         4 PERF tests stack it OVER the existing PERF gate (both must be on — the run conditions only shrink). Eight
+         test files gain the from test.reversi.tags import tier\_long import (test\_random\_game: after the CLOSING
+         paren of the parenthesized reversi import — the in-paren insertion broke the compile, caught and fixed).
+         One-line decorator for the 7 plain methods. Seven mirror docs annotate the gated methods; the tags.md
+         tier\_long row now carries both shapes (the D-532 method-BODY check for the mixed DB classes, the D-533
+         DECORATOR for the slow non-DB tests). The wsutils/test\_duration.py classifier needed NO change: its
+         method-body tier\_long() scan (ast.walk) already sees the decorator — verified: 33 LONG = 22 + 11, 4 of them
+         PERF. Verified: test\_wrk\_plot default 9 run / 2 skip / OK, LONG=1 9/0/0; the 3 covering probes green
+         (verify\_feature, verify\_pattern\_tests2, verify\_plot). NO COMMIT (the tiering wave continues; D-532 + D-533
+         commit when Roberto calls it).
+
+D-534 | 2026-10-12 | The A2050 full-chain test (96.5 s mean — the heaviest of the suite, 61% of the VLONG+LONG+NORMAL
+         time with the 1e7 corpus test) moved VLONG → VVLONG (Roberto's call): the FIRST instrument of the VVLONG tier.
+         One-line change in test/reversi/lm/test\_lm\_worker\_full\_chain.py — the class decorator
+         @skipUnless(tier\_vlong(), …) → @skipUnless(tier\_vvlong(), …) (the skip message now "the very-long A2050 chain
+         (set VVLONG=1 to run)") + the import (tier\_vlong → tier\_vvlong, the only use in the file). The cumulative
+         semantics do the rest: VVLONG=1 implies VLONG → LONG, so the test runs under VVLONG=1 and is SKIPPED under
+         VLONG=1 alone. The wsutils/test\_duration.py classifier needed NO change (it already reads tier\_vvlong in the
+         class decorators): the shape is now NORMAL 1087 / LONG 33 / VLONG 1 (the 1e7 corpus) / VVLONG 1 (the A2050
+         chain). Two mirror docs updated (the full-chain doc's gate line + the ~1.6-min runtime note; tags.md's three
+         "currently uninstrumented" VVLONG claims — the tier is now instrumented). Verified: VLONG=1 alone skips the
+         A2050 (1 skip); VVLONG=1 runs the module 9/0/0 in 105.8 s.
