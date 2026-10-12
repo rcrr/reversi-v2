@@ -42,7 +42,7 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   extraction (training + validation), and the saved model; D-280), `description`, `base_dir`, `output` (required),
   `use_cache=True`, `cache_files_prefix` default `"rlmwf_"` (the filename-prefix concatenation the state_machine
   closures implement), `regab_allow_duplicate` default `True` (True keeps every extracted row, False deduplicates by
-  `(mover, opponent)` keeping the first occurrence — the POSITIONS / VLD `extract_and_prepare` path, log only),
+  `(mover, opponent)` keeping the first occurrence — the POSITIONS / VLD `wrk_positions_extract_and_prepare` path, log only),
   `client_check_tol` default `1e-8` (the max absolute Y-space difference admitted between the SAVED-model recomputed
   residuals and the in-memory VALIDATE ones; `gt=0`); `plot` + `analytics` by default factory; the five required domain
   sections (`regab_data_set`, `feature_set`, `stat_model`, `optimization`, `validation_data_set`).

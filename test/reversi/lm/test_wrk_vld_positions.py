@@ -53,7 +53,7 @@ from pathlib import Path
 from reversi.tools import binio
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
-from reversi.lm.wrk_positions import is_cache_consistent
+from reversi.lm.wrk_positions import wrk_positions_is_cache_consistent
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from test.reversi.tags import db_long_gate
 
@@ -189,10 +189,10 @@ class TestLMWorkerVldPositions(unittest.TestCase):
 
 class TestIsCacheConsistentOverride(unittest.TestCase):
     """
-    Unit semantics of the VLD_POSITIONS is_cache_consistent override (no DB — runs under
-    SKIP_REGAB_DB=1): the 6 branches of the probe's D2-D7. SimpleNamespace stand-ins for the context
-    and the cached rds. The worker must pass the validation bid/status explicitly (a bare call
-    compares against the TRAINING params).
+    Unit semantics of the VLD_POSITIONS wrk_positions_is_cache_consistent override (no DB — runs
+    under SKIP_REGAB_DB=1): the 6 branches of the probe's D2-D7. SimpleNamespace stand-ins for the
+    context and the cached rds. The worker must pass the validation bid/status explicitly (a bare
+    call compares against the TRAINING params).
     """
 
     def _ctx(self):
@@ -215,24 +215,24 @@ class TestIsCacheConsistentOverride(unittest.TestCase):
         return SimpleNamespace(rc=conn, bid=bid, status=status, ec=ec)
 
     def test_full_match_is_consistent(self):
-        self.assertIs(is_cache_consistent(self._ctx(), self._rds(),
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self._rds(),
                                           bid=[8], status=["CMS", "CMR"]), True)
 
     def test_bid_mismatch_is_inconsistent(self):
-        self.assertIs(is_cache_consistent(self._ctx(), self._rds(),
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self._rds(),
                                           bid=[6, 7], status=["CMS", "CMR"]), False)
 
     def test_status_mismatch_is_inconsistent(self):
-        self.assertIs(is_cache_consistent(self._ctx(), self._rds(),
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self._rds(),
                                           bid=[8], status=["CMS"]), False)
 
     def test_ec_mismatch_is_inconsistent(self):
         """The shared ec (the root empty_count) is the gate."""
-        self.assertIs(is_cache_consistent(self._ctx(), self._rds(ec=22),
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self._rds(ec=22),
                                           bid=[8], status=["CMS", "CMR"]), False)
 
     def test_connection_mismatch_is_inconsistent(self):
-        self.assertIs(is_cache_consistent(self._ctx(), self._rds(host="otherhost"),
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self._rds(host="otherhost"),
                                           bid=[8], status=["CMS", "CMR"]), False)
 
     def test_no_override_uses_training_cfg(self):
@@ -240,7 +240,7 @@ class TestIsCacheConsistentOverride(unittest.TestCase):
         No override -> the TRAINING cfg params are used (they differ from the vld rds -> False): the
         worker must pass bid/status explicitly.
         """
-        self.assertIs(is_cache_consistent(self._ctx(), self._rds()), False)
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self._rds()), False)
 
 
 class TestVldIndependenceCheck(unittest.TestCase):

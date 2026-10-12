@@ -87,10 +87,10 @@ None.
   `regab_extract_data_set_from_db`, and wires `regab_load_data_set_from_file(path, checksum=False)` /
   `regab_store_data_set_to_file` as the `cache_manager` data functions — the sidecar is written by the binio writer
   (`cache_manager` re-writes it idempotently in the pipeline flow). The compute path is
-  `wrk_positions.extract_and_prepare` (extract → `regab_dedup_mogv` per the `regab_allow_duplicate` flag → log the
+  `wrk_positions_extract_and_prepare` (extract → `regab_dedup_mogv` per the `regab_allow_duplicate` flag → log the
   duplicate count); the cache file stores the POST-policy data set, so a flag flip changes the stored content and the
   `rds_checksum`, cascading through the downstream checksum lineage.
-- The VLD level: `wrk_vld_positions` reuses the same `extract_and_prepare` (with the vld bid/status overrides) + the
+- The VLD level: `wrk_vld_positions` reuses the same `wrk_positions_extract_and_prepare` (with the vld bid/status overrides) + the
   same load/store pair for the validation dataset, and after the population stats runs the validation-independence check
   (`regab_count_position_overlap` over `ctx.positions` × `ctx.vld_positions`) — LOG ONLY, no action (a threshold/quality
   parameter family is explicitly out of scope).

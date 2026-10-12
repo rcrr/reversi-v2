@@ -9,9 +9,9 @@ arrays + the training population stats are derived for the workers that follow.
 | name | contract |
 |---|---|
 | `wrk_positions()` | the factory — `@validate_call` returning `Worker("POSITIONS", _up, _down)` |
-| `load_from_db(ctx, *, bid=None, status=None)` | the compute half: extract the data set from the regab DB into a fresh `RegabDataSet` |
-| `extract_and_prepare(ctx, *, bid=None, status=None)` | the SHARED compute path used as `_up`'s `compute_fn` (and reused by VLD_POSITIONS) — `load_from_db` → `regab_dedup_mogv` per `ctx.cfg.regab_allow_duplicate` (True = keep every row and log the FOUND count; False = swap in the deduplicated frame and log the REMOVED count) → the post-policy `RegabDataSet`. The cache file stores the POST-policy data set, so a flag flip changes the stored content + the `rds_checksum`, cascading through the downstream checksum lineage (no format change) |
-| `is_cache_consistent(ctx, rds, *, bid=None, status=None)` | the validate half: a PURE metadata compare (no DB, no file access) between the cached data set and the current config |
+| `_load_from_db(ctx, *, bid=None, status=None)` | the compute half: extract the data set from the regab DB into a fresh `RegabDataSet` |
+| `wrk_positions_extract_and_prepare(ctx, *, bid=None, status=None)` | the SHARED compute path used as `_up`'s `compute_fn` (and reused by VLD_POSITIONS) — `_load_from_db` → `regab_dedup_mogv` per `ctx.cfg.regab_allow_duplicate` (True = keep every row and log the FOUND count; False = swap in the deduplicated frame and log the REMOVED count) → the post-policy `RegabDataSet`. The cache file stores the POST-policy data set, so a flag flip changes the stored content + the `rds_checksum`, cascading through the downstream checksum lineage (no format change) |
+| `wrk_positions_is_cache_consistent(ctx, rds, *, bid=None, status=None)` | the validate half: a PURE metadata compare (no DB, no file access) between the cached data set and the current config |
 
 ## Architecture
 
@@ -20,24 +20,24 @@ arrays + the training population stats are derived for the workers that follow.
   concatenation makes the file FLAT: `base_dir/rlmwf_04_POSITIONS.dat`), `is_allowed = ctx.use_cache` (the CONFIG
   worker's switch, consumed here), `load_fn = regab_load_data_set_from_file(path, checksum=False)` (the sidecar was
   already verified by cache_manager's step 3 — no redundant re-check), `store_fn = regab_store_data_set_to_file`,
-  `validate_fn = is_cache_consistent`, `compute_fn = extract_and_prepare` (the shared compute path, see API),
+  `validate_fn = wrk_positions_is_cache_consistent`, `compute_fn = wrk_positions_extract_and_prepare` (the shared compute path, see API),
   `logger_fn = ctx.log_event`. On a CACHE HIT, the post-policy total is logged from the stored content ("Duplicate game
   positions (key: mover, opponent): [TOTAL: N] — data set loaded from cache (regab_allow_duplicate: …)"); on the COMPUTE
-  path the full line ([TOTAL] + [FOUND]/[REMOVED] + [PERCENT]) is logged inside `extract_and_prepare` before the store.
+  path the full line ([TOTAL] + [FOUND]/[REMOVED] + [PERCENT]) is logged inside `wrk_positions_extract_and_prepare` before the store.
   Then the post-processing (unrelated to caching): `rds.generate_positions_and_game_values()` → `ctx.positions` /
   `ctx.game_values`; `ctx.rds_checksum` = the duck-typed DATA checksum (the 3rd return element); INFO logs; the
   population stats with numpy over `game_values` → `ctx.training_pop_stats = {'count', 'mean', 'std_dev', 'variance'}`.
 - `_down`: INFO "Clearing training game positions, game_values and rds_checksum attributes." → the 4 context attributes
   (`positions`, `game_values`, `rds_checksum`, `training_pop_stats`) set to None.
-- `is_cache_consistent`: compares (1) the connection tuple `(dbname, user, host, port)` — the cached side is
+- `wrk_positions_is_cache_consistent`: compares (1) the connection tuple `(dbname, user, host, port)` — the cached side is
   `int(cache_conn.port)` (regab stores the port as str, the schema as int; the normalization is load-bearing) and (2)
   the query tuple `(bid, status, ec)` — the `bid=`/`status=` keyword overrides win over the cfg. The DEBUG log always
   prints the bool; the per-field detail only on inconsistency (the `ec` is the root `empty_count`).
-- `load_from_db`: `RegabDBConnection(dbname, user, host, str(port), password)` — ALL five schema connection params (a
+- `_load_from_db`: `RegabDBConnection(dbname, user, host, str(port), password)` — ALL five schema connection params (a
   configured port and password reach the connection string) → `regab_extract_data_set_from_db(rc, bid, status, ec)` →
   DEBUG "Extracted {n:,} positions from the database." (the connection log includes the port, never the password) →
   `finally: rc.close()`.
-- `extract_and_prepare`: `load_from_db(ctx, bid=bid, status=status)` (so the VLD call site passes its own bid/status
+- `wrk_positions_extract_and_prepare`: `_load_from_db(ctx, bid=bid, status=status)` (so the VLD call site passes its own bid/status
   overrides) → `regab_dedup_mogv(rds.df_mogv)` → the `regab_allow_duplicate` branch (True: keep + "kept" log; False:
   `rds.df_mogv = deduped` + "removed" log) → returns the post-policy rds. The dedup is a single hash-based
   `drop_duplicates` pass (O(n), order-preserving — NO sort: a global sort would reorder EVERY row and perturb the
@@ -81,9 +81,9 @@ None.
 
 - The cache_manager standard flow — the reference consumer (binio sidecar, unlike CONFIG's ad-hoc bare-hex one).
 - Pipeline ordering is load-bearing: `ctx.cfg` must be set before the cache closures are called, and
-  `is_cache_consistent` reads `ctx.cfg.regab_data_set` — the machine's half-open interval semantics guarantee CONFIG
+  `wrk_positions_is_cache_consistent` reads `ctx.cfg.regab_data_set` — the machine's half-open interval semantics guarantee CONFIG
   (and FEATURES) run before POSITIONS on every up-move.
-- The `is_cache_consistent` keyword overrides: unused by the POSITIONS `validate_fn` (it calls bare), but load-bearing
+- The `wrk_positions_is_cache_consistent` keyword overrides: unused by the POSITIONS `validate_fn` (it calls bare), but load-bearing
   for the VLD level, which passes its own `bid=`/`status=` (the verify_vld_positions A8 pin).
 - Test artifacts: the WORKSPACE_ROOT anchoring; the DB tests sit behind the `SKIP_REGAB_DB` gate.
 
@@ -94,6 +94,6 @@ None.
 - Consumes `regab` (the extract/store/load trio), `cache_manager` (the 4-step flow) and the `hlp_config_schemas` types
   (`RegabDBConnection`, `RegabDataSet`); publishes `ctx.positions` / `ctx.game_values` / `ctx.rds_checksum` /
   `ctx.training_pop_stats` for the INDEXES level onward.
-- `extract_and_prepare` + `is_cache_consistent` are REUSED by the VLD level (`wrk_vld_positions`) — the vld compute path
+- `wrk_positions_extract_and_prepare` + `wrk_positions_is_cache_consistent` are REUSED by the VLD level (`wrk_vld_positions`) — the vld compute path
   is this same function called with the vld `bid=`/`status=` overrides (the verify_vld_positions A7/D8
   reuse-identity pins).

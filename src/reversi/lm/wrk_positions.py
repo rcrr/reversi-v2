@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['wrk_positions', 'load_from_db', 'extract_and_prepare', 'is_cache_consistent']
+__all__ = ['wrk_positions', 'wrk_positions_extract_and_prepare', 'wrk_positions_is_cache_consistent']
 
 
 
@@ -66,8 +66,8 @@ def _up(ctx: "LMContext") -> None:
         is_allowed  = ctx.use_cache,
         load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False),
         store_fn    = regab_store_data_set_to_file,
-        validate_fn = lambda cached_rds: is_cache_consistent(ctx, cached_rds),
-        compute_fn  = lambda: extract_and_prepare(ctx),
+        validate_fn = lambda cached_rds: wrk_positions_is_cache_consistent(ctx, cached_rds),
+        compute_fn  = lambda: wrk_positions_extract_and_prepare(ctx),
         logger_fn   = ctx.log_event
     )
 
@@ -116,7 +116,8 @@ def _down(ctx: "LMContext") -> None:
     return
 
 
-def is_cache_consistent(ctx: "LMContext", rds: RegabDataSet, *, bid=None, status=None) -> bool:
+def wrk_positions_is_cache_consistent(ctx: "LMContext", rds: RegabDataSet, *,
+                                      bid=None, status=None) -> bool:
     """Compare live configuration with cached dataset metadata."""
 
     # 1. Check DB Connection parameters
@@ -167,7 +168,7 @@ def is_cache_consistent(ctx: "LMContext", rds: RegabDataSet, *, bid=None, status
 
     return is_cache_consistent
 
-def load_from_db(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
+def _load_from_db(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
     """Extract dataset from the database safely."""
     conn_params = ctx.cfg.regab_data_set.regab_db_connection
     rc = RegabDBConnection(conn_params.dbname, conn_params.user,
@@ -195,7 +196,7 @@ def load_from_db(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
         ctx.log_event(Relevance.DEBUG, "Regab Database connection closed successfully.")
 
 
-def extract_and_prepare(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
+def wrk_positions_extract_and_prepare(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
     """
     The compute path: extract from the DB, then apply the regab_allow_duplicate policy.
 
@@ -204,7 +205,7 @@ def extract_and_prepare(ctx: "LMContext", *, bid=None, status=None) -> RegabData
     cache levels through the existing checksum lineage (no format change). The duplicate count is
     logged on the compute path; the cache-hit path logs the stored total (see _up).
     """
-    rds = load_from_db(ctx, bid=bid, status=status)
+    rds = _load_from_db(ctx, bid=bid, status=status)
     deduped, n_total, n_duplicates = regab_dedup_mogv(rds.df_mogv)
     pct = 100.0 * n_duplicates / n_total if n_total else 0.0
     if ctx.cfg.regab_allow_duplicate:

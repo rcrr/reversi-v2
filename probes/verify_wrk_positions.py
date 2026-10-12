@@ -9,7 +9,7 @@
 # B: live pipeline first run (DB hit + flat cache files)
 # C: live pipeline second run (cache hit, no DB)
 # D: cache_manager flow behaviours (live): disabled cache, corruption,
-#    business inconsistency, is_cache_consistent unit checks
+#    business inconsistency, wrk_positions_is_cache_consistent unit checks
 # E: rlm_config_schemas validation behaviour (no DB)
 # F: source-level cross-reference pins
 #
@@ -104,7 +104,7 @@ print("--- A. structure / source pins (no DB) ---")
 import reversi.lm.wrk_positions as lp
 
 check("A1 __all__ exposes factory + 3 helpers",
-      lp.__all__ == ['wrk_positions', 'load_from_db', 'extract_and_prepare', 'is_cache_consistent'],
+      lp.__all__ == ['wrk_positions', 'wrk_positions_extract_and_prepare', 'wrk_positions_is_cache_consistent'],
       repr(lp.__all__))
 w = wrk_positions()
 check("A2 factory name POSITIONS", w.name == "POSITIONS", w.name)
@@ -116,7 +116,7 @@ check("A5 pathlib.Path import removed (M2)",
       "from pathlib import Path" not in src)
 # M3 scope (as in the M3 on lm_worker_config): only the flagged lines
 # (L73/L89/L92) were the original flags; the remaining trailing
-# whitespace (license header, import block, is_cache_consistent body)
+# whitespace (license header, import block, wrk_positions_is_cache_consistent body)
 # was swept by the cascade formatting pass.
 check("A6 the flagged trailing-whitespace lines (L73/L89/L92) now clean (M3)",
       "\n    ctx.rds_checksum = rds_checksum\n\n" in src
@@ -242,8 +242,8 @@ check("E7 model_validator import now used by the c2>c1 validator (R1/M2)",
 # ------------------------------------------------------------------ F
 print("--- F. source-level cross-reference pins ---")
 lpsrc = src
-seg = lpsrc.split("def load_from_db")[1].split("def wrk_positions")[0]
-check("F1 load_from_db passes port + password (5-arg RegabDBConnection call)",
+seg = lpsrc.split("def _load_from_db")[1].split("def wrk_positions")[0]
+check("F1 _load_from_db passes port + password (5-arg RegabDBConnection call)",
       "RegabDBConnection(conn_params.dbname, conn_params.user,\n"
       "                           conn_params.host, str(conn_params.port),\n"
       "                           conn_params.password)" in seg)

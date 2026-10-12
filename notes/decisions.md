@@ -1540,3 +1540,17 @@ D-520 | 2026-10-12 | The 6 public names of hlp\_optimize renamed to the module-p
          (347 → 348: a PRE-EXISTING stale pin from the D-517 test sweep, disclosed — the file was already 348 at HEAD).
          The 3 .py files at the reflow fixpoint; the suite green via the R-210 wrapper (1115/0/24); the probe 78/78
          green.
+
+D-521 | 2026-10-12 | The wrk\_positions public surface reshaped (Roberto's call, after the usage audit confirmed 1 of 3
+         names internal): load\_from\_db is now PRIVATE (\_load\_from\_db, dropped from \_\_all\_\_ — it is called only
+         by the compute path inside the module); the two SHARED twin names take the module prefix,
+         wrk\_positions\_\{extract\_and\_prepare, is\_cache\_consistent\} — they are the documented POSITIONS/VLD shared
+         compute + validate path (the wrk\_vld\_positions reuse, the keyword bid/status overrides), so they stay public.
+         \_\_all\_\_ is now \['wrk\_positions', 'wrk\_positions\_extract\_and\_prepare',
+         'wrk\_positions\_is\_cache\_consistent'\]. Consumers updated: wrk\_vld\_positions (the import + both fns),
+         test\_wrk\_positions + test\_wrk\_vld\_positions, the probes verify\_wrk\_positions (the \_\_all\_\_ golden,
+         the def anchor, the F1 description) and verify\_vld\_positions (the A7 asserted source strings, the D8
+         reuse-identity pins, the section import), and the 5 mirror docs (incl. regab.md + hlp\_config\_schemas.md). The
+         in-function local variable named is\_cache\_consistent (the boolean + its DEBUG log line) is untouched — it
+         shadows nothing anymore. The 4 .py files at the reflow fixpoint; the suite green via the R-210 wrapper; both
+         probes fully green.

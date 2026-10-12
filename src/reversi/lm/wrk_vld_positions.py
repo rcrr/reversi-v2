@@ -40,7 +40,7 @@ from reversi.regab import (
     regab_store_data_set_to_file
 )
 from reversi.tools.cache_manager import cache_manager_load_or_compute
-from reversi.lm.wrk_positions import extract_and_prepare, is_cache_consistent
+from reversi.lm.wrk_positions import wrk_positions_extract_and_prepare, wrk_positions_is_cache_consistent
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -72,8 +72,8 @@ def _up(ctx: "LMContext") -> None:
         load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False),
         store_fn    = regab_store_data_set_to_file,
         validate_fn = lambda cached_vld_rds: (
-            is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status)),
-        compute_fn  = lambda: extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status),
+            wrk_positions_is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status)),
+        compute_fn  = lambda: wrk_positions_extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status),
         logger_fn   = ctx.log_event
     )
 

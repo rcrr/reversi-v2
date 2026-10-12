@@ -54,7 +54,7 @@ from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel, LMContext
 from reversi.lm.hlp_config_schemas import LMConfig
 from reversi.regab import RegabDBConnection, RegabDataSet
-from reversi.lm.wrk_positions import is_cache_consistent
+from reversi.lm.wrk_positions import wrk_positions_is_cache_consistent
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from test.reversi.tags import db_long_gate
 
@@ -146,7 +146,7 @@ class TestLMWorkerPositions(unittest.TestCase):
 
 class TestIsCacheConsistent(unittest.TestCase):
     """
-    Unit semantics of wrk_positions.is_cache_consistent, in memory (no DB, no cache file): the
+    Unit semantics of wrk_positions_is_cache_consistent, in memory (no DB, no cache file): the
     cached-side rds metadata is built from the fixture rlm_00 values (bid [8], status ["CMS",
     "CMR"], ec 20, tst_regab @ localhost:5432).
     """
@@ -172,33 +172,33 @@ class TestIsCacheConsistent(unittest.TestCase):
         return cx
 
     def test_same_cfg_is_consistent(self):
-        self.assertIs(is_cache_consistent(self._ctx(), self.rds), True)
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self.rds), True)
 
     def test_different_ec_is_inconsistent(self):
         def _ec19(d):
             d["empty_count"] = 19
-        self.assertIs(is_cache_consistent(self._ctx(_ec19), self.rds), False)
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(_ec19), self.rds), False)
 
     def test_different_bid_is_inconsistent(self):
         def _bid9(d):
             d["regab_data_set"]["bid"] = [9]
-        self.assertIs(is_cache_consistent(self._ctx(_bid9), self.rds), False)
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(_bid9), self.rds), False)
 
     def test_different_status_is_inconsistent(self):
         def _st_cms(d):
             d["regab_data_set"]["status"] = ["CMS"]
-        self.assertIs(is_cache_consistent(self._ctx(_st_cms), self.rds), False)
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(_st_cms), self.rds), False)
 
     def test_different_dbname_is_inconsistent(self):
         def _dbname(d):
             d["regab_data_set"]["regab_db_connection"]["dbname"] = "other_db"
-        self.assertIs(is_cache_consistent(self._ctx(_dbname), self.rds), False)
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(_dbname), self.rds), False)
 
     def test_keyword_override_wins(self):
         """The bid/status keyword args override the cfg values."""
-        self.assertIs(is_cache_consistent(self._ctx(), self.rds,
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self.rds,
                                           bid=[9]), False)
-        self.assertIs(is_cache_consistent(self._ctx(), self.rds,
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self.rds,
                                           bid=[8],
                                           status=["CMS", "CMR"]), True)
 
@@ -208,7 +208,7 @@ class TestIsCacheConsistent(unittest.TestCase):
         coercion on the cache side).
         """
         self.assertEqual(self.rds.rc.port, "5432")
-        self.assertIs(is_cache_consistent(self._ctx(), self.rds), True)
+        self.assertIs(wrk_positions_is_cache_consistent(self._ctx(), self.rds), True)
 
 
 class TestLMWorkerPositionsDuplicates(unittest.TestCase):

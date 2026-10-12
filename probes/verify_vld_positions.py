@@ -17,7 +17,7 @@ none — the bring-in has no test file, T6):
      goldens, the rlmwf_11_VLD_POSITIONS.dat flat file + sidecar,
      the second-instance cache hit, the _down scope
   D. unit facts (no DB): the worker factory, the reused
-     is_cache_consistent override semantics (SimpleNamespace)
+     wrk_positions_is_cache_consistent override semantics (SimpleNamespace)
 
 Run from the workspace root:  .venv/bin/python probes/verify_vld_positions.py
 """
@@ -78,7 +78,7 @@ check("A3 the factory is @validate_call-decorated + pydantic imported "
       and "from pydantic import validate_call, ConfigDict" in wk_src)
 check("A4 load_fn passes checksum=False (no double sidecar verify)",
       "lambda path: regab_load_data_set_from_file(path, checksum=False)" in wk_src)
-check("A5 no dead imports (the file delegates extraction to wrk_positions.extract_and_prepare, D-143)",
+check("A5 no dead imports (the file delegates extraction to wrk_positions_extract_and_prepare, D-143)",
       "from pathlib import Path" not in wk_src
       and "RegabDataSet" not in wk_src
       and "RegabDBConnection" not in wk_src
@@ -90,13 +90,14 @@ check("A6 no code ws lines (the import-block line swept in the cascade "
       "formatting pass, as in wrk_positions)",
       _vld_ws == [],
       f"lines {_vld_ws}")
-check("A7 reuses extract_and_prepare + is_cache_consistent from wrk_positions "
+check("A7 reuses wrk_positions_extract_and_prepare + wrk_positions_is_cache_consistent from wrk_positions "
       "(D-143: the vld compute path is the shared extract-and-prepare; "
-      "load_from_db lives inside it)",
-      "from reversi.lm.wrk_positions import extract_and_prepare, is_cache_consistent" in wk_src)
+      "_load_from_db lives inside it)",
+      "from reversi.lm.wrk_positions import wrk_positions_extract_and_prepare, "
+      "wrk_positions_is_cache_consistent" in wk_src)
 check("A8 the vld query params are passed to BOTH the compute and the validate fns",
-      "is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status)" in wk_src
-      and "extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status)" in wk_src)
+      "wrk_positions_is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status)" in wk_src
+      and "wrk_positions_extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status)" in wk_src)
 
 # ----------------------------------------------------------------------
 # B. context facts (the B1-B3 pipeline-state pins moved to the hub
@@ -214,7 +215,8 @@ else:
 # D. unit facts (no DB)
 # ----------------------------------------------------------------------
 from reversi.lm.wrk_vld_positions import wrk_vld_positions
-from reversi.lm.wrk_positions import is_cache_consistent, load_from_db, extract_and_prepare
+from reversi.lm.wrk_positions import (wrk_positions_is_cache_consistent,
+                                      _load_from_db, wrk_positions_extract_and_prepare)
 
 w = wrk_vld_positions()
 check("D1 the factory returns a Worker named VLD_POSITIONS with up/down callables",
@@ -226,12 +228,12 @@ check("D1 the factory returns a Worker named VLD_POSITIONS with up/down callable
 #  the SimpleNamespace stand-ins for the context and the cached rds
 #  come along; the test runs under SKIP_REGAB_DB=1 (no DB). D8 keeps
 #  the reuse-identity pin here.)
-check("D8 load_from_db + extract_and_prepare + is_cache_consistent are the reused "
+check("D8 _load_from_db + wrk_positions_extract_and_prepare + wrk_positions_is_cache_consistent are the reused "
       "wrk_positions functions (identity, not re-implementations; D-143: "
-      "extract_and_prepare is the shared compute path)",
-      load_from_db.__module__ == "reversi.lm.wrk_positions"
-      and extract_and_prepare.__module__ == "reversi.lm.wrk_positions"
-      and is_cache_consistent.__module__ == "reversi.lm.wrk_positions")
+      "wrk_positions_extract_and_prepare is the shared compute path)",
+      _load_from_db.__module__ == "reversi.lm.wrk_positions"
+      and wrk_positions_extract_and_prepare.__module__ == "reversi.lm.wrk_positions"
+      and wrk_positions_is_cache_consistent.__module__ == "reversi.lm.wrk_positions")
 
 
 # ----------------------------------------------------------------------

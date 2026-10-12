@@ -98,3 +98,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - I 3 .py al punto fisso reflow.
 - Suite via wrapper R-210 (LONG=1, DB live, per D-520): 1115/0/24 GREEN. Probe verify\_optimize:
   78/78 green.
+
+## 2026-10-12 — session 106 (D-521 — reshaping della superficie pubblica di wrk\_positions)
+
+- Audit degli usi su richiesta di Roberto: load\_from\_db interna (confermato);
+  extract\_prepare + is\_cache\_consistent CONDIVISE con wrk\_vld\_positions (il twin
+  documentato) — ipotesi confermata 1/3. Chiamata di Roberto: l'interna privatizzata, le due
+  condivise col prefisso del modulo.
+- Esito: \_load\_from\_db (fuori da \_\_all\_\_, ora 3 nomi), wrk\_positions\_
+  extract\_and\_prepare, wrk\_positions\_is\_cache\_consistent. Aggiornati:
+  wrk\_vld\_positions, i 2 test, i 2 probe (golden \_\_all\_\_, anchor, stringhe assert,
+  pin D8) e i 5 mirror doc. La locale boolean is\_cache\_consistent dentro la funzione (e la
+  sua riga DEBUG) intatta.
+- I 4 .py al punto fisso reflow.
+- Suite via wrapper R-210 (LONG=1, DB live, per D-521): 1115/0/24 GREEN. Probe
+  verify\_wrk\_positions 21/21 + verify\_vld\_positions: all checks passed.
