@@ -1519,3 +1519,12 @@ D-518 | 2026-10-12 | The hlp\_analytics public API renamed to the hlp\_ module-p
          wrapped leaving the "(one derivation, published by ANALYTICS)" fragment dangling on its own line — now a clean
          2-line wrap. The two mirror docs (hlp\_analytics.md + wrk\_analytics.md) carry the new names. All 4 .py files
          at the reflow fixpoint; the suite green via the R-210 wrapper (1115/0/24); the probe fully green.
+
+D-519 | 2026-10-12 | The last unprefixed public name of hlp\_generate renamed to the module-prefix convention (Roberto's
+         call, the hlp\_analytics D-518 sweep's sibling): compute\_w\_dense becomes hlp\_generate\_compute\_w\_dense
+         (the 4 sibling public names already carried the prefix). Consumers updated: wrk\_generate (the import + the
+         compute\_fn lambda), test\_hlp\_generate (the import + 4 call sites; the test method name
+         test\_compute\_w\_dense stays — it is a test label, not a source reference), the probe verify\_generate (the
+         import / call sites + the check-A1 golden \_\_all\_\_ entry + the A2 split anchor), and the two mirror docs.
+         The 3 .py files at the reflow fixpoint; the suite green via the R-210 wrapper (1115/0/24); the probe fully
+         green.

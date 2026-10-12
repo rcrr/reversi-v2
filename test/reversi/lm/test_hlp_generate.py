@@ -57,7 +57,7 @@ from reversi.lm.hlp_generate import (LMDenseWeights,
                                 hlp_generate_store_to_file,
                                 hlp_generate_load_from_file,
                                 hlp_generate_is_cache_consistent,
-                                compute_w_dense)
+                                hlp_generate_compute_w_dense)
 from test.reversi.paths import CUSTOM_TMP_BASE
 
 
@@ -116,7 +116,7 @@ class TestHlpGenerateCompute(unittest.TestCase):
         self.ctx.log_event = lambda rel, msg: None
 
     def test_compute_w_dense(self):
-        dense_obj = compute_w_dense(self.ctx)
+        dense_obj = hlp_generate_compute_w_dense(self.ctx)
         w_dense = dense_obj.w_dense
 
         self.assertEqual(w_dense.dtype, np.float32)
@@ -151,7 +151,7 @@ class TestHlpGenerateCompute(unittest.TestCase):
         ctx.log_event = lambda rel, msg: None
 
         with self.assertRaises(RuntimeError) as context:
-            compute_w_dense(ctx)
+            hlp_generate_compute_w_dense(ctx)
         self.assertEqual(str(context.exception), "The feature category is unknown: 9")
 
     def test_mobility_without_seen_configs_warns_and_zeroes(self):
@@ -171,7 +171,7 @@ class TestHlpGenerateCompute(unittest.TestCase):
         ctx.w_checksum = "z"
         ctx.log_event = lambda rel, msg: events.append((rel, msg))
 
-        w_dense = compute_w_dense(ctx).w_dense
+        w_dense = hlp_generate_compute_w_dense(ctx).w_dense
 
         nptest.assert_array_equal(w_dense, np.zeros(4, dtype=np.float32))
         self.assertEqual(len(events), 1)
@@ -184,7 +184,7 @@ class TestHlpGenerateCompute(unittest.TestCase):
         events = []
         self.ctx.log_event = lambda rel, msg: events.append((rel, msg))
 
-        compute_w_dense(self.ctx)
+        hlp_generate_compute_w_dense(self.ctx)
 
         infos = [msg for rel, msg in events if rel is Relevance.INFO]
         self.assertEqual(len(infos), 2)

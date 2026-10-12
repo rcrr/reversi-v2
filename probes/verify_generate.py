@@ -74,10 +74,10 @@ check("A1 __all__ lists the 5 public names",
       "'LMDenseWeights'," in rlm_src
       and "'hlp_generate_store_to_file'," in rlm_src
       and "'hlp_generate_load_from_file'," in rlm_src
-      and "'compute_w_dense'," in rlm_src
+      and "'hlp_generate_compute_w_dense'," in rlm_src
       and "'hlp_generate_is_cache_consistent']" in rlm_src)
-above_compute = rlm_src.split("def compute_w_dense")[0]
-check("A2 the house no-validation note sits directly above compute_w_dense",
+above_compute = rlm_src.split("def hlp_generate_compute_w_dense")[0]
+check("A2 the house no-validation note sits directly above hlp_generate_compute_w_dense",
       "Here validation is not possible" in "\n".join(above_compute.rsplit("\n", 8)[1:]),
       "last 8 lines above the def: " + repr(above_compute.rsplit("\n", 8)[-6:]))
 check("A3 hlp_generate_is_cache_consistent carries the no-validation note too",
@@ -120,7 +120,7 @@ check("C2 no non-comment trailing whitespace",
 # D. data-object behavior (no DB)
 # ----------------------------------------------------------------------
 from reversi.lm.hlp_generate import (LMDenseWeights,
-                                compute_w_dense)
+                                hlp_generate_compute_w_dense)
 
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
@@ -176,7 +176,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     ctx.w = np.array([0.5, -0.2, 1.0, 3.0], dtype=np.float32)
     ctx.w_checksum = "abc654"
     ctx.log_event = lambda rel, msg: None
-    wd = compute_w_dense(ctx).w_dense
+    wd = hlp_generate_compute_w_dense(ctx).w_dense
     expected = np.array([0.5, -0.2, -0.2, -0.2, 1.0, 1.0, 2.0, 3.0, 3.0], dtype=np.float32)
     check("D11 the test-mock fixture golden (hand re-derivation)",
           wd.dtype == np.float32 and len(wd) == 9 and np.array_equal(wd, expected),

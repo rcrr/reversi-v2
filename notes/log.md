@@ -73,3 +73,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   parametri: ogni entry a +4 dal corpo docstring, il wrapping della descrizione a +8 (il reflow
   src\_reflow è l'enforcer: la forma a 4 spazi della richiesta andava ri-unita in paragrafo fluente).
   Commit part 2 di D-518.
+
+## 2026-10-12 — session 104 (D-519 — rename di compute\_w\_dense a hlp\_generate\_compute\_w\_dense)
+
+- Su richiesta di Roberto: l'ultimo nome pubblico senza prefisso di hlp\_generate rinominato
+  hlp\_generate\_compute\_w\_dense (i 4 sibling portavano già il prefisso). Aggiornati:
+  wrk\_generate, test\_hlp\_generate (il nome del metodo di test test\_compute\_w\_dense resta —
+  è un'etichetta di test), il probe verify\_generate (import/call + golden A1 + ancoraggio A2) e i 2
+  mirror doc.
+- I 3 .py al punto fisso reflow.
+- Suite via wrapper R-210 (LONG=1, DB live, per D-519): 1115/0/24 GREEN. Probe verify\_generate: all
+  checks passed.

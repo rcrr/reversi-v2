@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_generate import (compute_w_dense,
+from reversi.lm.hlp_generate import (hlp_generate_compute_w_dense,
                                 hlp_generate_store_to_file,
                                 hlp_generate_load_from_file,
                                 hlp_generate_is_cache_consistent)
@@ -60,7 +60,7 @@ def _up(ctx: "LMContext") -> None:
         load_fn     = hlp_generate_load_from_file,
         store_fn    = hlp_generate_store_to_file,
         validate_fn = lambda cached_dw: hlp_generate_is_cache_consistent(ctx, cached_dw),
-        compute_fn  = lambda: compute_w_dense(ctx),
+        compute_fn  = lambda: hlp_generate_compute_w_dense(ctx),
         logger_fn   = ctx.log_event
     )
 

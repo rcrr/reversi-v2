@@ -15,7 +15,7 @@ compressed-w checksum — the consistency anchor). The flat file is `rlmwf_12_GE
 | `hlp_generate_store_to_file(dw, filename, compressed=True)` | `@validate_call` — header "RGLM Dense Weights binary data file" v1 + checksum string + array; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
 | `hlp_generate_load_from_file(filename, checksum=True, compressed=True)` | `@validate_call` — sidecar verify → 2 header gates (description + the version gate) → the object |
 | `hlp_generate_is_cache_consistent(ctx, dw)` | the single-field gate `dw.w_checksum == ctx.w_checksum` (NO `@validate_call` — the note) |
-| `compute_w_dense(ctx)` | `@validate_call`-free (the note) — the compressed → dense expansion over the 3 feature categories |
+| `hlp_generate_compute_w_dense(ctx)` | `@validate_call`-free (the note) — the compressed → dense expansion over the 3 feature categories |
 
 ## Architecture
 
@@ -27,7 +27,7 @@ compressed-w checksum — the consistency anchor). The flat file is `rlmwf_12_GE
   payload parse.
 - `hlp_generate_is_cache_consistent` (the no-validation note — `LMContext` is a TYPE_CHECKING import): the single-field
   gate on `w_checksum` — when the OPTIMIZE weights change, the dense expansion must be recomputed.
-- `compute_w_dense`: per feature, the slice `[iwmap_feature_offset[fid] : offset[fid+1]]` of `w_dense = zeros(K)` (K =
+- `hlp_generate_compute_w_dense`: per feature, the slice `[iwmap_feature_offset[fid] : offset[fid+1]]` of `w_dense = zeros(K)` (K =
   `offset[-1]`), with the 3 category branches:
   - Intercept: broadcast the single weight (`w[w_min : w_max+1][0]`) over the whole slice.
   - Mobility: `np.interp` over `arange(n_configurations)` with the seen configs (wmap `config_id >= 0` rows) — internal

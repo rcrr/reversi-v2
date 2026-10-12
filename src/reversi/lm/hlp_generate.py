@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 __all__ = ['LMDenseWeights',
            'hlp_generate_store_to_file',
            'hlp_generate_load_from_file',
-           'compute_w_dense',
+           'hlp_generate_compute_w_dense',
            'hlp_generate_is_cache_consistent']
 
 
@@ -106,7 +106,7 @@ def hlp_generate_is_cache_consistent(ctx: "LMContext", dw: LMDenseWeights) -> bo
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
+def hlp_generate_compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
     """
     Compute the dense weight vector (w_dense) of size K (all theoretical configurations). Unseen
     configurations and fallbacks are handled according to feature type: the Intercept is a direct
