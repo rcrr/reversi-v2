@@ -46,6 +46,10 @@ define the evaluation function.
   `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
   `standard`), from the workspace root; the stop is target-driven — `run(target_level=…)` runs CONFIG first, then stops
   at the argument / `cfg.target_level` / the last step.
+- The suite tiers after the D-531..D-534 duration work: default 1087 (incl. the 21 fast DB tests, the D-532 `db_gate`) /
+  LONG 33 / VLONG 1 (the 1e7 SU corpus) / VVLONG 1 (the A2050 chain, the D-534 first instrument); PERF (22) +
+  SKIP\_REGAB\_DB orthogonal. The classifier + N-run timing: `wsutils/test_duration.py` (the reports:
+  `scratch/test_duration.{md,csv}`).
 
 ## Next steps
 
@@ -55,8 +59,9 @@ define the evaluation function.
   `wsutils/exported_symbols.py`.
 - The int64 offset fixtures (test\_wrk\_validate x3, test\_wrk\_analytics x1) stay int64 by the D-525 ruling — the
   fixture-dtype fidelity call is open.
-- Select the tests by DURATION with the 5 tags (VVLONG, VLONG, LONG, PERF, DB); re-verify the tag-assignment technique;
-  analyze every LONG / VLONG / VVLONG test for a possible shorter equivalent.
+- The refreshed duration report (the 7-run pass) is the base of the NEXT tier review: every remaining LONG / VLONG /
+  VVLONG test checked for a possible shorter equivalent (the first wave moved the 21 fast DB tests to the default tier,
+  the 11 slow non-DB tests to LONG, the A2050 chain to VVLONG — D-532..D-534).
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
 - Add the project README (English, like everything else).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
