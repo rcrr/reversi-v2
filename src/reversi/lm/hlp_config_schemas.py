@@ -36,7 +36,7 @@ from typing import List, Dict, Annotated, Optional, Any, Tuple
 from pathlib import Path
 
 from reversi.board import Bitboard, bitboard_from_hex_str
-from reversi.lm.hlp_plot import PLOT_NAMES  # the plot vocabulary
+from reversi.lm.hlp_plot import HLP_PLOT_NAMES  # the plot vocabulary
 
 
 __all__ = ['LMConfig']
@@ -120,7 +120,7 @@ class PlotConfig(LMBaseConfig):
     plots: List[str] = Field(
         default_factory=list,
         description="Whitelist of plot names to generate; an empty list makes the PLOT level a no-op. "
-                    "Valid names: " + ", ".join(PLOT_NAMES))
+                    "Valid names: " + ", ".join(HLP_PLOT_NAMES))
     binned_note: str = Field(default=r" $(binned\ every\ 2)$",
         description="The binned-axis parenthetical note (the box / mean-residual plots); empty disables it.")
     jitter_seed: int = Field(default=42, ge=0, description="Seed of the jitter generator (the two scatter plots).")
@@ -168,11 +168,11 @@ class PlotConfig(LMBaseConfig):
         Fail fast (at the CONFIG level) on unknown names and deduplicate preserving order (a
         repeated name would regenerate the same file twice).
         """
-        unknown = [n for n in v if n not in PLOT_NAMES]
+        unknown = [n for n in v if n not in HLP_PLOT_NAMES]
         if unknown:
             raise ValueError(
                 f"Unknown plot name(s) {unknown}; valid names: "
-                + ", ".join(PLOT_NAMES))
+                + ", ".join(HLP_PLOT_NAMES))
         return list(dict.fromkeys(v))
 
 

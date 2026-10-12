@@ -12,7 +12,7 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 | `StatusString` | `Annotated[str, Field(pattern="^[A-Z]{3}$")]` — exactly 3 uppercase letters |
 | `ValidationDataSetConfig` | `bid: List[NonNegativeInt]` + `status: List[StatusString]` (strict) |
 | `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator + `high_performance_fg` (bool, default False — the fg-variant flag) + `hi_perf_blocks` (PositiveInt, default 8 — the high-performance fg kernel row-block count) |
-| `PlotConfig` | the PLOT pilot: `enable` (bool, True), `format` (`"png"`; `"png"` / `"pdf"` / the pair, the `check_format` validator), `dpi` (150, 50..1200), `dir_name` (Path, `"plots"`; absolute = as-is, relative = under base_dir), `plots` (the PLOT_NAMES whitelist, default empty = no-op; the `check_plots` fail-fast + dedupe), + the 13 style knobs (`binned_note`, `jitter_seed` 42, `kde_seed` 43, `kde_max_points` 100k, `jitter_fitted_x` / `jitter_y` 0.005, `jitter_gv_x` 0.7, `kde_grid` 512, `axis_gv` 64, `axis_density` 72, `tick_step` 8, the `series_label_x` / `series_label_y` dicts — the historical rendering values) |
+| `PlotConfig` | the PLOT pilot: `enable` (bool, True), `format` (`"png"`; `"png"` / `"pdf"` / the pair, the `check_format` validator), `dpi` (150, 50..1200), `dir_name` (Path, `"plots"`; absolute = as-is, relative = under base_dir), `plots` (the HLP_PLOT_NAMES whitelist, default empty = no-op; the `check_plots` fail-fast + dedupe), + the 13 style knobs (`binned_note`, `jitter_seed` 42, `kde_seed` 43, `kde_max_points` 100k, `jitter_fitted_x` / `jitter_y` 0.005, `jitter_gv_x` 0.7, `kde_grid` 512, `axis_gv` 64, `axis_density` 72, `tick_step` 8, the `series_label_x` / `series_label_y` dicts — the historical rendering values) |
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (`model_analytics_report.txt`) |
 | `CorpusConfig` | the SU_ANALYSIS corpus: `seed` (42 - the single seed), `total_positions` (1e7); the ec arrest is the root `empty_count` (D-281) |
 | `SuAnalysisConfig` | the SU_ANALYSIS level: `enable` (bool, **FALSE** — opt-in), `corpus`, `su_pairs` (`List[Tuple[str, str]]`, empty; the `check_su_pairs` canonical-sort + dedupe), `rarity_thresholds` (`Optional[List[int]]`, None; the `check_rarity_thresholds` positive strictly-increasing, None / empty = the report's Section B off, D-292), `dir_name` (`su_analysis`), `report_file_name`, `export_csv` (False) |
@@ -61,7 +61,7 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   rejects unknown tokens, empty tokens and duplicates); `dpi: int = 150` (50..1200); `dir_name: Path = "plots"`
   (absolute as-is, it may live outside base_dir; relative resolves under base_dir — the resolution is the WORKER's job,
   the schema carries the Path); `plots: List[str] = []` (the WHITELIST: a listed name is generated, an unlisted one is
-  skipped, an empty list is a no-op; `check_plots` fails fast on names outside `PLOT_NAMES`, imported from hlp_plot —
+  skipped, an empty list is a no-op; `check_plots` fails fast on names outside `HLP_PLOT_NAMES`, imported from hlp_plot —
   the single source of truth — and deduplicates preserving order).
 - **Strictness** — the 3-letter uppercase status is enforced in BOTH status lists (regab + validation data set); `ec` is
   0..60; `frequency_cut_off` is a PositiveInt.

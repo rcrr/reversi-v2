@@ -72,7 +72,7 @@ None.
 - The dense-mapping idiom (`np.repeat` + fancy indexing + `np.sum`) differs from hlp_generate's per-feature start/end
   loop — both valid, left as is.
 - The metric arithmetic is f32 and the published series are f64: do NOT unify them — the goldens and the model file
-  depend on the first, the PlotData / CLIENT_CHECK contract on the second.
+  depend on the first, the HlpPlotData / CLIENT_CHECK contract on the second.
 
 ## Integration
 

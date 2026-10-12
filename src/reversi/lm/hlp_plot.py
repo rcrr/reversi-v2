@@ -26,8 +26,8 @@
 #
 
 # matplotlib and scipy are imported LAZILY (inside the functions): importing this module must stay
-# cheap, because hlp_config_schemas imports PLOT_NAMES from here and the config is parsed by every
-# pipeline — and by the client — run.
+# cheap, because hlp_config_schemas imports HLP_PLOT_NAMES from here and the config is parsed by
+# every pipeline — and by the client — run.
 #
 # Space: Y (the [-64, +64] game-value scale) — Y values are comparable across models with different
 # logit_clipping, Z values are distorted per model.
@@ -49,16 +49,16 @@ if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
 
-__all__ = ['PLOT_NAMES', 'PLOT_TITLES', 'PLOT_BUILDERS', 'PlotData', 'PlotStyle',
-           'collect_plot_data', 'save_figure', 'close_figure', 'jitter', 'egv_bins']
+__all__ = ['HLP_PLOT_NAMES', 'HLP_PLOT_TITLES', 'HLP_PLOT_BUILDERS', 'HlpPlotData', 'HlpPlotStyle',
+           'hlp_plot_collect_data', 'hlp_plot_save_figure', 'hlp_plot_close_figure']
 
 #: The seven canonical plot names: the PLOT whitelist vocabulary (validated by the PlotConfig
 #: schema). A name listed in the config's plot section is generated, an unlisted one is skipped.
-PLOT_NAMES = ("residual_density", "resid_vs_fitted", "resid_vs_gv", "gv_by_egv_box",
+HLP_PLOT_NAMES = ("residual_density", "resid_vs_fitted", "resid_vs_gv", "gv_by_egv_box",
               "resid_mean_by_egv", "parity", "resid_qq")
 
 #: The figure titles (the subtitle line carries the run name).
-PLOT_TITLES = {
+HLP_PLOT_TITLES = {
     "residual_density": "LM Residuals Distribution",
     "resid_vs_fitted": "LM Residuals vs Evaluated Game Value",
     "resid_vs_gv": "LM Residuals vs Game Values",
@@ -70,7 +70,7 @@ PLOT_TITLES = {
 
 
 @dataclass
-class PlotStyle:
+class HlpPlotStyle:
     """
     The appearance and determinism knobs of the figure builders (the config's plot section carries
     the same values, so the plot config is the single tuning point).
@@ -115,7 +115,7 @@ class PlotStyle:
 
 
 @dataclass
-class PlotData:
+class HlpPlotData:
     """
     Carry the PLOT level's inputs, all rounded-lossless f64 views (the f32 predictions and the int8
     game values upcast exactly — no f32 rounding noise enters the figures).
@@ -138,9 +138,9 @@ def _mpl():
     return plt
 
 
-def collect_plot_data(ctx: "LMContext") -> PlotData:
+def hlp_plot_collect_data(ctx: "LMContext") -> HlpPlotData:
     """
-    Assemble the PlotData from the series the pipeline already computed — the dense training
+    Assemble the HlpPlotData from the series the pipeline already computed — the dense training
     residuals published by ANALYTICS (`ctx.train_dense_rn`) and the validation series published by
     VALIDATE (`ctx.vld_y_pred` / `ctx.vld_rn`), with the game values from POSITIONS / VLD_POSITIONS.
     No forward pass runs here: the figures render what the pipeline measured, they do not re-measure it.
@@ -149,9 +149,9 @@ def collect_plot_data(ctx: "LMContext") -> PlotData:
         ctx: the pipeline context (the published series).
 
     Returns:
-        PlotData: the five f64 series the builders draw.
+        HlpPlotData: the five f64 series the builders draw.
     """
-    return PlotData(
+    return HlpPlotData(
         trn_y_true=ctx.game_values.astype(np.float64),
         trn_rn=ctx.train_dense_rn,
         vld_y_pred=ctx.vld_y_pred,
@@ -159,7 +159,7 @@ def collect_plot_data(ctx: "LMContext") -> PlotData:
         vld_gv=ctx.vld_game_values.astype(np.float64))
 
 
-def jitter(rng: np.random.Generator, x: np.ndarray, amount: float) -> np.ndarray:
+def _jitter(rng: np.random.Generator, x: np.ndarray, amount: float) -> np.ndarray:
     """
     Jitter x with the R jitter semantics: uniform noise in [-amount*range(x)/2, +amount*range/2],
     amount a FRACTION of the data range. A zero-range input comes back untouched (the R degenerates
@@ -179,7 +179,7 @@ def jitter(rng: np.random.Generator, x: np.ndarray, amount: float) -> np.ndarray
     return x + (rng.uniform(-1.0, 1.0, x.size) * amount * r) / 2.0
 
 
-def egv_bins(y_pred: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _egv_bins(y_pred: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Bin the fitted values to the even step-2 grid (the R round_gv: 2 * round(y_pred/2)). np.rint is
     banker's rounding against R's round-half-away-from-zero, but y_pred is a continuous f64 so the
@@ -195,7 +195,7 @@ def egv_bins(y_pred: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return np.unique(egv, return_inverse=True)
 
 
-def _kde_curve(values: np.ndarray, grid: np.ndarray, style: PlotStyle) -> np.ndarray:
+def _kde_curve(values: np.ndarray, grid: np.ndarray, style: HlpPlotStyle) -> np.ndarray:
     """
     Compute the Gaussian-kernel density of values on the grid (scipy's gaussian_kde, Scott's rule
     bandwidth — the R density() uses Silverman's; the difference is below the plot resolution).
@@ -264,7 +264,7 @@ def _fig(title: str, run_name: str, xlabel: str, ylabel: str):
     return fig, ax
 
 
-def plot_residual_density(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
+def plot_residual_density(d: HlpPlotData, run_name: str, style: HlpPlotStyle) -> "Figure":
     """
     Build the plot-1 figure: probability density vs game value residual, three curves — Reference
     (the training game values centered on their mean: the "population" series of the analytics
@@ -287,7 +287,7 @@ def plot_residual_density(d: PlotData, run_name: str, style: PlotStyle) -> "Figu
     span = float(hi - lo)
     grid = np.linspace(lo, hi, style.kde_grid)
 
-    fig, ax = _fig(PLOT_TITLES["residual_density"], run_name, "Game value residual", "Probability density")
+    fig, ax = _fig(HLP_PLOT_TITLES["residual_density"], run_name, "Game value residual", "Probability density")
     max_y = 0.0
     for label, vals, color in series:
         curve = _kde_curve(vals, grid, style)
@@ -319,7 +319,7 @@ def _series_label(label: str, vals: np.ndarray) -> str:
     return f"{label}:\nsd = {sd}"
 
 
-def plot_resid_vs_fitted(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
+def plot_resid_vs_fitted(d: HlpPlotData, run_name: str, style: HlpPlotStyle) -> "Figure":
     """
     Build the plot-2 figure: the validation residual cloud vs the fitted values (the EF output), the
     gray-dot scatter with the seeded R-semantic jitter on both axes.
@@ -333,9 +333,9 @@ def plot_resid_vs_fitted(d: PlotData, run_name: str, style: PlotStyle) -> "Figur
         Figure: the built figure (the worker saves it, then closes it).
     """
     rng = np.random.default_rng(style.jitter_seed)
-    x = jitter(rng, d.vld_y_pred, style.jitter_fitted_x)
-    y = jitter(rng, d.vld_rn, style.jitter_y)
-    fig, ax = _fig(PLOT_TITLES["resid_vs_fitted"], run_name, "Evaluated game value", "Game value residual")
+    x = _jitter(rng, d.vld_y_pred, style.jitter_fitted_x)
+    y = _jitter(rng, d.vld_rn, style.jitter_y)
+    fig, ax = _fig(HLP_PLOT_TITLES["resid_vs_fitted"], run_name, "Evaluated game value", "Game value residual")
     ax.scatter(x, y, s=4, c="black", alpha=0.04)
     lim = _sym_limit(y, style.tick_step)
     ax.set_xlim(-style.axis_gv, style.axis_gv)
@@ -343,7 +343,7 @@ def plot_resid_vs_fitted(d: PlotData, run_name: str, style: PlotStyle) -> "Figur
     return fig
 
 
-def plot_resid_vs_gv(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
+def plot_resid_vs_gv(d: HlpPlotData, run_name: str, style: HlpPlotStyle) -> "Figure":
     """
     Build the plot-3 figure: the validation residual cloud vs the actual game values, the gray-dot
     scatter; the x jitter is the large 0.7-range fraction (the "cloud" smearing over the integer
@@ -358,9 +358,9 @@ def plot_resid_vs_gv(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
         Figure: the built figure (the worker saves it, then closes it).
     """
     rng = np.random.default_rng(style.jitter_seed)
-    x = jitter(rng, d.vld_gv, style.jitter_gv_x)
-    y = jitter(rng, d.vld_rn, style.jitter_y)
-    fig, ax = _fig(PLOT_TITLES["resid_vs_gv"], run_name, "Game value", "Game value residual")
+    x = _jitter(rng, d.vld_gv, style.jitter_gv_x)
+    y = _jitter(rng, d.vld_rn, style.jitter_y)
+    fig, ax = _fig(HLP_PLOT_TITLES["resid_vs_gv"], run_name, "Game value", "Game value residual")
     ax.scatter(x, y, s=4, c="black", alpha=0.02)
     lim = _sym_limit(y, style.tick_step)
     ax.set_xlim(-style.axis_gv, style.axis_gv)
@@ -368,7 +368,7 @@ def plot_resid_vs_gv(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     return fig
 
 
-def plot_gv_by_egv_box(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
+def plot_gv_by_egv_box(d: HlpPlotData, run_name: str, style: HlpPlotStyle) -> "Figure":
     """
     Build the plot-4 figure: the validation game values as a box plot per evaluated game value (the
     fitted Y rounded to the step-2 grid), both axes fixed to the full scale.
@@ -381,9 +381,9 @@ def plot_gv_by_egv_box(d: PlotData, run_name: str, style: PlotStyle) -> "Figure"
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
     """
-    unique, inv = egv_bins(d.vld_y_pred)
+    unique, inv = _egv_bins(d.vld_y_pred)
     groups = [d.vld_gv[inv == k] for k in range(unique.size)]
-    fig, ax = _fig(PLOT_TITLES["gv_by_egv_box"], run_name,
+    fig, ax = _fig(HLP_PLOT_TITLES["gv_by_egv_box"], run_name,
                    "Evaluated game value" + style.binned_note, "Game value")
     ax.boxplot(groups, positions=unique, widths=0.7, flierprops=dict(markersize=1.0, alpha=0.4))
     ticks = np.arange(-style.axis_gv, style.axis_gv + 1, style.tick_step)
@@ -396,7 +396,7 @@ def plot_gv_by_egv_box(d: PlotData, run_name: str, style: PlotStyle) -> "Figure"
     return fig
 
 
-def plot_resid_mean_by_egv(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
+def plot_resid_mean_by_egv(d: HlpPlotData, run_name: str, style: HlpPlotStyle) -> "Figure":
     """
     Build the plot-5 figure: the validation residual MEAN with the +/- sd error bars per evaluated
     game value, against the zero line — the systematic-bias-per-level view (a miscalibrated region
@@ -410,14 +410,14 @@ def plot_resid_mean_by_egv(d: PlotData, run_name: str, style: PlotStyle) -> "Fig
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
     """
-    unique, inv = egv_bins(d.vld_y_pred)
+    unique, inv = _egv_bins(d.vld_y_pred)
     means, sds, counts = [], [], []
     for k in range(unique.size):
         g = d.vld_rn[inv == k]
         means.append(float(g.mean()))
         sds.append(float(g.std(ddof=1)) if g.size > 1 else 0.0)
         counts.append(int(g.size))
-    fig, ax = _fig(PLOT_TITLES["resid_mean_by_egv"], run_name,
+    fig, ax = _fig(HLP_PLOT_TITLES["resid_mean_by_egv"], run_name,
                    "Evaluated game value" + style.binned_note, "Residual, mean +/- sd")
     ax.errorbar(unique, means, yerr=sds, fmt="o", ms=4, color="firebrick",
                 ecolor="firebrick", elinewidth=0.8, capsize=3)
@@ -435,7 +435,7 @@ def plot_resid_mean_by_egv(d: PlotData, run_name: str, style: PlotStyle) -> "Fig
     return fig
 
 
-def plot_parity(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
+def plot_parity(d: HlpPlotData, run_name: str, style: HlpPlotStyle) -> "Figure":
     """
     Build the plot-6 figure: the parity view — the validation game values against the fitted values,
     the 45-degree line, both axes on the full scale (the global fit quality at a glance).
@@ -448,7 +448,7 @@ def plot_parity(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
     """
-    fig, ax = _fig(PLOT_TITLES["parity"], run_name, "Evaluated game value", "Game value")
+    fig, ax = _fig(HLP_PLOT_TITLES["parity"], run_name, "Evaluated game value", "Game value")
     ax.scatter(d.vld_y_pred, d.vld_gv, s=4, c="black", alpha=0.04)
     ax.plot([-style.axis_gv, style.axis_gv], [-style.axis_gv, style.axis_gv],
             color="slategray", lw=1.0)
@@ -458,7 +458,7 @@ def plot_parity(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     return fig
 
 
-def plot_resid_qq(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
+def plot_resid_qq(d: HlpPlotData, run_name: str, style: HlpPlotStyle) -> "Figure":
     """
     Build the plot-7 figure: the normal QQ plot of the validation residuals — the sorted sample
     quantiles against the standard normal theoretical quantiles (scipy.ndtri), the dashed line the y
@@ -478,7 +478,7 @@ def plot_resid_qq(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     n = rn.size
     theory = ndtri((np.arange(1, n + 1) - 0.5) / n)
     sd_rn = float(rn.std())
-    fig, ax = _fig(PLOT_TITLES["resid_qq"], run_name, "Theoretical quantiles (standard normal)",
+    fig, ax = _fig(HLP_PLOT_TITLES["resid_qq"], run_name, "Theoretical quantiles (standard normal)",
                    "Sample quantiles (residual, Y)")
     ax.scatter(theory, rn, s=4, c="black", alpha=0.05)
     xs = np.array([theory.min(), theory.max()])
@@ -489,9 +489,9 @@ def plot_resid_qq(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     return fig
 
 
-#: The name -> builder registry (the worker dispatches on it; each builder takes the PlotData, the
-#: run name, and the PlotStyle).
-PLOT_BUILDERS: dict[str, Callable[[PlotData, str, PlotStyle], "Figure"]] = {
+#: The name -> builder registry (the worker dispatches on it; each builder takes the HlpPlotData,
+#: the run name, and the HlpPlotStyle).
+HLP_PLOT_BUILDERS: dict[str, Callable[[HlpPlotData, str, HlpPlotStyle], "Figure"]] = {
     "residual_density": plot_residual_density,
     "resid_vs_fitted": plot_resid_vs_fitted,
     "resid_vs_gv": plot_resid_vs_gv,
@@ -502,7 +502,7 @@ PLOT_BUILDERS: dict[str, Callable[[PlotData, str, PlotStyle], "Figure"]] = {
 }
 
 
-def save_figure(fig: "Figure", path, fmt: str, dpi: int = 150) -> None:
+def hlp_plot_save_figure(fig: "Figure", path, fmt: str, dpi: int = 150) -> None:
     """
     Save the figure to path in the given format (png at dpi, pdf vector). Only the schema-validated
     formats reach here. The format is passed EXPLICITLY: the file name may carry a non-standard
@@ -522,7 +522,7 @@ def save_figure(fig: "Figure", path, fmt: str, dpi: int = 150) -> None:
         raise ValueError(f"Unknown plot format: {fmt!r}")
 
 
-def close_figure(fig: "Figure") -> None:
+def hlp_plot_close_figure(fig: "Figure") -> None:
     """
     Release the figure's resources (the worker calls it after every save round).
 

@@ -52,7 +52,7 @@ from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 from reversi.lm.hlp_zed import zed_fun_factory
-from reversi.lm.hlp_plot import PLOT_NAMES
+from reversi.lm.hlp_plot import HLP_PLOT_NAMES
 from reversi.lm.logistic_model import LMContext
 from reversi.lm.wrk_plot import wrk_plot
 from reversi.lm.hlp_validate import validate_model
@@ -88,7 +88,7 @@ class TestWrkPlot(unittest.TestCase):
 
     def _plot_cfg(self, **kw):
         base = dict(enable=True, format="png", dpi=150,
-                    dir_name="plots", plots=list(PLOT_NAMES),
+                    dir_name="plots", plots=list(HLP_PLOT_NAMES),
                     binned_note=r" $(binned\ every\ 2)$",
                     jitter_seed=42, kde_seed=43, kde_max_points=100_000,
                     jitter_fitted_x=0.005, jitter_y=0.005,
@@ -202,21 +202,21 @@ class TestWrkPlot(unittest.TestCase):
         ctx = self._ctx
         wrk_plot().up(ctx)
         plot_dir = ctx.cfg.base_dir / "plots"
-        for name in PLOT_NAMES:
+        for name in HLP_PLOT_NAMES:
             p = plot_dir / f"{name}.png"
             self.assertTrue(p.exists(), f"missing {p}")
             self.assertEqual(p.read_bytes()[:4], PNG_MAGIC)
             self.assertGreater(p.stat().st_size, 5000)
         first = {n: hashlib.sha3_256((plot_dir / f"{n}.png")
                                      .read_bytes()).hexdigest()
-                 for n in PLOT_NAMES}
+                 for n in HLP_PLOT_NAMES}
         wrk_plot().up(ctx)
         for n, h in first.items():
             self.assertEqual(hashlib.sha3_256(
                 (plot_dir / f"{n}.png").read_bytes()).hexdigest(), h,
                 f"plot {n} not deterministic across up-moves")
         messages = [m for _, m in self._events]
-        for name in PLOT_NAMES:
+        for name in HLP_PLOT_NAMES:
             self.assertIn(f"Plot '{name}' saved: "
                           f"{plot_dir / (name + '.png')}", messages)
         self.assertIn(f"PLOT done: 7 plot(s) written to {plot_dir}.",

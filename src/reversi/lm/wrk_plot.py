@@ -44,8 +44,8 @@ from pydantic import validate_call, ConfigDict
 from typing import TYPE_CHECKING
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_plot import (PLOT_BUILDERS, PlotStyle, collect_plot_data,
-                                 save_figure, close_figure)
+from reversi.lm.hlp_plot import (HLP_PLOT_BUILDERS, HlpPlotStyle, hlp_plot_collect_data,
+                                 hlp_plot_save_figure, hlp_plot_close_figure)
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -76,8 +76,8 @@ def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO,
                   f"Generating {len(plot_cfg.plots)} plot(s)...")
 
-    # 2. The figures' data (the training w_dense pass + the validation forward pass, hlp_plot.collect_plot_data).
-    data = collect_plot_data(ctx)
+    # 2. The figures' data (the training w_dense pass + the validation forward pass, hlp_plot.hlp_plot_collect_data).
+    data = hlp_plot_collect_data(ctx)
 
     # 3. The plots directory: an ABSOLUTE dir_name is used as-is (it may live outside base_dir), a
     # relative one resolves under base_dir (the "plots" default).
@@ -87,9 +87,10 @@ def _up(ctx: "LMContext") -> None:
 
     formats = tuple(f.strip() for f in plot_cfg.format.split(","))
 
-    # 4. The style: the 13 appearance/determinism knobs of the config's plot section (the PlotStyle
-    # the builders draw with; the dicts are COPIED, so the config's instances stay owned by the schema).
-    style = PlotStyle(
+    # 4. The style: the 13 appearance/determinism knobs of the config's plot section (the
+    # HlpPlotStyle the builders draw with; the dicts are COPIED, so the config's instances stay
+    # owned by the schema).
+    style = HlpPlotStyle(
         binned_note=plot_cfg.binned_note,
         jitter_seed=plot_cfg.jitter_seed,
         kde_seed=plot_cfg.kde_seed,
@@ -106,13 +107,13 @@ def _up(ctx: "LMContext") -> None:
 
     # 5. One figure per whitelisted name, saved in every configured format (the "pdf,png" pair writes both).
     for name in plot_cfg.plots:
-        fig = PLOT_BUILDERS[name](data, ctx.cfg.name, style)
+        fig = HLP_PLOT_BUILDERS[name](data, ctx.cfg.name, style)
         paths = []
         for fmt in formats:
             p = plot_dir / f"{name}.{fmt}"
-            save_figure(fig, p, fmt, plot_cfg.dpi)
+            hlp_plot_save_figure(fig, p, fmt, plot_cfg.dpi)
             paths.append(str(p))
-        close_figure(fig)
+        hlp_plot_close_figure(fig)
         ctx.log_event(Relevance.INFO,
                       f"Plot '{name}' saved: {', '.join(paths)}")
 

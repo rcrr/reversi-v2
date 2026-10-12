@@ -258,7 +258,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
     def test_plot_unknown_name_rejected(self):
         """
         An unknown plot name is rejected at the CONFIG level (the fail-fast typo guard, the
-        PLOT_NAMES vocabulary).
+        HLP_PLOT_NAMES vocabulary).
         """
         with self.assertRaises(ValidationError):
             PlotConfig(plots=["residual_density", "nope"])

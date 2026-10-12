@@ -2,7 +2,7 @@
 The no-DB suite of the PLOT worker (the 18th level): it exercises the worker DIRECTLY on a synthetic rlm_04-mirror
 context (the same feature layout and the same production iwmap pin as test_wrk_client_check.py) — the training design
 indexes are built with the REAL `compute_indexes` column contract (one column per feature INSTANCE, the configuration
-index within the feature), and `wrk_plot().up(ctx)` runs the full level: pilot → `collect_plot_data` → directory → the
+index within the feature), and `wrk_plot().up(ctx)` runs the full level: pilot → `hlp_plot_collect_data` → directory → the
 figures → the save. No DB, no pipeline: the `Worker.up` @validate_call gate (context: Context) requires a REAL
 `LMContext`; the `cfg` attribute is the SimpleNamespace stand-in and `log_event` a capturing lambda.
 

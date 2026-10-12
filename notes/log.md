@@ -150,5 +150,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - In-flight incidents, both fixed: the auto import-insert split a parenthesized import in test\_client.py (syntax error,
   caught by the reflow compile check); test\_hlp\_design\_matrix needed its D-524 Index import extended to ExtendedIndex
   (3 test errors on the first suite run).
-- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (1117 + 5 new
-  ExtendedIndex tests). The 7 touched probes: all green.
+- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (1117 + 5 new ExtendedIndex tests). The 7 touched
+  probes: all green.
+## 2026-10-12 — session 111 (D-526 — the hlp\_plot API rename + the private helpers)
+
+- Roberto's call: the 8 pipeline names take the module-qualified form (HLP\_PLOT\_\*, HlpPlot\*, hlp\_plot\_\*);
+  jitter/egv\_bins become PRIVATE (\_jitter/\_egv\_bins, out of \_\_all\_\_ — now 8 names). The 7 plot\_\* builders stay
+  un-renamed (registry dispatch).
+- Touched: 3 src + 3 test + 1 probe (32 sites, 1 substring pin re-pinned) + 6 docs (51 sites). Word-boundary replaces;
+  the prose "jitter" common noun untouched.
+- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (counts
+  unchanged — pure rename). verify\_plot: green. All 7 touched .py at the
+  reflow fixpoint.

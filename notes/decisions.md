@@ -1619,3 +1619,17 @@ D-525 | 2026-10-12 | The ExtendedIndex type + sweep (Roberto's call, after the D
          reflow compile check, fixed) and test\_hlp\_design\_matrix needed its D-524 Index import extended to
          ExtendedIndex (3 test errors on the first suite run, fixed, suite re-run green). Suite 1122/0/24 via the R-210
          wrapper; the 7 touched probes fully green; all touched .py at the reflow fixpoint.
+
+D-526 | 2026-10-12 | The hlp\_plot module API rename (Roberto's call, after the investigation): the 8 pipeline names
+         take the module-qualified house form — PLOT\_NAMES/TITLES/BUILDERS → HLP\_PLOT\_NAMES/TITLES/BUILDERS,
+         PlotData/ PlotStyle → HlpPlotData/HlpPlotStyle, collect\_plot\_data/save\_figure/ close\_figure →
+         hlp\_plot\_collect\_data/hlp\_plot\_save\_figure/hlp\_plot\_close\_figure. The two general math helpers are
+         PRIVATE now (Roberto: clarity): jitter → \_jitter, egv\_bins → \_egv\_bins, OUT of \_\_all\_\_ (now 8 names =
+         the pipeline surface; the 7 plot\_\* builders stay un-renamed registry-dispatch targets, as agreed). Touched:
+         hlp\_plot (the 10 names + the \_\_all\_\_), wrk\_plot (5), hlp\_config\_schemas (PLOT\_NAMES x4 — the
+         PlotConfig whitelist), test\_hlp\_plot (17), test\_wrk\_plot (5), test\_hlp\_config\_schemas (1 prose),
+         verify\_plot (32 sites incl. the single substring pin on the schemas import line — re-pinned to
+         HLP\_PLOT\_NAMES; no line-count pins, no shift risk), 6 mirror docs (51 sites). The word-boundary replace kept
+         the prose "jitter" common noun intact; only the code sites and the one backticked doc reference took the
+         underscore. Suite green via the R-210 wrapper; verify\_plot fully green; all 7 touched .py at the reflow
+         fixpoint (3 needed a re-wrap for the longer names).

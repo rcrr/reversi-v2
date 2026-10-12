@@ -7,38 +7,38 @@ parity plot, the normal QQ plot). The axes follow fixed rulings — the game-val
 the residual-density axis the centered [-72, +72] window, the step-8 tick grid — and the title is two lines (the plot
 name in bold, the run description in italic). Every random element (the jitter, the KDE subsample) is SEEDed, so a
 figure is reproducible run over run and the PNG is byte-deterministic under a fixed matplotlib version. matplotlib and
-scipy are imported LAZILY: the import must stay cheap, because `hlp_config_schemas` imports `PLOT_NAMES` from here and
+scipy are imported LAZILY: the import must stay cheap, because `hlp_config_schemas` imports `HLP_PLOT_NAMES` from here and
 the config is parsed by every run (and by the client).
 
 ## API
 
 | name | contract |
 |---|---|
-| `PLOT_NAMES` | the seven canonical plot names (the whitelist vocabulary the `PlotConfig` schema validates against): `residual_density`, `resid_vs_fitted`, `resid_vs_gv`, `gv_by_egv_box`, `resid_mean_by_egv`, `parity`, `resid_qq` |
-| `PLOT_TITLES` | the name → title map (the figure's second title line carries the run name) |
-| `PlotData` | the dataclass: `trn_y_true`, `trn_rn`, `vld_y_pred`, `vld_rn`, `vld_gv` — all rounded-lossless f64 views |
-| `PlotStyle` | the 13 style knobs the builders draw with (the config's plot section carries the same values): the binned note, the 42/43 seeds, the 0.005/0.005/0.7 jitter amounts, the 512 KDE grid + 100k cap, the 64/72 axis domains, the 8 tick step, the series-label placement |
-| `collect_plot_data(ctx) -> PlotData` | the ASSEMBLY of the published series: `ctx.train_dense_rn` (ANALYTICS) + `ctx.vld_y_pred` / `ctx.vld_rn` (VALIDATE) + the game values from POSITIONS / VLD_POSITIONS — no forward pass runs here |
+| `HLP_PLOT_NAMES` | the seven canonical plot names (the whitelist vocabulary the `PlotConfig` schema validates against): `residual_density`, `resid_vs_fitted`, `resid_vs_gv`, `gv_by_egv_box`, `resid_mean_by_egv`, `parity`, `resid_qq` |
+| `HLP_PLOT_TITLES` | the name → title map (the figure's second title line carries the run name) |
+| `HlpPlotData` | the dataclass: `trn_y_true`, `trn_rn`, `vld_y_pred`, `vld_rn`, `vld_gv` — all rounded-lossless f64 views |
+| `HlpPlotStyle` | the 13 style knobs the builders draw with (the config's plot section carries the same values): the binned note, the 42/43 seeds, the 0.005/0.005/0.7 jitter amounts, the 512 KDE grid + 100k cap, the 64/72 axis domains, the 8 tick step, the series-label placement |
+| `hlp_plot_collect_data(ctx) -> HlpPlotData` | the ASSEMBLY of the published series: `ctx.train_dense_rn` (ANALYTICS) + `ctx.vld_y_pred` / `ctx.vld_rn` (VALIDATE) + the game values from POSITIONS / VLD_POSITIONS — no forward pass runs here |
 | `jitter(rng, x, amount) -> (N,) f64` | the R jitter semantics: uniform noise in ±amount·range(x)/2; a zero-range input comes back untouched |
 | `egv_bins(y_pred) -> (unique, inv)` | the evaluated-game-value bins: `y_pred` rounded to the even step-2 grid (`2·rint(y_pred/2)`) + `np.unique(..., return_inverse=True)` |
 | `_sym_limit(values, step=8) -> float` | private — the symmetric residual-axis limit: the max absolute value rounded UP to the tick step, at least one step |
-| `plot_<name>(d, run_name, style) -> Figure` | the seven builders (see Architecture); the PlotData + the run name + the PlotStyle in, the Figure out |
-| `PLOT_BUILDERS` | the name → builder registry (the worker dispatches on it) |
-| `save_figure(fig, path, fmt, dpi=150)` | saves in the given format (png at dpi, pdf vector); the format is passed EXPLICITLY (matplotlib otherwise sniffs the file suffix) and an unknown format raises `ValueError` |
-| `close_figure(fig)` | releases the figure (the worker calls it after every save round) |
+| `plot_<name>(d, run_name, style) -> Figure` | the seven builders (see Architecture); the HlpPlotData + the run name + the HlpPlotStyle in, the Figure out |
+| `HLP_PLOT_BUILDERS` | the name → builder registry (the worker dispatches on it) |
+| `hlp_plot_save_figure(fig, path, fmt, dpi=150)` | saves in the given format (png at dpi, pdf vector); the format is passed EXPLICITLY (matplotlib otherwise sniffs the file suffix) and an unknown format raises `ValueError` |
+| `hlp_plot_close_figure(fig)` | releases the figure (the worker calls it after every save round) |
 
 ## Architecture
 
 - Imports: `dataclass` + `field`, typing, numpy (the numpy surface only); scipy is LAZY (the `stats.gaussian_kde` +
   the `special.ndtri`); `LMContext` + `Figure` under TYPE_CHECKING. NO top-level matplotlib / scipy import.
-- Style knobs: the `PlotStyle` dataclass carries the 13 knobs (the config's plot section defaults) — the binned note,
+- Style knobs: the `HlpPlotStyle` dataclass carries the 13 knobs (the config's plot section defaults) — the binned note,
   the 42/43 seeds, the 0.005/0.005/0.7 jitter fractions, the 512 KDE grid + 100k cap, the fixed 64.0/72.0 axis
   domains, the 8.0 tick step, the plot-1 series-label placement.
-- `collect_plot_data`: a PURE ASSEMBLY — the training game values (`ctx.game_values`) + the dense training
+- `hlp_plot_collect_data`: a PURE ASSEMBLY — the training game values (`ctx.game_values`) + the dense training
   residuals (`ctx.train_dense_rn`, published by ANALYTICS) + the validation fitted / residual series (`ctx.vld_y_pred` /
   `ctx.vld_rn`, published by VALIDATE) + the validation game values. NO forward pass runs here: the figures render what
   the pipeline measured.
-- The helpers: `jitter` (the R band + the zero-range guard); `egv_bins` (the step-2 binning); `_sym_limit`
+- The helpers: `_jitter` (the R band + the zero-range guard); `_egv_bins` (the step-2 binning); `_sym_limit`
   (`step * ceil(max|values| / step)`, the non-finite / zero guard returns one step); `_kde_curve` (the lazy
   `scipy.stats.gaussian_kde`, Scott's rule bandwidth — the R `density()` uses Silverman's, below plot resolution — the
   seeded 100k subsample cap and the zero-variance guard: a flat zero curve, the degenerate kernel is singular).
@@ -71,7 +71,7 @@ the config is parsed by every run (and by the client).
   - `plot_resid_qq`: the sorted sample quantiles of the validation residuals against the standard normal theoretical
     quantiles (the lazy `scipy.special.ndtri`), the dashed `y = sd·x` scale line (residuals that are normal with mean
     zero sit ON the line); y the full [-64, +64], x data-driven (the normal tail, about ±3.3).
-- `PLOT_BUILDERS` is the registry; `save_figure` / `close_figure` are the save boundary.
+- `HLP_PLOT_BUILDERS` is the registry; `hlp_plot_save_figure` / `hlp_plot_close_figure` are the save boundary.
 
 ## Verified invariants
 
@@ -90,7 +90,7 @@ worker/chain suites.
   `test_curve_shape_and_peak`; probe B5).
 - The lazy import: no top-level matplotlib (probe A5) — importing this module (via the schema) stays cheap for every run
   and the client.
-- The rendering: every builder renders a non-trivial PNG on a synthetic PlotData (probe B1); the 'pdf,png' pair writes
+- The rendering: every builder renders a non-trivial PNG on a synthetic HlpPlotData (probe B1); the 'pdf,png' pair writes
   both magics (probe B2); the unknown format raises the precise ValueError (`test_unknown_format_raises`); a second
   render hashes EQUAL (byte determinism; probe B3 + the `test_wrk_plot` worker twin + the A2030/A2050 chain pins).
 
@@ -104,15 +104,15 @@ None.
   labels + the training-mean vline; the two gray-cloud scatters with the R jitter fractions; the per-EGV box plot), with
   the documented differences: Y space instead of the [0,1] target space, Scott's instead of Silverman's KDE bandwidth,
   SEEDed instead of unseeded jitter (determinism). The 100k KDE cap keeps the figure time flat at the A2050 scale.
-- The builders are PURE: they take the PlotData, the run name, and the PlotStyle, and return the Figure; all
-  ctx access is in `collect_plot_data` (the worker boundary), and the worker closes every figure after the save
+- The builders are PURE: they take the HlpPlotData, the run name, and the HlpPlotStyle, and return the Figure; all
+  ctx access is in `hlp_plot_collect_data` (the worker boundary), and the worker closes every figure after the save
   round (no Figure leaks across levels).
 
 ## Integration
 
-- Consumed by `wrk_plot` (the level after CLIENT_CHECK): `collect_plot_data` once per up-move, the
-  `PLOT_BUILDERS` dispatch, `save_figure` / `close_figure` per save.
-- `PLOT_NAMES` is imported by `hlp_config_schemas` (the `PlotConfig` validator) — the single source of truth for the
+- Consumed by `wrk_plot` (the level after CLIENT_CHECK): `hlp_plot_collect_data` once per up-move, the
+  `HLP_PLOT_BUILDERS` dispatch, `hlp_plot_save_figure` / `hlp_plot_close_figure` per save.
+- `HLP_PLOT_NAMES` is imported by `hlp_config_schemas` (the `PlotConfig` validator) — the single source of truth for the
   plot vocabulary: a new plot name lands here first, then in the builders + the titles (the probe pins keep the three in
   lock-step).
 - The series arrive from the levels that own the passes (ANALYTICS and VALIDATE) as the PUBLISHED f64 series: do NOT

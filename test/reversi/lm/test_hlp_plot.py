@@ -45,8 +45,8 @@ import unittest
 
 import numpy as np
 
-from reversi.lm.hlp_plot import (PLOT_NAMES, PLOT_BUILDERS, PLOT_TITLES,
-                                  jitter, egv_bins, _kde_curve, PlotStyle)
+from reversi.lm.hlp_plot import (HLP_PLOT_NAMES, HLP_PLOT_BUILDERS, HLP_PLOT_TITLES,
+                                  _jitter, _egv_bins, _kde_curve, HlpPlotStyle)
 
 
 class TestHlpPlotVocabulary(unittest.TestCase):
@@ -56,15 +56,15 @@ class TestHlpPlotVocabulary(unittest.TestCase):
     """
 
     def test_names_seven_distinct(self):
-        self.assertEqual(len(PLOT_NAMES), 7)
-        self.assertEqual(len(set(PLOT_NAMES)), 7)
+        self.assertEqual(len(HLP_PLOT_NAMES), 7)
+        self.assertEqual(len(set(HLP_PLOT_NAMES)), 7)
 
     def test_builders_cover_names_exactly(self):
         """Every canonical name has exactly one builder, and the registry holds no stray name."""
-        self.assertEqual(set(PLOT_BUILDERS), set(PLOT_NAMES))
+        self.assertEqual(set(HLP_PLOT_BUILDERS), set(HLP_PLOT_NAMES))
 
     def test_titles_cover_names_exactly(self):
-        self.assertEqual(set(PLOT_TITLES), set(PLOT_NAMES))
+        self.assertEqual(set(HLP_PLOT_TITLES), set(HLP_PLOT_NAMES))
 
 
 class TestHlpPlotJitter(unittest.TestCase):
@@ -76,7 +76,7 @@ class TestHlpPlotJitter(unittest.TestCase):
     def test_bounds_and_spread(self):
         rng = np.random.default_rng(42)
         x = np.linspace(-10.0, 10.0, 1000)
-        out = jitter(rng, x, 0.5)
+        out = _jitter(rng, x, 0.5)
         bound = 0.5 * (x.max() - x.min()) / 2
         self.assertLessEqual(float(np.max(np.abs(out - x))), bound)
         # It actually jitters (a spread of noise values).
@@ -85,7 +85,7 @@ class TestHlpPlotJitter(unittest.TestCase):
     def test_zero_range_is_identity(self):
         rng = np.random.default_rng(42)
         x = np.full(50, 7.0)
-        out = jitter(rng, x, 0.7)
+        out = _jitter(rng, x, 0.7)
         np.testing.assert_array_equal(out, x)
 
 
@@ -97,7 +97,7 @@ class TestHlpPlotEgvBins(unittest.TestCase):
     def test_even_grid_and_coverage(self):
         rng = np.random.default_rng(42)
         y_pred = rng.standard_normal(5000) * 20
-        unique, inv = egv_bins(y_pred)
+        unique, inv = _egv_bins(y_pred)
         self.assertTrue(np.all(unique % 2 == 0))
         # Every point lands in exactly one bin, near its fitted value.
         self.assertEqual(inv.size, y_pred.size)
@@ -105,7 +105,7 @@ class TestHlpPlotEgvBins(unittest.TestCase):
 
     def test_known_values(self):
         y_pred = np.array([-0.4, 0.6, 3.2, -2.9, 64.0], dtype=np.float64)
-        unique, inv = egv_bins(y_pred)
+        unique, inv = _egv_bins(y_pred)
         self.assertEqual([int(unique[k]) for k in inv],
                          [0, 0, 4, -2, 64])
 
@@ -133,14 +133,14 @@ class TestHlpPlotKde(unittest.TestCase):
 
     def test_zero_variance_is_flat_zero(self):
         grid = np.linspace(-1.0, 1.0, 64)
-        curve = _kde_curve(np.full(100, 3.0), grid, PlotStyle())
+        curve = _kde_curve(np.full(100, 3.0), grid, HlpPlotStyle())
         np.testing.assert_array_equal(curve, 0.0)
 
     def test_curve_shape_and_peak(self):
         rng = np.random.default_rng(42)
         x = rng.standard_normal(2000) * 2
         grid = np.linspace(x.min(), x.max(), 256)
-        curve = _kde_curve(x, grid, PlotStyle())
+        curve = _kde_curve(x, grid, HlpPlotStyle())
         self.assertEqual(curve.shape, grid.shape)
         self.assertTrue(np.all(np.isfinite(curve)))
         self.assertTrue(np.all(curve >= 0.0))
@@ -156,9 +156,9 @@ class TestHlpPlotSaveFigure(unittest.TestCase):
     """
 
     def test_unknown_format_raises(self):
-        from reversi.lm.hlp_plot import save_figure
+        from reversi.lm.hlp_plot import hlp_plot_save_figure
         with self.assertRaises(ValueError) as context:
-            save_figure(None, "x", "svg")
+            hlp_plot_save_figure(None, "x", "svg")
         self.assertEqual(str(context.exception), "Unknown plot format: 'svg'")
 
 

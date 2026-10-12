@@ -14,22 +14,22 @@ at PLOT). No context attribute is published; `_down` is a no-op (log only).
 | name | contract |
 |---|---|
 | `wrk_plot()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("PLOT", _up, _down)` |
-| `_up(ctx) -> None` | the pilot check (enable, then the whitelist) → `collect_plot_data` (hlp_plot) → the directory resolution (absolute as-is / relative under `base_dir`) → the `PlotStyle` (the 13 knobs from the plot section, the label dicts copied) → one figure per whitelisted name, saved in every configured format |
+| `_up(ctx) -> None` | the pilot check (enable, then the whitelist) → `hlp_plot_collect_data` (hlp_plot) → the directory resolution (absolute as-is / relative under `base_dir`) → the `HlpPlotStyle` (the 13 knobs from the plot section, the label dicts copied) → one figure per whitelisted name, saved in every configured format |
 | `_down(ctx) -> None` | the no-op: log only (stateless, as SAVE and CLIENT_CHECK) |
 
 ## Architecture
 
-- Imports: `Path`, pydantic, `Worker, Relevance`, the hlp_plot surface (`PLOT_BUILDERS`, `PlotStyle`,
-  `collect_plot_data`, `save_figure`, `close_figure`), `LMContext` under TYPE_CHECKING.
+- Imports: `Path`, pydantic, `Worker, Relevance`, the hlp_plot surface (`HLP_PLOT_BUILDERS`, `HlpPlotStyle`,
+  `hlp_plot_collect_data`, `hlp_plot_save_figure`, `hlp_plot_close_figure`), `LMContext` under TYPE_CHECKING.
   NO `reversi.tools.cache_manager` import (by design) and NO top-level matplotlib import (it is lazy in
   hlp_plot — see hlp_plot.md).
 - `_up`: the pilot: `plot.enable` false → "PLOT skipped: plot.enable is false." (log only, return); empty `plot.plots` →
-  "PLOT skipped: no plot names requested." (log only, return) → "Generating {n} plot(s)..." → `collect_plot_data(ctx)` →
+  "PLOT skipped: no plot names requested." (log only, return) → "Generating {n} plot(s)..." → `hlp_plot_collect_data(ctx)` →
   the directory:
   `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live outside base_dir), else `base_dir / dir_name`;
-  `mkdir(parents=True, exist_ok=True)` → the `PlotStyle` (the 13 knobs of the plot section, the label dicts copied so
-  the schema's instances stay owned by it) → the per-name loop: `PLOT_BUILDERS[name](data, ctx.cfg.name, style)` →
-  `save_figure` in every format of `plot_cfg.format` (the "pdf,png" pair writes both) → `close_figure` →
+  `mkdir(parents=True, exist_ok=True)` → the `HlpPlotStyle` (the 13 knobs of the plot section, the label dicts copied so
+  the schema's instances stay owned by it) → the per-name loop: `HLP_PLOT_BUILDERS[name](data, ctx.cfg.name, style)` →
+  `hlp_plot_save_figure` in every format of `plot_cfg.format` (the "pdf,png" pair writes both) → `hlp_plot_close_figure` →
   "Plot '{name}' saved: {paths}" → the completion line: "PLOT done: {n} plot(s) written to {dir}."
 - `_down`: INFO "Clearing plot attributes..." — nothing cleared (the figures are built and closed locally on every
   up-move).
@@ -75,9 +75,9 @@ None.
   (`ctx.train_dense_rn` — the dense training residuals), VALIDATE (`ctx.vld_y_pred`, `ctx.vld_rn`), VLD_POSITIONS
   (`ctx.vld_game_values`) and CONFIG (`ctx.cfg.plot`, `ctx.cfg.name`, `ctx.cfg.base_dir`) — the SM half-open interval
   semantics guarantee every up-move to step 18 passes through all of them.
-- Consumes hlp_plot: `collect_plot_data` (the ASSEMBLY of the published series — no forward pass — the same
-  formulas as hlp_analytics' dense metrics and the CLIENT_CHECK reference), the `PLOT_BUILDERS` registry, `save_figure`
-  / `close_figure`.
+- Consumes hlp_plot: `hlp_plot_collect_data` (the ASSEMBLY of the published series — no forward pass — the same
+  formulas as hlp_analytics' dense metrics and the CLIENT_CHECK reference), the `HLP_PLOT_BUILDERS` registry, `hlp_plot_save_figure`
+  / `hlp_plot_close_figure`.
 - Consumes the config: `PlotConfig` (hlp_config_schemas) — the fail-fast name/format validation happens at the CONFIG
   level, before the pipeline reaches PLOT.
 - Downstream: nothing consumes the figures — the last artifact-producing level (FINAL_LOG_PRINT, the 19th,
