@@ -59,6 +59,7 @@ from reversi.lm.hlp_generate import (LMDenseWeights,
                                 hlp_generate_is_cache_consistent,
                                 hlp_generate_compute_w_dense)
 from test.reversi.paths import CUSTOM_TMP_BASE
+from reversi.index import ExtendedIndex, Index
 
 
 class TestHlpGenerateCompute(unittest.TestCase):
@@ -81,13 +82,13 @@ class TestHlpGenerateCompute(unittest.TestCase):
         )
 
         # iwmap_feature_offset: [0, 1, 4, 9]
-        self.ctx.iwmap_feature_offset = np.array([0, 1, 4, 9], dtype=np.uint32)
+        self.ctx.iwmap_feature_offset = np.array([0, 1, 4, 9], dtype=Index)
 
         # iwmap INT (idx 0): [0] PAT (idx 1,2,3): [-1, 1, 0]  (config 0 fallback->0, config 1->1,
         # config 2 fallback->0) MOB (idx 4,5,6,7,8): [-1, 2, -1, 3, -1] (config 1->2, config 3->3)
         self.ctx.iwmap = np.array(
             [0,  -1, 1, 0,  -1, 2, -1, 3, -1],
-            dtype=np.int64
+            dtype=ExtendedIndex
         )
 
         # w_ranges [fallback, w_min, w_max] INT: [ -1, 0, 0 ] PAT: [ 0, 0, 1 ]  (fallback is weight
@@ -96,7 +97,7 @@ class TestHlpGenerateCompute(unittest.TestCase):
             [-1, 0, 0],
             [ 0, 0, 1],
             [-1, 2, 3]
-        ], dtype=np.int64)
+        ], dtype=ExtendedIndex)
 
         # wmap [fid, config_id, freq] PAT config 1 has freq 10. PAT fallback (-1) has freq 3. MOB
         # config 1 has freq 5, config 3 has freq 5. No fallback.
@@ -105,7 +106,7 @@ class TestHlpGenerateCompute(unittest.TestCase):
             [1, 1, 10],
             [2, 1, 5],
             [2, 3, 5]
-        ], dtype=np.int64)
+        ], dtype=ExtendedIndex)
 
         # Compressed weights vector w w[0] = 0.5 (Intercept, also Pattern fallback) w[1] = -0.2
         # (Pattern config 1) w[2] = 1.0 (Mobility config 1) w[3] = 3.0 (Mobility config 3)
@@ -142,10 +143,10 @@ class TestHlpGenerateCompute(unittest.TestCase):
             hash="x",
             features=[SimpleNamespace(name="X", category=9, n_instances=1, n_configurations=1)]
         )
-        ctx.iwmap_feature_offset = np.array([0, 1], dtype=np.uint32)
-        ctx.iwmap = np.array([0], dtype=np.int64)
-        ctx.feature_w_ranges = np.array([[-1, 0, 0]], dtype=np.int64)
-        ctx.wmap = np.zeros((0, 3), dtype=np.int64)
+        ctx.iwmap_feature_offset = np.array([0, 1], dtype=Index)
+        ctx.iwmap = np.array([0], dtype=ExtendedIndex)
+        ctx.feature_w_ranges = np.array([[-1, 0, 0]], dtype=ExtendedIndex)
+        ctx.wmap = np.zeros((0, 3), dtype=ExtendedIndex)
         ctx.w = np.array([0.1], dtype=np.float32)
         ctx.w_checksum = "z"
         ctx.log_event = lambda rel, msg: None
@@ -163,10 +164,10 @@ class TestHlpGenerateCompute(unittest.TestCase):
             hash="x",
             features=[SimpleNamespace(name="MOB", category=1, n_instances=1, n_configurations=4)]
         )
-        ctx.iwmap_feature_offset = np.array([0, 4], dtype=np.uint32)
-        ctx.iwmap = np.array([-1, -1, -1, -1], dtype=np.int64)
-        ctx.feature_w_ranges = np.array([[-1, 0, 0]], dtype=np.int64)
-        ctx.wmap = np.zeros((0, 3), dtype=np.int64)
+        ctx.iwmap_feature_offset = np.array([0, 4], dtype=Index)
+        ctx.iwmap = np.array([-1, -1, -1, -1], dtype=ExtendedIndex)
+        ctx.feature_w_ranges = np.array([[-1, 0, 0]], dtype=ExtendedIndex)
+        ctx.wmap = np.zeros((0, 3), dtype=ExtendedIndex)
         ctx.w = np.array([0.0], dtype=np.float32)
         ctx.w_checksum = "z"
         ctx.log_event = lambda rel, msg: events.append((rel, msg))

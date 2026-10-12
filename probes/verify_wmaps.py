@@ -11,8 +11,8 @@ Re-derives and verifies, independently of the test files:
      vs the literals pinned in test_wrk_wmaps.TestLMWorkerWmapsExactValues
   F. Cross-fixture / context facts (rlm_01 stat_model, LMContext fields)
 
-Re-pinned in D-087 to the post-campaign state (all T items pinned FIXED,
-R1 pinned as the documented no-guard contract). 64 checks.
+Re-pinned in D-087 to the post-campaign state (all T items pinned FIXED, R1 pinned as the documented
+no-guard contract). 64 checks.
 
 Run from the workspace root:  .venv/bin/python probes/verify_wmaps.py
 """
@@ -47,7 +47,7 @@ def lines(p):
 # A. hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_wmaps.py")
-check("A1 hlp_wmaps.py is 337 lines", len(rlm) == 337, f"{len(rlm)}")
+check("A1 hlp_wmaps.py is 338 lines", len(rlm) == 338, f"{len(rlm)}")
 check("A2 the dead accumulate import is gone (D-087 T4)",
       "from itertools import accumulate" not in read("src/reversi/lm/hlp_wmaps.py")
       and "accumulate" not in read("src/reversi/lm/hlp_wmaps.py"))
@@ -57,11 +57,11 @@ check("A3 __all__ lists the 5 public names",
 check("A4 compute_sha3_256_hash is @validate_call-decorated",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read(
           "src/reversi/lm/hlp_wmaps.py"))
-check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L205, the rlm_indexes style)",
+check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L206, the rlm_indexes style)",
       "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_compute" not in read(
           "src/reversi/lm/hlp_wmaps.py")
-      and rlm[204] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
-      repr(rlm[207]))
+      and rlm[205] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
+      repr(rlm[208]))
 check("A6 hlp_wmaps_is_cache_consistent has NO @validate_call (same constraint, as in rlm_indexes)",
       "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef "
       "hlp_wmaps_is_cache_consistent" not in read(
@@ -74,12 +74,12 @@ check("A8 store docstring: the LZ4 compression line, no sidecar promise",
       and "LZ4 whole-file compression by default" in read("src/reversi/lm/hlp_wmaps.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A9 0 non-comment trailing-whitespace lines (D-087 T9: 23 stripped)", len(ws_rl) == 0, f"{ws_rl}")
-check("A10 the above_mask code line is clean (L295, no trailing space)",
-      rlm[294] == "        above_mask = ~mask", repr(rlm[294]))
-check("A11 the fallback_details_table code line is clean (L308, no trailing spaces)",
-      rlm[307] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[307]))
-check("A12 the -1 input sentinel is unguarded at L272 — correct by the R1 dense contract (no guard added)",
-      rlm[271] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[271]))
+check("A10 the above_mask code line is clean (L296, no trailing space)",
+      rlm[295] == "        above_mask = ~mask", repr(rlm[295]))
+check("A11 the fallback_details_table code line is clean (L309, no trailing spaces)",
+      rlm[308] == "    fallback_details_table = np.array(fallback_data, dtype=ExtendedIndex)", repr(rlm[308]))
+check("A12 the -1 input sentinel is unguarded at L273 — correct by the R1 dense contract (no guard added)",
+      rlm[272] == "        f_iwmap[stats[:, 0].astype(ExtendedIndex)] = stats[:, 2]", repr(rlm[272]))
 
 # ----------------------------------------------------------------------
 # B. wrk_wmaps.py structure (post D-087)
@@ -115,7 +115,7 @@ check("B9 the triple blank line before _up is intact (L47-49, pre-existing)",
 # C. test_hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 t1 = lines("test/reversi/lm/test_hlp_wmaps.py")
-check("C1 test_hlp_wmaps.py is 362 lines", len(t1) == 362, f"{len(t1)}")
+check("C1 test_hlp_wmaps.py is 364 lines", len(t1) == 364, f"{len(t1)}")
 check("C2 4 classes / 16 tests (the 3 compute + 3 consistency + 8 IO + 2 init)",
       sum(1 for l in t1 if l.startswith("class ")) == 4 and
       sum(1 for l in t1 if l.strip().startswith("def test_")) == 16)
@@ -125,10 +125,10 @@ check("C4 no SKIP_REGAB_DB mention anywhere in the file (no gate needed — no D
       read("test/reversi/lm/test_hlp_wmaps.py").count("SKIP_REGAB_DB") == 0)
 check("C5 no DB import in the file", "from reversi.regab" not in read("test/reversi/lm/test_hlp_wmaps.py")
       and "import regab" not in read("test/reversi/lm/test_hlp_wmaps.py"))
-check("C6 the shared tmp-dir idiom applied: setUpClass (L223) + TemporaryDirectory under CUSTOM_TMP_BASE (L228)",
-      t1[222] == "    def setUpClass(cls):"
-      and t1[227] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
-      repr(t1[227]))
+check("C6 the shared tmp-dir idiom applied: setUpClass (L225) + TemporaryDirectory under CUSTOM_TMP_BASE (L230)",
+      t1[224] == "    def setUpClass(cls):"
+      and t1[229] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
+      repr(t1[229]))
 check("C7 defensive tearDown (getattr _tmp guard, no shutil)",
       "        if getattr(self, '_tmp', None) is not None:" in read("test/reversi/lm/test_hlp_wmaps.py")
       and "shutil" not in read("test/reversi/lm/test_hlp_wmaps.py"))
@@ -162,24 +162,23 @@ check("C15 the TestHlpWmapsInit class is present with the precise ValidationErro
 # D. test_wrk_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 t2 = lines("test/reversi/lm/test_wrk_wmaps.py")
-check("D1 test_wrk_wmaps.py is 319 lines", len(t2) == 319, f"{len(t2)}")
+check("D1 test_wrk_wmaps.py is 320 lines", len(t2) == 320, f"{len(t2)}")
 check("D2 2 classes / 4 tests",
       sum(1 for l in t2 if l.startswith("class ")) == 2 and
       sum(1 for l in t2 if l.strip().startswith("def test_")) == 4)
 check("D3 the SKIP_REGAB_DB gate exists in BOTH setUps (the db_long_gate idiom)",
-      t2[69] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
-      and t2[181] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates",
-      repr(t2[69:71]))
+      t2[70] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
+      and t2[182] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates",
+      repr(t2[70:72]))
 check("D4 import os removed (dead import — the gate lives in test.reversi.tags)", "import os" not in t2)
 check("D5 both setUps use the TemporaryDirectory idiom",
-      t2[76] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))"
-      and t2[187] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
-      repr(t2[76]))
+      t2[77] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))"
+      and t2[188] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
+      repr(t2[77]))
 check("D6 both setUps anchor json_config to WORKSPACE_ROOT",
-      t2[78] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_00.json\")"
-      and t2[189] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / "
-      "\"data\" / \"rlm_01.json\")",
-      repr(t2[78]))
+      t2[79] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_00.json\")"
+      and t2[190] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_01.json\")",
+      repr(t2[79]))
 check("D7 the paths import is present",
       t2[54] == "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[54]))
 check("D8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
@@ -197,17 +196,15 @@ check("D12 defensive tearDown in both classes (getattr guards, no shutil)",
       and "shutil" not in read("test/reversi/lm/test_wrk_wmaps.py"))
 
 # ----------------------------------------------------------------------
-# E. GOLDEN re-derivation (live DB) — rlm_01.json
-#    The literals are extracted from the test source (single source of
-#    truth); the pipeline output is compared against them.
+# E. GOLDEN re-derivation (live DB) — rlm_01.json The literals are extracted from the test source
+# (single source of truth); the pipeline output is compared against them.
 # ----------------------------------------------------------------------
 import json5
 import tempfile
 
-# (E0 + the test-source extraction machinery deleted at D-106
-#  step 3, class c: the five expected_* literals are pinned verbatim
-#  by test_wrk_wmaps.py::test_compute_wmaps_exact_values, so
-#  extracting them and comparing was tautological.)
+# (E0 + the test-source extraction machinery deleted at D-106 step 3, class c: the five expected_*
+# literals are pinned verbatim by test_wrk_wmaps.py::test_compute_wmaps_exact_values, so extracting
+# them and comparing was tautological.)
 
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
@@ -220,16 +217,12 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     rlm_lm.move_to_step("WMAPS")
     ctx = rlm_lm.context
 
-    # (E1-E6 deleted at D-106 step 3, class c: feature_w_ranges,
-    #  iwmap_feature_offset, iwmap, wmap, wmap_fallback, w are all
-    #  pinned verbatim (full literal, shape + dtype) by
-    #  test_wrk_wmaps.py::test_compute_wmaps_exact_values —
-    #  the probe's comparisons against its own extracted literals
-    #  were tautological.)
-    # (E7/E8 deleted at D-106 step 3, class c: both operate on the
-    #  pinned literals, which the test pins verbatim — the fallback
-    #  freq sums and the no-(-1)-sentinel property are implied.)
-    # E9 — the w index ranges per feature are contiguous
+    # (E1-E6 deleted at D-106 step 3, class c: feature_w_ranges, iwmap_feature_offset, iwmap, wmap,
+    # wmap_fallback, w are all pinned verbatim (full literal, shape + dtype) by
+    # test_wrk_wmaps.py::test_compute_wmaps_exact_values — the probe's comparisons against its own
+    # extracted literals were tautological.) (E7/E8 deleted at D-106 step 3, class c: both operate
+    # on the pinned literals, which the test pins verbatim — the fallback freq sums and the
+    # no-(-1)-sentinel property are implied.) E9 — the w index ranges per feature are contiguous
     ok = True
     for fid in range(len(ctx.feature_w_ranges)):
         fb, wmin, wmax = ctx.feature_w_ranges[fid]
@@ -249,8 +242,7 @@ check("F2 rlm_00 stat_model == {cut_off 1, logit 0.05, ridge 0.0}",
 check("F3 rlm_01 use_cache is True, cache prefix 'rlmwf_'",
       fix["use_cache"] is True and fix["cache_files_prefix"] == "rlmwf_")
 lm_src = read("src/reversi/lm/logistic_model.py")
-# (F4/F6 pipeline-state pins moved to the hub verify_logistic_model.py
-# V3c/V3d at D-106)
+# (F4/F6 pipeline-state pins moved to the hub verify_logistic_model.py V3c/V3d at D-106)
 check("F5 LMContext declares the 7 Wmaps fields (pre-existing, untouched by the commit)",
       all(f"    {a}: " in lm_src for a in
           ("wmaps_obj_checksum", "feature_w_ranges", "iwmap_feature_offset", "iwmap",

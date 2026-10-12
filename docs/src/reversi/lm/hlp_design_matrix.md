@@ -1,5 +1,5 @@
 # reversi/lm/hlp_design_matrix.py
-The DESIGN_MTR domain module of the LM pipeline: the `LMDesignMatrix` data object (the (N,I) uint32 X — the w-index of
+The DESIGN_MTR domain module of the LM pipeline: the `LMDesignMatrix` data object (the (N,I) Index X — the w-index of
 each (position, feature-instance) cell — + the `wmaps_obj_checksum` metadata) + 4 public functions + the duck-typed
 `compute_sha3_256_hash` — the 8th active level's data object (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
 INDEXES → ANOVA → WMAPS → DESIGN_MTR), the 5th cache_manager consumer in the pipeline (after SU_ANALYSIS,
@@ -9,7 +9,7 @@ POSITIONS, INDEXES and WMAPS).
 
 | name | contract |
 |---|---|
-| `LMDesignMatrix` | plain class — 2 fields, assigned BY REFERENCE: `wmaps_obj_checksum: str`, `X: np.ndarray` (N,I) uint32 (N = training positions, I = total feature instances) |
+| `LMDesignMatrix` | plain class — 2 fields, assigned BY REFERENCE: `wmaps_obj_checksum: str`, `X: np.ndarray` (N,I) Index (N = training positions, I = total feature instances) |
 | `hlp_design_matrix_store_to_file(dm, filename, compressed=True)` | binio write: header + the checksum string + X; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
 | `hlp_design_matrix_load_from_file(filename, checksum=True, compressed=True)` | the sidecar verify (when enabled) first, then the LZ4 guard + decompress + the header gate (description + version) + read back a fresh object |
 | `hlp_design_matrix_compute(ctx)` | builds X from the pindexes + the WMAPS arrays (NO `@validate_call` — see Conventions) |
@@ -31,8 +31,8 @@ POSITIONS, INDEXES and WMAPS).
 - `hlp_design_matrix_compute`: `pindexes = ctx.hlp_indexes.indexes`;
   `col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
   `pindexes_with_offsets = pindexes + col_offsets`; the SINGLE guard — `np.any(ctx.iwmap[pindexes_with_offsets] == -1)`
-  → ValueError "It should never happen, pindexes is referring an invalid value."; `X = np.empty(pindexes.shape, uint32)`
-  filled by `np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)` — the explicit source cast (the note,
+  → ValueError "It should never happen, pindexes is referring an invalid value."; `X = np.empty(pindexes.shape, dtype=Index)`
+  filled by `np.take(ctx.iwmap.astype(Index), pindexes_with_offsets, out=X)` — the explicit source cast (the note,
   see Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
 - `hlp_design_matrix_is_cache_consistent`: `dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field compare
   (no DB params, no independent model params: X is a pure function of the WMAPS outputs + pindexes, unlike WMAPS's 2
@@ -64,7 +64,7 @@ None.
 
 ## Conventions
 
-- The explicit-cast note: `astype(np.uint32)` is REQUIRED — the implicit int64 → uint32 output cast in
+- The explicit-cast note: `astype(Index)` is REQUIRED — the implicit ExtendedIndex → Index output cast in
   `np.take(..., out=X)` is deprecated in NumPy 2.5 (future hard error), FATAL under `-W error` (X keeps the `np.empty`
   garbage).
 - The single guard is a defensive re-check of the WMAPS contract (the input pindexes matrix is dense, unsigned — a
@@ -72,7 +72,7 @@ None.
 - No `@validate_call` on `hlp_design_matrix_compute` / `hlp_design_matrix_is_cache_consistent` — the TYPE_CHECKING
   circular-import constraint (the note).
 - The two checksums are distinct (as in WMAPS/INDEXES): `design_matrix_checksum` = the DATA checksum (sha3_256 over
-  `X.tobytes()`); the `.SHA3-256` sidecar = the FILE checksum (binio `sha3_256sum` over the `.dat`). X is uint32,
+  `X.tobytes()`); the `.SHA3-256` sidecar = the FILE checksum (binio `sha3_256sum` over the `.dat`). X is Index,
   matching the pindexes/offset dtypes (no upcast on the addition).
 
 ## Integration

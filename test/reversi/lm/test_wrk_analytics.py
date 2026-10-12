@@ -60,6 +60,7 @@ from test.reversi.closecheck import assert_close
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_long_gate
 from reversi.index import Index
+from reversi.index import ExtendedIndex
 
 
 def _masked_report_hash(text):
@@ -359,7 +360,7 @@ class _MockCtx:
         self.hlp_indexes = type('I', (), {'indexes': indexes})()
         self.game_values = game_values
         self.su_analysis_tables = tables
-        self.wmap = np.zeros((n_dense, 3), dtype=np.int64)
+        self.wmap = np.zeros((n_dense, 3), dtype=ExtendedIndex)
         name_to_fid = {f.name: i
                        for i, f in enumerate(feature_set.features)}
         self.wmap[0, :] = (0, 0, 1)  # the intercept slot
@@ -369,12 +370,12 @@ class _MockCtx:
                 self.wmap[iwmap_feature_offset[fid] + c, :] = (
                     fid, c, 1)
         self.wmap_fallback = None
-        self.iwmap = np.arange(n_dense, dtype=np.int64)
+        self.iwmap = np.arange(n_dense, dtype=ExtendedIndex)
         self.w = 0.001 * (np.arange(n_dense, dtype=np.float64) + 1.0)
         self.w_dense = self.w.copy()
         self.iwmap_feature_offset = iwmap_feature_offset
         self.feature_w_ranges = np.full((n_features, 2), -1,
-                                        dtype=np.int64)
+                                        dtype=ExtendedIndex)
         self.config_checksum = "ab" * 32
         self.train_metrics = {}
         self.train_dense_metrics = {}

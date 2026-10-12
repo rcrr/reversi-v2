@@ -150,7 +150,7 @@ define the evaluation function.
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_board.py | complete | 308/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
 | test/reversi/test\_feature.py | complete | 32/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
-| test/reversi/test\_index.py | complete | 5/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |
+| test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |
 | test/reversi/test\_mobility.py | complete | 31/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
 | test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
 | test/reversi/test\_pattern.py | complete | 76/0/3/0/0 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |

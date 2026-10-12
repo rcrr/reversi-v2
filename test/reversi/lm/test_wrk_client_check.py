@@ -59,6 +59,7 @@ from reversi.lm.logistic_model import LMContext
 from reversi.lm.wrk_client_check import wrk_client_check
 from reversi.lm.hlp_validate import validate_model
 from test.reversi.paths import CUSTOM_TMP_BASE
+from reversi.index import Index
 
 SEED = 42
 N_VLD = 2000
@@ -92,7 +93,7 @@ class TestWrkClientCheck(unittest.TestCase):
         fs = FeatureSet("SYNTH_RLM04", intercept, mset, pset)
         offsets = np.concatenate(
             ([0], np.cumsum([f.n_configurations for f in fs.features]))
-        ).astype(np.uint32)
+        ).astype(Index)
         self.assertEqual(offsets.tolist(), [0, 1, 66, 6627])
         w_dense = rng.standard_normal(int(offsets[-1]), dtype=np.float32)
 

@@ -54,6 +54,7 @@ from reversi.pattern import Pattern, PatternSet
 from reversi.lm.model_weights import ModelWeights
 from reversi.lm.client import (make_evaluation_function,
                                make_evaluation_function_array)
+from reversi.index import Index
 
 SEED = 42
 
@@ -80,7 +81,7 @@ class TestClientEvaluationFunction(unittest.TestCase):
         # The production rlm_04 iwmap pin: 1 + 65 + 6561 = 6627.
         offsets = np.concatenate(
             ([0], np.cumsum([f.n_configurations for f in self.fs.features]))
-        ).astype(np.uint32)
+        ).astype(Index)
         self.assertEqual(offsets.tolist(), [0, 1, 66, 6627])
 
         self.mw = ModelWeights(

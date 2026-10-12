@@ -35,6 +35,7 @@ from pathlib import Path
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools import binio
+from reversi.index import ExtendedIndex, Index
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -225,12 +226,12 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
     features = ctx.feature_set.features
 
     f_num_configurations = np.array([f.n_configurations for f in features], dtype=np.uint32)
-    iwmap_feature_offset = np.zeros(len(features) + 1, dtype=np.uint32)
+    iwmap_feature_offset = np.zeros(len(features) + 1, dtype=Index)
     iwmap_feature_offset[1:] = np.cumsum(f_num_configurations)
 
     K = iwmap_feature_offset[-1]
 
-    iwmap = np.full(K, -1, dtype=np.int64)
+    iwmap = np.full(K, -1, dtype=ExtendedIndex)
     pindexes = ctx.hlp_indexes.indexes
     next_w = 0
     f_w_ranges = []
@@ -251,7 +252,7 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
         mask = stats[:, 1] < cut_off
         stats_filtered_below = stats[mask]
 
-        w_indices = np.empty(len(stats), dtype=np.int64)
+        w_indices = np.empty(len(stats), dtype=ExtendedIndex)
         if len(stats_filtered_below) > 0:
             fallback = next_w
             w_indices[mask] = fallback
@@ -269,7 +270,7 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
         stats = np.column_stack((stats, w_indices))
 
         f_iwmap = iwmap[iwmap_feature_offset[fid]:iwmap_feature_offset[fid + 1]]
-        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]
+        f_iwmap[stats[:, 0].astype(ExtendedIndex)] = stats[:, 2]
 
         w_min = w_indices.min() if len(w_indices) > 0 else -1
         w_max = w_indices.max() if len(w_indices) > 0 else -1
@@ -280,7 +281,7 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
         })
 
         num_w_feature = w_max - w_min + 1
-        feature_w_mapping = np.empty((num_w_feature, 3), dtype=np.int64)
+        feature_w_mapping = np.empty((num_w_feature, 3), dtype=ExtendedIndex)
         feature_w_mapping[:, 0] = fid
         feature_w_mapping[:, 1] = -1
 
@@ -297,7 +298,7 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
             w_above = stats[above_mask, 2]
             config_above = stats[above_mask, 0]
             freq_above = stats[above_mask, 1]
-            relative_indices = (w_above - w_min).astype(np.int64)
+            relative_indices = (w_above - w_min).astype(ExtendedIndex)
             feature_w_mapping[relative_indices, 1] = config_above
             feature_w_mapping[relative_indices, 2] = freq_above
         wmap_blocks.append(feature_w_mapping)
@@ -305,12 +306,12 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
         col_offset += f.n_instances
 
     wmap = np.vstack(wmap_blocks)
-    fallback_details_table = np.array(fallback_data, dtype=np.int64)
+    fallback_details_table = np.array(fallback_data, dtype=ExtendedIndex)
     if fallback_details_table.size == 0:
         fallback_details_table = fallback_details_table.reshape(0, 3)
 
     feature_w_ranges_arr = np.array([[m['fallback'], m['w_min'], m['w_max']] for m in f_w_ranges],
-                                    dtype=np.int64)
+                                    dtype=ExtendedIndex)
     w = np.zeros(next_w, dtype=np.float32)
 
     return LMWMaps(

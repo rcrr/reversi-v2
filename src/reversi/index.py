@@ -35,7 +35,7 @@ import numpy.typing as npt
 from pydantic import BeforeValidator
 
 
-__all__ = ['Index', 'IndexArray']
+__all__ = ['Index', 'IndexArray', 'ExtendedIndex', 'ExtendedIndexArray']
 
 #: Represents a reversi pattern index.
 Index: TypeAlias = np.uint32
@@ -50,3 +50,20 @@ def validate_index_array(v: any) -> any:
 
 #: A Pydantic-compatible type hint for Index (np.uint32) arrays.
 IndexArray = Annotated[npt.NDArray[np.uint32], BeforeValidator(validate_index_array)]
+
+
+#: The extended index space: the same index values as Index, plus the negative values (-1, -2, ...)
+#: which denote logical states of a feature configuration (the unseen-config sentinel in the weight
+#: maps, the no-config placeholder), not data.
+ExtendedIndex: TypeAlias = np.int64
+
+
+def validate_extended_index_array(v: any) -> any:
+    """Ensure a numpy array strictly uses the int64 dtype (scalars pass through)."""
+    if isinstance(v, np.ndarray) and v.dtype != np.int64:
+        raise ValueError(f"Array dtype must be int64, got {v.dtype}")
+    return v
+
+
+#: A Pydantic-compatible type hint for ExtendedIndex (np.int64) arrays.
+ExtendedIndexArray = Annotated[npt.NDArray[np.int64], BeforeValidator(validate_extended_index_array)]

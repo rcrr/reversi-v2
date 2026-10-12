@@ -114,7 +114,7 @@ class TestWrkPlot(unittest.TestCase):
         fs = FeatureSet("SYNTH_RLM04", intercept, mset, pset)
         offsets = np.concatenate(
             ([0], np.cumsum([f.n_configurations for f in fs.features]))
-        ).astype(np.uint32)
+        ).astype(Index)
         self.assertEqual(offsets.tolist(), [0, 1, 66, 6627])
         w_dense = rng.standard_normal(int(offsets[-1]), dtype=np.float32)
 

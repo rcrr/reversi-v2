@@ -1596,3 +1596,26 @@ D-524 | 2026-10-12 | The Index-notation sweep (Roberto's convention, after the D
          218 pinned on a 217-line file, now 218 = 217 + the import); verify\_hlp\_indexes (F1 312→313, F6 + the
          section-D data to Index, the import to the top block). Suite green via the R-210 wrapper; the 8 touched probes
          fully green; all 19 touched .py at the reflow fixpoint.
+
+D-525 | 2026-10-12 | The ExtendedIndex type + sweep (Roberto's call, after the D-524 investigation): index.py gains
+         ExtendedIndex (the np.int64 alias) + ExtendedIndexArray (the pydantic Annotated ndarray, the private
+         validate\_extended\_index\_array) — the index space where the NEGATIVE values (-1, -2, ...) are LOGICAL states
+         of a feature configuration (the unseen-config sentinel, the no-config placeholder), not data; \_\_all\_\_ = 4
+         names. The vocabulary line goes into naming.md §Index (Roberto's explicit call). Sweep: hlp\_wmaps (the 7
+         index-table sites: iwmap, w\_indices, the config-id index operands, feature\_w\_mapping, the fallback tables) +
+         hlp\_generate (4 config-id sites) + hlp\_analytics (2) + hlp\_design\_matrix (the explicit cast is now
+         astype(Index) — ExtendedIndex → Index, the D-524 placeholder is resolved); 11 test files (~34 sites: the iwmap
+         / wmap / feature\_w\_ranges fixtures, the synthetic compute\_indexes matrices). NEW offset rule (Roberto: "an
+         offset is the zero index of the feature" — agreed): the iwmap\_feature\_offset is Index in hlp\_wmaps + 7 test
+         files (the uint32 fixtures: pure notation); the int64 offset fixtures (test\_wrk\_validate x3,
+         test\_wrk\_analytics x1) STAY int64 — switching them to uint32 would change the synthetic pipeline's
+         intermediate dtypes (a separate call). UNTOUCHED by rule: the counts (su\_analysis, egv, iters/samples), the
+         bitboard signed-int domain (board.py), the generic u32/i64 I/O (binio), the pandas dtype strings (regab).
+         Probes: verify\_wmaps re-pinned (27 pins: the line counts +1 for the new imports, the 2 exact-line int64 pins
+         to ExtendedIndex; C1 disclosed stale since D-524: 362 pinned on a 363-line file). Mirror docs: index.md (the 2
+         new rows + the consumer note), hlp\_wmaps.md (the field table), hlp\_generate.md, hlp\_design\_matrix.md (X is
+         Index, the cast is ExtendedIndex → Index). test\_index: +5 mirror tests (10 total). One in-flight incident
+         disclosed: the import auto-insert split a parenthesized import in test\_client.py (syntax error, caught by the
+         reflow compile check, fixed) and test\_hlp\_design\_matrix needed its D-524 Index import extended to
+         ExtendedIndex (3 test errors on the first suite run, fixed, suite re-run green). Suite 1122/0/24 via the R-210
+         wrapper; the 7 touched probes fully green; all touched .py at the reflow fixpoint.

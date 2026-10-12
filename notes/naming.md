@@ -25,6 +25,8 @@ follow it.
 
 ## Index
 - `Index` = a numpy uint32 alias — used to identify feature configurations (base-3 in particular for patterns).
+- `ExtendedIndex` = a numpy int64 alias — the same index space as `Index`, plus the negative values (-1, -2, ...), which
+  denote logical states of a feature configuration (the unseen-config sentinel, the no-config placeholder), not data.
 
 ## D8 — the eight board symmetries
 

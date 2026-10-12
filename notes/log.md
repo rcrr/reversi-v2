@@ -136,4 +136,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - Il cast int64→uint32 di iwmap in hlp\_design\_matrix resta np.uint32 (chiamata di Roberto: gli int64 non si toccano,
   si pensa dopo).
 - In corso emersa la C1 STALE pre-D-524 (218 pin su file da 217 righe) — corretta a 217+1.
-- Suite via wrapper R-210 (LONG=1, DB live): 1117/0/24 GREEN (invariata — cambio puramente notazionale). I 8 probe toccati: all green.
+- Suite via wrapper R-210 (LONG=1, DB live): 1117/0/24 GREEN (invariata — cambio puramente notazionale). I 8 probe
+  toccati: all green.
+
+## 2026-10-12 — session 110 (D-525 — ExtendedIndex: the type for indexes with negative logical states)
+
+- Roberto's call: index.py gains ExtendedIndex (int64) + ExtendedIndexArray; the negative values (-1, -2) are LOGICAL
+  states of a feature configuration, not data. Vocabulary line added to naming.md §Index.
+- Sweep: 4 src modules (14 sites: wmaps, generate, analytics, design\_matrix) + 11 test files (~34 sites). New approved
+  rule: an offset IS an Index (the feature's zero index in the model's flat index space) — applied to hlp\_wmaps + 7
+  test files (the uint32 fixtures, pure notation). The int64 offset fixtures (wrk\_validate x3, wrk\_analytics x1) stay
+  int64: switching them would change the synthetic pipeline's intermediate dtypes (a separate call).
+- In-flight incidents, both fixed: the auto import-insert split a parenthesized import in test\_client.py (syntax error,
+  caught by the reflow compile check); test\_hlp\_design\_matrix needed its D-524 Index import extended to ExtendedIndex
+  (3 test errors on the first suite run).
+- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (1117 + 5 new
+  ExtendedIndex tests). The 7 touched probes: all green.

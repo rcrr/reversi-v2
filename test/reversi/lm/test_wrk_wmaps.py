@@ -54,6 +54,7 @@ from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from test.reversi.tags import db_long_gate
+from reversi.index import ExtendedIndex, Index
 
 
 
@@ -236,14 +237,14 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
         expected_fwr_shape = (F, 3)
         self.assertEqual(expected_fwr_shape, ctx.feature_w_ranges.shape)
 
-        expected_fwr = np.array([[-1, 0, 0], [1, 1, 4], [5, 5, 15], [16, 16, 20]], dtype=np.int64)
+        expected_fwr = np.array([[-1, 0, 0], [1, 1, 4], [5, 5, 15], [16, 16, 20]], dtype=ExtendedIndex)
         nptest.assert_array_equal(expected_fwr, ctx.feature_w_ranges)
 
         # Checking iwmap_feature_offset
         expected_iwmap_fo_shape = (F + 1,)
         self.assertEqual(expected_iwmap_fo_shape, ctx.iwmap_feature_offset.shape)
 
-        expected_iwmap_fo = np.array([0, 1, 66, 93, 174], dtype=np.uint32)
+        expected_iwmap_fo = np.array([0, 1, 66, 93, 174], dtype=Index)
         nptest.assert_array_equal(expected_iwmap_fo, ctx.iwmap_feature_offset)
 
         # Checking iwmap
@@ -257,7 +258,7 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, 17, -1, -1, 18, -1, -1, -1, -1, -1, -1,
               -1, 19, 20, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1], dtype=np.int64)
+              -1, -1, -1, -1, -1, -1], dtype=ExtendedIndex)
         nptest.assert_array_equal(expected_iwmap, ctx.iwmap)
 
         # Checking wmap
@@ -285,7 +286,7 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
              [ 3, 44,  3],
              [ 3, 52,  2],
              [ 3, 53,  2],
-             ], dtype=np.int64)
+             ], dtype=ExtendedIndex)
         nptest.assert_array_equal(expected_wmap, ctx.wmap)
 
         # Checking wmap_fallback
@@ -302,7 +303,7 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
              [ 2, 20,  1],
              [ 2, 23,  1],
              [ 3, 40,  1],
-             ], dtype=np.int64)
+             ], dtype=ExtendedIndex)
         nptest.assert_array_equal(expected_wmap_fallback, ctx.wmap_fallback)
 
         # Checking w (weights)

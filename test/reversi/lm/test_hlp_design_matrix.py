@@ -58,7 +58,7 @@ from reversi.lm.hlp_design_matrix import (LMDesignMatrix,
                                      hlp_design_matrix_load_from_file,
                                      hlp_design_matrix_is_cache_consistent)
 from test.reversi.paths import CUSTOM_TMP_BASE
-from reversi.index import Index
+from reversi.index import ExtendedIndex, Index
 
 
 class TestHlpDesignMatrixCompute(unittest.TestCase):
@@ -80,10 +80,10 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
         )
 
         # 2. Define the accumulated iwmap feature offsets [0, 3, 5]
-        self.ctx.iwmap_feature_offset = np.array([0, 3, 5], dtype=np.uint32)
+        self.ctx.iwmap_feature_offset = np.array([0, 3, 5], dtype=Index)
 
         # 3. Define the iwmap (length 5): F0 configs (0,1,2) -> w (1,0,0), F1 configs (0,1) -> w (2,3)
-        self.ctx.iwmap = np.array([1, 0, 0, 2, 3], dtype=np.int64)
+        self.ctx.iwmap = np.array([1, 0, 0, 2, 3], dtype=ExtendedIndex)
 
         # 4. Define a mock indexes matrix (Shape: N=4, I=3)
         self.ctx.hlp_indexes = SimpleNamespace(
@@ -139,7 +139,7 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
     def test_compute_rejects_invalid_pindex(self):
         """A pindex pointing at an iwmap slot without a weight (-1) raises."""
         # Feature 0 config 2 maps to no weight (the -1 sentinel)
-        self.ctx.iwmap = np.array([1, 0, -1, 2, 3], dtype=np.int64)
+        self.ctx.iwmap = np.array([1, 0, -1, 2, 3], dtype=ExtendedIndex)
         with self.assertRaises(ValueError) as context:
             hlp_design_matrix_compute(self.ctx)
         self.assertIn("pindexes is referring an invalid value", str(context.exception))

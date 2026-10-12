@@ -42,7 +42,8 @@ import unittest
 
 import numpy as np
 
-from reversi.index import Index, IndexArray, validate_index_array
+from reversi.index import (ExtendedIndex, ExtendedIndexArray, Index, IndexArray,
+                           validate_extended_index_array, validate_index_array)
 
 
 class TestIndex(unittest.TestCase):
@@ -71,6 +72,34 @@ class TestIndexArray(unittest.TestCase):
     def test_index_array_is_annotated(self):
         # The pydantic Annotated wrapper carries the BeforeValidator metadata.
         self.assertIn("BeforeValidator", str(IndexArray))
+
+
+class TestExtendedIndex(unittest.TestCase):
+    """The ExtendedIndex alias is np.int64 (the index space with the negative logical states)."""
+
+    def test_extended_index_is_int64(self):
+        self.assertIs(ExtendedIndex, np.int64)
+
+
+class TestExtendedIndexArray(unittest.TestCase):
+    """The ExtendedIndexArray validator: the ndarray dtype is enforced, non-arrays pass through."""
+
+    def test_rejects_non_int64_ndarray(self):
+        with self.assertRaises(ValueError) as context:
+            validate_extended_index_array(np.array([1, 2, 3], dtype=np.uint64))
+        self.assertIn("int64", str(context.exception))
+
+    def test_passes_int64_ndarray(self):
+        a = np.array([1, -2, 3], dtype=np.int64)
+        self.assertIs(validate_extended_index_array(a), a)
+
+    def test_passes_non_array(self):
+        v = np.int64(-1)
+        self.assertIs(validate_extended_index_array(v), v)
+
+    def test_extended_index_array_is_annotated(self):
+        # The pydantic Annotated wrapper carries the BeforeValidator metadata.
+        self.assertIn("BeforeValidator", str(ExtendedIndexArray))
 
 
 if __name__ == "__main__":

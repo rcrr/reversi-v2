@@ -73,6 +73,7 @@ from reversi.lm.hlp_gradient import sigmoid
 from test.reversi.closecheck import assert_close
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_long_gate, tier_vlong
+from reversi.index import Index
 
 
 def _masked_report_hash(report_text):
@@ -244,7 +245,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(mw.feature_set.hash, ctx.feature_set.hash)
 
         # Core inference arrays
-        np.testing.assert_array_equal(mw.iwmap_feature_offset, np.array([0, 1, 66, 6627], dtype=np.uint32))
+        np.testing.assert_array_equal(mw.iwmap_feature_offset, np.array([0, 1, 66, 6627], dtype=Index))
         self.assertEqual(mw.w_dense.shape, (6627,))
         self.assertEqual(mw.w_dense.dtype, np.float32)
         self.assertEqual(
@@ -557,7 +558,7 @@ class TestFullChainA2050(unittest.TestCase):
         np.testing.assert_array_equal(
             mw.iwmap_feature_offset,
             np.array([0, 1, 66, 59115, 118164, 124725, 144408, 150969, 151050,
-                      157611, 157854, 158583, 160770, 167331], dtype=np.uint32))
+                      157611, 157854, 158583, 160770, 167331], dtype=Index))
         self.assertEqual(mw.w_dense.shape, (167331,))
         self.assertEqual(mw.w_dense.dtype, np.float32)
         self.assertEqual(
@@ -688,7 +689,7 @@ class TestModelWeightsV2(unittest.TestCase):
             vld_metrics={'vld_samples': 10, 'vld_rmse_y': 1.0,
                          'vld_mae_y': 0.5, 'vld_loss': 0.0025},
             feature_set=FeatureSet("SYNTH_FS", None, None, None),
-            iwmap_feature_offset=np.array([0, 1, 2], dtype=np.uint32),
+            iwmap_feature_offset=np.array([0, 1, 2], dtype=Index),
             w_dense=np.array([0.1, 0.2, 0.3], dtype=np.float32),
         ), dump
 

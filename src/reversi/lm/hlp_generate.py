@@ -36,7 +36,7 @@ from pydantic import validate_call, ConfigDict
 
 from reversi.tools import binio
 from reversi.tools.state_machine import Relevance
-from reversi.index import Index
+from reversi.index import ExtendedIndex, Index
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -148,7 +148,7 @@ def hlp_generate_compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
 
             # True configs are those with config_id >= 0 in wmap
             true_configs_mask = f_wmap[:, 1] >= 0
-            known_configs = f_wmap[true_configs_mask, 1].astype(np.int64)
+            known_configs = f_wmap[true_configs_mask, 1].astype(ExtendedIndex)
 
             if len(known_configs) > 0:
                 # Get the specific weights for these true configs via iwmap
@@ -175,7 +175,7 @@ def hlp_generate_compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
             true_freqs = f_wmap[true_configs_mask, 2]
 
             # Get the weights for these true configs via iwmap
-            true_config_ids = f_wmap[true_configs_mask, 1].astype(np.int64)
+            true_config_ids = f_wmap[true_configs_mask, 1].astype(ExtendedIndex)
             w_indices = f_iwmap[true_config_ids]
             true_weights = w[w_indices]
 
@@ -208,7 +208,7 @@ def hlp_generate_compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
 
             # 3. Find the w_idx for each of these principal configurations Cast back to int64 for
             # safe indexing into f_iwmap
-            principal_w_indices = f_iwmap[principal_configs.astype(np.int64)]
+            principal_w_indices = f_iwmap[principal_configs.astype(ExtendedIndex)]
 
             # 4. Initialize the dense weights for this feature with the weighted_mean
             f_w_dense = np.full(f.n_configurations, weighted_mean, dtype=np.float32)
@@ -217,7 +217,7 @@ def hlp_generate_compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
             is_computed = (principal_w_indices >= 0) & (principal_w_indices != fallback)
 
             # 6. Propagate the principal weight to all symmetric configurations
-            f_w_dense[is_computed] = w[principal_w_indices[is_computed].astype(np.int64)]
+            f_w_dense[is_computed] = w[principal_w_indices[is_computed].astype(ExtendedIndex)]
 
             w_dense[start_idx:end_idx] = f_w_dense
 

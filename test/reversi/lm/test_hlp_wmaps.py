@@ -59,6 +59,7 @@ from reversi.lm.hlp_wmaps import (LMWMaps,
                                  hlp_wmaps_is_cache_consistent)
 from test.reversi.paths import CUSTOM_TMP_BASE
 from reversi.index import Index
+from reversi.index import ExtendedIndex, Index
 
 
 class TestHlpWmapsCompute(unittest.TestCase):
@@ -106,18 +107,18 @@ class TestHlpWmapsCompute(unittest.TestCase):
         self.assertEqual(len(wmaps.w), 4)  # Expected weights: 1 fallback + 1 above for F0, 2 above for F1
 
         # Check iwmap_feature_offset (accumulated n_configurations: [0, 3, 5])
-        nptest.assert_array_equal(wmaps.iwmap_feature_offset, np.array([0, 3, 5], dtype=np.uint32))
+        nptest.assert_array_equal(wmaps.iwmap_feature_offset, np.array([0, 3, 5], dtype=Index))
 
         # Check feature_w_ranges [fallback, w_min, w_max] F0: fallback=0, w_min=0, w_max=1 F1:
         # fallback=-1, w_min=2, w_max=3
         nptest.assert_array_equal(wmaps.feature_w_ranges, np.array([
             [0, 0, 1],
             [-1, 2, 3]
-        ], dtype=np.int64))
+        ], dtype=ExtendedIndex))
 
         # Check iwmap (length 5) F0 configs (0, 1, 2) -> 0 gets w=1, 1 gets w=0 (fallback), 2 gets
         # w=0 (fallback) F1 configs (0, 1)    -> 0 gets w=2, 1 gets w=3
-        nptest.assert_array_equal(wmaps.iwmap, np.array([1, 0, 0, 2, 3], dtype=np.int64))
+        nptest.assert_array_equal(wmaps.iwmap, np.array([1, 0, 0, 2, 3], dtype=ExtendedIndex))
 
         # Check wmap [fid, config_id, freq] w=0 (F0 fallback): config_id=-1, freq=2 (from configs 1
         # and 2) w=1 (F0 config 0): config_id=0, freq=2 w=2 (F1 config 0): config_id=0, freq=4 w=3
@@ -127,13 +128,13 @@ class TestHlpWmapsCompute(unittest.TestCase):
             [0,  0, 2],
             [1,  0, 4],
             [1,  1, 4]
-        ], dtype=np.int64))
+        ], dtype=ExtendedIndex))
 
         # Check wmap_fallback [fid, config_id, freq] F0 config 1 (freq 1) and F0 config 2 (freq 1)
         nptest.assert_array_equal(wmaps.wmap_fallback, np.array([
             [0, 1, 1],
             [0, 2, 1]
-        ], dtype=np.int64))
+        ], dtype=ExtendedIndex))
 
     def test_compute_nd_indexes_matches_1d(self):
         """
@@ -234,11 +235,11 @@ class TestHlpWmapsIO(unittest.TestCase):
         self.wmaps_original = LMWMaps(
             hlp_indexes_checksum="io_test_hash",
             cut_off=42,
-            feature_w_ranges=np.array([[0, 1, 2]], dtype=np.int64),
-            iwmap_feature_offset=np.array([0, 3], dtype=np.uint32),
-            iwmap=np.array([1, 0, 2], dtype=np.int64),
-            wmap=np.array([[0, 0, 10], [0, 1, 20]], dtype=np.int64),
-            wmap_fallback=np.array([[0, 2, 5]], dtype=np.int64),
+            feature_w_ranges=np.array([[0, 1, 2]], dtype=ExtendedIndex),
+            iwmap_feature_offset=np.array([0, 3], dtype=Index),
+            iwmap=np.array([1, 0, 2], dtype=ExtendedIndex),
+            wmap=np.array([[0, 0, 10], [0, 1, 20]], dtype=ExtendedIndex),
+            wmap_fallback=np.array([[0, 2, 5]], dtype=ExtendedIndex),
             w=np.array([0.1, 0.2, 0.3], dtype=np.float32)
         )
 
@@ -341,10 +342,10 @@ class TestHlpWmapsInit(unittest.TestCase):
         kwargs = dict(
             hlp_indexes_checksum="abc123",
             cut_off=5,
-            feature_w_ranges=np.array([[0, 0, 1]], dtype=np.int64),
-            iwmap_feature_offset=np.array([0, 2], dtype=np.uint32),
-            iwmap=np.array([0, 1], dtype=np.int64),
-            wmap=np.array([[0, 0, 3]], dtype=np.int64),
+            feature_w_ranges=np.array([[0, 0, 1]], dtype=ExtendedIndex),
+            iwmap_feature_offset=np.array([0, 2], dtype=Index),
+            iwmap=np.array([0, 1], dtype=ExtendedIndex),
+            wmap=np.array([[0, 0, 3]], dtype=ExtendedIndex),
             wmap_fallback=np.array([]),
             w=np.zeros(2, dtype=np.float32),
         )

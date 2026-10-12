@@ -39,7 +39,7 @@ from datetime import datetime
 from reversi.lm.hlp_anova import hlp_anova_adherence, hlp_anova_eta_omega
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
-from reversi.index import Index
+from reversi.index import ExtendedIndex, Index
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -160,7 +160,7 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
     f_wmap = ctx.wmap[f_wmap_mask]
     true_configs_mask = f_wmap[:, 1] >= 0
     true_freqs = f_wmap[true_configs_mask, 2]
-    true_config_ids = f_wmap[true_configs_mask, 1].astype(np.int64)
+    true_config_ids = f_wmap[true_configs_mask, 1].astype(ExtendedIndex)
     w_indices = ctx.iwmap[offset + true_config_ids]
     true_weights = ctx.w[w_indices]
     if len(true_weights) > 0 and np.sum(true_freqs) > 0:
@@ -313,7 +313,7 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
     f_wmap = ctx.wmap[f_wmap_mask]
     true_configs_mask = f_wmap[:, 1] >= 0
     true_freqs = f_wmap[true_configs_mask, 2]
-    true_config_ids = f_wmap[true_configs_mask, 1].astype(np.int64)
+    true_config_ids = f_wmap[true_configs_mask, 1].astype(ExtendedIndex)
     w_indices = ctx.iwmap[offset + true_config_ids]
     true_weights = ctx.w[w_indices]
     if len(true_weights) > 0 and np.sum(true_freqs) > 0:

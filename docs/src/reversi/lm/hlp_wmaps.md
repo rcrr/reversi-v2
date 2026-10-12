@@ -8,7 +8,7 @@ FOURTH cache_manager consumer after SU_ANALYSIS, POSITIONS and INDEXES.
 
 | name | contract |
 |---|---|
-| `LMWMaps` | plain class — 8 fields, assigned BY REFERENCE: `hlp_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) int64 [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) uint32, `iwmap` (K,) int64 (−1 = unseen configuration), `wmap` (W,3) int64 [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) int64, `w` (W,) float32 zeros |
+| `LMWMaps` | plain class — 8 fields, assigned BY REFERENCE: `hlp_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) ExtendedIndex [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) Index, `iwmap` (K,) ExtendedIndex (−1 = unseen configuration), `wmap` (W,3) ExtendedIndex [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) ExtendedIndex, `w` (W,) float32 zeros |
 | `hlp_wmaps_store_to_file(wmaps, filename, compressed=True)` | binio write: header + the checksum string + the i32 cut_off + the 6 arrays in declaration order; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
 | `hlp_wmaps_load_from_file(filename, checksum=True, compressed=True)` | the sidecar verify (when enabled) first, then the LZ4 guard + decompress, the header gate (description + version) + read back a fresh object |
 | `hlp_wmaps_compute(ctx)` | builds a fresh object from the ctx pindexes (NO `@validate_call` — see Conventions) |

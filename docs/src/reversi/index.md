@@ -9,13 +9,16 @@ logic, no Numba — numpy + pydantic only.
 |---|---|
 | `Index` | type alias `np.uint32` — a base-3 configuration index (safe because S ≤ 18) |
 | `IndexArray` | annotated ndarray; the BeforeValidator (`validate_index_array`, private) requires uint32 for ndarrays, scalars pass through |
+| `ExtendedIndex` | type alias `np.int64` — the same index space as `Index`, plus the negative values (-1, -2, ...) which denote LOGICAL states of a feature configuration (the unseen-config sentinel, the no-config placeholder), not data |
+| `ExtendedIndexArray` | annotated ndarray; the BeforeValidator (`validate_extended_index_array`, private) requires int64 for ndarrays, scalars pass through |
 
 ## Architecture
 
-- `Index: TypeAlias = np.uint32`; `validate_index_array(v)` raises `ValueError` on a non-uint32 ndarray and passes
-  everything else through; `IndexArray = Annotated[npt.NDArray[np.uint32], BeforeValidator(validate_index_array)]`.
-- `__all__` = [Index, IndexArray] — `validate_index_array` is OUT of `__all__` (wired only through the Annotated
-  metadata).
+- `Index: TypeAlias = np.uint32`; `ExtendedIndex: TypeAlias = np.int64`; the two private validators raise
+  `ValueError` on a non-matching ndarray and pass everything else through; `IndexArray` / `ExtendedIndexArray` are the
+  matching `Annotated[NDArray[...], BeforeValidator(...)]` aliases.
+- `__all__` = [Index, IndexArray, ExtendedIndex, ExtendedIndexArray] — the validators are OUT of `__all__` (wired only
+  through the Annotated metadata).
 
 ## Verified invariants
 
@@ -37,4 +40,7 @@ None.
 
 - Consumers: `pattern` (the base-3 kernels + the principal-index API), `mobility` (the `compute_indexes` return
   type), `feature` (the `FeatureSet.compute_indexes` return type), `hlp_indexes` (the dataclass field),
-  `hlp_su_analysis` (the chunk-matrix parameters).
+  `hlp_su_analysis` (the chunk-matrix parameters); `ExtendedIndex` is the home type of the weight-map index tables
+  (`hlp_wmaps`: iwmap / wmap / feature_w_ranges, the -1 sentinels), the config-id index operands
+  (`hlp_generate`, `hlp_analytics`), and the feature offsets (the model-space index of a feature's first
+  configuration).

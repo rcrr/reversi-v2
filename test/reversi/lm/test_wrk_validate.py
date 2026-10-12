@@ -59,6 +59,7 @@ from test.reversi.closecheck import assert_close
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_long_gate
 from reversi.board import Position
+from reversi.index import ExtendedIndex
 
 
 
@@ -192,7 +193,7 @@ class TestValidateModelUnit(unittest.TestCase):
             vld_positions=np.zeros(len(game_values), dtype=np.uint64),
             vld_game_values=np.asarray(game_values, dtype=np.int8),
             feature_set=SimpleNamespace(
-                compute_indexes=lambda p: np.asarray(indexes, dtype=np.int64),
+                compute_indexes=lambda p: np.asarray(indexes, dtype=ExtendedIndex),
                 features=[SimpleNamespace(n_instances=len(offsets) - 1)]),
             iwmap_feature_offset=np.asarray(offsets, dtype=np.int64),
             w_dense=np.asarray(w_dense, dtype=np.float64),
@@ -262,7 +263,7 @@ class TestValidateModelUnit(unittest.TestCase):
         ctx.vld_positions = np.zeros(n, dtype=Position)
         ctx.vld_game_values = np.arange(-25, 25, dtype=np.int8)
         ctx.feature_set = SimpleNamespace(
-            compute_indexes=lambda p: np.zeros((n, 1), dtype=np.int64),
+            compute_indexes=lambda p: np.zeros((n, 1), dtype=ExtendedIndex),
             features=[SimpleNamespace(n_instances=1)])
         ctx.iwmap_feature_offset = np.asarray([0, 1], dtype=np.int64)
         ctx.w_dense = np.asarray([0.0], dtype=np.float64)
@@ -302,7 +303,7 @@ class TestValidateModelUnit(unittest.TestCase):
         ctx.vld_positions = np.zeros(2, dtype=Position)
         ctx.vld_game_values = np.asarray([0, 0], dtype=np.int8)
         ctx.feature_set = SimpleNamespace(
-            compute_indexes=lambda p: np.asarray([[0, 1], [1, 0]], dtype=np.int64),
+            compute_indexes=lambda p: np.asarray([[0, 1], [1, 0]], dtype=ExtendedIndex),
             features=[SimpleNamespace(n_instances=2)])
         ctx.iwmap_feature_offset = np.asarray([0, 2], dtype=np.int64)
         ctx.w_dense = np.asarray([0.0, 0.0], dtype=np.float64)

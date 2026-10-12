@@ -51,7 +51,7 @@ Pinned by the 18-check `probes/verify_generate.py` + the 21-test pair (18 no-DB 
   golden `ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15b4`.
 - The inference semantics: unseen + fallback configs take the weighted mean, NOT the trained fallback weight — pinned by
   the mock golden (unseen → −0.2, probe D11), by the live E5 re-derivation + the pattern INFO-log test.
-- The uint32 pattern-config cast: `np.arange(..., dtype=np.uint32)` is mandatory — `convert_to_principal_index` takes a
+- The pattern-config cast: `np.arange(..., dtype=Index)` is mandatory — `convert_to_principal_index` takes a
   pydantic-validated uint32 array (the live re-derivation exercises it).
 - The blackboard fields `w_dense: Any = None` + `dense_w_checksum: str | None = None` are pre-declared on LMContext
   (probe F1 pins the two declaration lines).
