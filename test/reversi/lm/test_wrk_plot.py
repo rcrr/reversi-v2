@@ -56,7 +56,7 @@ from reversi.lm.hlp_plot import PLOT_NAMES
 from reversi.lm.logistic_model import LMContext
 from reversi.lm.wrk_plot import wrk_plot
 from reversi.lm.hlp_validate import validate_model
-from reversi.lm.hlp_analytics import compute_training_dense_metrics
+from reversi.lm.hlp_analytics import hlp_analytics_compute_training_dense_metrics
 from test.reversi.paths import CUSTOM_TMP_BASE
 
 SEED = 42
@@ -157,7 +157,7 @@ class TestWrkPlot(unittest.TestCase):
         ctx.vld_game_values = vld_game_values
         # The series the pipeline publishes (ANALYTICS + VALIDATE) and PLOT only assembles, never
         # re-derives — here computed with the same functions, on the synthetic state.
-        ctx.train_dense_rn = compute_training_dense_metrics(ctx).rn_y
+        ctx.train_dense_rn = hlp_analytics_compute_training_dense_metrics(ctx).rn_y
         _vr = validate_model(ctx)
         ctx.vld_y_pred, ctx.vld_rn = _vr.y_pred, _vr.rn_y
         ctx.log_event = lambda relevance, message: \

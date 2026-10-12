@@ -54,3 +54,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - Suite via wrapper R-210 (LONG=1, DB live, per D-517): 1115/0/24 GREEN.
   il re-review del register e il testo della guard rule R-200 — entrambi a chiamata di Roberto).
 - Su richiesta di Roberto: rimossa dall'overview (Current state) la bullet dello stato piattaforma (la narrativa env-drift del re-pin D-515): irrilevante, e la piattaforma è già registrata in Environment.
+
+## 2026-10-12 — session 103 (D-518 — rename dell'API pubblica di hlp\_analytics alla convenzione hlp\_ + fix della docstring del dataclass)
+
+- Su richiesta di Roberto: i 4 nomi pubblici di hlp\_analytics riprefissati col prefisso del modulo
+  (hlp\_analytics\_compute\_training\_metrics, hlp\_analytics\_compute\_training\_dense\_metrics,
+  hlp\_analytics\_format\_console\_report, hlp\_analytics\_format\_file\_report) e la classe
+  TrainingDenseResult → AnalyticsTrainingDenseResult. Aggiornati tutti i consumatori: wrk\_analytics,
+  test\_wrk\_analytics, test\_wrk\_plot e il probe verify\_analytics (import/call + il golden
+  \_\_all\_\_ del check A1; le prose storiche delle descrizioni dei check restano col nome originale).
+- Fix docstring AnalyticsTrainingDenseResult: la descrizione del parametro rn\_y andava a capo lasciando il
+  frammento "(one derivation, published by ANALYTICS)" orfano sulla sua riga — ora un wrap pulito su 2 righe.
+- I 2 mirror doc (hlp\_analytics.md + wrk\_analytics.md) aggiornati ai nuovi nomi; i 4 .py al punto fisso reflow.
+- Suite via wrapper R-210 (LONG=1, DB live, per D-518): 1115/0/24 GREEN. Probe verify\_analytics: all checks
+  passed.

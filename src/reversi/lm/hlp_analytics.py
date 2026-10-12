@@ -45,8 +45,9 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['TrainingDenseResult', 'compute_training_metrics', 'compute_training_dense_metrics',
-           'format_console_report', 'format_file_report']
+__all__ = ['AnalyticsTrainingDenseResult', 'hlp_analytics_compute_training_metrics',
+           'hlp_analytics_compute_training_dense_metrics', 'hlp_analytics_format_console_report',
+           'hlp_analytics_format_file_report']
 
 
 #: The SU sample consistency verdict bands (the TV thresholds): TV <= _SU_TV_CONSISTENT is
@@ -543,7 +544,7 @@ def _format_header(ctx: "LMContext", detailed: bool = False) -> str:
     return header
 
 
-def format_console_report(ctx: "LMContext") -> str:
+def hlp_analytics_format_console_report(ctx: "LMContext") -> str:
     """Formats the short summary report for console output."""
     return _format_header(ctx, detailed=False)
 
@@ -569,7 +570,7 @@ def _format_intercept_section(ctx: "LMContext") -> str:
     )
 
 
-def format_file_report(ctx: "LMContext") -> str:
+def hlp_analytics_format_file_report(ctx: "LMContext") -> str:
     """Formats the complete detailed report for TXT file output."""
     report = _format_header(ctx, detailed=True)
 
@@ -604,7 +605,7 @@ def format_file_report(ctx: "LMContext") -> str:
     return report
 
 
-def compute_training_metrics(ctx: "LMContext") -> Dict[str, float | int]:
+def hlp_analytics_compute_training_metrics(ctx: "LMContext") -> Dict[str, float | int]:
     """
     Computes MAE(y) and RMSE(y) on the training set using the optimized weights (w). Also computes
     baseline (population mean) metrics for comparison.
@@ -645,19 +646,18 @@ def compute_training_metrics(ctx: "LMContext") -> Dict[str, float | int]:
 
 
 @dataclass
-class TrainingDenseResult:
+class AnalyticsTrainingDenseResult:
     """
     The dense training forward pass: the metrics plus the per-position residuals it is computed from.
 
     metrics: the 4-key dict (the analytics report contract, unchanged). rn_y: the residuals in Y
-    (the f64 view) — the series PLOT renders
-        (one derivation, published by ANALYTICS).
+    (the f64 view) — the series PLOT renders (one derivation, published by ANALYTICS).
     """
     metrics: Dict[str, float | int]
     rn_y: np.ndarray
 
 
-def compute_training_dense_metrics(ctx: "LMContext") -> TrainingDenseResult:
+def hlp_analytics_compute_training_dense_metrics(ctx: "LMContext") -> AnalyticsTrainingDenseResult:
     """
     Computes MAE(y), RMSE(y) and the Z-space loss on the training set using the DENSE weights
     (w_dense) — the exact forward pass of the saved model (the client inference rules). The TRAINING
@@ -689,7 +689,7 @@ def compute_training_dense_metrics(ctx: "LMContext") -> TrainingDenseResult:
     rn_z = z_pred - z_true
     loss = 0.5 * (np.dot(rn_z, rn_z) / len(rn_z))
 
-    return TrainingDenseResult(
+    return AnalyticsTrainingDenseResult(
         metrics={
             'train_dense_mae_y': float(mae_y),
             'train_dense_rmse_y': float(rmse_y),

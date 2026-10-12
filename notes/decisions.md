@@ -1508,3 +1508,14 @@ D-517 | 2026-10-11 | The TEST sources format sweep — the "Verify all the TEST 
          the house shape; the 12 non-imperative docstring openings fixed. End state: 0 over-120 lines, 0 D-XXX/I-XXX in
          the .py sources, 51/51 at the reflow fixpoint; both Next-steps items removed from the overview (the worker side
          covered by the completed D-494..D-512 cascade). Suite green at every commit via the R-210 wrapper (1115/0/24).
+
+D-518 | 2026-10-12 | The hlp\_analytics public API renamed to the hlp\_ module-prefix convention (Roberto's call): the 4
+         public functions become hlp\_analytics\_{compute\_training\_metrics, compute\_training\_dense\_metrics,
+         format\_console\_report, format\_file\_report} and the dataclass becomes AnalyticsTrainingDenseResult (the
+         Analytics prefix keeps the class unambiguous at the use sites). All the consumers updated: wrk\_analytics (the
+         import + the 4 call sites), test\_wrk\_analytics, test\_wrk\_plot, and the probe verify\_analytics (the imports
+         / call sites + the check-A1 golden \_\_all\_\_ string; the check descriptions' history prose naming the
+         original names stays). With it, the AnalyticsTrainingDenseResult docstring fix: the rn\_y parameter description
+         wrapped leaving the "(one derivation, published by ANALYTICS)" fragment dangling on its own line — now a clean
+         2-line wrap. The two mirror docs (hlp\_analytics.md + wrk\_analytics.md) carry the new names. All 4 .py files
+         at the reflow fixpoint; the suite green via the R-210 wrapper (1115/0/24); the probe fully green.

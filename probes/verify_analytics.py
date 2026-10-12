@@ -84,8 +84,9 @@ check("A1 Worker named ANALYTICS + __all__ + the public data names "
       "TrainingDenseResult dataclass)",
       'Worker("ANALYTICS", _up, _down)' in wk_src
       and "__all__ = ['wrk_analytics']" in wk_src
-      and "__all__ = ['TrainingDenseResult', 'compute_training_metrics', 'compute_training_dense_metrics',\n"
-      "           'format_console_report', 'format_file_report']" in dv_src)
+      and "__all__ = ['AnalyticsTrainingDenseResult', 'hlp_analytics_compute_training_metrics',\n"
+      "           'hlp_analytics_compute_training_dense_metrics', 'hlp_analytics_format_console_report',\n"
+      "           'hlp_analytics_format_file_report']" in dv_src)
 check("A2 the factory is @validate_call-decorated + pydantic imported "
       "(all 18 sibling worker factories — the D-102 T1 pattern; "
       "pre-campaign: missing)",
@@ -174,7 +175,7 @@ else:
     from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
     from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-    from reversi.lm.hlp_analytics import format_file_report
+    from reversi.lm.hlp_analytics import hlp_analytics_format_file_report
 
     CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
@@ -254,9 +255,9 @@ else:
             FILE_HASH = hashlib.sha3_256(masked.encode()).hexdigest()
             print(f"       file report golden (date-masked sha3_256): {FILE_HASH}")
             recomputed = re.sub(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", "DATE",
-                                format_file_report(ctx))
+                                hlp_analytics_format_file_report(ctx))
             check("C5b the file report is deterministic (date-masked) — "
-                  "recompute via format_file_report and compare",
+                  "recompute via hlp_analytics_format_file_report and compare",
                   hashlib.sha3_256(recomputed.encode()).hexdigest() == FILE_HASH)
         # (C6 deleted at D-106 step 3, class c: the 17 header lines +
         #  the 4 worker/data INFO lines are pinned by
@@ -360,9 +361,9 @@ else:
 # ----------------------------------------------------------------------
 # D. unit facts (no DB) — the full metric math on a hand-computed case
 # ----------------------------------------------------------------------
-from reversi.lm.hlp_analytics import (compute_training_metrics,
-                                 compute_training_dense_metrics,
-                                 format_console_report)
+from reversi.lm.hlp_analytics import (hlp_analytics_compute_training_metrics,
+                                 hlp_analytics_compute_training_dense_metrics,
+                                 hlp_analytics_format_console_report)
 
 
 def fake_ctx(game_values, design_matrix, w, opt_info):
@@ -383,7 +384,7 @@ def fake_ctx(game_values, design_matrix, w, opt_info):
 # game [10,-10]: rn_y [-10,10]: mae 10, rmse 10. pop baseline: y_mean 0 ->
 # pop_mae 10, pop_rmse 10. z_true [0.578125, 0.421875]: z_mean 0.5,
 # rn_z_pop +/-0.078125: pop_loss 0.5*2*(0.078125^2)/2 = 0.0030517578125.
-_d = compute_training_metrics(fake_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0],
+_d = hlp_analytics_compute_training_metrics(fake_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0],
                                        {"f": 0.123}))
 check("D1 the full training-metric math on the hand-computed 2-position case: "
       "mae_y 10.0, rmse_y 10.0, train_loss 0.123 (opt_info['f']), samples 2, "
@@ -392,12 +393,12 @@ check("D1 the full training-metric math on the hand-computed 2-position case: "
              "train_samples": 2, "pop_mae_y": 10.0, "pop_rmse_y": 10.0,
              "pop_loss": 0.0030517578125},
       f"got {_d}")
-_d2 = compute_training_metrics(fake_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0],
+_d2 = hlp_analytics_compute_training_metrics(fake_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0],
                                         None))
 check("D2 the opt_info None branch: train_loss falls back to 0.0",
       _d2["train_loss"] == 0.0 and _d2["train_mae_y"] == 10.0)
 _D3_HASH = ("0123456789abcdef" * 4)
-_h = format_console_report(SimpleNamespace(
+_h = hlp_analytics_format_console_report(SimpleNamespace(
     cfg=SimpleNamespace(name="HandCase"),
     w=np.zeros(4, dtype=np.float32),
     w_dense=np.zeros(10, dtype=np.float32),
@@ -441,7 +442,7 @@ def fake_dense_ctx(game_values, indexes, w_dense, offsets, n_instances):
         log_event=lambda rel, msg: None)
 
 
-_dd = compute_training_dense_metrics(
+_dd = hlp_analytics_compute_training_dense_metrics(
     fake_dense_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0], [0, 2], 2)).metrics
 check("D4 the dense-pass metric math on the hand-computed 2-position case "
       "(D-105/M2): mae_y 10.0, rmse_y 10.0, loss 0.0030517578125, samples 2",

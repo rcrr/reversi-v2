@@ -17,10 +17,10 @@ semantics; `_down` does NOT unlink it). The machine contract: `_up` publishes th
 
 - Imports: pydantic, `Worker, Relevance`, the 4 public data functions from hlp_analytics, `LMContext` under
   TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by design).
-- `_up`: `log_event(INFO, "Generating model analytics report...")`; `ctx.train_metrics = compute_training_metrics(ctx)`
-  (pre-declared on LMContext); `dense = compute_training_dense_metrics(ctx)` → `ctx.train_dense_metrics = dense.metrics`
-  + `ctx.train_dense_rn = dense.rn_y` (both pre-declared on LMContext); `console_report = format_console_report(ctx)`;
-  the 18 header lines logged line by line; `file_report = format_file_report(ctx)` written to
+- `_up`: `log_event(INFO, "Generating model analytics report...")`; `ctx.train_metrics = hlp_analytics_compute_training_metrics(ctx)`
+  (pre-declared on LMContext); `dense = hlp_analytics_compute_training_dense_metrics(ctx)` → `ctx.train_dense_metrics = dense.metrics`
+  + `ctx.train_dense_rn = dense.rn_y` (both pre-declared on LMContext); `console_report = hlp_analytics_format_console_report(ctx)`;
+  the 18 header lines logged line by line; `file_report = hlp_analytics_format_file_report(ctx)` written to
   `ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name`; `log_event(INFO, "Analytics report saved to ...")`;
   publishes `ctx.analytics_report = console_report` ("Store in context if needed by the SAVE worker later").
 - `_down`: logs "Clearing analytics attributes..." then clears the FOUR attributes to None — the scope is complete:
@@ -59,7 +59,7 @@ None.
 
 - The no-cache design is a deviation from the uniform 7-kwargs `cache_manager` wiring — intentional (the rlmwf_15 slot
   stays unused like 02/09/10).
-- The 2 data-module INFO lines come from hlp_analytics (compute_training_metrics + compute_training_dense_metrics) —
+- The 2 data-module INFO lines come from hlp_analytics (hlp_analytics_compute_training_metrics + hlp_analytics_compute_training_dense_metrics) —
   consistent with hlp_validate.
 - `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine): a bare SimpleNamespace is rejected (the
   D-tier probe fakes use it only for the data functions).

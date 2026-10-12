@@ -52,7 +52,7 @@ from pathlib import Path
 
 import numpy as np
 
-from reversi.lm.hlp_analytics import format_file_report
+from reversi.lm.hlp_analytics import hlp_analytics_format_file_report
 from reversi.lm.hlp_anova import hlp_anova_adherence
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
@@ -494,7 +494,7 @@ class TestSuSampleColumns(unittest.TestCase):
         # header line.
         ctx, _ = _make_su_ctx(self.tmp, 300)
         ctx.su_analysis_tables = None
-        rep = format_file_report(ctx)
+        rep = hlp_analytics_format_file_report(ctx)
         self.assertNotIn("PROBABILITY", rep)
         self.assertNotIn("SU Sample Consistency", rep)
 
@@ -502,7 +502,7 @@ class TestSuSampleColumns(unittest.TestCase):
         # The corpus = 3x the training counts (the TV 0.0 match, the hand-computed chi2 0.0 / p
         # 1.0): the columns + the 5 CONSISTENT lines (the 2-code mock makes all 5 identical).
         ctx, blocks = _make_su_ctx(self.tmp, 300, 'match')
-        rep = format_file_report(ctx)
+        rep = hlp_analytics_format_file_report(ctx)
         self.assertIn("| PROBABILITY | SU_PROBABILITY |", rep)
         self.assertIn(_expected_su_line(ctx, 'LMC', blocks), rep)
         self.assertEqual(
@@ -513,7 +513,7 @@ class TestSuSampleColumns(unittest.TestCase):
         # The 9-count 0 -> 1 LMC shift (the hand-computed TV 0.03, the chi2 9/47 + 9/53 = 0.3613):
         # the LMC line is MARGINAL, the other 4 features stay CONSISTENT.
         ctx, blocks = _make_su_ctx(self.tmp, 300, 'marginal')
-        rep = format_file_report(ctx)
+        rep = hlp_analytics_format_file_report(ctx)
         self.assertIn(_expected_su_line(ctx, 'LMC', blocks), rep)
         self.assertIn(
             "TV 0.0300  chi2 0.4 (p 5.48e-01, merged 0)  ->  MARGINAL",
@@ -525,7 +525,7 @@ class TestSuSampleColumns(unittest.TestCase):
         # The one-point LMC corpus mass: the DB observes codes the corpus never shows (the
         # chi-square inf, the p 0) + the hand-computed TV 0.5 -> DEVIATING.
         ctx, blocks = _make_su_ctx(self.tmp, 300, 'deviating')
-        rep = format_file_report(ctx)
+        rep = hlp_analytics_format_file_report(ctx)
         self.assertIn(_expected_su_line(ctx, 'LMC', blocks), rep)
         self.assertIn(
             "TV 0.5000  chi2 inf (p 0.00e+00, merged 1)  ->  DEVIATING",
@@ -536,7 +536,7 @@ class TestSuSampleColumns(unittest.TestCase):
     def test_too_small(self):
         # The corpus under 2x the training size (3 < 200): the N/A header note, no columns, the 135 separator.
         ctx, _ = _make_su_ctx(self.tmp, 3, 'match')
-        rep = format_file_report(ctx)
+        rep = hlp_analytics_format_file_report(ctx)
         self.assertIn(
             "  SU Sample Consistency       : N/A (SU corpus too small: "
             "3 < 2x training 100)", rep)
@@ -561,7 +561,7 @@ class TestSuSampleColumns(unittest.TestCase):
         # PROBABILITY is 100/n_conf, the SU_PROBABILITY 300/n_conf (the 3x corpus).
         prob = 100.0 * 1 / n_conf
         su_p = 100.0 * pool[0] / corpus_total
-        rep = format_file_report(ctx)
+        rep = hlp_analytics_format_file_report(ctx)
         # The LMC table's column-header line (the mobility layout).
         self.assertIn("| PROBABILITY | SU_PROBABILITY |", rep)
         # The exact probability cells (49 rows share them).
@@ -586,7 +586,7 @@ class TestSuSampleColumns(unittest.TestCase):
         fid = ctx.feature_set.features.index(ctx.feature_set.intercept)
         w_idx = int(ctx.iwmap[int(ctx.iwmap_feature_offset[fid])])
         expected = f"  {'Weight (w)':<28}: {float(ctx.w[w_idx]):+.4f}"
-        rep = format_file_report(ctx)
+        rep = hlp_analytics_format_file_report(ctx)
         self.assertIn("INTERCEPT:", rep)
         self.assertIn(expected, rep)
         # The section precedes the MOBILITY details.
@@ -598,7 +598,7 @@ class TestSuSampleColumns(unittest.TestCase):
         # INTERCEPT section.
         ctx, _ = _make_su_ctx(self.tmp, 300, 'match')
         ctx.feature_set.intercept = None
-        rep = format_file_report(ctx)
+        rep = hlp_analytics_format_file_report(ctx)
         self.assertNotIn("INTERCEPT:", rep)
 
 

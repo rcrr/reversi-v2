@@ -32,9 +32,10 @@ from pydantic import validate_call, ConfigDict
 from typing import TYPE_CHECKING
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_analytics import (compute_training_metrics,
-                                       compute_training_dense_metrics,
-                                       format_console_report, format_file_report)
+from reversi.lm.hlp_analytics import (hlp_analytics_compute_training_metrics,
+                                       hlp_analytics_compute_training_dense_metrics,
+                                       hlp_analytics_format_console_report,
+                                       hlp_analytics_format_file_report)
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -54,20 +55,20 @@ def _up(ctx: "LMContext") -> None:
 
     # 1. Compute and store training metrics in context (the compressed pass — what lbfgs fit — and
     # the dense pass, the shipped inference rules)
-    ctx.train_metrics = compute_training_metrics(ctx)
-    dense = compute_training_dense_metrics(ctx)
+    ctx.train_metrics = hlp_analytics_compute_training_metrics(ctx)
+    dense = hlp_analytics_compute_training_dense_metrics(ctx)
     ctx.train_dense_metrics = dense.metrics
     ctx.train_dense_rn = dense.rn_y
 
     # 2. Format the console report
-    console_report = format_console_report(ctx)
+    console_report = hlp_analytics_format_console_report(ctx)
 
     # 3. Log the report line by line so it shows up in the StateMachine logs
     for line in console_report.strip().split('\n'):
         ctx.log_event(Relevance.INFO, line)
 
     # 4. Save the complete report to a text file using the config filename
-    file_report = format_file_report(ctx)
+    file_report = hlp_analytics_format_file_report(ctx)
     report_path = ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(file_report)

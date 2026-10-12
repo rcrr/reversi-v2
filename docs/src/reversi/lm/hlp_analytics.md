@@ -1,6 +1,6 @@
 # reversi/lm/hlp_analytics.py
 The ANALYTICS data module — the 15th step, the 3rd data module of a non-cache level (like hlp_gradient / hlp_validate):
-5 public names (4 functions + the `TrainingDenseResult` dataclass) + 7 private helpers, NO store/load, NO cache_manager.
+5 public names (4 functions + the `AnalyticsTrainingDenseResult` dataclass) + 7 private helpers, NO store/load, NO cache_manager.
 Computes the training-side metrics (the COMPRESSED forward pass over `ctx.w`, what the optimizer trained, and the DENSE
 one over `ctx.w_dense`) and formats the two report variants (18-line console header — with the Config SHA3-256
 fingerprint line; complete file report with the per-feature tables + the optional SU sample columns + the INTERCEPT
@@ -9,11 +9,11 @@ section when the feature set has an intercept).
 ## API
 | name | contract |
 |---|---|
-| `TrainingDenseResult` | the dense-pass dataclass: the 4-key `metrics` dict (the `train_dense_*` analytics report contract) + the f64 `rn_y` residual series (the PLOT input, published by the worker as `ctx.train_dense_rn`) |
-| `compute_training_metrics(ctx)` | the COMPRESSED forward pass → the 7-key train/pop dict (`Dict[str, float \| int]`); ONE INFO log line |
-| `compute_training_dense_metrics(ctx)` | the DENSE forward pass → a `TrainingDenseResult` (the 4-key metrics dict + the f64 `rn_y` series) — the 4 keys are `train_dense_{mae_y, rmse_y, loss, samples}` dict; the loss is the PURE 0.5·mean(rn_z²) (the ridge lives on the compressed side); ONE INFO log line |
-| `format_console_report(ctx)` | the 18-line header report, no date, no tables (the `Config SHA3-256` line, the `ctx.config_checksum` fingerprint) |
-| `format_file_report(ctx)` | the complete report: detailed header (same 18-line common block) + FEATURE SET SUMMARY + the INTERCEPT section (when present) + the MOBILITY / PATTERN FEATURES DETAILS sections |
+| `AnalyticsTrainingDenseResult` | the dense-pass dataclass: the 4-key `metrics` dict (the `train_dense_*` analytics report contract) + the f64 `rn_y` residual series (the PLOT input, published by the worker as `ctx.train_dense_rn`) |
+| `hlp_analytics_compute_training_metrics(ctx)` | the COMPRESSED forward pass → the 7-key train/pop dict (`Dict[str, float \| int]`); ONE INFO log line |
+| `hlp_analytics_compute_training_dense_metrics(ctx)` | the DENSE forward pass → a `AnalyticsTrainingDenseResult` (the 4-key metrics dict + the f64 `rn_y` series) — the 4 keys are `train_dense_{mae_y, rmse_y, loss, samples}` dict; the loss is the PURE 0.5·mean(rn_z²) (the ridge lives on the compressed side); ONE INFO log line |
+| `hlp_analytics_format_console_report(ctx)` | the 18-line header report, no date, no tables (the `Config SHA3-256` line, the `ctx.config_checksum` fingerprint) |
+| `hlp_analytics_format_file_report(ctx)` | the complete report: detailed header (same 18-line common block) + FEATURE SET SUMMARY + the INTERCEPT section (when present) + the MOBILITY / PATTERN FEATURES DETAILS sections |
 
 ## Architecture
 - `_format_intercept_section`: the INTERCEPT section, emitted only when the feature set has an
@@ -57,19 +57,19 @@ section when the feature set has an intercept).
   `ctx.vld_metrics` (N/A triple + gaps 0.0 when None); then the Population (baseline) line, the Generalization Gap
   (vld_rmse − train_dense_rmse — DENSE vs DENSE) and the Substitution Delta (train_dense_rmse − train_rmse — 0 at cut=1
   up to f32 rounding, "-0.00" on rlm_02/rlm_03).
-- `format_file_report`: the per-table `print_rows` = the feature name is in `ctx.cfg.analytics.detailed_report`
+- `hlp_analytics_format_file_report`: the per-table `print_rows` = the feature name is in `ctx.cfg.analytics.detailed_report`
   (non-optional field with a `default_factory`); `col_offset` accumulates over ALL features (intercept included) to line
   the column slices up with `ctx.hlp_indexes.indexes`.
-- `compute_training_metrics`: the compressed forward pass —
+- `hlp_analytics_compute_training_metrics`: the compressed forward pass —
   `np.sum(ctx.w[ctx.design_matrix].astype(np.float64), axis=1)` → `sigmoid` (reused) → `ctx.z2y`; `y_pred` vs
   `ctx.game_values`: `train_mae_y` / `train_rmse_y`; the population baseline: `pop_mae_y` / `pop_rmse_y` / `pop_loss`
   (0.5·mean squared z residuals via `ctx.y2z`); `train_loss = opt_info['f']` (0.0 when `opt_info` is None).
-- `compute_training_dense_metrics`: the DENSE forward pass — the hlp_validate expanded-offsets idiom
+- `hlp_analytics_compute_training_dense_metrics`: the DENSE forward pass — the hlp_validate expanded-offsets idiom
   (`col_offsets = np.repeat(...)`, `dense_indices = ctx.hlp_indexes.indexes + col_offsets`) → `sigmoid` → `ctx.z2y`.
 
 ## Verified invariants
 Pinned by `probes/verify_analytics.py` (36 checks) + the 14-test worker suite (6 DB-gated + 8 NO-DB).
-- Structure (probe A1-A13, 14): `__all__` = the 5 public names (the 4 functions + `TrainingDenseResult`); 0
+- Structure (probe A1-A13, 14): `__all__` = the 5 public names (the 4 functions + `AnalyticsTrainingDenseResult`); 0
   non-comment trailing-ws lines; typing line `TYPE_CHECKING, Dict`; NO `@validate_call`; `train_dense_metrics`
   pre-declared (A13).
 - The live rlm_02 goldens (probe C-tier + the worker suite; the dense 4 values: the `test_wrk_analytics` doc): the
@@ -101,8 +101,8 @@ None.
   f32 rounding (rlm_02: −1.6e-08 in rmse).
 
 ## Integration
-- Consumers: the ANALYTICS worker (the 4 functions + `TrainingDenseResult` are the module's whole API, `__all__`);
-  `test_wrk_plot` imports `compute_training_dense_metrics` for its synthetic ctx, and `hlp_plot` consumes the published
+- Consumers: the ANALYTICS worker (the 4 functions + `AnalyticsTrainingDenseResult` are the module's whole API, `__all__`);
+  `test_wrk_plot` imports `hlp_analytics_compute_training_dense_metrics` for its synthetic ctx, and `hlp_plot` consumes the published
   `ctx.train_dense_rn` series (never this module directly).
 - Inputs: CONFIG (`ctx.cfg` + `ctx.config_checksum`), FEATURES (`ctx.feature_set` + `feature.ref`), INDEXES
   (`ctx.hlp_indexes.indexes`), POSITIONS (`ctx.game_values`), WMAPS (`ctx.w` + offsets/ranges/fallback), DESIGN_MTR
