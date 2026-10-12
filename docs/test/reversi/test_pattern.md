@@ -11,7 +11,7 @@ The pattern unit suite — 13 classes / 76 tests, 3 PERF-gated (1M-size pack, `c
 | `TestPatternPack` | 9 | the 18-bitboard setUp (empty, full, rows 1-8, columns 1-8); pack-plan + scalar + vectorized goldens for ELLE, EDGE, R2, R3, R4, CORNER, DIAG8, FOURC (the `run_test_vectorized` helper: pack vs golden + unpack round-trip); PERF 1M over 5 patterns × tiled 18-board array (mixed-row kernels) |
 | `TestPatternSymmetries` | 3 | the 29-row `symmetry_fs` table (the named patterns from ELLE to TWOND — per-row `subTest`) + the Burnside `n_invariant_configs`/`n_unique_configs` pins |
 | `TestPatternMdpRecord` | 5 | the full 24-column `mdp_record()` strings (ELLE 4 squares, EDGE 8 squares) + the breadth additions |
-| `TestTransformationsCayleyTable` | 4 | the 8 D8 functions in paper order (e, r, r2, r3, sv, sh, d1, d2) + the `trm = [0,1,2,3,4,6,7,5]` relabel to canonical D8 slot order (notes/naming.md); the 8×8 Cayley table checked as `cayley[i,j](data) == trs[j](trs[i](data))` on `ar`, 14 structural bitboards, and all 29 `sample_pattern_data` masks |
+| `TestTransformationsCayleyTable` | 4 | the 8 D8 functions in paper order (e, r, r2, r3, sv, sh, d1, d2) + the `trm = [0,1,2,3,4,6,7,5]` relabel to canonical D8 slot order (notes/naming.md); the 8×8 Cayley table checked as `cayley[i,j](data) == trs[j](trs[i](data))` on `ar`, 14 structural bitboards, and all 29 `pattern_sample_data` masks |
 | `TestPatternPrint` | 1 | the EDGE `print()` full 13-line string golden |
 | `TestPatternMdpCsvFile` | 5 | the `mdp_csv_file` classmethod via `mock_open` + `MagicMock(spec=Pattern)`; the 3 `TypeError` messages asserted with EXACT `assertEqual` |
 | `TestPatternComputeIndexes` | 8 | scalar + 1-D array + multi-position row independence + the N-D shape tests
@@ -38,7 +38,7 @@ non-contiguous 2-D, empty 2-D) + PERF 1M |
   `mdp_csv_file` where all three `TypeError` messages are exact `assertEqual`.
 - Star import `from reversi.pattern import *` (the 5 `__all__` names) + the explicit `from reversi.index import Index, IndexArray, validate_index_array` import +
   explicit board-function imports; the Cayley test builds its OWN local 29-row pattern table (it does not use the
-  star-imported `sample_pattern_data`).
+  star-imported `pattern_sample_data`).
 - The module-level D8 fixture `ar` is the single Cayley exercise board (no pre-transformed copies).
 
 ## Integration

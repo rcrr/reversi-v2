@@ -6,6 +6,10 @@ __pycache__/
 .venv/
 *.egg-info/
 
+# Emacs temp / lock files
+\#*
+.\#*
+
 # Sandbox folder
 scratch/
 

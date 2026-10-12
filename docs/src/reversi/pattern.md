@@ -17,7 +17,7 @@ The mdp_record / mdp_csv_file methods render the MDP records (the CSV file for t
 | Pattern | `_pack_bb(bb)` / `_unpack_bb(packed)` | PEXT-style compress / PDEP-style expand; dual scalar/array |
 | Pattern | `print(output)` / `mdp_record() -> str` / `mdp_csv_file(patterns, filename)` | the flat one-line text rendering; the CSV record line; the classmethod CSV writer |
 | PatternType | the 12 members (`TYPE_0`…`TYPE_9`, `TYPE_3D`, `TYPE_7D`) + `from_fingerprint(fp) -> Optional[PatternType]` | the closed table of (type, sample_mask, sample_name, level, n_instances, n_stabilizers); a pattern whose fingerprint is not in the table raises ValueError at construction; unknown fp → None |
-| Data | `sample_pattern_data` | 29 (name, python-int mask) tuples (the masks are python ints — callers wrap with `Bitboard(...)`); used to generate the mdp.csv for the LaTeX document |
+| Data | `pattern_sample_data` | 29 (name, python-int mask) tuples (the masks are python ints — callers wrap with `Bitboard(...)`); used to generate the mdp.csv for the LaTeX document |
 | PatternSet | `PatternSet(name: str, patterns: List[Pattern])` | `@validate_call` (NOT strict); ValueError: empty list, duplicate names, duplicate masks; stored sorted by mask; `hash` = sha3_256 of the concatenated mask bytes (little-endian) |
 | PatternSet | `names` / `masks` | `@property`: List[str] / uint64 ndarray over the sorted patterns |
 | PatternSet | `__repr__` | one-line summary: name, the set hash, the patterns in mask-sorted order via `Pattern.__repr__` |

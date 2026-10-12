@@ -1572,3 +1572,11 @@ D-522 | 2026-10-12 | The index-type extraction: the new module src/reversi/index
          carry no Index location pins). Zero runtime behavior change: type aliases + the validator move verbatim, the
          numba kernels use the dtype directly. The 10 .py files at the reflow fixpoint; the suite green via the R-210
          wrapper; the 6 touched probes fully green; the overview audit green (49/49 rows).
+
+D-523 | 2026-10-12 | Two small calls from Roberto: (1) pattern.py's sample\_pattern\_data renamed to
+         pattern\_sample\_data (the name-carrying-the-module convention, consistent with the D-518..D-522 prefix sweeps)
+         — the 3 in-module occurrences (\_\_all\_\_, the docstring example, the definition) + the 3 mirror-doc mentions;
+         no other module imports it (test\_pattern picks it up via the star import). (2) .gitignore now ignores the
+         Emacs temp / lock files (the \#\* and .\#\* patterns — the literal # needs escaping, a bare # opens a gitignore
+         comment); the two stray #pattern.py# / .#pattern.py lock files left by an editor session are now invisible to
+         git and to the overview audit.

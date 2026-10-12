@@ -80,7 +80,7 @@ from reversi.board import (
 
 from reversi.index import Index, IndexArray
 
-__all__ = ['Pattern', 'PatternType', 'sample_pattern_data', 'PatternSet']
+__all__ = ['Pattern', 'PatternType', 'pattern_sample_data', 'PatternSet']
 
 #: Conservative engine limit on the number of pattern squares. 18 is well inside the uint32 index
 #: space (3^20 < 2^32), so 18 is a project choice, not a uint32 constraint.
@@ -907,11 +907,11 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
 #:
 #: >>> from reversi.pattern import *
 #:
-#: >>> sample_patterns = [Pattern(name, Bitboard(mask)) for name, mask in sample_pattern_data]
+#: >>> sample_patterns = [Pattern(name, Bitboard(mask)) for name, mask in pattern_sample_data]
 #:
 #: >>> Pattern.mdp_csv_file(sample_patterns, 'build/tmp/mdp_test.csv')
 #:
-sample_pattern_data = [
+pattern_sample_data = [
     ('ELLE',   0x0000000000000107),
     ('SNAKE',  0x0000000C30000000),
     ('EDGE',   0x00000000000000FF),
