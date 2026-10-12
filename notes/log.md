@@ -194,3 +194,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   output verified byte-identical to the current snapshot). One row in the wsutils.md table (the generation category).
 - Session close: the D-518..D-530 rename wave is complete for the hlp\_zed / hlp\_validate / hlp\_plot / prng / index
   modules; the exported-symbols snapshot is in sync.
+## 2026-10-12 — session 116 (D-531 — the test duration classification tool)
+
+- Roberto's call: wsutils/test\_duration.py — the static AST tag pass (perf / db\_required / the 4 tiers,
+  inheritance-aware) + N isolated all-tiers-on timed launches (default 3) + mean/variance + the VERDE/ROSSO/SKIPPED
+  status → scratch/test\_duration.{csv,md}.
+- The classifier verified EXACT against unittest discovery (1122 = 1122, both diffs empty) after three in-flight fixes
+  (the Call.id slip, the class-level VLONG decorators, the multiple-inheritance bases).
+- The 3-launch measurement: in flight as a background job (≈45-60 min).

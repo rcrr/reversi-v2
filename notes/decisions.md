@@ -1687,3 +1687,20 @@ D-530 | 2026-10-12 | The exported-symbols generator becomes a wsutils tool (Robe
          (the D-526/D-528/D-529 refreshes were ad-hoc inline scripts). Verified: the tool's output is byte-identical to
          the current snapshot (52 files, 49 with \_\_all\_\_, 3 without). One row in the wsutils.md table (the
          generation category). No src/ or test/ change — no suite impact; the guard is green on the notes.
+
+D-531 | 2026-10-12 | The test duration classification tool (Roberto's call, the overview next-step "select the tests by
+         DURATION with the 5 tags"): wsutils/test\_duration.py — (1) the STATIC AST tag pass: perf (the skipUnless PERF
+         decorator), db\_required (the db\_long\_gate setUp call), tier NORMAL/LONG/VLONG/VVLONG (the tier\_vlong/vvlong
+         gates, method- AND class-level decorators, the highest wins) — INHERITANCE-AWARE for the Base\*Test mixin idiom
+         (unittest discovers the inherited methods under every concrete class X(unittest.TestCase, Base) — the
+         classifier resolves the same way, the gates of an inherited method are the OWNER's); verified EXACT against
+         unittest discovery: 1122 = 1122, both diffs empty (NORMAL 1077 / LONG 43 / VLONG 2, PERF 22, DB 44). (2) N
+         ISOLATED timed launches (`--runs`, default 3) with ALL tiers on (LONG/VLONG/VVLONG/PERF, live DB) — the
+         measure\_suite TimedResult pattern, one TSV per launch in scratch/. (3) The aggregation: per-test MEAN +
+         population VARIANCE (ddof=0), the status VERDE/ROSSO/SKIPPED (FLAKY when the N runs disagree) →
+         scratch/test\_duration.csv (the English headers: module,class,test,perf,db\_required,tier,status,
+         duration\_ms,variance\_ms) + scratch/test\_duration.md (summary + the table by mean duration, descending).
+         Three in-flight bugs caught and fixed before the first launch: the Call.id attribute slip, the class-level (not
+         method-level) VLONG decorators, the multiple-inheritance base resolution. measure\_suite.py is untouched (the
+         1-run ancestor; its retirement is a separate call). One row in the wsutils.md table. The 3-launch measurement
+         (≈45-60 min) runs as a background job; the reports land in scratch/ (gitignored).
