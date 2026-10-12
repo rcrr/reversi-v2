@@ -49,6 +49,12 @@ define the evaluation function.
 
 ## Next steps
 
+- Finish the module-API naming sweep on the remaining hlp\_\* / tools modules (the wave covered hlp\_zed / hlp\_validate
+  / hlp\_plot / prng / index): hlp\_generate (compute\_w\_dense), hlp\_analytics (format\_\*), hlp\_optimize (is\_\* /
+  weights\_\*), wrk\_positions (load\_from\_db \& co.) — the user's call; the snapshot to review the surface:
+  `wsutils/exported_symbols.py`.
+- The int64 offset fixtures (test\_wrk\_validate x3, test\_wrk\_analytics x1) stay int64 by the D-525 ruling — the
+  fixture-dtype fidelity call is open.
 - Select the tests by DURATION with the 5 tags (VVLONG, VLONG, LONG, PERF, DB); re-verify the tag-assignment technique;
   analyze every LONG / VLONG / VVLONG test for a possible shorter equivalent.
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
