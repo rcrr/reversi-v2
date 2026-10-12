@@ -39,11 +39,11 @@ if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
 
-__all__ = ['ValidationResult', 'validate_model', 'top_outliers']
+__all__ = ['LMValidate', 'hlp_validate_model', 'hlp_validate_top_outliers']
 
 
 @dataclass
-class ValidationResult:
+class LMValidate:
     """
     Carry the VALIDATE level's output: the 7-metric validation dict (the v2 model-file contract,
     unchanged) plus the two per-position series it is computed from.
@@ -54,7 +54,7 @@ class ValidationResult:
                                 # renders and CLIENT_CHECK compares against the saved-model file
 
 
-def top_outliers(rn: np.ndarray, k: int = 20) -> np.ndarray:
+def hlp_validate_top_outliers(rn: np.ndarray, k: int = 20) -> np.ndarray:
     """
     Return the indices of the k largest |residual| values, in descending order.
 
@@ -70,7 +70,7 @@ def top_outliers(rn: np.ndarray, k: int = 20) -> np.ndarray:
     return np.argsort(-np.abs(rn), kind='stable')[:k]
 
 
-def validate_model(ctx: "LMContext") -> ValidationResult:
+def hlp_validate_model(ctx: "LMContext") -> LMValidate:
     """
     Run the validation forward pass and compute the validation metrics.
 
@@ -87,7 +87,7 @@ def validate_model(ctx: "LMContext") -> ValidationResult:
             weights, the y2z / z2y maps).
 
     Returns:
-        ValidationResult: the 7-metric dict (vld_loss, vld_mse_z, vld_mae_z, vld_mae_y, vld_mse_y,
+        LMValidate: the 7-metric dict (vld_loss, vld_mse_z, vld_mae_z, vld_mae_y, vld_mse_y,
             vld_rmse_y, vld_samples) + the two f64 per-position series (y_pred, rn_y).
     """
     vld_positions = ctx.vld_positions
@@ -131,7 +131,7 @@ def validate_model(ctx: "LMContext") -> ValidationResult:
     y_pred_f64 = y_pred.astype(np.float64)
     rn_y_f64 = y_pred_f64 - vld_game_values.astype(np.float64)
 
-    return ValidationResult(
+    return LMValidate(
         metrics={
             'vld_loss': float(vld_loss),
             'vld_mse_z': float(mse_z),

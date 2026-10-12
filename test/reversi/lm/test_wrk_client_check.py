@@ -57,7 +57,7 @@ from reversi.lm.hlp_zed import hlp_zed_fun_factory
 from reversi.lm.model_weights import model_weights_write_file
 from reversi.lm.logistic_model import LMContext
 from reversi.lm.wrk_client_check import wrk_client_check
-from reversi.lm.hlp_validate import validate_model
+from reversi.lm.hlp_validate import hlp_validate_model
 from test.reversi.paths import CUSTOM_TMP_BASE
 from reversi.index import Index
 
@@ -137,7 +137,7 @@ class TestWrkClientCheck(unittest.TestCase):
                            "vld_mae_y": 0.5, "vld_loss": 0.0025}
         # The validation series the check consumes — published by VALIDATE, here derived with the
         # SAME hlp_validate pass (the level that owns it) on the synthetic state.
-        ctx.vld_rn = validate_model(ctx).rn_y
+        ctx.vld_rn = hlp_validate_model(ctx).rn_y
         # The log capture (the LMContext default is the no-op lambda).
         ctx.log_event = lambda relevance, message: \
             self._events.append((relevance, message))

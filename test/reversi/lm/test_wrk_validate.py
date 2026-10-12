@@ -54,7 +54,7 @@ from pathlib import Path
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel, LMContext
 from reversi.lm.wrk_validate import wrk_validate
-from reversi.lm.hlp_validate import ValidationResult, top_outliers, validate_model
+from reversi.lm.hlp_validate import LMValidate, hlp_validate_top_outliers, hlp_validate_model
 from test.reversi.closecheck import assert_close
 from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_long_gate
@@ -97,7 +97,7 @@ class TestLMWorkerValidate(unittest.TestCase):
         if getattr(self, '_tmp', None) is not None:
             self._tmp.cleanup()
 
-    def test_validate_model_goldens(self):
+    def test_hlp_validate_model_goldens(self):
         """
         First run to VALIDATE on rlm_02 (bid [8] vs the bid [6,7] training model): the 7-metric dict
         + the INFO log lines, the goldens derived independently.
@@ -206,7 +206,7 @@ class TestValidateModelUnit(unittest.TestCase):
         The full metric math on the hand-computed 2-position case, every value EXACT (the full
         derivation in the mirror doc).
         """
-        d = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
+        d = hlp_validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
                                           [0, 2], [0.5, -0.5])).metrics
         self.assertEqual(d["vld_loss"], 0.0625)
         self.assertEqual(d["vld_mse_z"], 0.125)
@@ -218,12 +218,12 @@ class TestValidateModelUnit(unittest.TestCase):
 
     def test_validation_result_carries_the_f64_series(self):
         """
-        validate_model returns the per-position series PLOT and CLIENT_CHECK consume, as f64 views:
-        y_pred [0, 0] and rn_y [0, -64] on the hand-computed case.
+        hlp_validate_model returns the per-position series PLOT and CLIENT_CHECK consume, as f64
+        views: y_pred [0, 0] and rn_y [0, -64] on the hand-computed case.
         """
-        r = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
+        r = hlp_validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
                                           [0, 2], [0.5, -0.5]))
-        self.assertIsInstance(r, ValidationResult)
+        self.assertIsInstance(r, LMValidate)
         self.assertEqual(r.y_pred.dtype, np.float64)
         self.assertEqual(r.rn_y.dtype, np.float64)
         np.testing.assert_array_equal(r.y_pred, np.array([0.0, 0.0]))
@@ -231,23 +231,23 @@ class TestValidateModelUnit(unittest.TestCase):
         # the metrics are the SAME dict the file contract pins
         self.assertEqual(r.metrics["vld_samples"], 2)
 
-    def test_top_outliers_ranking_and_ties(self):
+    def test_hlp_validate_top_outliers_ranking_and_ties(self):
         """
         The k largest |residual|, descending, with the STABLE tie-break (the lower index first) —
         the report's determinism rests on this.
         """
         rn = np.array([1.0, -3.0, 2.0, -3.0, 0.5])
-        np.testing.assert_array_equal(top_outliers(rn, k=3),
+        np.testing.assert_array_equal(hlp_validate_top_outliers(rn, k=3),
                                       np.array([1, 3, 2]))
         # the tie at |3| keeps the lower index first
-        self.assertEqual(list(top_outliers(rn, k=2)), [1, 3])
+        self.assertEqual(list(hlp_validate_top_outliers(rn, k=2)), [1, 3])
         # k larger than the array: the whole permutation
-        self.assertEqual(len(top_outliers(rn, k=99)), 5)
+        self.assertEqual(len(hlp_validate_top_outliers(rn, k=99)), 5)
 
-    def test_top_outliers_default_is_twenty(self):
+    def test_hlp_validate_top_outliers_default_is_twenty(self):
         """The default k is the report's 20."""
         rn = np.arange(100, dtype=np.float64) - 50.0
-        out = top_outliers(rn)
+        out = hlp_validate_top_outliers(rn)
         self.assertEqual(len(out), 20)
         # |-50| first, then the |49| tie: the STABLE argsort keeps the lower index (1) before 99,
         # then |48| at 2

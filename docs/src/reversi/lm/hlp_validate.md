@@ -2,7 +2,7 @@
 The VALIDATE domain module of the LM pipeline — the 14th step. Like hlp_zed and hlp_gradient it is PURE COMPUTE: no
 store / load / is_cache_consistent trio, no checksum, no cache file (the rlmwf_14 slot stays unused). It runs the
 forward pass of the trained model on the validation positions (the same `ctx.feature_set` as training, the dense weights
-`ctx.w_dense` from GENERATE) and returns a `ValidationResult`: the 7-metric validation dict (the v2 model-file contract)
+`ctx.w_dense` from GENERATE) and returns a `LMValidate`: the 7-metric validation dict (the v2 model-file contract)
 plus the two per-position series it is computed from — the fitted values and the residuals in Y, the SINGLE derivation
 PLOT renders and CLIENT_CHECK compares against the saved file.
 
@@ -10,9 +10,9 @@ PLOT renders and CLIENT_CHECK compares against the saved file.
 
 | name | contract |
 |---|---|
-| `ValidationResult` | the dataclass: `metrics` (the 7-key dict), `y_pred` (the fitted values in Y, f64), `rn_y` (the residuals in Y, f64) |
-| `validate_model(ctx) -> ValidationResult` | the forward pass + the metrics + the two series; NO `@validate_call` (the function-only shape over an already-validated context) |
-| `top_outliers(rn, k=20) -> ndarray` | the indices of the k largest `\|residual\|`, descending; the STABLE argsort makes a tie keep the LOWER index first |
+| `LMValidate` | the dataclass: `metrics` (the 7-key dict), `y_pred` (the fitted values in Y, f64), `rn_y` (the residuals in Y, f64) |
+| `hlp_validate_model(ctx) -> LMValidate` | the forward pass + the metrics + the two series; NO `@validate_call` (the function-only shape over an already-validated context) |
+| `hlp_validate_top_outliers(rn, k=20) -> ndarray` | the indices of the k largest `\|residual\|`, descending; the STABLE argsort makes a tie keep the LOWER index first |
 
 ## Architecture
 
@@ -36,7 +36,7 @@ PLOT renders and CLIENT_CHECK compares against the saved file.
   publication moves no number.
 - The 7-key dict: `vld_loss = 0.5·‖rn_z‖²/M`, `vld_mse_z = 2·vld_loss`, `vld_mae_z`, `vld_mae_y`, `vld_mse_y`,
   `vld_rmse_y`, `vld_samples` — every value `float(...)`-cast except `vld_samples` (`int`).
-- `top_outliers` is the outlier report's kernel: one stable argsort, no state.
+- `hlp_validate_top_outliers` is the outlier report's kernel: one stable argsort, no state.
 - Imports: `Any` in the typing line, NO regab import (the data comes from `ctx.vld_positions` / `ctx.vld_game_values`,
   never a DB call).
 
@@ -46,7 +46,7 @@ Pinned by the `probes/verify_validate.py` sweep + `test_wrk_validate.py`.
 
 - The module shape (probe A1-A13): the 3-name `__all__`, NO regab import, the `sigmoid` reuse, NO cache_manager import,
   the 7-key metrics dict, the underscore unpack, no dead numpy import in the worker.
-- The f64 series: `ValidationResult.y_pred` / `rn_y` are f64 and carry the hand-computed values of the
+- The f64 series: `LMValidate.y_pred` / `rn_y` are f64 and carry the hand-computed values of the
   2-position case (y_pred [0, 0], rn_y [0, −64]) — `test_validation_result_carries_the_f64_series`.
 - The outlier kernel: the ranking, the tie-break (a |49| tie keeps the lower index first) and the default k = 20
   — `test_top_outliers_ranking_and_ties`, `test_top_outliers_default_is_twenty`.

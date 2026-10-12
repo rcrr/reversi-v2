@@ -177,6 +177,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   its name with the LM family).
 - Touched: 2 src + 4 test (17 sites) + verify\_zed (3 text-only pins, no index shift) + 2 docs (6 sites). The G10 pin
   re-tightened (the old substring would have kept passing inside the new name — false green).
+- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (counts unchanged — pure rename). verify\_zed: 51/51.
+  All 7 touched .py at the reflow fixpoint.
+## 2026-10-12 — session 114 (D-529 — the hlp\_validate API: the prefix + LMValidate)
+
+- Roberto's call: validate\_model -> hlp\_validate\_model, top\_outliers -> hlp\_validate\_top\_outliers,
+  ValidationResult -> LMValidate (intentional: it hooks the VALIDATE level name; the noun-form LMValidation was
+  discussed, his form chosen).
+- Touched: 2 src + 3 test (15 sites) + 2 probes (text-only re-pins) + 3 docs (11 sites). The module-qualified docstring
+  mentions were handled before the bulk (no double prefix).
 - Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN
-  (counts unchanged — pure rename). verify\_zed: 51/51. All 7 touched .py at the
-  reflow fixpoint.
+  (counts unchanged — pure rename). verify\_validate + verify\_analytics: green. All 7
+  touched .py at the reflow fixpoint.

@@ -14,14 +14,14 @@ metrics dict plus the published series and records — and logs the metric block
 
 ## Architecture
 
-- `_up`: logs "Starting model validation...", calls `validate_model(ctx)` once and publishes
+- `_up`: logs "Starting model validation...", calls `hlp_validate_model(ctx)` once and publishes
   `ctx.vld_metrics = result.metrics`, `ctx.vld_y_pred = result.y_pred`, `ctx.vld_rn = result.rn_y` and
   `ctx.vld_outliers = _outlier_records(...)`; then the 6 metric INFO lines (the completion line at .8e, MSE/MAE at .4e,
   MAE(y)/RMSE(y) at .2f, and the RMSE/MAE ratio at .2f — the last one ZERO-GUARDED: a perfect Y-space fit logs "n/a
   (vld_mae_y is 0 — perfect Y-space fit)" instead of dividing by zero).
 - The top-20 extreme-residual report (it belongs to the level that COMPUTES the residuals): the
   header line + 20 lines carrying the rank, the validation index, the position's bitboards, the game value, the fitted
-  value and the residual. The order is `hlp_validate.top_outliers`, so it is deterministic.
+  value and the residual. The order is `hlp_validate.hlp_validate_top_outliers`, so it is deterministic.
 - `_outlier_records`: the 20 records as raw values (index, mover, opponent, game_value, fitted, residual) — the data
   behind the report, published for the levels that consume it.
 - `_down`: logs "Clearing validation attributes..." and clears the four attributes.

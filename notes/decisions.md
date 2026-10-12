@@ -1663,3 +1663,16 @@ D-528 | 2026-10-12 | The hlp\_zed factory rename (Roberto's call): zed\_fun\_fac
          SUBSTRING of the new text — without the re-pin the check would have kept passing opaquely (false green); the
          pin now carries the full new name. No probe index shifts; no suite count change. Suite green via the R-210
          wrapper; verify\_zed 51/51; all 7 touched .py at the reflow fixpoint.
+
+D-529 | 2026-10-12 | The hlp\_validate module API (Roberto's call): the two functions take the house prefix
+         (validate\_model → hlp\_validate\_model, top\_outliers → hlp\_validate\_top\_outliers) and the dataclass joins
+         the LM family as LMValidate (Roberto: INTENTIONAL — it hooks the VALIDATE level name; the family's noun-form
+         precedent LMValidation was discussed and his level-anchored form chosen). Touched: hlp\_validate (the class,
+         the 2 defs, the \_\_all\_, the annotation + docstring), wrk\_validate (import + 2 calls + the 2
+         MODULE-QUALIFIED docstring mentions hlp\_validate.top\_outliers / hlp\_validate.validate\_model — handled
+         BEFORE the bulk so the double prefix hlp\_validate.hlp\_validate\_\* never forms), 3 test files (15 sites,
+         incl. the 3 test method names test\_hlp\_validate\_\*), verify\_validate (the \_\_all\_substring pin re-pinned
+         to the 3 new names + the live import / call + descriptions — all text-only, no index shifts, 145 lines
+         unchanged), verify\_analytics (1 description prose), 3 mirror docs (11 sites). No collisions; no star imports;
+         no suite count change. Suite green via the R-210 wrapper; verify\_validate + verify\_analytics fully green; all
+         7 touched .py at the reflow fixpoint.

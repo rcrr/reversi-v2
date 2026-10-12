@@ -32,7 +32,7 @@ from pydantic import validate_call, ConfigDict
 from typing import TYPE_CHECKING
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_validate import top_outliers, validate_model
+from reversi.lm.hlp_validate import hlp_validate_top_outliers, hlp_validate_model
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -46,13 +46,13 @@ __all__ = ['wrk_validate']
 def _outlier_records(ctx: "LMContext", rn, y_pred, k: int = 20) -> list:
     """
     The k extreme-residual records, descending by |residual| (the stable argsort,
-    hlp_validate.top_outliers): the position's bitboards + the game value + the fitted value + the
+    hlp_validate_top_outliers): the position's bitboards + the game value + the fitted value + the
     residual, as raw values — the outlier report's data.
 
-    rn / y_pred are the f64 validation series of ValidationResult.
+    rn / y_pred are the f64 validation series of LMValidate.
     """
     records = []
-    for i in top_outliers(rn, k):
+    for i in hlp_validate_top_outliers(rn, k):
         pos = ctx.vld_positions[i]
         records.append({
             'index': int(i),
@@ -67,12 +67,12 @@ def _outlier_records(ctx: "LMContext", rn, y_pred, k: int = 20) -> list:
 
 def _up(ctx: "LMContext") -> None:
     """
-    Run the VALIDATE level: the model validation (hlp_validate.validate_model), the four published
-    outputs, and the metric block + the top-20 extreme-residual report.
+    Run the VALIDATE level: the model validation (hlp_validate_model), the four published outputs,
+    and the metric block + the top-20 extreme-residual report.
     """
     ctx.log_event(Relevance.INFO, "Starting model validation...")
 
-    result = validate_model(ctx)
+    result = hlp_validate_model(ctx)
     metrics = result.metrics
     ctx.vld_metrics = metrics
     ctx.vld_y_pred = result.y_pred

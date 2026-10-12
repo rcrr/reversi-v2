@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
-verify_analytics.py — scratch probe for the ANALYTICS bring-in
-(session 28, Roberto's commit 96dacb5 — the 15th active level, step 15,
-the 2nd bring-in with a dedicated data module, hlp_analytics,
+verify_analytics.py — scratch probe for the ANALYTICS bring-in (session 28, Roberto's commit 96dacb5
+— the 15th active level, step 15, the 2nd bring-in with a dedicated data module, hlp_analytics,
 function-only like hlp_gradient / hlp_validate).
 
-Re-derives and verifies, independently of the test files (the A-tier pins
-their existence; the C/D tiers re-derive what the suite pins):
+Re-derives and verifies, independently of the test files (the A-tier pins their existence; the C/D
+tiers re-derive what the suite pins):
   A. wrk_analytics.py + hlp_analytics.py structure (pinned to
      the post-campaign expectations: T1 the factory gate, T2 the
      dead imports, T4 the ws lines, T5 the missing test file,
@@ -128,7 +127,7 @@ check("A9 the worker uses NO cache_manager (ANALYTICS is pure compute — like "
       "cache_manager" not in wk_src and "cache_manager" not in dv_src)
 check("A10 the 4 public data fns take ctx under TYPE_CHECKING and carry NO "
       "@validate_call (the rlm_indexes-L166 class — consistent with "
-      "hlp_validate.validate_model; report-only pin; D-105/M2 added "
+      "hlp_validate_model; report-only pin; D-105/M2 added "
       "compute_training_dense_metrics; the SU sample columns added the "
       "3 private helpers (10 defs) + the INTERCEPT section helper "
       "(11 defs)",
@@ -147,8 +146,8 @@ check("A13 LMContext pre-declares train_dense_metrics (D-105/M2 — the "
       "    train_dense_metrics: Any = None" in read("src/reversi/lm/logistic_model.py"))
 
 # ----------------------------------------------------------------------
-# B. context facts (the B1-B3 pipeline-state pins moved to the hub
-# verify_logistic_model.py V3c/V3d at D-106)
+# B. context facts (the B1-B3 pipeline-state pins moved to the hub verify_logistic_model.py V3c/V3d
+# at D-106)
 # ----------------------------------------------------------------------
 lm_src = read("src/reversi/lm/logistic_model.py")
 check("B4 LMContext pre-declared vld_metrics (L152) + train_metrics (L155) "
@@ -225,10 +224,9 @@ else:
                   and tm["train_loss"] == ctx.opt_info["f"]
                   and tm["train_mae_y"] <= tm["train_rmse_y"]
                   and tm["pop_mae_y"] <= tm["pop_rmse_y"])
-        # (C4b deleted at D-106 step 3, class c: the train_dense_
-        #  metrics goldens are pinned by test_wrk_analytics.py::
-        #  test_reach_analytics_level — the 4-key dict + exact values.
-        #  The binding stays: C8 + the gap/delta line checks use td)
+        # (C4b deleted at D-106 step 3, class c: the train_dense_ metrics goldens are pinned by
+        # test_wrk_analytics.py:: test_reach_analytics_level — the 4-key dict + exact values. The
+        # binding stays: C8 + the gap/delta line checks use td)
         td = ctx.train_dense_metrics
         # C5 the report file
         rpt = tmp / "model_analytics_report.txt"
@@ -259,9 +257,8 @@ else:
             check("C5b the file report is deterministic (date-masked) — "
                   "recompute via hlp_analytics_format_file_report and compare",
                   hashlib.sha3_256(recomputed.encode()).hexdigest() == FILE_HASH)
-        # (C6 deleted at D-106 step 3, class c: the 17 header lines +
-        #  the 4 worker/data INFO lines are pinned by
-        #  test_wrk_analytics.py::test_analytics_report_lines)
+        # (C6 deleted at D-106 step 3, class c: the 17 header lines + the 4 worker/data INFO lines
+        # are pinned by test_wrk_analytics.py::test_analytics_report_lines)
         _ls = out3.splitlines()
         _l0 = (next(i for i, l in enumerate(_ls)
                     if "Generating model analytics report..." in l)
@@ -379,10 +376,9 @@ def fake_ctx(game_values, design_matrix, w, opt_info):
         log_event=lambda rel, msg: None)
 
 
-# 2 positions, 1 feature / 2 instances / 2 configs (a symmetric 2x2 design).
-# w [1,-1]: predictor = w[0]+w[1] = 0 on both rows -> z_pred 0.5 -> y_pred 0.
-# game [10,-10]: rn_y [-10,10]: mae 10, rmse 10. pop baseline: y_mean 0 ->
-# pop_mae 10, pop_rmse 10. z_true [0.578125, 0.421875]: z_mean 0.5,
+# 2 positions, 1 feature / 2 instances / 2 configs (a symmetric 2x2 design). w [1,-1]: predictor =
+# w[0]+w[1] = 0 on both rows -> z_pred 0.5 -> y_pred 0. game [10,-10]: rn_y [-10,10]: mae 10, rmse
+# 10. pop baseline: y_mean 0 -> pop_mae 10, pop_rmse 10. z_true [0.578125, 0.421875]: z_mean 0.5,
 # rn_z_pop +/-0.078125: pop_loss 0.5*2*(0.078125^2)/2 = 0.0030517578125.
 _d = hlp_analytics_compute_training_metrics(fake_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0],
                                        {"f": 0.123}))
@@ -424,11 +420,10 @@ check("D3 the console report (no tables, no date): the N/A TRAINING-DENSE "
       f"lines={len(_h.strip().split(chr(10)))}\n{_h}")
 
 
-# D4 (D-105/M2) the dense-pass metric math on the same hand-computed
-# 2-position case: 1 feature / 2 instances / 2 configs, dense indices
-# [[0,1],[1,0]] (raw [[0,1],[1,0]] + offsets [0,0]) over w_dense [1,-1]
-# -> predictor 0 on both rows -> z_pred 0.5 -> y_pred 0. Same residuals
-# as D1: mae_y 10, rmse_y 10, loss 0.5*mean(rn_z^2) = 0.0030517578125.
+# D4 (D-105/M2) the dense-pass metric math on the same hand-computed 2-position case: 1 feature / 2
+# instances / 2 configs, dense indices [[0,1],[1,0]] (raw [[0,1],[1,0]] + offsets [0,0]) over
+# w_dense [1,-1] -> predictor 0 on both rows -> z_pred 0.5 -> y_pred 0. Same residuals as D1: mae_y
+# 10, rmse_y 10, loss 0.5*mean(rn_z^2) = 0.0030517578125.
 def fake_dense_ctx(game_values, indexes, w_dense, offsets, n_instances):
     return SimpleNamespace(
         hlp_indexes=SimpleNamespace(indexes=np.asarray(indexes, dtype=np.int32)),
