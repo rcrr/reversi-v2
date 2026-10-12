@@ -66,7 +66,7 @@ from reversi.board import (
     make_position, position_check_collisions, position_print
 )
 from reversi.pattern import *
-from reversi.pattern import validate_index_array
+from reversi.index import Index, IndexArray, validate_index_array
 
 
 
@@ -246,22 +246,6 @@ class TestPatternType(unittest.TestCase):
         self.assertEqual(PatternType.TYPE_3D.data,
             {"type": "3D", "sample_mask": 0x0000000000000001, "sample_name": "DOTA1",
              "level": 2, "n_instances": 4, "n_stabilizers": 2})
-
-class TestIndexArray(unittest.TestCase):
-    """The IndexArray validator: the ndarray dtype is enforced, non-arrays pass through."""
-
-    def test_rejects_non_uint32_ndarray(self):
-        with self.assertRaises(ValueError) as context:
-            validate_index_array(np.array([1, 2, 3], dtype=np.uint64))
-        self.assertIn("uint32", str(context.exception))
-
-    def test_passes_uint32_ndarray(self):
-        a = np.array([1, 2, 3], dtype=np.uint32)
-        self.assertIs(validate_index_array(a), a)
-
-    def test_passes_non_array(self):
-        v = np.uint32(7)
-        self.assertIs(validate_index_array(v), v)
 
 class TestPatternPack(unittest.TestCase):
 

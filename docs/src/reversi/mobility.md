@@ -16,8 +16,8 @@ indexes.
 
 ## Architecture
 
-- Imports: `reversi.board` (Bitboard, BitboardArray, PositionArray, legal_moves, bitboard_count), `reversi.pattern`
-  (only the `Index` / `IndexArray` type aliases, deliberate reuse), numpy, numba; `__all__` = [Mobility, MobilitySet].
+- Imports: `reversi.board` (Bitboard, BitboardArray, PositionArray, legal_moves, bitboard_count), `reversi.index`
+  (the `Index` / `IndexArray` type aliases), numpy, numba; `__all__` = [Mobility, MobilitySet].
 - `Mobility`: the class docstring carries the LMC/ALMC/DLMC glossary + the index formula + the n_configurations
   semantics; `__init__`; `print`.
 - `MobilitySet`: the docstring states the sorted-order contract; `__init__` (dup checks, sorted storage, hash); `names`,
@@ -69,8 +69,8 @@ None.
   dispatch; deliberate.
 - `n_instances = 1` is CORRECT for a scalar feature (no symmetry-orbit family as in Pattern) — documented in the class
   docstring.
-- The `IndexArray` import from pattern.py is deliberate (type-alias reuse: pydantic validates the return array on every
-  call, the pattern.py `compute_principal_indexes` convention) — do not "simplify" it away without a decision.
+- The `IndexArray` import from index.py is load-bearing (pydantic validates the return array on every call — the
+  BeforeValidator rides on the Annotated alias).
 - Board layout (bit = 8×(row−1)+(col−1)); the caller-checks-collisions contract does not apply (no principal / collision
   concept here).
 
@@ -78,5 +78,5 @@ None.
 
 - The FEATURES pipeline level: wrk_features builds the level's `Mobility` objects from the config
   (`cfg_mset.mobility_features`); the feature order there is [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE].
-- `test_mobility.md` mirrors the suite; `pattern.md` is the sibling-module reference (hash construction, type-alias
-  reuse).
+- `test_mobility.md` mirrors the suite; `index.md` is the type-alias home reference; `pattern.md` the sibling-module
+  reference (hash construction).

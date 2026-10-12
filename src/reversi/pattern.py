@@ -52,9 +52,9 @@ Design choices --------------
 
 from __future__ import annotations
 
-from typing import TypeAlias, List, Tuple, Union, IO, Annotated
+from typing import List, Tuple, Union, IO
 from enum import Enum
-from pydantic import validate_call, ConfigDict, BeforeValidator
+from pydantic import validate_call, ConfigDict
 
 import sys
 import io
@@ -78,21 +78,9 @@ from reversi.board import (
     PositionField, PositionArray
 )
 
-__all__ = ['Index', 'IndexArray',
-           'Pattern', 'PatternType', 'sample_pattern_data',
-           'PatternSet']
+from reversi.index import Index, IndexArray
 
-#: Represents a reversi pattern index.
-Index: TypeAlias = np.uint32
-
-def validate_index_array(v: any) -> any:
-    """Ensure a numpy array strictly uses the uint32 dtype (scalars pass through)."""
-    if isinstance(v, np.ndarray) and v.dtype != np.uint32:
-        raise ValueError(f"Array dtype must be uint32, got {v.dtype}")
-    return v
-
-#: A Pydantic-compatible type hint for Index (np.uint32) arrays.
-IndexArray = Annotated[npt.NDArray[np.uint32], BeforeValidator(validate_index_array)]
+__all__ = ['Pattern', 'PatternType', 'sample_pattern_data', 'PatternSet']
 
 #: Conservative engine limit on the number of pattern squares. 18 is well inside the uint32 index
 #: space (3^20 < 2^32), so 18 is a project choice, not a uint32 constraint.

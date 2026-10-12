@@ -39,8 +39,8 @@ from enum import IntEnum
 
 from reversi.board import PositionArray
 
-from reversi.pattern import (Pattern, PatternSet,
-                           Index, IndexArray)
+from reversi.pattern import (Pattern, PatternSet)
+from reversi.index import (Index, IndexArray)
 
 from reversi.mobility import (Mobility, MobilitySet)
 

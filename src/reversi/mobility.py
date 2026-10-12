@@ -30,11 +30,11 @@ from __future__ import annotations
 from typing import List, Union, IO
 
 from reversi.board import (Bitboard, BitboardArray,
-                         PositionArray,
-                         bitboard_count,
-                         legal_moves)
+                           PositionArray,
+                           bitboard_count,
+                           legal_moves)
 
-from reversi.pattern import (Index, IndexArray)
+from reversi.index import (Index, IndexArray)
 
 import sys
 import io

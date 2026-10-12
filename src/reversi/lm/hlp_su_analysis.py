@@ -41,7 +41,7 @@ from pydantic import ConfigDict, validate_call
 
 from reversi.board import initial_game_position
 from reversi.feature import FeatureSet
-from reversi.pattern import IndexArray
+from reversi.index import IndexArray
 from reversi.random_game import random_game_play_path
 from reversi.tools import binio
 from reversi.tools.binio import BinaryReader, BinaryWriter

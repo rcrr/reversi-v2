@@ -54,7 +54,7 @@ from reversi.board import (Bitboard,
                          bitboard_count,
                          bitboard_from_signed_int,
                          make_position)
-from reversi.pattern import Index
+from reversi.index import Index
 from reversi.mobility import (Mobility, MobilitySet,
                             popcount64)
 

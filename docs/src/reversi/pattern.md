@@ -9,8 +9,6 @@ The mdp_record / mdp_csv_file methods render the MDP records (the CSV file for t
 
 | family | name | contract |
 |---|---|---|
-| Types | `Index` | type alias `np.uint32` — a base-3 configuration index (safe because S ≤ 18) |
-| Types | `IndexArray` | annotated ndarray; the BeforeValidator requires uint32 for ndarrays, scalars pass through |
 | Pattern | `Pattern(name: str, mask: Bitboard)` | strict constructor (no coercion); ValueError: empty mask, > 18 squares, non-principal mask (the error lists all 8 transformed masks) |
 | Pattern | construction attributes | `n_squares`, `n_configurations = 3^S`, `tmasks` (8, canonical slot order), `squares`/`snames` (ascending board order), `unique_masks`, `mask_to_index` (first-seen slot), `mask_indexes`, `unique_mask_indexes`, `n_instances = \|Orb\|`, `n_stabilizers = 8/\|Orb\|`, `trans_fs`/`anti_trans_fs` (length n_instances, first-seen slots), `squares_t`/`snames_t`/`squares_ts` (per-instance; `_ts` sorted), `fingerprint`, `type_info`, `powers_3`/`bit_shifts`, `pack_plan` (the eager run-based pack/unpack plan), `principal_index_dict` / `principal_index_count` (lazy), `n_invariant_configs`/`n_unique_configs` (Burnside), `symmetry_fs`/`anti_symmetry_fs`, `unique_symmetric_instance_indexes` |
 | Pattern | `compute_indexes_on_position(pos) -> NDArray[Index]` | the anti-transform → pack → base-3 pipeline; scalar → (n_instances,), any-shape array → pos.shape + (n_instances,) (a 1-D (N,) batch → (N, n_instances); the N-D path flattens the (…, 8) transformation matrices to (-1, 8) before the column selection) |

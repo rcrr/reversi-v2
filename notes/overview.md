@@ -62,6 +62,7 @@ define the evaluation function.
 | src/reversi/base\_model.py | complete | [docs/src/reversi/base\_model.md](docs/src/reversi/base\_model.md) |
 | src/reversi/board.py | complete | [docs/src/reversi/board.md](docs/src/reversi/board.md) |
 | src/reversi/feature.py | complete | [docs/src/reversi/feature.md](docs/src/reversi/feature.md) |
+| src/reversi/index.py | complete | [docs/src/reversi/index.md](docs/src/reversi/index.md) |
 | src/reversi/lm/client.py | complete | [docs/src/reversi/lm/client.md](docs/src/reversi/lm/client.md) |
 | src/reversi/lm/hlp\_analytics.py | complete | [docs/src/reversi/lm/hlp\_analytics.md](docs/src/reversi/lm/hlp\_analytics.md) |
 | src/reversi/lm/hlp\_anova.py | complete | [docs/src/reversi/lm/hlp\_anova.md](docs/src/reversi/lm/hlp\_anova.md) |
@@ -149,9 +150,10 @@ define the evaluation function.
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_board.py | complete | 308/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
 | test/reversi/test\_feature.py | complete | 32/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
+| test/reversi/test\_index.py | complete | 5/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |
 | test/reversi/test\_mobility.py | complete | 31/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
 | test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
-| test/reversi/test\_pattern.py | complete | 79/0/3/0/0 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |
+| test/reversi/test\_pattern.py | complete | 76/0/3/0/0 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |
 | test/reversi/test\_random\_game.py | complete | 43/0/1/0/0 | [docs/test/reversi/test\_random\_game.md](docs/test/reversi/test\_random\_game.md) |
 | test/reversi/test\_regab.py | complete | 49/0/0/0/0 | [docs/test/reversi/test\_regab.md](docs/test/reversi/test\_regab.md) |
 | test/reversi/tools/test\_binio.py | complete | 56/0/0/0/0 | [docs/test/reversi/tools/test\_binio.md](docs/test/reversi/tools/test\_binio.md) |

@@ -1554,3 +1554,21 @@ D-521 | 2026-10-12 | The wrk\_positions public surface reshaped (Roberto's call,
          in-function local variable named is\_cache\_consistent (the boolean + its DEBUG log line) is untouched — it
          shadows nothing anymore. The 4 .py files at the reflow fixpoint; the suite green via the R-210 wrapper; both
          probes fully green.
+
+D-522 | 2026-10-12 | The index-type extraction: the new module src/reversi/index.py is the single home of Index (the
+         np.uint32 alias) + IndexArray (the pydantic Annotated ndarray with the BeforeValidator) + the private
+         validate\_index\_array — moved verbatim out of pattern.py, which no longer "owns" a generic concept. After the
+         audit of the usage (Roberto's call): the current graph was already a DAG (no import cycle) — the smell was
+         conceptual, mobility importing pattern for two aliases pattern does not own. New dependency shape: index is the
+         leaf (numpy + pydantic only); pattern / mobility / feature all import from index; feature keeps its pattern +
+         mobility imports; the lm data modules (hlp\_indexes, hlp\_su\_analysis) re-routed to index. pattern.py: the 3
+         definitions + 2 \_\_all\_\_ entries out, the dead TypeAlias / Annotated / BeforeValidator imports out. Tests:
+         test\_pattern (the star import no longer carries the aliases — explicit index import; the TestIndexArray class
+         moved out), test\_feature (the import split), test\_mobility (Index from index); the new test\_index.py (5
+         tests: the alias identity, the validator contract, the Annotated metadata). Mirror docs: the new index.md +
+         test\_index.md; pattern.md (the 2 Types API rows out), mobility.md (the "deliberate reuse" notes → the index
+         import), feature.md (the composition point), test\_pattern.md (13 classes / 76 tests, the import note).
+         Overview: +1 source row + 1 test row. Zero probe pins broke (verify\_pattern\_tests2 is behavioral; the others
+         carry no Index location pins). Zero runtime behavior change: type aliases + the validator move verbatim, the
+         numba kernels use the dtype directly. The 10 .py files at the reflow fixpoint; the suite green via the R-210
+         wrapper; the 6 touched probes fully green; the overview audit green (49/49 rows).

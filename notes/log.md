@@ -113,3 +113,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - I 4 .py al punto fisso reflow.
 - Suite via wrapper R-210 (LONG=1, DB live, per D-521): 1115/0/24 GREEN. Probe
   verify\_wrk\_positions 21/21 + verify\_vld\_positions: all checks passed.
+
+## 2026-10-12 — session 107 (D-522 — estrazione del modulo index: Index/IndexArray fuori da pattern)
+
+- Analisi su richiesta di Roberto: il grafo pattern/mobility/feature era già un DAG (nessun ciclo) —
+  il punto concettuale era che Index/IndexArray (alias generici) vivevano in pattern e costringevano
+  mobility a importarlo. Chiamata: nuovo modulo index come home unica; i tre moduli importano da
+  index; pattern perde le definizioni (e i 2 nomi da \_\_all\_\_, e gli import morti
+  TypeAlias/Annotated/BeforeValidator).
+- Toccato: 6 sorgenti (index nuovo, pattern, mobility, feature, hlp\_indexes, hlp\_su\_analysis),
+  4 test (test\_index nuovo con la classe TestIndexArray mossa da test\_pattern; import split in
+  test\_feature; re-routing in test\_mobility), 8 doc (2 nuovi + 4 aggiornati), overview (+1 riga
+  source +1 test). Zero pin probe rotti; zero cambio comportamentale.
+- I 10 .py al punto fisso reflow.
+- Suite via wrapper R-210 (LONG=1, DB live, per D-522): 1117/0/24 GREEN (il nuovo test\_index aggiunge 5 test, test\_pattern ne perde 3 — la classe mossa). I 6 probe toccati: all green.
+- In corso emersa l'occorrenza del runner: test\_index registrato nella lista MODULES di run\_utests.sh (la fonte unica che suite\_audit.py parsa).

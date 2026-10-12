@@ -47,7 +47,8 @@ from reversi.board import (Bitboard,
                          make_position)
 from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
-from reversi.pattern import Pattern, PatternSet, Index
+from reversi.pattern import Pattern, PatternSet
+from reversi.index import Index
 
 import numpy as np
 
