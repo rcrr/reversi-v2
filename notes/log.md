@@ -68,3 +68,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - I 2 mirror doc (hlp\_analytics.md + wrk\_analytics.md) aggiornati ai nuovi nomi; i 4 .py al punto fisso reflow.
 - Suite via wrapper R-210 (LONG=1, DB live, per D-518): 1115/0/24 GREEN. Probe verify\_analytics: all checks
   passed.
+- Correzione in avanti sul D-518 (la mia): la docstring del dataclass non era nella forma voluta — il
+  parametro rn\_y continuava sulla riga del parametro metrics. Forma canonica house per le liste di
+  parametri: ogni entry a +4 dal corpo docstring, il wrapping della descrizione a +8 (il reflow
+  src\_reflow è l'enforcer: la forma a 4 spazi della richiesta andava ri-unita in paragrafo fluente).
+  Commit part 2 di D-518.

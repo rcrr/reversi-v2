@@ -650,8 +650,9 @@ class AnalyticsTrainingDenseResult:
     """
     The dense training forward pass: the metrics plus the per-position residuals it is computed from.
 
-    metrics: the 4-key dict (the analytics report contract, unchanged). rn_y: the residuals in Y
-    (the f64 view) — the series PLOT renders (one derivation, published by ANALYTICS).
+        metrics: the 4-key dict (the analytics report contract, unchanged).
+        rn_y: the residuals in Y (the f64 view) — the series PLOT renders (one derivation, published
+            by ANALYTICS).
     """
     metrics: Dict[str, float | int]
     rn_y: np.ndarray
