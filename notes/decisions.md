@@ -1633,3 +1633,21 @@ D-526 | 2026-10-12 | The hlp\_plot module API rename (Roberto's call, after the 
          the prose "jitter" common noun intact; only the code sites and the one backticked doc reference took the
          underscore. Suite green via the R-210 wrapper; verify\_plot fully green; all 7 touched .py at the reflow
          fixpoint (3 needed a re-wrap for the longer names).
+
+D-527 | 2026-10-12 | The prng pick-kernel API (Roberto's call, after the investigation): the two module-level kernels
+         take the house prefix — pick\_one\_from\_set64 → prng\_pick\_one\_from\_set64, pick\_one\_from\_set64\_batch →
+         prng\_pick\_one\_from\_set64\_batch (the only function-level publics of the module; the class methods keep
+         their names) — and gain the static type annotations (s/d: np.uint64 → tuple[np.uint64, np.uint8]; the batch:
+         npt.NDArray [np.uint64] throughout, the first npt import in the module): INERT under numba (it infers from
+         runtime values) and string-lazy via the existing \_\_future\_\_ import — zero runtime cost, pure documentation,
+         no Pydantic (Roberto's perf rule). The slots array is UINT64 now (Roberto: it is a prefix count, always
+         non-negative — the int64 was not ideal): the computation cumsum(needs, dtype=uint64) - needs.astype(uint64) can
+         never underflow (the inclusive prefix is >= the element's own flag) and overflows only at 2^64 elements;
+         VERIFIED empirically before the change — int64/uint64 slots are value-identical on 4 patterns (incl. all-True
+         N=100k), the batch kernel output is bit-identical, and the stream stays aligned. Touched: prng (the renames +
+         the annotations + the slots doc line), random\_game (import + 3 call sites + the 2 slots computations),
+         test\_prng (import + 4 call sites + the 2 slots fixtures), 2 mirror docs (prng: 8 sites + the uint64
+         prefix-count note; random\_game: 2). No probe references the names (zero re-pins); the ValueError message
+         prefix follows the rename (no test asserts on it). One-time cost: numba recompiles the two kernels with the new
+         uint64 specialization (cached after). Suite green via the R-210 wrapper (the random\_game LONG tests cover the
+         engine path); all 3 touched .py at the reflow fixpoint.

@@ -52,8 +52,8 @@ API (the MT19937 class, the sole STREAM interface):
   choose_one_from_set64(set64)       pick a random bit, WITHOUT removing.
 
 The pick-from-set technique lives ONCE in this module, shared by the class methods and the numba
-contexts: pick_one_from_set64 (the scalar kernel — the methods draw one value and delegate to it)
-and pick_one_from_set64_batch (the vectorized form over an (N,) array of sets, fed by one
+contexts: prng_pick_one_from_set64 (the scalar kernel — the methods draw one value and delegate to
+it) and prng_pick_one_from_set64_batch (the vectorized form over an (N,) array of sets, fed by one
 get_uint64_batch pre-draw).
 
 The state (_mt / _mti) is INTERNAL: it is never exposed, and a generator is neither saved nor re-seeded.
@@ -64,9 +64,10 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import numpy.typing as npt
 import numba as nb
 
-__all__ = ['MT19937', 'pick_one_from_set64', 'pick_one_from_set64_batch']
+__all__ = ['MT19937', 'prng_pick_one_from_set64', 'prng_pick_one_from_set64_batch']
 
 # The working-area size: 312 words (64-bit each) — the MT-19937 state. NN is the only constant at
 # module level (the ctor's np.zeros(NN, …) + the init loop use it); the twist + temper constants (MM
@@ -324,7 +325,7 @@ class MT19937:
         s = set_arr[0]
         if s == np.uint64(0):
             raise ValueError("the set must not be empty")
-        _bb, p = pick_one_from_set64(np.uint64(s), self.get_uint64())
+        _bb, p = prng_pick_one_from_set64(np.uint64(s), self.get_uint64())
         # Clear the picked bit from the ORIGINAL set (the numpy ~ wraps at 64 bits).
         set_arr[0] = set_arr[0] & ~(np.uint64(1) << np.uint64(p))
         return np.uint8(p)
@@ -346,7 +347,7 @@ class MT19937:
             return np.uint64(0x0000000000000000), np.uint8(64)
         # The numba scalar-return idiom: the kernel values come back as Python ints at the Python
         # boundary — re-wrap to the numpy dtypes (the method's historical contract).
-        bb, p = pick_one_from_set64(s, self.get_uint64())
+        bb, p = prng_pick_one_from_set64(s, self.get_uint64())
         return np.uint64(bb), np.uint8(p)
 
 
@@ -397,13 +398,14 @@ def _get_uint64_batch(mt, mti, n):
 # ---------------------------------------------------------------------
 # The pick-from-set technique: the SINGLE SOURCE shared by MT19937.choose_one_from_set64 /
 # extract_from_set64 (they draw one value and delegate) and by the numba batch callers (e.g.
-# random_game_choose_move). pick_one_from_set64 is the scalar kernel: the pick from a NON-ZERO set
-# given the pre-drawn value. pick_one_from_set64_batch is its vectorized form over an (N,) array of sets.
+# random_game_choose_move). prng_pick_one_from_set64 is the scalar kernel: the pick from a NON-ZERO
+# set given the pre-drawn value. prng_pick_one_from_set64_batch is its vectorized form over an (N,)
+# array of sets.
 # ---------------------------------------------------------------------
 
 
 @nb.njit(cache=True)
-def pick_one_from_set64(s, d):
+def prng_pick_one_from_set64(s: np.uint64, d: np.uint64) -> tuple[np.uint64, np.uint8]:
     """
     Pick one bit uniformly from the NON-ZERO 64-bit set s, given the pre-drawn uint64 value d: k =
     popcount(s), r = (d >> 11) * (1 / 2**53) — the get_double_in_c0_o1 scalarization — c = floor(r *
@@ -421,7 +423,7 @@ def pick_one_from_set64(s, d):
             kernel never delegate it — without it, the pop-position loop would not terminate).
     """
     if s == np.uint64(0):
-        raise ValueError("pick_one_from_set64: the set must not be empty")
+        raise ValueError("prng_pick_one_from_set64: the set must not be empty")
     v = s - ((s >> np.uint64(1)) & np.uint64(0x5555555555555555))
     v = (v & np.uint64(0x3333333333333333)) + ((v >> np.uint64(2)) & np.uint64(0x3333333333333333))
     v = (v + (v >> np.uint64(4))) & np.uint64(0x0F0F0F0F0F0F0F0F)
@@ -441,9 +443,11 @@ def pick_one_from_set64(s, d):
 
 
 @nb.njit(parallel=True, cache=True)
-def pick_one_from_set64_batch(sets, draws, slots):
+def prng_pick_one_from_set64_batch(sets: npt.NDArray[np.uint64],
+                                    draws: npt.NDArray[np.uint64],
+                                    slots: npt.NDArray[np.uint64]) -> npt.NDArray[np.uint64]:
     """
-    Pick one bit per set, the vectorized pick_one_from_set64 over an (N,) uint64 array of sets:
+    Pick one bit per set, the vectorized prng_pick_one_from_set64 over an (N,) uint64 array of sets:
     element i with a non-empty set picks from sets[i] using draws[slots[i]] (slots[i] = the number
     of NON-EMPTY sets before i — the prefix count the caller computes, e.g. the cumsum of sets !=
     0); draws is the (k,) uint64 array of the pre-drawn values, one per non-empty set in element
@@ -454,7 +458,7 @@ def pick_one_from_set64_batch(sets, draws, slots):
     Args:
         sets: The (N,) uint64 array of sets.
         draws: The (k,) uint64 array of the pre-drawn values, one per non-empty set in element order.
-        slots: The (N,) int64 prefix counts (the number of non-empty sets before each element).
+        slots: The (N,) uint64 prefix counts (the number of non-empty sets before each element).
 
     Returns:
         np.ndarray: The (N,) uint64 array of the picked bits (0 for the empty sets).
@@ -466,6 +470,6 @@ def pick_one_from_set64_batch(sets, draws, slots):
         if s == np.uint64(0):
             out[i] = np.uint64(0)
         else:
-            bb, _p = pick_one_from_set64(s, draws[slots[i]])
+            bb, _p = prng_pick_one_from_set64(s, draws[slots[i]])
             out[i] = bb
     return out

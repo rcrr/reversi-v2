@@ -33,7 +33,7 @@ import numba as nb
 from typing import Tuple, Annotated
 from pydantic import validate_call, ConfigDict, Field
 
-from reversi.tools.prng import MT19937, pick_one_from_set64, pick_one_from_set64_batch
+from reversi.tools.prng import MT19937, prng_pick_one_from_set64, prng_pick_one_from_set64_batch
 from reversi.board import (MOVE_PA, Bitboard, BitboardArray, Move, MoveArray,
                            PositionField, PositionArray, bitboard_bsr,
                            bitboard_count, flips_of_move, legal_moves_of,
@@ -74,8 +74,8 @@ def random_game_choose_move(p: PositionField | PositionArray,
         lms = position_legal_moves(p).ravel()
         needs = (lms != _EMPTY_MOVE_SET)
         draws = prng.get_uint64_batch(int(np.count_nonzero(needs)))
-        slots = np.cumsum(needs, dtype=np.int64) - needs.astype(np.int64)
-        return pick_one_from_set64_batch(lms, draws, slots).reshape(p.shape)
+        slots = np.cumsum(needs, dtype=np.uint64) - needs.astype(np.uint64)
+        return prng_pick_one_from_set64_batch(lms, draws, slots).reshape(p.shape)
     if isinstance(p, np.void):
         moves: Bitboard = position_legal_moves(p)
         move, _ = prng.choose_one_from_set64(moves)
@@ -161,9 +161,9 @@ def _advance_step(movers: np.ndarray, opponents: np.ndarray,
                   slots: np.ndarray, draws: np.ndarray):
     """
     The advance pass of the engine (per lane, one prange pass): the pick via prng's per-lane
-    primitive `pick_one_from_set64` on the pre-drawn value at the lane's slot (the single source of
-    the pick technique), the flip set via board's per-lane primitive `flips_of_move`, and the
-    in-place state update. The plays lanes play from the mover's legal set; the pass_reply lanes
+    primitive `prng_pick_one_from_set64` on the pre-drawn value at the lane's slot (the single
+    source of the pick technique), the flip set via board's per-lane primitive `flips_of_move`, and
+    the in-place state update. The plays lanes play from the mover's legal set; the pass_reply lanes
     play the opponent's legal set on the swapped view (the write-back maps the fields directly —
     position_flips' NEXT-view semantics). The non-needing lanes are untouched.
     """
@@ -172,12 +172,12 @@ def _advance_step(movers: np.ndarray, opponents: np.ndarray,
         if not needs_draw[i]:
             continue
         if pass_reply[i]:
-            bb, _p = pick_one_from_set64(lms_opponent[i], draws[slots[i]])
+            bb, _p = prng_pick_one_from_set64(lms_opponent[i], draws[slots[i]])
             flips = flips_of_move(opponents[i], movers[i], bb)
             m_new = movers[i] & ~flips
             o_new = opponents[i] | flips | bb
         else:
-            bb, _p = pick_one_from_set64(lms_mover[i], draws[slots[i]])
+            bb, _p = prng_pick_one_from_set64(lms_mover[i], draws[slots[i]])
             flips = flips_of_move(movers[i], opponents[i], bb)
             m_new = opponents[i] & ~flips
             o_new = movers[i] | flips | bb
@@ -214,7 +214,7 @@ def _play_path_step(movers: np.ndarray, opponents: np.ndarray,
                    plays, pass_reply, game_over)
     needs_draw = plays | pass_reply
     draws = prng.get_uint64_batch(int(np.count_nonzero(needs_draw)))
-    slots = np.cumsum(needs_draw, dtype=np.int64) - needs_draw.astype(np.int64)
+    slots = np.cumsum(needs_draw, dtype=np.uint64) - needs_draw.astype(np.uint64)
     _advance_step(movers, opponents, needs_draw, pass_reply, lms_mover,
                   lms_opponent, slots, draws)
     ec = bitboard_count(~(movers | opponents))

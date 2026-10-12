@@ -34,7 +34,7 @@ re-implements neither.
   per-element pick via the prng batch kernel.
 - The array path engine: the step loop in TWO fused kernels — `_classify_step` (per lane: the legal set via board's
   per-lane primitive `legal_moves_of`, the classification masks, the pass lanes' opponent set in kernel) and
-  `_advance_step` (per lane: the pick via prng's `pick_one_from_set64` on the pre-drawn slot, the flip set via board's
+  `_advance_step` (per lane: the pick via prng's `prng_pick_one_from_set64` on the pre-drawn slot, the flip set via board's
   `flips_of_move`, the in-place state update). Between the passes only the needs count, the prefix slot map and one
   `get_uint64_batch` call. The state is the raw (movers, opponents) uint64 pair — copied once from the input, advanced
   in place, assembled into the Position array once at the end.
@@ -69,7 +69,7 @@ None.
 
 - The PRNG stream is the caller's: the module never draws outside the injected stream, and the array consumption is
   documented per element and per step (the reproducibility discipline).
-- The PRNG pick technique lives in tools/prng.py (the per-lane njit primitive `pick_one_from_set64`); this module
+- The PRNG pick technique lives in tools/prng.py (the per-lane njit primitive `prng_pick_one_from_set64`); this module
   composes it and never re-implements it.
 - The game mechanics live in board.py (the per-lane njit primitives `legal_moves_of` / `flips_of_move`); the fused
   kernels call them and never duplicate the geometries.

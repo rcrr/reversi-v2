@@ -56,7 +56,7 @@ import unittest
 import numpy as np
 
 from test.reversi.paths import WORKSPACE_ROOT
-from reversi.tools.prng import MT19937, pick_one_from_set64, pick_one_from_set64_batch
+from reversi.tools.prng import MT19937, prng_pick_one_from_set64, prng_pick_one_from_set64_batch
 
 
 #: The committed reference golden.
@@ -546,10 +546,10 @@ class TestChooseOneFromSet64(unittest.TestCase):
 
 class TestPickOneFromSet64(unittest.TestCase):
     """
-    The numba pick kernels: pick_one_from_set64 (the scalar kernel — the single source of the pick
-    technique, shared by choose_one_from_set64 / extract_from_set64) and pick_one_from_set64_batch
-    (the vectorized form). The identity pin: on identical streams the kernels and the class methods
-    agree draw-for-draw.
+    The numba pick kernels: prng_pick_one_from_set64 (the scalar kernel — the single source of the
+    pick technique, shared by choose_one_from_set64 / extract_from_set64) and
+    prng_pick_one_from_set64_batch (the vectorized form). The identity pin: on identical streams the
+    kernels and the class methods agree draw-for-draw.
     """
 
     SETS = [0x1, 0x3, 0xF0, 0xFFFF,
@@ -560,7 +560,7 @@ class TestPickOneFromSet64(unittest.TestCase):
         # The kernel's precondition: the empty set raises ValueError (the class methods and the
         # batch kernel guard it before delegating; without the guard the pop-position loop would not terminate).
         with self.assertRaises(ValueError):
-            pick_one_from_set64(np.uint64(0), MT19937(1).get_uint64())
+            prng_pick_one_from_set64(np.uint64(0), MT19937(1).get_uint64())
 
     def test_scalar_kernel_matches_the_method(self):
         # For every set and 100 draws: two identical streams — the method consumes one draw, the
@@ -570,7 +570,7 @@ class TestPickOneFromSet64(unittest.TestCase):
             k = MT19937(93)
             for _ in range(100):
                 d = k.get_uint64()
-                bb_k, p_k = pick_one_from_set64(np.uint64(s), d)
+                bb_k, p_k = prng_pick_one_from_set64(np.uint64(s), d)
                 bb_m, p_m = m.choose_one_from_set64(np.uint64(s))
                 self.assertEqual(int(bb_k), int(bb_m))
                 self.assertEqual(int(p_k), int(p_m))
@@ -582,12 +582,12 @@ class TestPickOneFromSet64(unittest.TestCase):
                          0xFFFFFFFFFFFFFFFF, 0x1248842104812448],
                         dtype=np.uint64)
         needs = sets != 0
-        slots = np.cumsum(needs, dtype=np.int64) - needs.astype(np.int64)
+        slots = np.cumsum(needs, dtype=np.uint64) - needs.astype(np.uint64)
         m = MT19937(93)
         seq = [m.choose_one_from_set64(np.uint64(s)) for s in sets]
         k = MT19937(93)
         draws = k.get_uint64_batch(int(np.count_nonzero(needs)))
-        out = pick_one_from_set64_batch(sets, draws, slots)
+        out = prng_pick_one_from_set64_batch(sets, draws, slots)
         for i in range(len(sets)):
             self.assertEqual(int(out[i]), int(seq[i][0]))
         self.assertEqual(int(m.get_uint64()), int(k.get_uint64()))
@@ -596,9 +596,9 @@ class TestPickOneFromSet64(unittest.TestCase):
         # All-empty sets: every element is the pass signal (0) and no draw is consumed (the draws
         # array is empty; the stream stays aligned with a fresh generator's first draw).
         sets = np.zeros(5, dtype=np.uint64)
-        slots = np.zeros(5, dtype=np.int64)
+        slots = np.zeros(5, dtype=np.uint64)
         k = MT19937(93)
-        out = pick_one_from_set64_batch(sets, k.get_uint64_batch(0),
+        out = prng_pick_one_from_set64_batch(sets, k.get_uint64_batch(0),
                                         slots)
         self.assertTrue(np.array_equal(out, np.zeros(5, dtype=np.uint64)))
         m = MT19937(93)

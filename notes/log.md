@@ -159,6 +159,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   un-renamed (registry dispatch).
 - Touched: 3 src + 3 test + 1 probe (32 sites, 1 substring pin re-pinned) + 6 docs (51 sites). Word-boundary replaces;
   the prose "jitter" common noun untouched.
+- Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (counts unchanged — pure rename). verify\_plot: green.
+  All 7 touched .py at the reflow fixpoint.
+## 2026-10-12 — session 112 (D-527 — the prng pick-kernel API: rename, annotations, uint64 slots)
+
+- Roberto's call: the two module-level pick kernels take the prng\_ prefix and the static type annotations (inert under
+  numba, string-lazy — no Pydantic); slots becomes uint64 (a prefix count is always non-negative; the type carries the
+  contract). Empirically verified before the change: value-identical slots, bit-identical kernel output, aligned
+  streams.
+- Touched: 3 code files + 2 mirror docs. No probe pins the names (zero re-pins).
 - Suite via the R-210 wrapper (LONG=1, live DB): 1122/0/24 GREEN (counts
-  unchanged — pure rename). verify\_plot: green. All 7 touched .py at the
+  unchanged — rename + annotations + the slots dtype). The random\_game LONG tests
+  cover the engine path with the new uint64 specialization. All 3 touched .py at the
   reflow fixpoint.
