@@ -15,3 +15,6 @@ scratch/
 
 # Build directory
 build/
+
+# Local environment (the DB credentials) — .env.example is the tracked template
+.env

@@ -48,5 +48,7 @@ def _workspace_root() -> Path:
 WORKSPACE_ROOT = _workspace_root()
 
 #: The shared test-artifact base directory (the house rule: unit tests write files ONLY under
-#: <workspace-root>/build/tmp and clean them up afterwards).
+#: <workspace-root>/build/tmp and clean them up afterwards). Created here, at import time, so a
+#: FRESH CLONE runs the suite without any manual mkdir (the build/ tree is gitignored).
 CUSTOM_TMP_BASE = WORKSPACE_ROOT / "build" / "tmp"
+CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
