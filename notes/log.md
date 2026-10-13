@@ -269,4 +269,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   fail-closed) wired as the THIRD blocking pre-commit check; R-591 legislated in the Code style section; 27 old banners
   normalized (the trailing-space separators); the pre-commit hook itself got its banner. End-to-end proof: a headerless
   staged file blocked a real commit.
-- Next: step 3 (the .env untrack + .env.example, the paths.py auto-mkdir, the README, the fresh-clone proof).
+- D-542: step 3, part 1 — the .env untracked (it stays on the local disk) + .gitignore + the .env.example template; the
+  paths.py auto-mkdir of build/tmp at import time. Suite green; committed. The README (3c) written, UNCOMMITTED —
+  awaiting Roberto's review.
+- Next: the README review, then 3d (the fresh-clone proof in /tmp), then step 4 (the secret scan, the final suite) and
+  step 5 (the push).

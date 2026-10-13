@@ -1860,3 +1860,13 @@ D-541 | 2026-10-13 | The license-header GUARD (R-591) — D-540 made the headers
          pathspec missed it) got the standard banner. Verified: the audit is GREEN on all 147 files; RED on both failure
          modes (no header at all; the FILE\_NAME carrying the wrong name); the end-to-end hook test — a headerless
          staged file BLOCKED a real commit (no commit was created); the full LONG=1 suite green.
+
+D-542 | 2026-10-13 | Fresh-clone readiness, part 1 (Roberto's GO for step 3, the checkin authorized; the README — 3c —
+         deliberately KEPT OUT of this commit, awaiting his review): the .env (the local DB credentials) leaves the
+         TRACKED tree — git rm --cached (the file stays on the local disk), added to .gitignore, and the tracked
+         .env.example carries the same nine keys (the five DB\_\* + the four TEST\_RDATA\_\*) with placeholder values
+         and the fill-in instructions (cp .env.example .env). test/reversi/paths.py now creates build/tmp AT IMPORT TIME
+         (CUSTOM\_TMP\_BASE.mkdir(parents=True, exist\_ok=True)) — the 84 test modules that write their artifacts under
+         build/tmp no longer depend on the directory happening to exist: a fresh clone runs the suite with zero manual
+         steps (the build/ tree stays gitignored). Verified: build/ removed on disk, the import recreates build/tmp; the
+         full LONG=1 suite green (24 skips).
