@@ -241,3 +241,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (naming sweep, int64 fixtures, register re-review).
 - D-538: the overview test-command entry's durations replaced with the MEASURED numbers (default ~17 s, VVLONG=1 ~3.5
   min — the 7-run report means).
+- Session close: D-535..D-538 are committed (the 27 fast NORMAL equivalents — suite 1149/0/24, the VVLONG banner + the
+  rlm\_04 line break, the overview cleanup + the measured durations). The next session opens on the LM config "User
+  guide" — the PLACEMENT decision is pending (a section of the logistic\_model mirror doc vs a separate user doc; Nia
+  proposes the separate doc + the one-line pointer).
