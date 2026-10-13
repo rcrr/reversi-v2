@@ -50,11 +50,6 @@ define the evaluation function.
 
 ## Next steps
 
-- The LM config "User guide" (the next session's task, Roberto's): a technical, precise description of every JSON config
-  rule and option — a minimal example entry first, then the exhaustive reference. The PLACEMENT is his call: a "User
-  guide" section inside the logistic\_model mirror doc (his draft) vs a separate user doc (Nia's proposal: e.g.
-  docs/user/lm\_config.md + a one-line pointer from the mirror doc + the small docs\_rules.md amendment that registers
-  the user-doc zone).
 - The 5 residual LONG tests await the user's call (D-535): the A2030 end-to-end chain ×2 (no fast equivalent —
   production-scale goldens), the JIT array-overloads test (the 0.9 s one-time compilation is irreducible), and the 2
   already-covered 1M PERF prints (pattern + random-game — delete vs keep-as-benchmark). The 7-run duration report

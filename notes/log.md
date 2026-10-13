@@ -255,3 +255,4 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-539: the zone legislated — docs\_rules.md (the opening scope sentence + the new §8: the house format applies, the
   mirror skeleton does not; the TRUTH + LIFECYCLE contracts), wsutils/docs\_format\_audit.py (the docs() walk skips
   docs/user/), the overview "Mirror docs" bullet registers the zone.
+- Session close: the guide is DONE and committed (the overview next-steps entry removed on Roberto's call).
