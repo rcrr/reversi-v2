@@ -23,9 +23,9 @@ define the evaluation function.
 - Dependencies (pyproject.toml): numpy ≥ 2.0 (bitboards / structured dtypes), pydantic ≥ 2 (@validate\_call), numba
   ≥ 0.60 (njit / prange / overload; pulls llvmlite), lz4 (binio), psycopg2 / pandas / python-dotenv (regab), json5 (the
   LM configs), scipy (gradient / ANOVA / plot), matplotlib (the PLOT step).
-- Test command: `./run_utests.sh` (the canonical runner; tiers: default fast ~5 s, LONG=1, VLONG=1 ~10 min incl. the
-  A2050 chain and implies LONG; PERF=1 adds the print-only perf tests). The standard pre-commit run is
-  `LONG=1 ./run_utests.sh`; VLONG=1 only when useful. A single module:
+- Test command: `./run_utests.sh` (the canonical runner; the cumulative tiers: default fast, LONG=1, VLONG=1, VVLONG=1 —
+  the A2050 chain, D-534; PERF=1 adds the print-only perf tests). The standard pre-commit run is
+  `LONG=1 ./run_utests.sh`; VLONG/VVLONG=1 only when useful. A single module:
   `.venv/bin/python -m unittest test.reversi[.zone].<module>` (the zones: lm, tools). The DB-gated suites (test\_regab +
   the worker suites) need a live PostgreSQL + .env + LONG=1, or `SKIP_REGAB_DB=1` to skip the DB tests. The runner is
   unittest by design (pytest is not a dependency).

@@ -233,3 +233,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   Twelve mirror docs updated.
 - The 7-run duration report refreshed; the 5 residual LONG tests (A2030 ×2, JIT array, the 2 covered 1M PERFs) are
   Roberto's call.
+- D-536: the run\_utests.sh banner now prints VVLONG (the header comment's stale D-285 "uninstrumented" claim dropped) +
+  rlm\_04.json's cosmetic line break (Roberto's edit, parsed structure identical) + the A2030 tests confirmed to stay
+  LONG ("vanno bene così"). Canonical LONG=1 run OK (24 skips).

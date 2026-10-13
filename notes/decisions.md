@@ -1784,3 +1784,12 @@ D-535 | 2026-10-13 | Fast NORMAL-tier equivalents for the LONG band — the "the
          stay as the production-scale versions) / VLONG 1 / VVLONG 1. Expected: the simple run 15.3 s → ≈ 17.3 s,
          exhaustive at the invariant level. The 5 residual LONG tests (the A2030 chain ×2, the JIT array overloads, the
          2 already-covered 1M PERFs) are Roberto's call.
+
+D-536 | 2026-10-13 | Two small items (Roberto's call): (1) the run\_utests.sh banner was missing VVLONG — the echo line
+         now prints PERF / LONG / VLONG / VVLONG / SKIP\_REGAB\_DB, and the VVLONG header-comment line drops the stale
+         "currently uninstrumented (D-285)" claim (the A2050 chain has been the VVLONG instrument since D-534); (2) the
+         cosmetic line break in test/reversi/data/rlm\_04.json (the training\_data\_set closing brace moved to its own
+         line — the user's edit) — the parsed structure is identical to HEAD (verified with json5) and an A2030 test
+         runs green on the edited fixture. The overview runner bullet now names the VVLONG tier. The A2030 full-pipeline
+         tests stay LONG as they are (Roberto: "vanno bene così"). Verified: the banner prints VVLONG=1; the canonical
+         LONG=1 run is OK (24 skips).
