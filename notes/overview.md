@@ -50,12 +50,7 @@ define the evaluation function.
 
 ## Next steps
 
-- The 5 residual LONG tests await the user's call (D-535): the A2030 end-to-end chain ×2 (no fast equivalent —
-  production-scale goldens), the JIT array-overloads test (the 0.9 s one-time compilation is irreducible), and the 2
-  already-covered 1M PERF prints (pattern + random-game — delete vs keep-as-benchmark). The 7-run duration report
-  (post-D-535) is the base of any further tier review.
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
-- Add the project README (English, like everything else).
 
 ## Source files
 
