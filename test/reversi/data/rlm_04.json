@@ -70,7 +70,8 @@
             "host": "localhost"
         },
         "bid": [6],
-        "status": ["CMR", "CMS"]    },
+        "status": ["CMR", "CMS"]
+    },
     "validation_data_set": {
         "bid": [5],
         "status": ["CMS", "CMR"]

@@ -7,8 +7,8 @@
 #   PERF=1 ./run_utests.sh       + the print-only performance tests
 #   LONG=1 ./run_utests.sh       + the DB-gated pipeline tests
 #   VLONG=1 ./run_utests.sh      + the long instruments (the A2050 chain)
-#   VVLONG=1 ./run_utests.sh     + the very-long ones (currently
-#                                  uninstrumented — D-285)
+#   VVLONG=1 ./run_utests.sh     + the very-long ones (the A2050
+#                                  full chain — D-534)
 #   SKIP_REGAB_DB=1 ...          no-DB environment: every DB test is
 #                                skipped whatever the tier
 #
@@ -22,7 +22,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 source .venv/bin/activate
 
-echo "run_utests: PERF=${PERF:-0} LONG=${LONG:-0} VLONG=${VLONG:-0} SKIP_REGAB_DB=${SKIP_REGAB_DB:-0}"
+echo "run_utests: PERF=${PERF:-0} LONG=${LONG:-0} VLONG=${VLONG:-0} VVLONG=${VVLONG:-0} SKIP_REGAB_DB=${SKIP_REGAB_DB:-0}"
 
 MODULES=(
     # 0 — tools
