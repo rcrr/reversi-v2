@@ -296,6 +296,85 @@ class TestWrkPlot(unittest.TestCase):
         messages = [m for _, m in self._events]
         self.assertIn("Clearing plot attributes...", messages)
 
+    # -- the small (NORMAL-tier) up tests ----------------------------------
+
+    def _build_small_ctx(self):
+        """
+        A SMALLER variant of the class's synthetic ctx (N_TRN 100 / N_VLD 75, dpi 50): the same
+        layout as _build_ctx with the reduced row counts — the fast NORMAL-tier up tests.
+        """
+        n_trn, n_vld = 100, 75
+        rng = np.random.default_rng(SEED)
+
+        # The rlm_04 feature layout (the same fixture layout as _build_ctx).
+        intercept = Feature.new_intercept()
+        mset = MobilitySet("MOBILITY",
+                           [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
+                                     Bitboard(0))])
+        pset = PatternSet("EDGE", [Pattern("EDGE", Bitboard(0xFF))])
+        fs = FeatureSet("SYNTH_RLM04", intercept, mset, pset)
+        offsets = np.concatenate(
+            ([0], np.cumsum([f.n_configurations for f in fs.features]))
+        ).astype(Index)
+        self.assertEqual(offsets.tolist(), [0, 1, 66, 6627])
+        w_dense = rng.standard_normal(int(offsets[-1]), dtype=np.float32)
+
+        indexes = np.concatenate([
+            rng.integers(0, f.n_configurations,
+                         size=(n_trn, f.n_instances), dtype=Index)
+            for f in fs.features], axis=1)
+
+        game_values = (rng.integers(-32, 33, size=n_trn) * 2
+                       ).astype(np.int8)
+        m = rng.integers(0, 2**64, size=n_vld, dtype=np.uint64)
+        o = rng.integers(0, 2**64, size=n_vld, dtype=np.uint64)
+        o &= ~m
+        positions = make_position(m, o)
+        vld_game_values = (rng.integers(-32, 33, size=n_vld) * 2
+                           ).astype(np.int8)
+
+        y2z, z2y = hlp_zed_fun_factory(ALPHA)
+
+        ctx = LMContext(
+            config_file_path=Path(self.tmp_dir) / "config.json")
+        ctx.cfg = SimpleNamespace(
+            name="SYNTH_PLOT_SMALL",
+            base_dir=Path(self.tmp_dir),
+            plot=self._plot_cfg(dpi=50))
+        ctx.feature_set = fs
+        ctx.iwmap_feature_offset = offsets
+        ctx.w_dense = w_dense
+        ctx.hlp_indexes = SimpleNamespace(indexes=indexes)
+        ctx.game_values = game_values
+        ctx.y2z, ctx.z2y = y2z, z2y
+        ctx.vld_positions = positions
+        ctx.vld_game_values = vld_game_values
+        ctx.train_dense_rn = hlp_analytics_compute_training_dense_metrics(ctx).rn_y
+        _vr = hlp_validate_model(ctx)
+        ctx.vld_y_pred, ctx.vld_rn = _vr.y_pred, _vr.rn_y
+        ctx.log_event = lambda relevance, message: \
+            self._events.append((relevance, message))
+        return ctx
+
+    def test_up_format_pair_writes_both_small(self):
+        """
+        The 'pdf,png' pair at SMALL scale: the single whitelisted name is written in BOTH formats,
+        exactly two files, the single saved line lists both paths.
+        """
+        ctx = self._build_small_ctx()
+        ctx.cfg.plot = self._plot_cfg(dpi=50, format="pdf,png",
+                                      plots=["parity"])
+        wrk_plot().up(ctx)
+        plot_dir = ctx.cfg.base_dir / "plots"
+        self.assertEqual((plot_dir / "parity.pdf").read_bytes()[:4], PDF_MAGIC)
+        self.assertEqual((plot_dir / "parity.png").read_bytes()[:4], PNG_MAGIC)
+        # Exactly 2 files: one name x two formats, nothing else.
+        self.assertEqual(len(list(plot_dir.iterdir())), 2)
+        messages = [m for _, m in self._events]
+        self.assertIn("Plot 'parity' saved: "
+                      f"{plot_dir / 'parity.pdf'}, {plot_dir / 'parity.png'}",
+                      messages)
+
 
 if __name__ == '__main__':
     unittest.main()

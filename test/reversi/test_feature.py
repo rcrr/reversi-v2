@@ -572,6 +572,68 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
                 with self.assertRaises(ValidationError):
                     self.fset.compute_indexes(wrong_arg)
 
+class TestFeatureSetComputeIndexesFullSet(unittest.TestCase):
+    """
+    The full 13-pattern + LMC + intercept feature set (I = 51, the TestFeatureSetComputeIndexesPerf
+    layout) over N = 1000 tiled positions: row 0 is pinned to base position 1's golden index vector
+    — a strengthening over the 1M perf test, which asserts structure only.
+    """
+
+    def test_compute_indexes_row0_golden(self):
+        pattern_set_data = [
+            ('R2',     0x000000000000FF00),
+            ('R3',     0x0000000000FF0000),
+            ('R4',     0x00000000FF000000),
+            ('XEDGE',  0x00000000000042FF),
+            ('DIAG4',  0x0000000001020408),
+            ('DIAG5',  0x0000000102040810),
+            ('DIAG6',  0x0000010204081020),
+            ('DIAG7',  0x0001020408102040),
+            ('DIAG8',  0x0102040810204080),
+            ('CORNER', 0x0000000000070707),
+            ('2X5COR', 0x0000000000001F1F),
+            ('RCT2X4', 0x0000003C3C000000),
+            ('CORE',   0x0000001818000000),
+        ]
+        plf = lambda x: [Pattern(n, Bitboard(m)) for n, m in x]
+        mobility_set_data = [
+            ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
+        ]
+        mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
+        intercept = Feature.new_intercept()
+        mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
+        pset = PatternSet('TestPatternSet', plf(pattern_set_data))
+        fset = FeatureSet('TestFeatureSet', intercept, mset, pset)
+
+        position_data = [
+            (0x01054FD4327E1C10, 0xE8D03028C880C084),
+            (0x40785CEAFB400004, 0x92042214043C7878),
+        ]
+        ml_base, ol_base = zip(*position_data)
+        n = 1000
+        scale = n // len(position_data)
+        ml = np.tile(ml_base, scale)
+        ol = np.tile(ol_base, scale)
+        positions = make_position(ml, ol)
+
+        computed = fset.compute_indexes(positions)
+
+        N = computed.shape[0]
+        I = computed.shape[1]
+        self.assertEqual(N, 1000)
+        self.assertEqual(I, 51)
+
+        # Row 0 is base position 1's index vector (the batch is a 500x tile of the 2 base
+        # positions): the pinned golden.
+        np.testing.assert_array_equal(computed[0], np.array([
+            0, 4, 28530, 36611, 15254, 21883, 28217, 50255, 41851, 8748,
+            13637, 58481, 15497, 13, 359, 1907, 2492, 279, 9009, 6992,
+            15047, 9004, 1094, 398, 1417, 1067, 12, 32, 4, 14,
+            935, 2065, 454, 1199, 40, 43, 215, 9, 44, 1832, 3373,
+            109, 122, 80, 125, 148, 374, 365, 317, 2636, 458,
+        ], dtype=Index))
+
+
 class TestFeatureSetComputeIndexesPerf(unittest.TestCase):
 
     @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")

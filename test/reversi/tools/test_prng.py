@@ -414,6 +414,19 @@ class TestPrngEquidistribution(unittest.TestCase):
         chi2 = float(np.sum((obs - expected) ** 2 / expected))
         self.assertLess(chi2, 130.0)
 
+    def test_choice_64_uniform_10k(self):
+        # 10k random_choice_from_finite_set(64) draws: 64 bins, the expected 156.25 per bin
+        # (1562.5 / 10 — the same per-bin scale as the 100k test) — so the 130 threshold keeps
+        # its exact meaning.
+        n = 10000
+        g = MT19937(42)
+        draws = [int(g.random_choice_from_finite_set(64))
+                 for _ in range(n)]
+        obs = np.bincount(draws, minlength=64)
+        expected = n / 64
+        chi2 = float(np.sum((obs - expected) ** 2 / expected))
+        self.assertLess(chi2, 130.0)
+
 
 class TestChooseOneFromSet64(unittest.TestCase):
     """
@@ -537,6 +550,20 @@ class TestChooseOneFromSet64(unittest.TestCase):
         # times (200k / 64), and the chi-square over the 64 bins stays far below the ~3.7-sigma
         # threshold for df = 63 — the pick is uniform over the set.
         N = 200000
+        g = MT19937(42)
+        obs = np.zeros(64, dtype=np.int64)
+        for _ in range(N):
+            _, p = g.choose_one_from_set64(np.uint64(0xFFFFFFFFFFFFFFFF))
+            obs[int(p)] += 1
+        expected = N / 64.0
+        chi2 = float(np.sum((obs - expected) ** 2 / expected))
+        self.assertLess(chi2, 150.0)
+
+    def test_full_set_equidistributed_20k(self):
+        # 20k picks from the full 64-bit set: 64 bins, the expected 312.5 per bin (20000 / 64 =
+        # 3125 / 10 — the same per-bin scale as the 200k test) — so the 150 threshold keeps its
+        # exact meaning.
+        N = 20000
         g = MT19937(42)
         obs = np.zeros(64, dtype=np.int64)
         for _ in range(N):

@@ -50,10 +50,13 @@ import numpy.testing as nptest
 from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
+from types import SimpleNamespace
 
 from reversi.tools import binio
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
+from reversi.lm.wrk_generate import wrk_generate
+from reversi.index import ExtendedIndex, Index
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from test.reversi.tags import db_long_gate
 
@@ -175,6 +178,126 @@ class TestLMWorkerGenerate(unittest.TestCase):
         self.assertEqual(self.rlm.current_worker_name, 'OPTIMIZE')
         self.assertIsNone(self.rlm.context.w_dense)
         self.assertIsNone(self.rlm.context.dense_w_checksum)
+
+
+class TestLMWorkerGenerateMock(unittest.TestCase):
+    """
+    The GENERATE worker exercised directly on a mock context (no DB, no pipeline): the
+    load-or-compute cache machinery over the small 3-feature fixture (the 9-dim w_dense, the
+    test_hlp_generate shape). UNGATED: it runs in the simple default run.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
+    def setUp(self):
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+
+    def tearDown(self):
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
+
+    def _mock_ctx(self, events):
+        """
+        The mock context: a real Context (Worker.up is @validate_call on the base Context type, so
+        a SimpleNamespace would be rejected) with the 3-feature fixture, the cache machinery pinned
+        at level 12 (GENERATE), and a capturing log_event.
+        """
+        from reversi.tools.state_machine import Context
+        ctx = Context()
+
+        # The cache machinery: the StateMachine cache-path closure, pinned at level 12 (GENERATE).
+        ctx.cfg = SimpleNamespace(base_dir=self.tmp_dir, cache_files_prefix='rlmwf_')
+        ctx.get_cache_file_full_path_for_current_level = (
+            lambda: ctx.cfg.base_dir / Path(f"{ctx.cfg.cache_files_prefix}12_GENERATE.dat"))
+        ctx.use_cache = True
+
+        # The 3-feature fixture (the test_hlp_generate shape): Intercept, Pattern (the identity
+        # principal map), Mobility -> the 9-dim w_dense.
+        ctx.feature_set = SimpleNamespace(
+            hash="abc",
+            features=[
+                SimpleNamespace(name="INT", category=0, n_instances=1, n_configurations=1),
+                SimpleNamespace(name="PAT", category=2, n_instances=1, n_configurations=3,
+                                ref=SimpleNamespace(convert_to_principal_index=lambda x: x)),
+                SimpleNamespace(name="MOB", category=1, n_instances=1, n_configurations=5)
+            ])
+        ctx.iwmap_feature_offset = np.array([0, 1, 4, 9], dtype=Index)
+        ctx.iwmap = np.array([0, -1, 1, 0, -1, 2, -1, 3, -1], dtype=ExtendedIndex)
+        ctx.feature_w_ranges = np.array([[-1, 0, 0], [0, 0, 1], [-1, 2, 3]], dtype=ExtendedIndex)
+        ctx.wmap = np.array([[1, -1, 3], [1, 1, 10], [2, 1, 5], [2, 3, 5]], dtype=ExtendedIndex)
+        ctx.w = np.array([0.5, -0.2, 1.0, 3.0], dtype=np.float32)
+        ctx.w_checksum = "abc654"
+
+        # The worker-published attributes.
+        ctx.w_dense = None
+        ctx.dense_w_checksum = None
+
+        # The capturing log sink: (relevance, message) tuples.
+        ctx.log_event = lambda rel, msg: events.append((rel, msg))
+        return ctx
+
+    def test_compute_and_populate_cache(self):
+        """Empty cache dir: the worker runs the real compute and populates the cache + sidecar."""
+        events = []
+        ctx = self._mock_ctx(events)
+        wrk_generate().up(ctx)
+
+        # The compute path was taken.
+        self.assertTrue(any("Executing heavy computation" in msg
+                            for _rel, msg in events))
+
+        # The cache files were created on disk and the sidecar verifies.
+        cache_file = self.tmp_dir / 'rlmwf_12_GENERATE.dat'
+        checksum_file = self.tmp_dir / 'rlmwf_12_GENERATE.dat.SHA3-256'
+        self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
+        self.assertTrue(checksum_file.exists(), "Checksum sidecar file was not created.")
+        self.assertTrue(binio.verify_sha3_256_sidecar(cache_file))
+
+        # The context was updated with the computed dense weights (the 3-feature fixture: 9-dim).
+        self.assertEqual(ctx.w_dense.dtype, np.float32)
+        self.assertEqual(ctx.w_dense.shape, (9,))
+        # The duck-typed data checksum is the sha3_256 of the dense bytes.
+        self.assertEqual(ctx.dense_w_checksum,
+                         hashlib.sha3_256(ctx.w_dense.tobytes()).hexdigest())
+
+    def test_read_cache_on_new_instance(self):
+        """A fresh ctx over the same cache path + same fixture reads the cache (no recompute)."""
+        # 1. The first instance populates the cache.
+        events1 = []
+        ctx1 = self._mock_ctx(events1)
+        wrk_generate().up(ctx1)
+
+        # 2. A fresh instance over the same cache path and the same fixture.
+        events2 = []
+        ctx2 = self._mock_ctx(events2)
+        wrk_generate().up(ctx2)
+
+        # The cache path was taken: validated and loaded, not recomputed.
+        self.assertTrue(any("Cache successfully loaded and validated" in msg
+                            for _rel, msg in events2))
+        self.assertFalse(any("Executing heavy computation" in msg
+                              for _rel, msg in events2),
+                         "The dense weights were recomputed even though a valid cache existed.")
+
+        # The loaded data matches the first instance's.
+        nptest.assert_array_equal(ctx2.w_dense, ctx1.w_dense)
+        self.assertEqual(ctx2.dense_w_checksum, ctx1.dense_w_checksum)
+
+    def test_down_clears_generate_attributes(self):
+        """The _down worker clears both GENERATE context attributes."""
+        events = []
+        ctx = self._mock_ctx(events)
+        wrk_generate().up(ctx)
+        self.assertIsNotNone(ctx.w_dense)
+        self.assertIsNotNone(ctx.dense_w_checksum)
+
+        wrk_generate().down(ctx)
+        self.assertIsNone(ctx.w_dense)
+        self.assertIsNone(ctx.dense_w_checksum)
 
 
 if __name__ == '__main__':

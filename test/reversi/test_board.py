@@ -3863,7 +3863,6 @@ class TestPositionHash(unittest.TestCase):
         self.assertTrue(np.all(counts >= 40) and np.all(counts <= 88),
                         f"avalanche out of band: {counts}")
 
-    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
     def test_no_collisions(self):
         # Random (mover, opponent) pairs over the full 2^128 space: zero collisions up to the
         # birthday bound (expected collisions ~ n^2 / 2^65; 1e6 -> ~3e-8). N escalates under LONG=1.

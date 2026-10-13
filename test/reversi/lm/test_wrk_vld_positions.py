@@ -44,7 +44,9 @@ import unittest
 import tempfile
 from types import SimpleNamespace
 
+import numpy as np
 import numpy.testing as nptest
+import pandas as pd
 
 from unittest.mock import patch
 from io import StringIO
@@ -52,8 +54,12 @@ from pathlib import Path
 
 from reversi.tools import binio
 from reversi.tools.state_machine import Verbosity
-from reversi.lm.logistic_model import LogisticModel
+from reversi.lm.logistic_model import LogisticModel, LMContext
 from reversi.lm.wrk_positions import wrk_positions_is_cache_consistent
+from reversi.lm.wrk_vld_positions import wrk_vld_positions
+from reversi.regab import (RegabDBConnection, RegabDataSet,
+                           regab_store_data_set_to_file)
+from reversi.board import make_position
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from test.reversi.tags import db_gate, db_long_gate, tier_long
 
@@ -308,6 +314,194 @@ class TestVldIndependenceCheck(unittest.TestCase):
         self.assertIn(
             "Validation independence check: [OVERLAP: 200 of 200 validation records], [PERCENT: 100.00%] — "
             "records present in both the validation and the training data sets (log only, no action).", logs)
+
+
+class TestVldWorkerDbFree(unittest.TestCase):
+    """
+    DB-free worker-level pins for the VLD_POSITIONS _up/_down (no DB — runs under
+    SKIP_REGAB_DB=1): a REAL LMContext stand-in (Worker.up is @validate_call-gated) with an
+    rlm_02-shaped cfg (the TestIsCacheConsistentOverride._ctx shape) and the REAL cache flow
+    against real files (regab_store_data_set_to_file / regab_load_data_set_from_file — pure file
+    I/O). The compute path and the cache-hit shortcut are exercised with stubbed
+    wrk_positions_extract_and_prepare / cache_manager_load_or_compute, so no DB is ever opened.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
+    def setUp(self):
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+        self.events = []
+
+    def tearDown(self):
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
+
+    def _ctx(self, positions) -> LMContext:
+        """
+        The shared stand-in: the rlm_02 shape (training bid [6, 7] / ["CMR", "CMS"], validation
+        bid [8] / ["CMS", "CMR"], shared ec 20, tst_regab @ localhost:5432), use_cache True, the
+        cache path pinned to the rlmwf_13 slot, ~10 synthetic training positions, a capturing
+        log_event.
+        """
+        conn = SimpleNamespace(dbname="tst_regab", user="tst_regab",
+                               host="localhost", port=5432, password="x")
+        vld = SimpleNamespace(bid=[8], status=["CMS", "CMR"])
+        regab = SimpleNamespace(regab_db_connection=conn, bid=[6, 7],
+                                status=["CMR", "CMS"], ec=20)
+        ctx = LMContext(config_file_path=Path("dummy.json"))
+        ctx.cfg = SimpleNamespace(regab_data_set=regab, validation_data_set=vld,
+                                  empty_count=20, regab_allow_duplicate=True)
+        ctx.use_cache = True
+        ctx.get_cache_file_full_path_for_current_level = (
+            lambda: self.tmp_dir / "rlmwf_13_VLD_POSITIONS.dat")
+        ctx.positions = positions
+        ctx.log_event = lambda rel, msg: self.events.append(msg)
+        return ctx
+
+    @staticmethod
+    def _rds(n: int, seed: int) -> RegabDataSet:
+        """
+        A REAL no-DB RegabDataSet (the TestIsCacheConsistent idiom): the cfg-matching connection
+        (activate_conn=False) + n synthetic rows with disjoint bitboards and even game values.
+        """
+        rng = np.random.default_rng(seed)
+        mover = rng.integers(0, 2**64, n, dtype=np.uint64)
+        full = rng.integers(0, 2**64, n, dtype=np.uint64)
+        opponent = full & ~mover
+        game_values = (rng.integers(-32, 33, n) * 2).astype(np.int8)
+        df = pd.DataFrame({
+            'mover': mover.astype(np.int64),
+            'opponent': opponent.astype(np.int64),
+            'game_value': game_values
+        })
+        rc = RegabDBConnection("tst_regab", "tst_regab", "localhost", "5432",
+                               activate_conn=False)
+        return RegabDataSet(rc, [8], ["CMS", "CMR"], 20, df)
+
+    @staticmethod
+    def _positions(n: int, seed: int):
+        """n synthetic training positions (the make_position rows, disjoint bitboards)."""
+        rng = np.random.default_rng(seed)
+        mover = rng.integers(0, 2**64, n, dtype=np.uint64)
+        full = rng.integers(0, 2**64, n, dtype=np.uint64)
+        opponent = full & ~mover
+        return make_position(mover, opponent)
+
+    def test_read_cache_hit_db_free(self):
+        """
+        A pre-seeded cache (a REAL RegabDataSet stored via the real regab_store_data_set_to_file)
+        is loaded and validated: no heavy computation, the 10 synthetic rows land on the context,
+        the data checksum is published.
+        """
+        rds = self._rds(10, 1)
+        regab_store_data_set_to_file(rds, self.tmp_dir / "rlmwf_13_VLD_POSITIONS.dat")
+
+        ctx = self._ctx(self._positions(10, 99))
+        wrk_vld_positions().up(ctx)
+
+        self.assertTrue(any("Cache successfully loaded and validated" in m for m in self.events))
+        self.assertFalse(any("Executing heavy computation" in m for m in self.events))
+        expected = make_position(rds.df_mogv['mover'].to_numpy(),
+                                 rds.df_mogv['opponent'].to_numpy())
+        nptest.assert_array_equal(ctx.vld_positions, expected)
+        self.assertEqual(len(ctx.vld_positions), 10)
+        self.assertEqual(ctx.vld_rds_checksum, rds.compute_sha3_256_hash())
+
+    def test_compute_path_db_free(self):
+        """
+        Empty cache dir: the compute path runs with a STUBBED extract (the real cache flow does
+        the store) — the VLD-specific bid/status override is passed to the extract, the .dat +
+        the .SHA3-256 sidecar land on disk and verify, the 50 rows + the population stats are
+        published, the population-stats line is logged.
+        """
+        rds50 = self._rds(50, 2)
+        calls = []
+
+        def stub(ctx_arg, *, bid=None, status=None):
+            calls.append({'bid': bid, 'status': status})
+            return rds50
+
+        ctx = self._ctx(self._positions(10, 99))
+        with patch('reversi.lm.wrk_vld_positions.wrk_positions_extract_and_prepare', stub):
+            wrk_vld_positions().up(ctx)
+
+        # The VLD-specific override: the validation bid/status, not the training ones.
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]['bid'], [8])
+        self.assertEqual(calls[0]['status'], ["CMS", "CMR"])
+
+        self.assertTrue(any("Executing heavy computation" in m for m in self.events))
+
+        cache_file = self.tmp_dir / "rlmwf_13_VLD_POSITIONS.dat"
+        checksum_file = self.tmp_dir / "rlmwf_13_VLD_POSITIONS.dat.SHA3-256"
+        self.assertTrue(cache_file.exists())
+        self.assertTrue(checksum_file.exists())
+        self.assertTrue(binio.verify_sha3_256_sidecar(cache_file))
+
+        self.assertEqual(len(ctx.vld_positions), 50)
+        self.assertEqual(ctx.vld_pop_stats["count"], 50)
+        self.assertTrue(any("Statistical properties of population for validation" in m
+                            for m in self.events))
+
+    def test_down_clears_all_vld_attributes(self):
+        """
+        The _down scope: all FOUR vld attributes are cleared and the "Clearing validation game
+        positions" line is emitted (a real LMContext — Worker.down is @validate_call-gated).
+        """
+        sentinel = object()
+        ctx = LMContext(config_file_path=Path("dummy.json"))
+        ctx.vld_positions = sentinel
+        ctx.vld_game_values = sentinel
+        ctx.vld_rds_checksum = sentinel
+        ctx.vld_pop_stats = sentinel
+        ctx.log_event = lambda rel, msg: self.events.append(msg)
+
+        wrk_vld_positions().down(ctx)
+
+        self.assertIsNone(ctx.vld_positions)
+        self.assertIsNone(ctx.vld_game_values)
+        self.assertIsNone(ctx.vld_rds_checksum)
+        self.assertIsNone(ctx.vld_pop_stats)
+        self.assertIn("Clearing validation game positions", "\n".join(self.events))
+
+    def test_independence_trace_both_lines(self):
+        """
+        The independence trace, DB-free, BOTH endpoints: the cache load is stubbed to a HIT with
+        a synthetic 10-record RegabDataSet, then up() is run twice — once with training positions
+        DISJOINT from the vld ones (0 of 10 / 0.00%), once with FULL overlap (10 of 10 /
+        100.00%) — pinning the exact f-string of the trace line in both cases.
+        """
+        rds10 = self._rds(10, 3)
+        checksum = rds10.compute_sha3_256_hash()
+
+        def stub(**kwargs):
+            return True, rds10, checksum
+
+        # Case 1: disjoint training positions → 0 of 10, 0.00%.
+        ctx = self._ctx(self._positions(10, 77))
+        with patch('reversi.lm.wrk_vld_positions.cache_manager_load_or_compute', stub):
+            wrk_vld_positions().up(ctx)
+        self.assertIn(
+            "Validation independence check: [OVERLAP: 0 of 10 validation records], "
+            "[PERCENT: 0.00%] — records present in both the validation and the training "
+            "data sets (log only, no action).",
+            self.events)
+
+        # Case 2: the training positions ARE the vld positions → 10 of 10, 100.00%.
+        vld_positions, _ = rds10.generate_positions_and_game_values()
+        self.events.clear()
+        ctx = self._ctx(vld_positions)
+        with patch('reversi.lm.wrk_vld_positions.cache_manager_load_or_compute', stub):
+            wrk_vld_positions().up(ctx)
+        self.assertIn(
+            "Validation independence check: [OVERLAP: 10 of 10 validation records], "
+            "[PERCENT: 100.00%] — records present in both the validation and the training "
+            "data sets (log only, no action).",
+            self.events)
 
 
 if __name__ == '__main__':

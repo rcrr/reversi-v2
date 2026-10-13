@@ -150,6 +150,32 @@ class TestClientEvaluationFunction(unittest.TestCase):
         self.assertEqual(self.ef_array(self._positions(0).reshape(2, 0)).shape,
                          (2, 0))
 
+    def test_2d_structured_corder_parity_small(self):
+        """
+        The 32-board 2-D C-order parity (the ungated smoke scale of test_2d_structured_corder_parity):
+        the (8, 4) result ravels to the 1-D ravel result bit-exactly — including through a STRIDED
+        2-D view — and the empty edges keep their shapes.
+        """
+        base = self._positions(32).reshape(8, 4)
+        y_2d = self.ef_array(base)
+        self.assertEqual(y_2d.shape, (8, 4))
+        self.assertEqual(y_2d.dtype, np.float32)
+        y_1d = self.ef_array(base.ravel())
+        np.testing.assert_array_equal(y_2d.ravel(), y_1d)
+        # A strided 2-D view (8 boards, (4, 2)): the C-order parity holds through the compute_indexes
+        # ravel.
+        v = base[::2, ::2]
+        self.assertEqual(v.shape, (4, 2))
+        y_view = self.ef_array(v)
+        self.assertEqual(y_view.shape, v.shape)
+        np.testing.assert_array_equal(y_view.ravel(),
+                                      self.ef_array(v.ravel()))
+        # The 2-D empty edges: (0, N) and (K, 0) keep their shapes.
+        self.assertEqual(self.ef_array(self._positions(0).reshape(0, 4)).shape,
+                         (0, 4))
+        self.assertEqual(self.ef_array(self._positions(0).reshape(2, 0)).shape,
+                         (2, 0))
+
     def test_3d_structured_corder_parity(self):
         """The C-order parity extends to any shape (3-D)."""
         positions = self._positions(24).reshape(2, 3, 4)
@@ -205,6 +231,35 @@ class TestClientEvaluationFunction(unittest.TestCase):
 
         # Performance output sanity check: the first 100 outputs agree bit-exactly with the scalar
         # EF, and the call is deterministic.
+        head = positions[:100]
+        np.testing.assert_array_equal(
+            y[:100], np.array([self.ef(p) for p in head]))
+        np.testing.assert_array_equal(y, self.ef_array(positions))
+
+    def test_performance_10k_smoke(self):
+        """
+        The 10k-board SMOKE version of test_performance_1m (ungated: it runs in the simple default
+        tier, a smoke benchmark, not a PERF-gated one): the same house print pattern scaled to
+        10,000 boards.
+        """
+        size = 10_000
+        positions = self._positions(size)
+
+        _ = self.ef_array(positions[:10])  # Validation Warmup
+
+        start_time = time.perf_counter()
+        y = self.ef_array(positions)
+        end_time = time.perf_counter()
+
+        duration = end_time - start_time
+        boards_per_sec = size / duration
+
+        print(f"\n[PERF make_evaluation_function_array] "
+              f"Processed {size:,} boards in {duration:.4f}s "
+              f"({boards_per_sec:,.0f} b/s)")
+
+        # Smoke sanity check: the first 100 outputs agree bit-exactly with the scalar EF, and the
+        # call is deterministic.
         head = positions[:100]
         np.testing.assert_array_equal(
             y[:100], np.array([self.ef(p) for p in head]))

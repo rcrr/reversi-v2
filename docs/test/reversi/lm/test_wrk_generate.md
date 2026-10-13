@@ -1,13 +1,15 @@
 # test/reversi/lm/test_wrk_generate.py
 The GENERATE worker integration suite, in the house worker-test shape (as in test_wrk_indexes / test_wrk_optimize et
 al.): a live-DB suite that moves the machine through the full 12-level chain on a fresh base dir and then exercises the
-GENERATE level. 1 class / 3 tests, all DB-gated.
+GENERATE level. 2 classes / 6 tests: 3 DB-gated (the live-DB `TestLMWorkerGenerate`) + 3 UNGATED (the mock-ctx
+`TestLMWorkerGenerateMock`, no pipeline).
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
 | `TestLMWorkerGenerate` (setUp: the SKIP_REGAB_DB gate FIRST with the why-comment — the setUp moves through OPTIMIZE on a fresh base dir, so a live DB is required; the stdout patcher; TemporaryDirectory FIRST under CUSTOM_TMP_BASE, the WORKSPACE_ROOT-anchored rlm_02.json; `LogisticModel` at Verbosity.HIGH; `move_to_step('OPTIMIZE')` + the step-11 + name pins; defensive tearDown) | 3 | `test_compute_and_populate_cache`: the pre-state pins (`w_dense is None`, `dense_w_checksum is None`); `move_to_step('GENERATE')` + the step-12 + name pins; the flat files `rlmwf_12_GENERATE.dat` + `.SHA3-256` exist and the sidecar verifies (`binio.verify_sha3_256_sidecar`); the log says "Executing heavy computation"; the rlm_02 golden — shape (6588,) (= 1 intercept + 6561 EDGE + 27 DIAG3), float32, `dense_w_checksum` == the golden below AND the duck-typed identity sha3_256(w_dense.tobytes()) == dense_w_checksum. `test_read_cache_on_new_instance`: the 2nd instance on the SAME base dir moves through OPTIMIZE (all cache hits, the checkpoint reload — no lbfgs) and then to GENERATE: the log says "Cache successfully loaded and validated" and NOT "Executing heavy computation"; `w_dense` array-equal, `dense_w_checksum` equal. `test_down_clears_generate_attributes`: after GENERATE (both fields not-None), `move_to_step(11)` back to OPTIMIZE leaves `w_dense is None` + `dense_w_checksum is None` (the `_down` scope) |
+| `TestLMWorkerGenerateMock` (UNGATED — no DB, no pipeline; a real base-`Context` mock — `Worker.up` is `@validate_call` on the base `Context` type, so a `SimpleNamespace` would be rejected — over the small 3-feature fixture: Intercept + Pattern (the identity principal map) + Mobility → the 9-dim `w_dense`, the `test_hlp_generate` shape; the cache machinery pinned at level 12 (GENERATE) + a capturing `log_event`) | 3 | `test_compute_and_populate_cache`: empty cache dir → the worker runs the real compute ("Executing heavy computation"), creates `rlmwf_12_GENERATE.dat` + `.SHA3-256` (the sidecar verifies), and populates `ctx.w_dense` (shape (9,) float32) + `ctx.dense_w_checksum == sha3_256(w_dense.tobytes())` (the duck-typed identity). `test_read_cache_on_new_instance`: a fresh ctx over the same cache path + fixture reads the cache ("Cache successfully loaded and validated", NOT "Executing heavy computation") — `w_dense` array-equal + `dense_w_checksum` equal to the first instance's. `test_down_clears_generate_attributes`: after `up` (both fields not-None), `down` clears `w_dense` + `dense_w_checksum` to None. |
 
 ## Goldens pinned
 
@@ -23,6 +25,9 @@ GENERATE level. 1 class / 3 tests, all DB-gated.
   behavior of test_wrk_optimize's run 2).
 - Follows the house pattern: the db_long_gate first in setUp (the SKIP_REGAB_DB + LONG tier, with the why-comment), the
   house run-instruction header (the DB-gated claim TRUE — the gate is in setUp), defensive tearDown.
+- The mock class is UNGATED (no DB gate): it covers the load-or-compute cache machinery + the `_down` scope in the
+  default tier over the small 3-feature fixture (the 9-dim `w_dense`), without the ~10 s lbfgs cost the live-DB class
+  carries — the fixture keeps the hand-traceable `iwmap` / `wmap` / `feature_w_ranges` shape of `test_hlp_generate`.
 
 ## Integration
 

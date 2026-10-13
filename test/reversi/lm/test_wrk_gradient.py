@@ -148,7 +148,7 @@ class TestGradientFlagWiring(unittest.TestCase):
     matching fg variant (the high_performance marker pin).
     """
 
-    def _mock_ctx(self, high_performance):
+    def _mock_ctx(self, high_performance, events=None):
         from reversi.tools.state_machine import Context
         ctx = Context()
         ctx.cfg = SimpleNamespace(
@@ -158,7 +158,12 @@ class TestGradientFlagWiring(unittest.TestCase):
         ctx.w = np.zeros(3, dtype=np.float32)
         ctx.design_matrix = np.array([[0, 1], [1, 2], [0, 2]], dtype=Index)
         ctx.z = np.array([0.1, 0.9, 0.5], dtype=np.float32)
-        ctx.log_event = lambda *args: None
+        # Opt-in event capture (the test_hlp_generate idiom): the default stays the no-op so the
+        # existing tests' behavior is unchanged.
+        if events is None:
+            ctx.log_event = lambda *args: None
+        else:
+            ctx.log_event = lambda rel, msg: events.append((rel, msg))
         ctx.fg = None
         return ctx
 
@@ -179,6 +184,41 @@ class TestGradientFlagWiring(unittest.TestCase):
         self._up(ctx)
         self.assertIsNotNone(ctx.fg)
         self.assertFalse(ctx.fg.high_performance)
+
+    def test_down_clears_fg(self):
+        """The _down worker clears the gradient/loss closure published by _up."""
+        ctx = self._mock_ctx(False)
+        wrk_gradient().up(ctx)
+        self.assertIsNotNone(ctx.fg)
+
+        wrk_gradient().down(ctx)
+        self.assertIsNone(ctx.fg)
+
+    def test_up_logs_generation_line_and_worker_golden(self):
+        """
+        The up log line names the built variant (exact message), and the worker-published fg pins
+        the 3x2 zero-w golden: f = 4/75, g = [1/30, 0, -1/30] (the same numbers the hlp level
+        pins in test_hlp_gradient).
+        """
+        # The classic variant: the exact generation line.
+        events = []
+        ctx = self._mock_ctx(False, events=events)
+        self._up(ctx)
+        self.assertIn("Gradient function generated (high_performance: False).",
+                      [msg for _rel, msg in events])
+
+        # The high-performance variant: the exact generation line.
+        events_hp = []
+        ctx_hp = self._mock_ctx(True, events=events_hp)
+        self._up(ctx_hp)
+        self.assertIn("Gradient function generated (high_performance: True).",
+                      [msg for _rel, msg in events_hp])
+
+        # The worker-throughput golden, evaluated from the worker-published closure: at w = 0 the
+        # ridge term vanishes, so the 0.01 ridge of the shared mock does not perturb the numbers.
+        f, g = ctx.fg(ctx.w)
+        nptest.assert_allclose(f, 4 / 75, rtol=1e-6, atol=1e-8)
+        nptest.assert_allclose(g, [1 / 30, 0.0, -1 / 30], rtol=1e-6, atol=1e-8)
 
 
 if __name__ == '__main__':

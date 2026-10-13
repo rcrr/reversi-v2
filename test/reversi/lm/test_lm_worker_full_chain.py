@@ -717,6 +717,32 @@ class TestModelWeightsV2(unittest.TestCase):
         self.assertEqual(mw.config_dump, dump)
         self.assertEqual(mw.config_checksum, ctx.config_checksum)
 
+    def test_v2_write_emits_no_config_sidecar(self):
+        """
+        The v2 write emits NO <output>.config.json sidecar (the provenance is EMBEDDED in the model
+        file): the shipped artifact is the model file + its own .SHA3-256 sidecar, and the
+        fingerprint covers the normalized dump.
+        """
+        ctx, dump = self._synthetic_ctx()
+        path = Path(self.tmp_dir) / 'v2_no_sidecar.dat'
+        model_weights_write_file(ctx, path, compressed=True)
+
+        config_path = path.with_suffix(".config.json")
+        self.assertFalse(config_path.exists(),
+                         f"Config record must not exist, found at {config_path}")
+        self.assertFalse(
+            (path.parent / (path.name + ".config.json.SHA3-256")).exists(),
+            "The record sidecar must be gone with the record")
+        # The model file's own sidecar verifies (it covers the v2 content, config section included).
+        self.assertTrue(verify_sha3_256_sidecar(path),
+                        "Checksum verification failed for saved model")
+        # The fingerprint semantics: config_checksum == sha3_256 of the normalized dump (the
+        # writer's own normalization: the utf-8-encoded dump).
+        self.assertEqual(ctx.config_checksum,
+                         hashlib.sha3_256(
+                             ctx.cfg.model_dump_json(indent=4).encode()
+                         ).hexdigest())
+
     def test_v2_config_checksum_mismatch_raises(self):
         """
         A v2 file whose stored checksum does not cover the embedded dump is corrupted: the sentinel raises.

@@ -61,6 +61,20 @@ from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from test.reversi.tags import db_gate, db_long_gate
 from reversi.index import Index
 from reversi.index import ExtendedIndex
+from reversi.tools.state_machine import Relevance
+
+import json5
+import pandas as pd
+from types import SimpleNamespace
+
+from reversi.regab import RegabDBConnection, RegabDataSet, regab_store_data_set_to_file
+from reversi.lm.hlp_analytics import (hlp_analytics_format_console_report,
+                                      hlp_analytics_compute_training_dense_metrics,
+                                      AnalyticsTrainingDenseResult)
+from reversi.lm.hlp_gradient import sigmoid
+from reversi.lm.hlp_zed import hlp_zed_fun_factory
+from reversi.lm.wrk_analytics import _up as _analytics_up
+from reversi.lm.wrk_analytics import _down as _analytics_down
 
 
 def _masked_report_hash(text):
@@ -759,6 +773,392 @@ class TestEtaSquaredCrossLevel(unittest.TestCase):
             self.assertAlmostEqual(anova_eta[(name, 0)],
                                    analytics_eta[name], places=4,
                                    msg=name)
+
+
+#
+# The SMALL-scale NO-DB additions: the shared random seed + the synthetic data sizes for the
+# seeded cache files and the synthetic contexts below.
+#
+
+_SMALL_SEED = 42
+_SMALL_TRAIN_POSITIONS = 200
+_SMALL_VLD_POSITIONS = 50
+
+
+class TestAnalyticsSecondInstanceSmall(unittest.TestCase):
+    """
+    The second-instance determinism of the ANALYTICS level at SMALL scale, NO-DB: two real
+    LogisticModel instances on a fresh base dir whose two DB-extracting cache files (POSITIONS /
+    VLD_POSITIONS) are pre-seeded in memory (the TestIsCacheConsistent idiom: a RegabDBConnection
+    with activate_conn=False + a tiny DataFrame, stored via regab_store_data_set_to_file which
+    writes the .SHA3-256 sidecar the pipeline does). The small config is derived from the rlm_00
+    fixture with the SU_ANALYSIS level disabled. The second instance must hit the cache at every
+    cacheable level (no DB extraction, no connection) and recompute the ANALYTICS blackboard
+    deterministically from the cached inputs (ANALYTICS has no cache file).
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
+    def setUp(self):
+        # UNGATED: no DB gate — this class runs in the default (no-DB) tier.
+        self.patcher_stdout = patch('sys.stdout', new=StringIO())
+        self.mock_stdout = self.patcher_stdout.start()
+
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+        self.cfg_path = self._write_small_config()
+        self._seed_db_cache_files()
+
+    def tearDown(self):
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
+
+    def _write_small_config(self) -> Path:
+        # The rlm_00 fixture with the SU_ANALYSIS level disabled (its corpus is the third DB
+        # extraction and has no cache seed here): the two remaining DB levels are the seeded ones.
+        d = json5.loads((WORKSPACE_ROOT / "test" / "reversi" / "data" /
+                         "rlm_00.json").read_text())
+        d["su_analysis"]["enable"] = False
+        cfg_path = self.tmp_dir / "rlm_00_small.json"
+        with open(cfg_path, "w") as f:
+            json5.dump(d, f, indent=4)
+        return cfg_path
+
+    def _seed_db_cache_files(self):
+        # Pre-populate the two DB-extracting cache slots in memory: the fixture metadata of the
+        # rlm_00 config (tst_regab @ localhost:5432, bid [8], status CMS/CMR, ec 20), so the
+        # wrk_positions_is_cache_consistent check accepts them.
+        rng = np.random.default_rng(_SMALL_SEED)
+        rc = RegabDBConnection("tst_regab", "tst_regab", "localhost", "5432",
+                               activate_conn=False)
+        for slot, n in (("rlmwf_04_POSITIONS.dat", _SMALL_TRAIN_POSITIONS),
+                        ("rlmwf_13_VLD_POSITIONS.dat", _SMALL_VLD_POSITIONS)):
+            m = rng.integers(0, 2**63, size=n).astype(np.int64)
+            o = rng.integers(0, 2**63, size=n).astype(np.int64)
+            o &= ~m
+            gv = (rng.integers(-32, 33, size=n) * 2).astype(np.int8)
+            df = pd.DataFrame({'mover': m, 'opponent': o, 'game_value': gv})
+            rds = RegabDataSet(rc, [8], ["CMS", "CMR"], 20, df)
+            regab_store_data_set_to_file(rds, self.tmp_dir / slot)
+
+    def test_second_instance_deterministic_small(self):
+        # Instance 1: the 15-level chain on the seeded base dir (cache hits on the two seeded
+        # slots, the other cache levels computed and stored, no DB anywhere).
+        rlm1 = LogisticModel(str(self.cfg_path),
+                             verbosity=Verbosity.HIGH,
+                             base_dir_override=self.tmp_dir)
+        rlm1.move_to_step('ANALYTICS')
+        self.assertEqual(rlm1.current_step, 15)
+        met1 = rlm1.context.train_metrics
+        dmet1 = rlm1.context.train_dense_metrics
+        rep1 = rlm1.context.analytics_report
+        self.assertIsNotNone(met1)
+        self.assertIsNotNone(dmet1)
+        self.assertIsNotNone(rep1)
+
+        # Instance 2: a completely new instance on the same base dir.
+        self.mock_stdout.seek(0)
+        self.mock_stdout.truncate(0)
+        rlm2 = LogisticModel(str(self.cfg_path),
+                             verbosity=Verbosity.HIGH,
+                             base_dir_override=self.tmp_dir)
+        rlm2.move_to_step('ANALYTICS')
+        self.assertEqual(rlm2.current_step, 15)
+
+        logs = self.mock_stdout.getvalue()
+        # No DB at all: no extraction, no connection.
+        self.assertNotIn("Extracted", logs,
+                         "DB was queried even though a valid cache existed.")
+        self.assertNotIn("established successfully", logs,
+                         "DB connection was opened even though a valid cache existed.")
+        # The 6 cache_manager levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR, GENERATE,
+        # VLD_POSITIONS) all hit — including the two seeded DB-extracting files.
+        hits = [l for l in logs.splitlines()
+                if "Cache successfully loaded and validated" in l]
+        self.assertEqual(len(hits), 6)
+        hit_paths = " ".join(hits)
+        self.assertIn("rlmwf_04_POSITIONS.dat", hit_paths)
+        self.assertIn("rlmwf_13_VLD_POSITIONS.dat", hit_paths)
+
+        # ANALYTICS has no cache file: the blackboard is recomputed from the cached inputs —
+        # deterministically.
+        self.assertEqual(rlm2.context.train_metrics, met1)
+        self.assertEqual(rlm2.context.train_dense_metrics, dmet1)
+        self.assertEqual(rlm2.context.analytics_report, rep1)
+        self.assertTrue((self.tmp_dir / "model_analytics_report.txt").exists())
+
+
+class TestAnalyticsConsoleReportAndUp(unittest.TestCase):
+    """
+    The ANALYTICS console-report formatter + the worker's _up, NO-DB over the file's _MockCtx
+    idiom: the header structure pinned over known metric dicts, and _up exercised directly (the 3
+    INFO lines, the report file, the four published attributes with the values independently
+    re-derived from the synthetic arrays).
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+        self._events = []
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_console_report_format(self):
+        ctx, _ = _make_su_ctx(self.tmp, 300)
+        # The known metric dicts: the values are deliberately DISTINCT per column so each assert
+        # pins the value's column placement.
+        ctx.train_metrics = {'train_mae_y': 1.5, 'train_rmse_y': 2.5,
+                             'train_loss': 1.0e-03, 'train_samples': 100,
+                             'pop_mae_y': 10.0, 'pop_rmse_y': 12.0,
+                             'pop_loss': 0.01}
+        ctx.train_dense_metrics = {'train_dense_mae_y': 2.25,
+                                   'train_dense_rmse_y': 3.75,
+                                   'train_dense_loss': 2.5e-03,
+                                   'train_dense_samples': 100}
+        ctx.vld_metrics = {'vld_mae_y': 4.5, 'vld_rmse_y': 6.25,
+                           'vld_loss': 7.0e-03, 'vld_samples': 50}
+        ctx.opt_info = {'reason': 'CONVERGED_MIN_GRAD', 'iters': 12}
+
+        rep = hlp_analytics_format_console_report(ctx)
+
+        # The title line from the cfg name, inside the 135-char frame.
+        self.assertIn(f"MODEL ANALYTICS REPORT: {ctx.cfg.name}", rep)
+        self.assertTrue(rep.strip().startswith("=" * 135))
+        # The parameter counts, re-derived from the ctx arrays.
+        self.assertIn(f"  Total Parameters (W)        : {len(ctx.w):,}", rep)
+        self.assertIn(f"  Dense Parameters (K)        : {len(ctx.w_dense):,}", rep)
+        self.assertIn("  Optimization Status         : CONVERGED_MIN_GRAD (12 iters)", rep)
+        # The 3-column metric table: the column-header line + the three rows, re-derived from
+        # the ctx metric dicts.
+        self.assertIn(
+            f"  {'METRIC':<15} | {'TRAINING':<14} | {'TRAINING-DENSE':<14} | "
+            f"{'VALIDATION':<14}", rep)
+        self.assertIn(
+            f"  {'RMSE (y)':<15} | {ctx.train_metrics['train_rmse_y']:<14.2f} | "
+            f"{ctx.train_dense_metrics['train_dense_rmse_y']:<14.2f} | "
+            f"{ctx.vld_metrics['vld_rmse_y']:<14.2f}", rep)
+        self.assertIn(
+            f"  {'MAE (y)':<15} | {ctx.train_metrics['train_mae_y']:<14.2f} | "
+            f"{ctx.train_dense_metrics['train_dense_mae_y']:<14.2f} | "
+            f"{ctx.vld_metrics['vld_mae_y']:<14.2f}", rep)
+        self.assertIn(
+            f"  {'Loss (MSE/2)':<15} | {ctx.train_metrics['train_loss']:<14.4e} | "
+            f"{ctx.train_dense_metrics['train_dense_loss']:<14.4e} | "
+            f"{ctx.vld_metrics['vld_loss']:<14.4e}", rep)
+        # The Population / Generalization Gap / Substitution Delta rows, re-derived from the
+        # ctx metric dicts.
+        self.assertIn(
+            f"  Population (baseline)  : RMSE {ctx.train_metrics['pop_rmse_y']:.2f}  "
+            f"MAE {ctx.train_metrics['pop_mae_y']:.2f}  "
+            f"Loss {ctx.train_metrics['pop_loss']:.4e}", rep)
+        gen_gap = ctx.vld_metrics['vld_rmse_y'] - ctx.train_dense_metrics['train_dense_rmse_y']
+        sub_delta = (ctx.train_dense_metrics['train_dense_rmse_y']
+                     - ctx.train_metrics['train_rmse_y'])
+        self.assertIn(f"  Generalization Gap (RMSE)   : {gen_gap:.2f}", rep)
+        self.assertIn(f"  Substitution Delta (RMSE)   : {sub_delta:.2f}", rep)
+        # The NEGATIVES: the console report (the short summary) carries no Creation Date and no
+        # per-feature detail sections.
+        self.assertNotIn("Creation Date", rep)
+        self.assertNotIn("PATTERN FEATURE", rep)
+
+    def test_up_publishes_and_logs(self):
+        ctx, _ = _make_su_ctx(self.tmp, 300)
+        # Extend the mock ctx with what wrk_analytics._up needs.
+        n = len(ctx.game_values)
+        rng = np.random.default_rng(_SMALL_SEED)
+        ctx.design_matrix = rng.integers(0, len(ctx.w), size=(n, 4), dtype=np.int64)
+        ctx.y2z, ctx.z2y = hlp_zed_fun_factory(ctx.cfg.stat_model.logit_clipping)
+        ctx.opt_info = {'reason': 'CONVERGED_MIN_GRAD', 'iters': 7, 'f': 0.0123}
+        ctx.log_event = lambda relevance, message: self._events.append(
+            (relevance, message))
+
+        _analytics_up(ctx)
+
+        # The 3 INFO log lines (the console report is logged line by line in between).
+        info_msgs = [m for rel, m in self._events if rel == Relevance.INFO]
+        self.assertIn("Generating model analytics report...", info_msgs)
+        self.assertIn("Computing metrics on the training set...", info_msgs)
+        saved = [m for m in info_msgs if m.startswith("Analytics report saved to ")]
+        self.assertEqual(len(saved), 1)
+
+        # The report file is written to base_dir under the configured name.
+        report_path = ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name
+        self.assertTrue(report_path.exists())
+        self.assertEqual(saved[0], f"Analytics report saved to {report_path}")
+
+        # The published attributes: the 7-key train metrics, the 4-key dense metrics, the dense
+        # residual series, the console report.
+        self.assertEqual(
+            set(ctx.train_metrics),
+            {'train_mae_y', 'train_rmse_y', 'train_loss', 'train_samples',
+             'pop_mae_y', 'pop_rmse_y', 'pop_loss'})
+        self.assertEqual(
+            set(ctx.train_dense_metrics),
+            {'train_dense_mae_y', 'train_dense_rmse_y', 'train_dense_loss',
+             'train_dense_samples'})
+        self.assertIsInstance(ctx.train_dense_rn, np.ndarray)
+        self.assertEqual(ctx.train_dense_rn.shape, (n,))
+        self.assertIsInstance(ctx.analytics_report, str)
+
+        # The values, independently re-derived from the synthetic arrays — the compressed pass
+        # (what lbfgs fit).
+        y_true = ctx.game_values.astype(np.float64)
+        rn_y = (ctx.z2y(sigmoid(np.sum(ctx.w[ctx.design_matrix].astype(
+            np.float64), axis=1))) - y_true)
+        self.assertEqual(ctx.train_metrics['train_mae_y'],
+                         float(np.mean(np.abs(rn_y))))
+        self.assertEqual(ctx.train_metrics['train_rmse_y'],
+                         float(np.sqrt(np.dot(rn_y, rn_y) / len(rn_y))))
+        self.assertEqual(ctx.train_metrics['train_loss'], ctx.opt_info['f'])
+        self.assertEqual(ctx.train_metrics['train_samples'], n)
+        rn_pop = y_true - np.mean(y_true)
+        self.assertEqual(ctx.train_metrics['pop_mae_y'],
+                         float(np.mean(np.abs(rn_pop))))
+        self.assertEqual(ctx.train_metrics['pop_rmse_y'],
+                         float(np.sqrt(np.dot(rn_pop, rn_pop) / len(rn_pop))))
+        z_true = ctx.y2z(ctx.game_values)
+        rn_z_pop = z_true - np.mean(z_true)
+        self.assertEqual(ctx.train_metrics['pop_loss'],
+                         float(0.5 * np.dot(rn_z_pop, rn_z_pop) / len(rn_z_pop)))
+
+        # The dense pass (the shipped inference rules), re-derived the same way.
+        col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1],
+                                [f.n_instances for f in ctx.feature_set.features])
+        z_dense = sigmoid(np.sum(
+            ctx.w_dense[ctx.hlp_indexes.indexes + col_offsets], axis=1))
+        rn_dense = ctx.z2y(z_dense) - y_true
+        self.assertEqual(ctx.train_dense_rn.tobytes(), rn_dense.tobytes())
+        self.assertEqual(ctx.train_dense_metrics['train_dense_mae_y'],
+                         float(np.mean(np.abs(rn_dense))))
+        self.assertEqual(ctx.train_dense_metrics['train_dense_rmse_y'],
+                         float(np.sqrt(np.dot(rn_dense, rn_dense) / len(rn_dense))))
+        self.assertEqual(ctx.train_dense_metrics['train_dense_loss'],
+                         float(0.5 * np.dot((z_dense - z_true) ** 2,
+                                             np.ones_like(z_dense))
+                                / len(z_dense)))
+        self.assertEqual(ctx.train_dense_metrics['train_dense_samples'], n)
+
+
+class TestAnalyticsDownScope(unittest.TestCase):
+    """
+    The ANALYTICS level's _down scope, NO-DB: the four context attributes are cleared (the
+    failure-recovery contract) and the report file is NOT removed (it is a base_dir artifact).
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp_dir = Path(self._tmp.name)
+        self._events = []
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_down_clears_attributes_and_keeps_file(self):
+        report_file = self.tmp_dir / "model_analytics_report.txt"
+        report_file.write_text("dummy report\n", encoding="utf-8")
+
+        ctx = SimpleNamespace(
+            train_metrics={'sentinel': 1},
+            train_dense_metrics={'sentinel': 2},
+            analytics_report="sentinel report",
+            train_dense_rn=np.array([1.0, 2.0]),
+            log_event=lambda relevance, message: self._events.append(
+                (relevance, message)),
+        )
+
+        _analytics_down(ctx)
+
+        self.assertIsNone(ctx.train_metrics)
+        self.assertIsNone(ctx.train_dense_metrics)
+        self.assertIsNone(ctx.analytics_report)
+        self.assertIsNone(ctx.train_dense_rn)
+        # The report file is a base_dir artifact: _down does not unlink it.
+        self.assertTrue(report_file.exists())
+        # The clearing line is logged.
+        self.assertIn("Clearing analytics attributes...",
+                      [m for _, m in self._events])
+
+
+class TestDenseRnSeriesConsistency(unittest.TestCase):
+    """
+    The published dense residual series consistency, NO-DB: a direct unit test of
+    hlp_analytics_compute_training_dense_metrics on a small synthetic ctx (the real rlm_00
+    feature set through the FEATURES facade, 500 synthetic positions): the published MAE / RMSE
+    are re-derived BIT-EXACT from the published rn_y series, and the Z-space loss is re-derived
+    through an independent forward pass.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_rn_series_matches_published_mae(self):
+        # The real rlm_00 feature set (the facade runs to FEATURES, no DB — the file's
+        # established idiom).
+        rlm = LogisticModel(
+            str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json"),
+            verbosity=Verbosity.NONE, base_dir_override=self.tmp)
+        rlm.run("FEATURES")
+        fset = rlm.context.feature_set
+        blocks = fset.feature_blocks
+
+        n = 500
+        rng = np.random.default_rng(_SMALL_SEED)
+        # The hlp_indexes.indexes layout: one column per feature instance, each holding the
+        # configuration index within its feature.
+        max_col = max(c1 for (_n, c0, c1, _nc, _ni) in blocks)
+        indexes = np.zeros((n, max_col), dtype=Index)
+        for (_name, c0, c1, nc, n_inst) in blocks:
+            indexes[:, c0:c1] = rng.integers(0, nc, size=(n, n_inst),
+                                              dtype=Index)
+        # The real iwmap_feature_offset construction (the cumulative dense-layout boundaries).
+        iwmap_feature_offset = np.zeros(len(fset.features) + 1, dtype=np.int64)
+        iwmap_feature_offset[1:] = np.cumsum(
+            [ft.n_configurations for ft in fset.features])
+        n_dense = int(iwmap_feature_offset[-1])
+        w_dense = (0.001 * (np.arange(n_dense) + 1.0)).astype(np.float32)
+        game_values = (rng.integers(-32, 33, size=n) * 2).astype(np.int8)
+        # The real ZED transforms (the rlm_00 logit clipping 0.05).
+        y2z, z2y = hlp_zed_fun_factory(0.05)
+
+        ctx = SimpleNamespace(
+            feature_set=fset,
+            hlp_indexes=SimpleNamespace(indexes=indexes),
+            iwmap_feature_offset=iwmap_feature_offset,
+            w_dense=w_dense,
+            game_values=game_values,
+            y2z=y2z,
+            z2y=z2y,
+            log_event=lambda *args: None,
+        )
+
+        res = hlp_analytics_compute_training_dense_metrics(ctx)
+        self.assertIsInstance(res, AnalyticsTrainingDenseResult)
+        rn = res.rn_y
+        self.assertEqual(rn.dtype, np.float64)
+        self.assertEqual(rn.shape, (n,))
+
+        met = res.metrics
+        # The MAE / RMSE re-derived BIT-EXACT from the published series itself.
+        self.assertEqual(met['train_dense_mae_y'], float(np.mean(np.abs(rn))))
+        self.assertEqual(met['train_dense_rmse_y'],
+                         float(np.sqrt(np.dot(rn, rn) / n)))
+        # The Z-space loss re-derived through the independent forward pass.
+        col_offsets = np.repeat(iwmap_feature_offset[:-1],
+                                [f.n_instances for f in fset.features])
+        z_pred = sigmoid(np.sum(w_dense[indexes + col_offsets], axis=1))
+        rn_z = z_pred - y2z(game_values)
+        self.assertEqual(met['train_dense_loss'],
+                         float(0.5 * np.dot(rn_z, rn_z) / n))
+        self.assertEqual(met['train_dense_samples'], n)
 
 
 if __name__ == '__main__':
