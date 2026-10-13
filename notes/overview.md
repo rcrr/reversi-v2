@@ -46,10 +46,11 @@ define the evaluation function.
   `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
   `standard`), from the workspace root; the stop is target-driven — `run(target_level=…)` runs CONFIG first, then stops
   at the argument / `cfg.target_level` / the last step.
-- The suite tiers after the D-531..D-534 duration work: default 1087 (incl. the 21 fast DB tests, the D-532 `db_gate`) /
-  LONG 33 / VLONG 1 (the 1e7 SU corpus) / VVLONG 1 (the A2050 chain, the D-534 first instrument); PERF (22) +
-  SKIP\_REGAB\_DB orthogonal. The classifier + N-run timing: `wsutils/test_duration.py` (the reports:
-  `scratch/test_duration.{md,csv}`).
+- The suite tiers after the D-531..D-535 duration work: default 1114 (the 1087 + the 27 D-535 fast no-DB equivalents of
+  the LONG band — the "simple run is exhaustive" goal) / LONG 33 (unchanged — the originals stay as the production-scale
+  versions) / VLONG 1 (the 1e7 SU corpus) / VVLONG 1 (the A2050 chain, the D-534 first instrument); PERF (22) +
+  SKIP\_REGAB\_DB orthogonal. The suite at LONG=1: 1149/0/24. The classifier + N-run timing: `wsutils/test_duration.py`
+  (the reports: `scratch/test_duration.{md,csv}`).
 
 ## Next steps
 
@@ -59,9 +60,10 @@ define the evaluation function.
   `wsutils/exported_symbols.py`.
 - The int64 offset fixtures (test\_wrk\_validate x3, test\_wrk\_analytics x1) stay int64 by the D-525 ruling — the
   fixture-dtype fidelity call is open.
-- The refreshed duration report (the 7-run pass) is the base of the NEXT tier review: every remaining LONG / VLONG /
-  VVLONG test checked for a possible shorter equivalent (the first wave moved the 21 fast DB tests to the default tier,
-  the 11 slow non-DB tests to LONG, the A2050 chain to VVLONG — D-532..D-534).
+- The 5 residual LONG tests await the user's call (D-535): the A2030 end-to-end chain ×2 (no fast equivalent —
+  production-scale goldens), the JIT array-overloads test (the 0.9 s one-time compilation is irreducible), and the 2
+  already-covered 1M PERF prints (pattern + random-game — delete vs keep-as-benchmark). The 7-run duration report
+  (post-D-535) is the base of any further tier review.
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
 - Add the project README (English, like everything else).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
@@ -125,7 +127,7 @@ define the evaluation function.
 | File | State | Suite/std\_run | Doc |
 | --- | --- | --- | --- |
 | test/reversi/closecheck.py | complete | 0/0/0/0/0 | [docs/test/reversi/closecheck.md](docs/test/reversi/closecheck.md) |
-| test/reversi/lm/test\_client.py | complete | 8/0/1/0/0 | [docs/test/reversi/lm/test\_client.md](docs/test/reversi/lm/test\_client.md) |
+| test/reversi/lm/test\_client.py | complete | 10/0/1/0/0 | [docs/test/reversi/lm/test\_client.md](docs/test/reversi/lm/test\_client.md) |
 | test/reversi/lm/test\_hlp\_anova.py | complete | 18/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_anova.md](docs/test/reversi/lm/test\_hlp\_anova.md) |
 | test/reversi/lm/test\_hlp\_config\_schemas.py | complete | 32/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_config\_schemas.md](docs/test/reversi/lm/test\_hlp\_config\_schemas.md) |
 | test/reversi/lm/test\_hlp\_design\_matrix.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_design\_matrix.md](docs/test/reversi/lm/test\_hlp\_design\_matrix.md) |
@@ -137,30 +139,30 @@ define the evaluation function.
 | test/reversi/lm/test\_hlp\_su\_analysis.py | complete | 39/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_su\_analysis.md](docs/test/reversi/lm/test\_hlp\_su\_analysis.md) |
 | test/reversi/lm/test\_hlp\_wmaps.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_wmaps.md](docs/test/reversi/lm/test\_hlp\_wmaps.md) |
 | test/reversi/lm/test\_hlp\_zed.py | complete | 10/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_zed.md](docs/test/reversi/lm/test\_hlp\_zed.md) |
-| test/reversi/lm/test\_lm\_worker\_full\_chain.py | complete | 9/0/1/1/0 | [docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md](docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md) |
+| test/reversi/lm/test\_lm\_worker\_full\_chain.py | complete | 10/0/1/0/1 | [docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md](docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md) |
 | test/reversi/lm/test\_logistic\_model.py | complete | 31/0/0/0/0 | [docs/test/reversi/lm/test\_logistic\_model.md](docs/test/reversi/lm/test\_logistic\_model.md) |
-| test/reversi/lm/test\_wrk\_analytics.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_analytics.md](docs/test/reversi/lm/test\_wrk\_analytics.md) |
+| test/reversi/lm/test\_wrk\_analytics.py | complete | 20/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_analytics.md](docs/test/reversi/lm/test\_wrk\_analytics.md) |
 | test/reversi/lm/test\_wrk\_anova.py | complete | 7/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_anova.md](docs/test/reversi/lm/test\_wrk\_anova.md) |
 | test/reversi/lm/test\_wrk\_client\_check.py | complete | 7/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_client\_check.md](docs/test/reversi/lm/test\_wrk\_client\_check.md) |
 | test/reversi/lm/test\_wrk\_config.py | complete | 14/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_config.md](docs/test/reversi/lm/test\_wrk\_config.md) |
 | test/reversi/lm/test\_wrk\_design\_matrix.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_design\_matrix.md](docs/test/reversi/lm/test\_wrk\_design\_matrix.md) |
 | test/reversi/lm/test\_wrk\_features.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_features.md](docs/test/reversi/lm/test\_wrk\_features.md) |
 | test/reversi/lm/test\_wrk\_final\_log\_print.py | complete | 6/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_final\_log\_print.md](docs/test/reversi/lm/test\_wrk\_final\_log\_print.md) |
-| test/reversi/lm/test\_wrk\_generate.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_generate.md](docs/test/reversi/lm/test\_wrk\_generate.md) |
-| test/reversi/lm/test\_wrk\_gradient.py | complete | 4/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_gradient.md](docs/test/reversi/lm/test\_wrk\_gradient.md) |
+| test/reversi/lm/test\_wrk\_generate.py | complete | 6/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_generate.md](docs/test/reversi/lm/test\_wrk\_generate.md) |
+| test/reversi/lm/test\_wrk\_gradient.py | complete | 6/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_gradient.md](docs/test/reversi/lm/test\_wrk\_gradient.md) |
 | test/reversi/lm/test\_wrk\_indexes.py | complete | 2/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_indexes.md](docs/test/reversi/lm/test\_wrk\_indexes.md) |
-| test/reversi/lm/test\_wrk\_optimize.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_optimize.md](docs/test/reversi/lm/test\_wrk\_optimize.md) |
-| test/reversi/lm/test\_wrk\_plot.py | complete | 9/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_plot.md](docs/test/reversi/lm/test\_wrk\_plot.md) |
+| test/reversi/lm/test\_wrk\_optimize.py | complete | 6/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_optimize.md](docs/test/reversi/lm/test\_wrk\_optimize.md) |
+| test/reversi/lm/test\_wrk\_plot.py | complete | 10/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_plot.md](docs/test/reversi/lm/test\_wrk\_plot.md) |
 | test/reversi/lm/test\_wrk\_positions.py | complete | 12/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_positions.md](docs/test/reversi/lm/test\_wrk\_positions.md) |
 | test/reversi/lm/test\_wrk\_su\_analysis.py | complete | 10/0/1/1/0 | [docs/test/reversi/lm/test\_wrk\_su\_analysis.md](docs/test/reversi/lm/test\_wrk\_su\_analysis.md) |
-| test/reversi/lm/test\_wrk\_validate.py | complete | 9/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_validate.md](docs/test/reversi/lm/test\_wrk\_validate.md) |
-| test/reversi/lm/test\_wrk\_vld\_positions.py | complete | 11/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_vld\_positions.md](docs/test/reversi/lm/test\_wrk\_vld\_positions.md) |
+| test/reversi/lm/test\_wrk\_validate.py | complete | 12/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_validate.md](docs/test/reversi/lm/test\_wrk\_validate.md) |
+| test/reversi/lm/test\_wrk\_vld\_positions.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_vld\_positions.md](docs/test/reversi/lm/test\_wrk\_vld\_positions.md) |
 | test/reversi/lm/test\_wrk\_wmaps.py | complete | 4/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_wmaps.md](docs/test/reversi/lm/test\_wrk\_wmaps.md) |
 | test/reversi/lm/test\_wrk\_zed.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_zed.md](docs/test/reversi/lm/test\_wrk\_zed.md) |
 | test/reversi/paths.py | complete | 0/0/0/0/0 | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_board.py | complete | 308/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
-| test/reversi/test\_feature.py | complete | 32/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
+| test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |
 | test/reversi/test\_mobility.py | complete | 31/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
 | test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
@@ -170,7 +172,7 @@ define the evaluation function.
 | test/reversi/tools/test\_binio.py | complete | 56/0/0/0/0 | [docs/test/reversi/tools/test\_binio.md](docs/test/reversi/tools/test\_binio.md) |
 | test/reversi/tools/test\_cache\_manager.py | complete | 22/0/0/0/0 | [docs/test/reversi/tools/test\_cache\_manager.md](docs/test/reversi/tools/test\_cache\_manager.md) |
 | test/reversi/tools/test\_opt\_lbfgs.py | complete | 24/0/0/0/0 | [docs/test/reversi/tools/test\_opt\_lbfgs.md](docs/test/reversi/tools/test\_opt\_lbfgs.md) |
-| test/reversi/tools/test\_prng.py | complete | 30/0/0/0/0 | [docs/test/reversi/tools/test\_prng.md](docs/test/reversi/tools/test\_prng.md) |
+| test/reversi/tools/test\_prng.py | complete | 32/0/0/0/0 | [docs/test/reversi/tools/test\_prng.md](docs/test/reversi/tools/test\_prng.md) |
 | test/reversi/tools/test\_state\_machine.py | complete | 51/0/0/0/0 | [docs/test/reversi/tools/test\_state\_machine.md](docs/test/reversi/tools/test\_state\_machine.md) |
 | test/reversi/tools/test\_usage\_binio.py | complete | 3/0/0/0/0 | [docs/test/reversi/tools/test\_usage\_binio.md](docs/test/reversi/tools/test\_usage\_binio.md) |
 

@@ -1750,3 +1750,37 @@ D-534 | 2026-10-12 | The A2050 full-chain test (96.5 s mean — the heaviest of 
          chain). Two mirror docs updated (the full-chain doc's gate line + the ~1.6-min runtime note; tags.md's three
          "currently uninstrumented" VVLONG claims — the tier is now instrumented). Verified: VLONG=1 alone skips the
          A2050 (1 skip); VVLONG=1 runs the module 9/0/0 in 105.8 s.
+
+D-535 | 2026-10-13 | Fast NORMAL-tier equivalents for the LONG band — the "the simple run is exhaustive" goal
+         (Roberto's): the input is the D-531 7-run report + a per-test coverage analysis of all 33 LONG tests
+         (scratch/long\_tier\_coverage.md, five parallel analysis passes) asking, for each: are the same invariants
+         already pinned in NORMAL, and if not, can a FAST (≤ 0.3 s, no-DB) test pin them. Verdict: 2 COVERED (the
+         pattern + random-game 1M PERF prints — the substance already pinned by test\_large\_set and 11 NORMAL
+         siblings), 24 PARTIAL, 7 NOT COVERED; 28 fast equivalents feasible, 3 infeasible (the A2030 end-to-end chain ×2
+         — production-scale goldens only the real 14-level run can pin; the JIT array-overload test — the 0.9 s one-time
+         compilation is irreducible). Implementation: 27 new UNGATED / no-DB tests over 12 test files (the 28th — the
+         all-7 plot small render — was written, measured 2.9 s against the 0.3 s budget (matplotlib's ≈ 300 ms
+         per-figure floor at 50 dpi), and REMOVED on Roberto's call; the all-7 render + the byte-identity pin stay
+         LONG). Per file: test\_client +2 (the 10k perf smoke; the 32-board 2-D C-order parity with the STRIDED view
+         base[::2,::2] + the (0,4)/(2,0) empties); lm\_worker\_full\_chain +1 (the v2 write emits NO config sidecar —
+         the file-absence guarantee); wrk\_analytics +5 (the two-instance determinism at a small rlm\_00-derived config
+         with the 04/13 cache slots pre-seeded no-DB; the console-report format; the direct \_up with independently
+         re-derived publications; the \_down scope + the report-file survival; the hlp dense-metrics series↔MAE
+         bit-exact consistency); wrk\_generate +3 (a mock-Context class: compute + sidecar + the duck-typed checksum
+         identity, the two-instance hit, the \_down); wrk\_gradient +2 (TestGradientFlagWiring extended: the \_down
+         scope, the exact generation log lines + the 3×2 zero-w golden through the worker-published fg); wrk\_optimize
+         +3 (a REAL tiny L-BFGS over the 3×2 problem: convergence + checkpoint, the iters>=max\_iters disjunction with
+         ZERO fg calls in run 2, the \_down that keeps w); wrk\_plot +1 (the small 'pdf,png' pair, ≈ 0.2 s);
+         wrk\_validate +3 (the two-instance determinism at small config, the FULL four-attribute \_down scope — strictly
+         stronger than the LONG test, the 10-line ordered log contract with re-derived metrics); wrk\_vld\_positions +4
+         (the DB-free stand-in: the real cache-file hit, the bid=[8] / status=["CMS","CMR"] override pin, the \_down,
+         BOTH independence trace lines); test\_board: test\_no\_collisions DE-GATED (its existing 10k/1M scale branch —
+         10k in the default tier, 1M under LONG=1); test\_feature +1 (the 13-pattern I=51 set at N=1000 with a 51-value
+         row-0 golden — a STRENGTHENING over the 1M test, which asserts no values); tools/test\_prng +2 (the 20k / 10k
+         chi2 at the same per-bin scale as the 200k / 100k LONG tests — 1/10 statistical power, threshold meaning
+         preserved). The worker stand-ins need a REAL base Context (Worker.up/down are @validate\_call'd — a bare
+         SimpleNamespace is rejected; the mocks use Context() or class X(SimpleNamespace, Context)). Twelve mirror docs
+         updated. Suite: 1149/0/24 at LONG=1 (1122 + 27). Tier shape: NORMAL 1114 / LONG 33 (UNCHANGED — the originals
+         stay as the production-scale versions) / VLONG 1 / VVLONG 1. Expected: the simple run 15.3 s → ≈ 17.3 s,
+         exhaustive at the invariant level. The 5 residual LONG tests (the A2030 chain ×2, the JIT array overloads, the
+         2 already-covered 1M PERFs) are Roberto's call.

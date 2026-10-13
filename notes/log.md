@@ -215,3 +215,21 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-534: the A2050 chain (96.5 s) moved VLONG -> VVLONG — the FIRST VVLONG instrument: the class decorator
   tier\_vlong() -> tier\_vvlong() (one line + the import). The classifier needed no change: NORMAL 1087 / LONG 33 /
   VLONG 1 / VVLONG 1. VLONG=1 alone skips it; VVLONG=1 runs the module 9/0/0 in 105.8 s.
+## 2026-10-13 — session 117 (D-535 — the fast NORMAL equivalents of the LONG band)
+
+- Roberto's goal: "the simple run is exhaustive" — for each of the 33 LONG tests (0.4-7.9 s): is the same thing already
+  verified in NORMAL, and if not, can a ≤ 0.3 s test verify it?
+- Five parallel analysis passes (subagents) → scratch/long\_tier\_coverage.md: 2 COVERED / 24 PARTIAL / 7 NOT COVERED;
+  28 feasible fast equivalents, 3 infeasible (the A2030 end-to-end chain ×2, the JIT array overloads).
+- Six parallel implementation waves (subagents, disjoint files) → 27 new UNGATED no-DB tests over 12 test files: the
+  mock-Context wrk\_generate / wrk\_optimize / wrk\_vld\_positions / wrk\_analytics / wrk\_validate classes, the
+  TestGradientFlagWiring + TestValidateModelUnit extensions, the plot small format-pair, the client 10k smoke + 32-board
+  2-D strided parity, the full-chain no-config-sidecar, the board no-collisions de-gate, the feature I=51 row-0 golden,
+  the 20k / 10k prng chi2.
+- Plot exception (disclosed, Roberto's call): the all-7 small render measured 2.9 s (matplotlib's ≈ 300 ms per-figure
+  floor at 50 dpi) — written then REMOVED; only the ≈ 0.2 s 'pdf,png' pair joins NORMAL, the all-7 + determinism stay
+  LONG.
+- Suite audit: 1149/0/24 at LONG=1 (1122 + 27). Tier shape: NORMAL 1114 / LONG 33 (unchanged) / VLONG 1 / VVLONG 1.
+  Twelve mirror docs updated.
+- The 7-run duration report refreshed; the 5 residual LONG tests (A2030 ×2, JIT array, the 2 covered 1M PERFs) are
+  Roberto's call.
