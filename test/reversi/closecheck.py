@@ -2,7 +2,7 @@
 # closecheck.py
 #
 # This file is part of the reversi program
-# http://github.com/rcrr/reversi
+# http://github.com/rcrr/reversi-v2
 #
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
