@@ -2,7 +2,8 @@
 
 Prescriptive. Follow when creating, updating, or migrating any doc under docs/ that mirrors a source file (the mirror
 rule, R-330). Language: English. The prose is wrapped to ~120 chars/line; the tables stay one physical line per row;
-code spans are never split across lines, and lines carry no trailing whitespace.
+code spans are never split across lines, and lines carry no trailing whitespace. The rules below govern the MIRROR docs;
+the user-facing docs that mirror NO source file live in the `docs/user/` zone and follow §8 only.
 
 Companions: notes/probe\_rules.md (the verification apparatus), notes/log\_rules.md (the session journal),
 notes/wsutils.md (the doc auditor that checks these rules).
@@ -91,3 +92,18 @@ Same skeleton, two substitutions:
   notes/overview.md.
 - notes/analyses/ holds moved-out historical artifacts (verbatim analyses, retired one-off investigations): they are
   frozen records, never updated — a changed fact gets a NEW analysis, the old one keeps its date and its errors.
+
+## 8. User documents (docs/user/…)
+
+User-facing, operational docs that mirror NO source file (the first: the LM config user guide,
+`docs/user/lm_config_guide.md`). The mirror rules of §1-§7 do not apply to them (no fixed header, no section skeleton,
+no size budget); the house format does: English, prose wrapped to ~120, no trailing whitespace. Two extra contracts:
+
+- **Truth** — every technical claim is checkable against the sources (the guide's example configs validate against the
+  real `LMConfig` schema); where a fact has a mirror-doc home, the user doc POINTS to it and does not duplicate it (one
+  fact, one home).
+- **Lifecycle** — a user doc is updated in the SAME commit as the source change that invalidates it (a schema field
+  added/removed → the guide updated with it), as a mirror is.
+
+User docs are NOT indexed in the overview Source/Test tables (those stay 1:1); the zone is registered in the overview
+"Mirror docs" bullet.

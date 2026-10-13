@@ -54,6 +54,10 @@ FORBIDDEN = [
 def docs():
     out = []
     for base, _dirs, files in os.walk(os.path.join(ROOT, 'docs')):
+        # the docs/user/ zone holds the USER docs (docs_rules.md §8) — they mirror no source file,
+        # so the mirror checks (H1, sections, size budget) do not apply to them
+        if os.path.relpath(base, ROOT) == 'docs/user':
+            continue
         for f in files:
             if f.endswith('.md'):
                 out.append(os.path.relpath(os.path.join(base, f), ROOT))

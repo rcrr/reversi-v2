@@ -34,7 +34,8 @@ define the evaluation function.
 - Workspace utils: wsutils/ — the workspace utilities (the notes/docs format re-wrapper, the source prose re-wrapper,
   the mirror-doc auditor, the suite counter; rules: notes/wsutils.md).
 - Mirror docs: docs/ mirrors the tracked sources one-to-one — every source and test file has its doc, and the Doc column
-  of the two tables is the index (format: notes/docs\_rules.md).
+  of the two tables is the index (format: notes/docs\_rules.md). The user-facing, non-mirror docs live in the
+  `docs/user/` zone (docs\_rules.md §8).
 - Scratch: scratch/ is the disposable session area — gitignored, never tracked, nothing permanent goes there.
 - Governance: all the governance files (the active rules, the decisions log, the session journal, the ideas, the format
   rules, the domain vocabulary, the design principles) live in notes/ — the Index below is their registry.
