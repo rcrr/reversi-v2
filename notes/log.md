@@ -245,3 +245,13 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   rlm\_04 line break, the overview cleanup + the measured durations). The next session opens on the LM config "User
   guide" — the PLACEMENT decision is pending (a section of the logistic\_model mirror doc vs a separate user doc; Nia
   proposes the separate doc + the one-line pointer).
+## 2026-10-13 — session 118 (D-539 — the docs/user/ zone + the LM config user guide)
+
+- Roberto's task: the LM config "User guide" — technical and precise, every rule and option of the JSON config file, a
+  minimal example entry, then the exhaustive reference. Placement: a SEPARATE doc in a new docs/user/ zone (approved
+  after Nia's proposal; the mirror-doc section was dropped).
+- docs/user/lm\_config\_guide.md written (the Rules, the minimal example, the per-section reference, the complete
+  example — both examples verified against the real LMConfig schema); Roberto's review: "mi piace moltissimo".
+- D-539: the zone legislated — docs\_rules.md (the opening scope sentence + the new §8: the house format applies, the
+  mirror skeleton does not; the TRUTH + LIFECYCLE contracts), wsutils/docs\_format\_audit.py (the docs() walk skips
+  docs/user/), the overview "Mirror docs" bullet registers the zone.

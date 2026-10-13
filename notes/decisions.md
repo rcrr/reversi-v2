@@ -1808,3 +1808,20 @@ D-538 | 2026-10-13 | The overview test-command entry now carries the MEASURED du
          misurato"): default fast ~15 s → ~17 s and VVLONG=1 ~15 min → ~3.5 min, from the post-D-535 7-run report
          (scratch/test\_duration.{md,csv}): NORMAL 1115 tests at 17.5 s mean, the all-tiers 1149-test run at 208.6 s
          mean (3.5 min).
+
+D-539 | 2026-10-13 | The docs/user/ zone — the user-facing docs that mirror NO source file (Roberto's LM-config "User
+         guide" request; the placement was his call after Nia's proposal: a separate doc, not a section of the
+         logistic\_model mirror doc). FIRST PAGE: docs/user/lm\_config\_guide.md — the JSON5 config file: the Rules (the
+         10 required top-level keys, the ec single source 0..60, the 3-uppercase statuses, the 16-hex no-0x masks, the
+         relative/absolute path resolution, the cross-field checks, the free-form properties bag, the target\_level),
+         the MINIMAL working example, the per-section EXHAUSTIVE reference (root, the regab data set + the connection,
+         the validation data set, the feature set + pattern/mobility, the stat model, the optimization, the analytics,
+         the plot with all 19 knobs, the su analysis, the anova) with type/default/notes per option, and the complete
+         example; BOTH examples were verified against the real LMConfig schema (model\_validate), and the field-level
+         facts POINT to the hlp\_config\_schemas.md mirror doc instead of duplicating them. The zone is LEGISLATED in
+         three places: docs\_rules.md (the opening scope sentence + the new §8 — the house format applies, the mirror
+         skeleton does not; the two extra contracts: TRUTH — every claim checkable against the sources, one fact one
+         home — and LIFECYCLE — the user doc is updated in the same commit as the source change that invalidates it);
+         wsutils/docs\_format\_audit.py (the docs() walk skips docs/user/ — the mirror checks produced two false
+         findings on the guide: the expected H1 and the size budget); the overview "Mirror docs" bullet registers the
+         zone (the Source/Test tables stay 1:1).
