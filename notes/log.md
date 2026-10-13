@@ -236,3 +236,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-536: the run\_utests.sh banner now prints VVLONG (the header comment's stale D-285 "uninstrumented" claim dropped) +
   rlm\_04.json's cosmetic line break (Roberto's edit, parsed structure identical) + the A2030 tests confirmed to stay
   LONG ("vanno bene così"). Canonical LONG=1 run OK (24 skips).
+- D-537: the overview cleanup on Roberto's dictation — the test-command entry rewritten (default ~15 s; his draft's
+  LONG=0 corrected to LONG=1, disclosed), the Current-state suite-tiers entry removed, three Next-steps entries removed
+  (naming sweep, int64 fixtures, register re-review).

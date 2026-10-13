@@ -23,12 +23,12 @@ define the evaluation function.
 - Dependencies (pyproject.toml): numpy ≥ 2.0 (bitboards / structured dtypes), pydantic ≥ 2 (@validate\_call), numba
   ≥ 0.60 (njit / prange / overload; pulls llvmlite), lz4 (binio), psycopg2 / pandas / python-dotenv (regab), json5 (the
   LM configs), scipy (gradient / ANOVA / plot), matplotlib (the PLOT step).
-- Test command: `./run_utests.sh` (the canonical runner; the cumulative tiers: default fast, LONG=1, VLONG=1, VVLONG=1 —
-  the A2050 chain, D-534; PERF=1 adds the print-only perf tests). The standard pre-commit run is
-  `LONG=1 ./run_utests.sh`; VLONG/VVLONG=1 only when useful. A single module:
+- Test command: `./run_utests.sh` (the canonical runner; tiers: default fast ~15 s, LONG=1, VLONG=1, VVLONG=1 ~15 min
+  incl. the A2050 chain and implies LONG, VLONG; PERF=1 adds the print-only perf tests). The standard pre-commit run is
+  `LONG=1 ./run_utests.sh`; VLONG=1 only when useful. A single module:
   `.venv/bin/python -m unittest test.reversi[.zone].<module>` (the zones: lm, tools). The DB-gated suites (test\_regab +
-  the worker suites) need a live PostgreSQL + .env + LONG=1, or `SKIP_REGAB_DB=1` to skip the DB tests. The runner is
-  unittest by design (pytest is not a dependency).
+  the worker suites) need a live PostgreSQL + .env, or `SKIP_REGAB_DB=1` to skip the DB tests. The runner is unittest by
+  design (pytest is not a dependency).
 - Probes: tracked under probes/ (hub: verify\_logistic\_model.py owns the pipeline-wide state; rules:
   notes/probe\_rules.md).
 - Workspace utils: wsutils/ — the workspace utilities (the notes/docs format re-wrapper, the source prose re-wrapper,
@@ -46,27 +46,15 @@ define the evaluation function.
   `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
   `standard`), from the workspace root; the stop is target-driven — `run(target_level=…)` runs CONFIG first, then stops
   at the argument / `cfg.target_level` / the last step.
-- The suite tiers after the D-531..D-535 duration work: default 1114 (the 1087 + the 27 D-535 fast no-DB equivalents of
-  the LONG band — the "simple run is exhaustive" goal) / LONG 33 (unchanged — the originals stay as the production-scale
-  versions) / VLONG 1 (the 1e7 SU corpus) / VVLONG 1 (the A2050 chain, the D-534 first instrument); PERF (22) +
-  SKIP\_REGAB\_DB orthogonal. The suite at LONG=1: 1149/0/24. The classifier + N-run timing: `wsutils/test_duration.py`
-  (the reports: `scratch/test_duration.{md,csv}`).
 
 ## Next steps
 
-- Finish the module-API naming sweep on the remaining hlp\_\* / tools modules (the wave covered hlp\_zed / hlp\_validate
-  / hlp\_plot / prng / index): hlp\_generate (compute\_w\_dense), hlp\_analytics (format\_\*), hlp\_optimize (is\_\* /
-  weights\_\*), wrk\_positions (load\_from\_db \& co.) — the user's call; the snapshot to review the surface:
-  `wsutils/exported_symbols.py`.
-- The int64 offset fixtures (test\_wrk\_validate x3, test\_wrk\_analytics x1) stay int64 by the D-525 ruling — the
-  fixture-dtype fidelity call is open.
 - The 5 residual LONG tests await the user's call (D-535): the A2030 end-to-end chain ×2 (no fast equivalent —
   production-scale goldens), the JIT array-overloads test (the 0.9 s one-time compilation is irreducible), and the 2
   already-covered 1M PERF prints (pattern + random-game — delete vs keep-as-benchmark). The 7-run duration report
   (post-D-535) is the base of any further tier review.
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
 - Add the project README (English, like everything else).
-- The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
 

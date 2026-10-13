@@ -1793,3 +1793,13 @@ D-536 | 2026-10-13 | Two small items (Roberto's call): (1) the run\_utests.sh ba
          runs green on the edited fixture. The overview runner bullet now names the VVLONG tier. The A2030 full-pipeline
          tests stay LONG as they are (Roberto: "vanno bene così"). Verified: the banner prints VVLONG=1; the canonical
          LONG=1 run is OK (24 skips).
+
+D-537 | 2026-10-13 | The overview.md cleanup (Roberto's dictation, "puliamo overview.md"): (1) the Environment
+         test-command entry rewritten as he drafted it (default fast ~15 s; VVLONG=1 ~15 min incl. the A2050 chain and
+         implies LONG, VLONG; the DB-gated suites' requirement drops the stale "+ LONG=1" clause — the D-532 db\_gate
+         already runs the DB tests in the default tier). ONE deviation from the draft, disclosed: his text said "the
+         standard pre-commit run is LONG=0" — an evident slip against the R-210 gate (LONG=1), written as LONG=1. (2)
+         the Current-state "suite tiers after the D-531..D-535" entry removed — the tier shape now lives in the
+         decisions log + the test-duration reports, not the overview. (3) three Next-steps entries removed (the
+         module-API naming sweep, the int64 offset fixtures, the register re-review / R-200 rule text) — Roberto: "per
+         me non hanno senso".
