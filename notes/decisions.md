@@ -1843,3 +1843,20 @@ D-540 | 2026-10-13 | The license-header wave — the public-push preparation (Ro
          rewrite). Verified: the 138 .py py\_compile; the URL audit leaves ZERO old URLs and finds the new one in every
          one of the 146 headers; the 7 .json parse-identical to HEAD; bash -n OK; the full LONG=1 suite green (24
          skips).
+
+D-541 | 2026-10-13 | The license-header GUARD (R-591) — D-540 made the headers true, this D makes them PERMANENTLY true:
+         the new wsutils/license\_header\_audit.py (a CHECK tool, fail-closed) — over every tracked source file (147:
+         the 138 .py + the 1 .sh + the pre-commit hook + the 7 .json fixtures) it requires the standard 26-line GPL
+         header as the first lines (after the shebang, when there is one): the ten marker lines IN ORDER (the bare #
+         opener, the FILE\_NAME = the basename, the separator, the "part of the reversi program" line, the project URL,
+         the separator, the Author line, the Copyright line with a 4-digit year, the separator, the License marker); the
+         .json fixtures use the C-style /\* \*/ variant of the same ten. WIRING: the pre-commit gate gains it as the
+         third BLOCKING check (the STAGED source files only — a code-only checkin pays nothing, the same pattern as the
+         notes guard); the hook's doc comment now says "Three BLOCKING checks". LEGISLATION: R-591 in notes/rules.md
+         (the Code style section) + the tool registered in the wsutils.md table (the hook row updated to the three
+         checks). Two COLLATERAL fixes the guard's first run surfaced: (1) 27 old banners carried a trailing space on
+         their separator comment lines (`# `) — normalized to the bare `#` inside the header window (mechanical,
+         comments-only); (2) wsutils/hooks/pre-commit itself (a tracked source WITHOUT the .sh extension — the first
+         pathspec missed it) got the standard banner. Verified: the audit is GREEN on all 147 files; RED on both failure
+         modes (no header at all; the FILE\_NAME carrying the wrong name); the end-to-end hook test — a headerless
+         staged file BLOCKED a real commit (no commit was created); the full LONG=1 suite green.

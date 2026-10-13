@@ -265,5 +265,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-540: the 146-file header migration (41 insertions + 105 URL rewrites to the reversi-v2 URL; the random\_game.py
   variant normalized), the official GPLv3 LICENSE from gnu.org, the pyproject license field. Suite green; the wave
   committed.
-- Next: the 2d guard (the license\_header\_audit tool + the pre-commit hook — Roberto's granularity call), then step 3
-  (the .env untrack + .env.example, the paths.py auto-mkdir, the README, the fresh-clone proof).
+- D-541: the R-591 guard — wsutils/license\_header\_audit.py (the 147-file scope, the ten marker lines in order,
+  fail-closed) wired as the THIRD blocking pre-commit check; R-591 legislated in the Code style section; 27 old banners
+  normalized (the trailing-space separators); the pre-commit hook itself got its banner. End-to-end proof: a headerless
+  staged file blocked a real commit.
+- Next: step 3 (the .env untrack + .env.example, the paths.py auto-mkdir, the README, the fresh-clone proof).

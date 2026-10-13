@@ -1,11 +1,38 @@
 #!/usr/bin/env bash
+#
+# pre-commit
+#
+# This file is part of the reversi program
+# http://github.com/rcrr/reversi-v2
+#
+# Author Roberto Corradini mailto:rob_corradini@yahoo.it
+# Copyright 2026 Roberto Corradini. All rights reserved.
+#
+# License
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 3, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+# or visit the site <http://www.gnu.org/licenses/>.
+#
+
 # pre-commit — the checkin gate (the D-417/D-419 governance wave).
 #
 # Installed via `git config core.hooksPath wsutils/hooks`: the script is
 # TRACKED, so the gate logic is versioned and auditable (a copy in
 # .git/hooks/ would not be). The install is one local-config line per clone.
 #
-# Two BLOCKING checks — red = no commit (`--no-verify` bypasses, by
+# Three BLOCKING checks — red = no commit (`--no-verify` bypasses, by
 # explicit user request only):
 #   1. The notes format guard (wsutils/notes_lint.py) on the NOTES files
 #      of THIS checkin (the staged ones) — a file becomes clean when it
@@ -13,8 +40,11 @@
 #   2. The overview bookkeeping auditor (wsutils/overview_audit.py) —
 #      ALWAYS: the four overview lists (Source files, Test files, Test
 #      data, Index) must agree with the tree at every checkin.
+#   3. The license header guard (wsutils/license_header_audit.py) on the
+#      SOURCE files of THIS checkin (the staged .py/.sh/.json + hooks) —
+#      the R-591 scope; a file becomes clean when it is touched.
 #
-# Writes nothing (both tools are read-only). Exit 0 = the commit proceeds.
+# Writes nothing (all tools are read-only). Exit 0 = the commit proceeds.
 
 set -u
 cd "$(git rev-parse --show-toplevel)"
@@ -38,6 +68,15 @@ fi
 if ! $PY wsutils/overview_audit.py; then
     echo "pre-commit: overview bookkeeping RED — the overview lists must agree with the tree before the checkin."
     exit 1
+fi
+
+# 3. The license header guard on the staged source files (the R-591 scope).
+STAGED_SRC=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(py|sh|json)$|^wsutils/hooks/' || true)
+if [ -n "$STAGED_SRC" ]; then
+    if ! $PY wsutils/license_header_audit.py $STAGED_SRC; then
+        echo "pre-commit: license header guard RED on the staged source files — fix, then re-commit."
+        exit 1
+    fi
 fi
 
 exit 0
