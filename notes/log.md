@@ -272,5 +272,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-542: step 3, part 1 — the .env untracked (it stays on the local disk) + .gitignore + the .env.example template; the
   paths.py auto-mkdir of build/tmp at import time. Suite green; committed. The README (3c) written, UNCOMMITTED —
   awaiting Roberto's review.
-- Next: the README review, then 3d (the fresh-clone proof in /tmp), then step 4 (the secret scan, the final suite) and
-  step 5 (the push).
+- D-543: the README approved by Roberto (the single addition: the regab bullet pointing to the rcrr/reversi project) —
+  committed.
+- 3d: the FRESH-CLONE PROOF — PASSED: the repo cloned to /tmp/reversi-v2-clone, the venv + pip install -e . from
+  scratch, NO manual mkdir (build/tmp auto-created), NO .env (the gitignored one is absent by design), SKIP\_REGAB\_DB=1
+  ./run\_utests.sh → 1149 tests in 45.6 s, OK, 109 skips (the 85 DB-gated + the 24 standing), zero failures. A stranger
+  cloning the repo gets a project that runs.
+- Next: step 4 (the secret scan, the final suite) and step 5 (the push).

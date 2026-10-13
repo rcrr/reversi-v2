@@ -1870,3 +1870,13 @@ D-542 | 2026-10-13 | Fresh-clone readiness, part 1 (Roberto's GO for step 3, the
          build/tmp no longer depend on the directory happening to exist: a fresh clone runs the suite with zero manual
          steps (the build/ tree stays gitignored). Verified: build/ removed on disk, the import recreates build/tmp; the
          full LONG=1 suite green (24 skips).
+
+D-543 | 2026-10-13 | The README (the public front page of the repo; Roberto's approval after the two-round review — the
+         first draft, then the single addition: the regab bullet in Requirements pointing to the github.com/rcrr/reversi
+         project for the database details). Content: what it is + the license; the REQUIREMENTS (Python >= 3.12, the
+         pyproject dependencies, the optional PostgreSQL/regab server with the SKIP\_REGAB\_DB=1 escape hatch); the
+         five-line SETUP (clone, venv, pip install -e ., the .env from the .env.example template); the test TIERS with
+         their measured durations; the pipeline FACADE command with the cross-reference to
+         docs/user/lm\_config\_guide.md; the LAYOUT table (the nine top-level paths). Deliberately DRY — facts and
+         commands, no marketing. The README lives at the repo root, OUTSIDE the docs/ mirror tree: the
+         one-doc-per-source 1:1 rule is not affected (it is not a mirror doc, it is the front page).
