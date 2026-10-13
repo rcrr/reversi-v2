@@ -1825,3 +1825,21 @@ D-539 | 2026-10-13 | The docs/user/ zone — the user-facing docs that mirror NO
          wsutils/docs\_format\_audit.py (the docs() walk skips docs/user/ — the mirror checks produced two false
          findings on the guide: the expected H1 and the size budget); the overview "Mirror docs" bullet registers the
          zone (the Source/Test tables stay 1:1).
+
+D-540 | 2026-10-13 | The license-header wave — the public-push preparation (Roberto's GO after the plan review; the repo
+         is going to github.com/rcrr/reversi-v2, PUBLIC): every tracked source carries the standard GPL header, with the
+         project URL on the new repo name. The one-shot migration (scratch/migrate\_headers.py, gitignored) over 146
+         files: 41 banner INSERTIONS (the 24 probes + the 9 wsutils tools AFTER the shebang, the 7 \_\_init\_\_.py
+         BEFORE their docstring, run\_utests.sh after its shebang — FILE\_NAME the basename, YEARS the first-commit year
+         from git, all 2026) + 105 URL-ONLY rewrites (98 .py + the 7 .json /\* \*/ fixtures — every other line
+         byte-identical). One pre-existing variant NORMALIZED: random\_game.py's banner carried the FILE\_NAME on line 1
+         (no leading bare #) — brought to the standard 26-line template. The root LICENSE is the OFFICIAL GPLv3 text
+         from gnu.org (674 lines, 35149 bytes — byte-identical to the canonical gpl-3.0.txt, the text GitHub itself
+         detects from); pyproject.toml declares license = {text = "GPL-3.0-or-later"} (the table form — compatible with
+         the setuptools>=64 floor; the PEP-639 SPDX-string form needs setuptools >= 77). The local branch renamed master
+         → main (zero cost while no remote exists). The .env (the DB credentials) is STILL tracked in this commit: its
+         untrack + the .env.example is the next step (3a) before the push; the password stays in the history (disclosed
+         + accepted by Roberto: a local-only test DB, the password is the trivially-known username/dbname — no history
+         rewrite). Verified: the 138 .py py\_compile; the URL audit leaves ZERO old URLs and finds the new one in every
+         one of the 146 headers; the 7 .json parse-identical to HEAD; bash -n OK; the full LONG=1 suite green (24
+         skips).

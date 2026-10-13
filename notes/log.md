@@ -256,3 +256,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   mirror skeleton does not; the TRUTH + LIFECYCLE contracts), wsutils/docs\_format\_audit.py (the docs() walk skips
   docs/user/), the overview "Mirror docs" bullet registers the zone.
 - Session close: the guide is DONE and committed (the overview next-steps entry removed on Roberto's call).
+## 2026-10-13 — session 119 (D-540 — the license headers + the public-push preparation)
+
+- Roberto's plan (agreed step-by-step, one GO at a time): prepare the repo for its FIRST public push to
+  github.com/rcrr/reversi-v2 — name, headers, fresh-clone proof, README, cleanups, push.
+- Step-0 decisions: the repo is PUBLIC; the branch renamed master → main; the .env password in the history is ACCEPTED
+  (the local-only test DB, the trivially-known username/dbname) — it leaves the TRACKED tree in step 3a.
+- D-540: the 146-file header migration (41 insertions + 105 URL rewrites to the reversi-v2 URL; the random\_game.py
+  variant normalized), the official GPLv3 LICENSE from gnu.org, the pyproject license field. Suite green; the wave
+  committed.
+- Next: the 2d guard (the license\_header\_audit tool + the pre-commit hook — Roberto's granularity call), then step 3
+  (the .env untrack + .env.example, the paths.py auto-mkdir, the README, the fresh-clone proof).
