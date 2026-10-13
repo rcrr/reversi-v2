@@ -23,7 +23,7 @@ define the evaluation function.
 - Dependencies (pyproject.toml): numpy ≥ 2.0 (bitboards / structured dtypes), pydantic ≥ 2 (@validate\_call), numba
   ≥ 0.60 (njit / prange / overload; pulls llvmlite), lz4 (binio), psycopg2 / pandas / python-dotenv (regab), json5 (the
   LM configs), scipy (gradient / ANOVA / plot), matplotlib (the PLOT step).
-- Test command: `./run_utests.sh` (the canonical runner; tiers: default fast ~15 s, LONG=1, VLONG=1, VVLONG=1 ~15 min
+- Test command: `./run_utests.sh` (the canonical runner; tiers: default fast ~17 s, LONG=1, VLONG=1, VVLONG=1 ~3.5 min
   incl. the A2050 chain and implies LONG, VLONG; PERF=1 adds the print-only perf tests). The standard pre-commit run is
   `LONG=1 ./run_utests.sh`; VLONG=1 only when useful. A single module:
   `.venv/bin/python -m unittest test.reversi[.zone].<module>` (the zones: lm, tools). The DB-gated suites (test\_regab +

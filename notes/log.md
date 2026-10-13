@@ -239,3 +239,5 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-537: the overview cleanup on Roberto's dictation — the test-command entry rewritten (default ~15 s; his draft's
   LONG=0 corrected to LONG=1, disclosed), the Current-state suite-tiers entry removed, three Next-steps entries removed
   (naming sweep, int64 fixtures, register re-review).
+- D-538: the overview test-command entry's durations replaced with the MEASURED numbers (default ~17 s, VVLONG=1 ~3.5
+  min — the 7-run report means).

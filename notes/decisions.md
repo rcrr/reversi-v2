@@ -1803,3 +1803,8 @@ D-537 | 2026-10-13 | The overview.md cleanup (Roberto's dictation, "puliamo over
          decisions log + the test-duration reports, not the overview. (3) three Next-steps entries removed (the
          module-API naming sweep, the int64 offset fixtures, the register re-review / R-200 rule text) — Roberto: "per
          me non hanno senso".
+
+D-538 | 2026-10-13 | The overview test-command entry now carries the MEASURED durations (Roberto: "usa il numero
+         misurato"): default fast ~15 s → ~17 s and VVLONG=1 ~15 min → ~3.5 min, from the post-D-535 7-run report
+         (scratch/test\_duration.{md,csv}): NORMAL 1115 tests at 17.5 s mean, the all-tiers 1149-test run at 208.6 s
+         mean (3.5 min).
