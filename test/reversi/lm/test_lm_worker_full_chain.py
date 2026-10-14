@@ -510,7 +510,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertIn("Creation Date               :", file_report)
         self.assertIn("PATTERN FEATURE: XEDGE", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         '309d1dcb627d46e59877d689b131ef72739c93617ba93d81443c5fc3f4eaffe0')
+                         '8d609b5b5d656bc47f9e35744e7ac066d2674f689cf183632b6a7b7daa41fd82')
 
         # --- Saved model file: exists, size band, sidecar --- As in A2030 — the embedded dump
         # carries the run's base_dir (a random mkdtemp path), so no sha3 literal golden and the size
@@ -551,7 +551,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertEqual(float(mw.vld_metrics['vld_loss']), 0.0015777380904182792)
 
         # FeatureSet (13 features: intercept + LMC + 11 patterns)
-        self.assertEqual(mw.feature_set.hash, '2c8bb32b40eff2c1e22b992e56b8d60fb51c17afb81d48f9414aef46c349e43d')
+        self.assertEqual(mw.feature_set.hash, 'f34ee4097831978dc038c481e7fdf6b25b11365dccc44271a739afef2bdd337d')
         self.assertEqual(mw.feature_set.hash, ctx.feature_set.hash)
 
         # Core inference arrays (14 boundary entries for the 13 features)

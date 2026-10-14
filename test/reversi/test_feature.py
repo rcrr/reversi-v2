@@ -650,9 +650,9 @@ class TestFeatureSetComputeIndexesPerf(unittest.TestCase):
         ]
         plf = lambda x: [Pattern(n, Bitboard(m)) for n, m in x]
         mobility_set_data = [
-            ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
+            ('LMC',  0xFFFFFFFFFFFFFFFF, 'mover'),
         ]
-        mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
+        mlf = lambda x: [Mobility(n, Bitboard(m), s) for n, m, s in x]
         intercept = Feature.new_intercept()
         mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
         pset = PatternSet('TestPatternSet', plf(pattern_set_data))
