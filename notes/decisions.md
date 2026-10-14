@@ -1983,3 +1983,12 @@ D-552 | 2026-10-14 | The LOG wave, level 2 — FEATURES (iterative, reviewed on 
          model vectors. The cumulative arithmetic casts the numpy uint8 fields to int (the raw product overflows uint8).
          The mirror doc updated. Verified on the target \_level=FEATURES artifact (first\_conf\_pos 0/1/66 as expected)
          + the full LONG=1 suite green.
+
+D-553 | 2026-10-14 | The LOG wave, level 3 — SU\_ANALYSIS (iterative, reviewed on the target-level artifact): the
+         per-instance / per-pair data rows are REMOVED from the log (Roberto: the report file is their canonical home —
+         the log points to it, it does not duplicate it; the block is unbounded, it grows with n\_instances × n\_pairs);
+         the corpus "loaded from cache / computed" line and the "tables published on the ctx" line moved to DEBUG; the
+         log now carries 3 INFO (Starting / "report written" / Completed) + the DEBUG mechanism lines. Scope note: the
+         "Cache successfully loaded and validated" line is the SHARED cache manager's boilerplate — it stays INFO until
+         the dedicated cache wave (the 7 workers at once). The mirror doc updated. Verified on the
+         target\_level=SU\_ANALYSIS artifact (18 → 8 lines) + the full LONG=1 suite green.

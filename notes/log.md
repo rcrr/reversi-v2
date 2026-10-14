@@ -329,4 +329,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   hash" DEBUG lines out, F2 the raw intercept-config echo out, F3 the per-feature table gains the
   two cumulative position columns (first design-matrix column, first w\_dense weight). Reviewed on
   the target-level artifact, committed after the full LONG=1 suite green.
+- LOG wave, level 3 (D-553, iterative): the SU\_ANALYSIS worker — the per-instance / per-pair
+  data rows out of the log (the report file is their home), the corpus + publication lines to
+  DEBUG. 18 → 8 lines. Reviewed on the target-level artifact, committed after the full LONG=1
+  suite green.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
