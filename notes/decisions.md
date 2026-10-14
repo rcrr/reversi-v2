@@ -1992,3 +1992,10 @@ D-553 | 2026-10-14 | The LOG wave, level 3 — SU\_ANALYSIS (iterative, reviewed
          "Cache successfully loaded and validated" line is the SHARED cache manager's boilerplate — it stays INFO until
          the dedicated cache wave (the 7 workers at once). The mirror doc updated. Verified on the
          target\_level=SU\_ANALYSIS artifact (18 → 8 lines) + the full LONG=1 suite green.
+
+D-554 | 2026-10-14 | The R-595/R-600 enactment (Roberto's confirmation): the R-591 → R-595 rename (the GPL
+         license-header rule — the register re-alignment, the text unchanged) and the new R-600 (gitignored is not
+         disposable: the agent never deletes anything the user created — the build/ content beyond build/tmp is user
+         data, the cleaning limited to build/tmp and scratch and only when asked) — the four files committed atomically
+         (the register + the three reference sites), the "Pending Roberto's call" bullet out of the overview. The audit
+         script re-run clean (148 files).

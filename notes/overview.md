@@ -55,8 +55,6 @@ define the evaluation function.
   format.
 - The PUBLISH steps 4–5 (the secret scan, the final suite, the first push to rcrr/reversi-v2 — Roberto executes, the
   agent advises).
-- Pending Roberto's call: the R-595/R-600 rename + rule (the 4 uncommitted files: rules.md, wsutils.md, the header
-  audit, the pre-commit hook).
 
 ## Source files
 

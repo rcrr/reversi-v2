@@ -333,4 +333,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   data rows out of the log (the report file is their home), the corpus + publication lines to
   DEBUG. 18 → 8 lines. Reviewed on the target-level artifact, committed after the full LONG=1
   suite green.
+- D-554: the R-595/R-600 enactment on Roberto's confirmation — the rename + the new rule committed
+  (the 4 files), the overview bullet out.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
