@@ -308,4 +308,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   double-gated PERF=1 + LONG=1); the line was the deliberate UNGATED 10k smoke twin reusing the house [PERF …]
   prefix. Fix: the smoke twin prints [SMOKE …] now (a non-PERF run must never show a [PERF …] line); mirror doc
   updated. Default-tier module run: [SMOKE …] present, zero [PERF …]; full LONG=1 suite green.
+- D-548: Roberto's rule — the standard tests print NOTHING. The 10k smoke twin removed its print entirely
+  (with the benchmark-only warmup + timing that fed it), scoped to that one test only; mirror doc updated. The
+  module now runs silent in the default tier; full LONG=1 suite green.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

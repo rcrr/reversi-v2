@@ -1936,3 +1936,11 @@ D-547 | 2026-10-14 | The [PERF …] print in a non-PERF run (Roberto's observati
          states the rule: a non-PERF run must never show a [PERF …] line); the 1M PERF test keeps the house prefix. The
          mirror doc updated at both mentions. Verified: the module in the default tier prints [SMOKE …] with zero [PERF
          …] lines (10 tests ok, 2 skips); the full LONG=1 suite green.
+
+D-548 | 2026-10-14 | The standard tests print nothing (Roberto's rule, tightening D-547): the 10k smoke twin in
+         test\_client.py removed its print entirely — with it its benchmark-only servitors (the validation warmup and
+         the perf\_counter timing, which existed solely to feed the line) — leaving the plain parity smoke check (the
+         first 100 outputs bit-exact vs the scalar EF + the deterministic re-run); the docstring now states the rule.
+         Scoped EXACTLY to this one test per Roberto's instruction (no tree-wide print sweep). The mirror doc updated at
+         both mentions. Verified: the module in the default tier runs silent (10 tests ok, 2 skips, zero output lines);
+         the full LONG=1 suite green.
