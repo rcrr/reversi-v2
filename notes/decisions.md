@@ -2003,3 +2003,11 @@ D-554 | 2026-10-14 | The R-595/R-600 enactment (Roberto's confirmation): the R-5
 D-555 | 2026-10-14 | The overview Next-steps refresh (the milestone update the wave owed): the closed MOBILITY bullet
          out (its home is the decisions log) and the LOG-wave-in-progress bullet in — D-550…D-553 done, the remaining
          levels one at a time (next: POSITIONS), then the shared cache-boilerplate wave and the missing entries B3–B7.
+
+D-556 | 2026-10-14 | The LOG wave, level 4 — POSITIONS (iterative): P1 the "Model attributes … have been set."
+         publication line to DEBUG (the mechanism, like the SU\_ANALYSIS publication); the dataset identity lines stay
+         INFO (the TOTAL + provenance + duplicate-policy line, the rds\_checksum, the one-line population stats). The
+         shared cache-manager boilerplate stays for the dedicated cache wave. The mirror doc updated. New guard practice
+         agreed with Roberto: the DEFAULT tier suite before every commit (it is now complete), LONG=1 only when the
+         change touches what the long tiers cover, a closing LONG=1 at the wave-end milestone — this commit is the first
+         under the new practice (default OK).

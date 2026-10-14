@@ -337,4 +337,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (the 4 files), the overview bullet out.
 - D-555: the overview Next-steps refresh — the closed MOBILITY bullet out, the LOG-wave-in-progress
   bullet in (D-550…D-553 done, next POSITIONS).
+- LOG wave, level 4 (D-556, iterative): the POSITIONS worker — the publication line to DEBUG, the
+  dataset identity lines stay INFO. First commit under the new guard practice (default tier before
+  the commit, LONG at the wave end).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
