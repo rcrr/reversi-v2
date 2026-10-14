@@ -335,4 +335,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   suite green.
 - D-554: the R-595/R-600 enactment on Roberto's confirmation — the rename + the new rule committed
   (the 4 files), the overview bullet out.
+- D-555: the overview Next-steps refresh — the closed MOBILITY bullet out, the LOG-wave-in-progress
+  bullet in (D-550…D-553 done, next POSITIONS).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

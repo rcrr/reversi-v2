@@ -1999,3 +1999,7 @@ D-554 | 2026-10-14 | The R-595/R-600 enactment (Roberto's confirmation): the R-5
          data, the cleaning limited to build/tmp and scratch and only when asked) — the four files committed atomically
          (the register + the three reference sites), the "Pending Roberto's call" bullet out of the overview. The audit
          script re-run clean (148 files).
+
+D-555 | 2026-10-14 | The overview Next-steps refresh (the milestone update the wave owed): the closed MOBILITY bullet
+         out (its home is the decisions log) and the LOG-wave-in-progress bullet in — D-550…D-553 done, the remaining
+         levels one at a time (next: POSITIONS), then the shared cache-boilerplate wave and the missing entries B3–B7.

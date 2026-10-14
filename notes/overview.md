@@ -50,9 +50,9 @@ define the evaluation function.
 
 ## Next steps
 
-- The MOBILITY wave is CLOSED (D-544 the rework → D-545 the VVLONG completion → D-546 the definition precision
-  → D-548/D-549 the print discipline): the A2050 verification reproduced the pair's 12.47 in the new (mask, side)
-  format.
+- The LOG wave is IN PROGRESS (D-550 the structure: the per-step DEBUG duration, the closing line, the file floor at
+  DEBUG → D-551 CONFIG → D-552 FEATURES → D-553 SU\_ANALYSIS): the remaining levels follow one at a time (next:
+  POSITIONS), then the shared cache-boilerplate wave (the 7 workers) and the missing entries B3–B7.
 - The PUBLISH steps 4–5 (the secret scan, the final suite, the first push to rcrr/reversi-v2 — Roberto executes, the
   agent advises).
 
