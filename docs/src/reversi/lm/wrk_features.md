@@ -21,7 +21,8 @@ zero-feature guard test drives `_load_features` directly.)
   zero-feature guard: `len(feature_set.features) == 0` → ERROR log + ValueError ("The feature count is zero. It is not
   possible to generate a model without features."); (4) the INFO summary (name, hash, has Intercept / has MobilitySet /
   has PatternSet + the children's name/hash) and the DEBUG per-feature table
-  (`{i:03d} [category] name n_instances n_configurations`).
+  (`{i:03d} [category] name n_instances first_inst_pos n_configurations first_conf_pos` — the two
+  cumulative positions: the feature's first design-matrix column and first w_dense weight).
 - `_load_intercept`: truthy `cfg.feature_set.intercept` (a plain bool, `Optional[bool] = False`) →
   `Feature.new_intercept()` (INTERCEPT, 1/1), else None.
 - `_load_patterns`: truthy `cfg.feature_set.pattern_set` → `Pattern(elt.name, elt.mask)` per element (the schema's

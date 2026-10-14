@@ -70,7 +70,6 @@ def _load_features(ctx: "LMContext") -> FeatureSet:
     pset = _load_patterns(ctx)
     name = ctx.cfg.feature_set.name
     feature_set = FeatureSet(name, intercept, mset, pset)
-    ctx.log_event(Relevance.DEBUG, f"Feature set object created, hash = '{feature_set.hash}'.")
     n_features = len(feature_set.features)
     if n_features == 0:
         error_msg = (f"The feature count is zero. "
@@ -91,11 +90,16 @@ def _load_features(ctx: "LMContext") -> FeatureSet:
                       f"    PatternSet: name = {feature_set.pset.name}, "
                       f"hash = {feature_set.pset.hash}")
     ctx.log_event(Relevance.DEBUG,
-                  f"  Features list: [<i>, <category>, <name>, <n_instances>, <n_configurations>]")
+                  f"  Features list: [<i>, <category>, <name>, <n_instances>, <first_inst_pos>, "
+                  f"<n_configurations>, <first_conf_pos>]")
+    first_inst = 0
+    first_conf = 0
     for i, f in enumerate(feature_set.features):
         ctx.log_event(Relevance.DEBUG,
                       f"    {i:03d} [{f.category}] {f.name:10s} "
-                      f"{f.n_instances} {f.n_configurations:8d}")
+                      f"{f.n_instances} {first_inst:8d} {f.n_configurations:8d} {first_conf:8d}")
+        first_inst += int(f.n_instances)
+        first_conf += int(f.n_instances) * int(f.n_configurations)
 
     return feature_set
 
@@ -103,7 +107,6 @@ def _load_features(ctx: "LMContext") -> FeatureSet:
 def _load_intercept(ctx: "LMContext") -> Feature:
     """The intercept feature (INTERCEPT, 1/1) when the cfg bool is truthy, else None."""
     cfg_intercept = ctx.cfg.feature_set.intercept
-    ctx.log_event(Relevance.DEBUG, f"Intercept feature configuration: '{cfg_intercept}'")
     if cfg_intercept:
         intercept = Feature.new_intercept()
         ctx.log_event(Relevance.DEBUG, f"Intercept feature created.")
@@ -123,7 +126,6 @@ def _load_patterns(ctx: "LMContext") -> PatternSet:
             ctx.log_event(Relevance.DEBUG,
                           f"  -{i:02}- Pattern: name = {p.name:8s}, mask = {p.mask:016X}")
         pset = PatternSet(cfg_pset.name, patterns)
-        ctx.log_event(Relevance.DEBUG, f"Pattern set object created, hash = '{pset.hash}'.")
     else:
         pset = None
     return pset
@@ -142,7 +144,6 @@ def _load_mobility(ctx: "LMContext") -> MobilitySet:
                           f"  -{i:02}- Mobility: name = {m.name:8s}, mask = {m.mask:016X}, "
                           f"side = {m.side}")
         mset = MobilitySet(cfg_mset.name, mobility_features)
-        ctx.log_event(Relevance.DEBUG, f"Mobility set object created, hash = '{mset.hash}'.")
     else:
         mset = None
     return mset
