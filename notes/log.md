@@ -299,4 +299,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   and the A2050 full-chain goldens (the masked report hash + the rlm\_03 fset hash, independently derived).
   All content pins passed UNCHANGED (the training stats, the w\_dense sha3, the 6-position EF, the size band) —
   model identity at A2050 scale. The full VVLONG=1 suite green (1151 tests, 22 skips).
+- D-546: the definition precision on review — the game rules define the available moves only for the player to
+  move (the mobility); the anti-mobility is OUR feature-level definition: the opponent's would-be moves (the
+  moves it would have if it were its turn). The approved wording applied to all 8 active-zone locations (the
+  mobility.py docstrings x4, the config schema, the mirror doc, the naming register, the opponent-side test
+  docstring). Docs-only; probes + full LONG=1 suite green.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

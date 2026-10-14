@@ -1915,3 +1915,15 @@ D-545 | 2026-10-14 | D-544 completion — the two VVLONG-tier omissions that Rob
          the w\_dense sha3, the optimization info, the validation metrics, the 6-position EF, the model-file size band —
          passed UNCHANGED, confirming model identity at A2050 scale. Verified: the test\_feature PERF class OK (1M
          positions); the A2050 chain OK (110 s); the full VVLONG=1 suite green (1151 tests, 22 skips).
+
+D-546 | 2026-10-14 | The MOBILITY definition precision (Roberto's review of the D-544 docstring): the game rules define
+         the available moves ONLY for the player to move — that is the mobility; the rules define no such quantity for
+         the opponent. The ANTI-mobility is a feature-level definition (ours): the moves the opponent would have if it
+         were the opponent's turn to move (the "would-be moves"). The approved wording applied to all eight active-zone
+         locations carrying the old imprecise phrasing: the Mobility class docstring, the \_\_init\_\_ Args line, the
+         MobilitySet.compute\_indexes docstring, the Numba kernel docstring (all in mobility.py), the
+         MobilityFeatureConfig.side description (hlp\_config\_schemas.py), the what-it-is paragraph
+         (docs/src/reversi/mobility.md), the naming register entry (naming.md), and the opponent-side test docstring
+         (test\_mobility.py). Docs-only change — zero behavior change; the two random\_game.py kernel comments ("the
+         opponent's legal set on the swapped view") are engine-level descriptions of the kernel computation and were
+         deliberately left. Verified: the three mobility probes green, the full LONG=1 suite green.
