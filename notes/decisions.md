@@ -1965,3 +1965,12 @@ D-550 | 2026-10-14 | The LOG wave, step 1 (Roberto's GO for the three agreed cha
          pins, the trailing post-write count 2 → 3), the probe B2/B4. The per-level reclassifications (the L-BFGS
          iterations, the outlier lines, the cache boilerplate, …) are the FOLLOWING waves — this one touches no worker.
          Verified: the full LONG=1 suite green.
+
+D-551 | 2026-10-14 | The LOG wave, level 1 — CONFIG (the iterative per-level process: implement, show the log, review,
+         commit): C1 the load-sequence redundancy collapsed — the "Loading … ..." INFO line removed (the DEBUG "JSON
+         file read." + the INFO "loaded." + "validated." carry the sequence); C2 the operational-sections echo added —
+         one DEBUG line per section (optimization with the strong-Wolfe pair + the stopping criteria +
+         high\_performance\_fg, stat\_model, su\_analysis with the corpus spec + su\_pairs, anova, the regab data set
+         with the dbname/user/host — never the password — and the validation data set): the log is now self-sufficient
+         on WHAT THE RUN RAN WITH. The mirror doc updated. Verified on the target\_level=CONFIG artifact run (the
+         18-line log reviewed by Roberto) + the full LONG=1 suite green.

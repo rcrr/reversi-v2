@@ -321,4 +321,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   DEBUG (the TRACE hot-loop detail stays out of the file; TRACE reserved for the L-BFGS loop / the
   Numba kernels). Display goldens + the final-log test + the probe re-pinned. Full LONG=1 suite green.
   The per-level reclassifications follow, one level per wave.
+- LOG wave, level 1 (D-551, iterative): the CONFIG worker — C1 the redundant "Loading …" line out,
+  C2 the six DEBUG operational-section echoes in (the log now self-sufficient on the run's parameters;
+  the DB echo never carries the password). Reviewed on the target-level artifact, committed after the
+  full LONG=1 suite green.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
