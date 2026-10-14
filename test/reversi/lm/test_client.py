@@ -239,24 +239,13 @@ class TestClientEvaluationFunction(unittest.TestCase):
     def test_performance_10k_smoke(self):
         """
         The 10k-board SMOKE version of test_performance_1m (ungated: it runs in the simple default
-        tier, a smoke benchmark, not a PERF-gated one): the house print pattern scaled to 10,000
-        boards, with the [SMOKE ...] prefix — a non-PERF run must never show a [PERF ...] line.
+        tier, a plain smoke check, not a PERF-gated one): no print — the standard tests print
+        nothing.
         """
         size = 10_000
         positions = self._positions(size)
 
-        _ = self.ef_array(positions[:10])  # Validation Warmup
-
-        start_time = time.perf_counter()
         y = self.ef_array(positions)
-        end_time = time.perf_counter()
-
-        duration = end_time - start_time
-        boards_per_sec = size / duration
-
-        print(f"\n[SMOKE make_evaluation_function_array] "
-              f"Processed {size:,} boards in {duration:.4f}s "
-              f"({boards_per_sec:,.0f} b/s)")
 
         # Smoke sanity check: the first 100 outputs agree bit-exactly with the scalar EF, and the
         # call is deterministic.
