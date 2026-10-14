@@ -239,8 +239,8 @@ class TestClientEvaluationFunction(unittest.TestCase):
     def test_performance_10k_smoke(self):
         """
         The 10k-board SMOKE version of test_performance_1m (ungated: it runs in the simple default
-        tier, a smoke benchmark, not a PERF-gated one): the same house print pattern scaled to
-        10,000 boards.
+        tier, a smoke benchmark, not a PERF-gated one): the house print pattern scaled to 10,000
+        boards, with the [SMOKE ...] prefix — a non-PERF run must never show a [PERF ...] line.
         """
         size = 10_000
         positions = self._positions(size)
@@ -254,7 +254,7 @@ class TestClientEvaluationFunction(unittest.TestCase):
         duration = end_time - start_time
         boards_per_sec = size / duration
 
-        print(f"\n[PERF make_evaluation_function_array] "
+        print(f"\n[SMOKE make_evaluation_function_array] "
               f"Processed {size:,} boards in {duration:.4f}s "
               f"({boards_per_sec:,.0f} b/s)")
 
