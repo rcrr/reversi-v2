@@ -1944,3 +1944,10 @@ D-548 | 2026-10-14 | The standard tests print nothing (Roberto's rule, tightenin
          Scoped EXACTLY to this one test per Roberto's instruction (no tree-wide print sweep). The mirror doc updated at
          both mentions. Verified: the module in the default tier runs silent (10 tests ok, 2 skips, zero output lines);
          the full LONG=1 suite green.
+
+D-549 | 2026-10-14 | The docstring discipline (Roberto's principle): we write what the program DOES, never what it does
+         NOT — the D-548 "no print — the standard tests print nothing" sentence in the smoke test's docstring was
+         useless and misleading (a negation existing only because of the past behavior) and is removed; the docstring
+         now states only what the test does (the 10,000-board vectorized EF parity check + the deterministic re-run).
+         The mirror doc updated at both mentions. The MOBILITY wave is CLOSED with this (D-544 → D-545 → D-546 → D-548
+         → D-549); a new session opens. Verified: the full LONG=1 suite green.

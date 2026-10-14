@@ -50,10 +50,13 @@ define the evaluation function.
 
 ## Next steps
 
-- Verify the D-544 rework on A2050: the 4-config mini-experiment (no\_mob / lmc / almc / lmc\_almc, the new mask+side
-  format) must reproduce the pair's 12.47 validation RMSE — the expressivity-zero-loss proof.
-- Then the PUBLISH steps 4–5 (the secret scan, the final suite, the first push to rcrr/reversi-v2 — Roberto executes,
-  the agent advises).
+- The MOBILITY wave is CLOSED (D-544 the rework → D-545 the VVLONG completion → D-546 the definition precision
+  → D-548/D-549 the print discipline): the A2050 verification reproduced the pair's 12.47 in the new (mask, side)
+  format.
+- The PUBLISH steps 4–5 (the secret scan, the final suite, the first push to rcrr/reversi-v2 — Roberto executes, the
+  agent advises).
+- Pending Roberto's call: the R-595/R-600 rename + rule (the 4 uncommitted files: rules.md, wsutils.md, the header
+  audit, the pre-commit hook).
 
 ## Source files
 

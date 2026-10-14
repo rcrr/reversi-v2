@@ -311,4 +311,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-548: Roberto's rule — the standard tests print NOTHING. The 10k smoke twin removed its print entirely
   (with the benchmark-only warmup + timing that fed it), scoped to that one test only; mirror doc updated. The
   module now runs silent in the default tier; full LONG=1 suite green.
+- D-549 + MOBILITY wave CLOSED: Roberto's docstring principle — we write what the program DOES, never what it
+  does NOT (the "no print" negation in the smoke test's docstring was useless and misleading — removed; the
+  docstring now states only the parity check). The wave: D-544 (the rework) → D-545 (the VVLONG completion)
+  → D-546 (the definition precision) → D-548 (the smoke print removed) → D-549 (this docstring). The A2050
+  verification reproduced the pair's 12.47 in the new format. Session closed; a new one opens.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
