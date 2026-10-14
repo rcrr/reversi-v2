@@ -241,12 +241,18 @@ Every new external library dependency needs the user's explicit permission befor
 pyproject.toml follows the approval, it does not precede it.
 
 
-**R-591 — Every source file carries the GPL license header**
+**R-595 — Every source file carries the GPL license header**
 
 Every tracked source file (every .py, the .sh scripts, the hooks, the data .json fixtures) carries the standard 26-line
 GPL header as its first lines — after the shebang, when there is one — with FILE\_NAME the basename, the project URL,
 the Author line and the Copyright line (the file's first-commit year). The guard is wsutils/license\_header\_audit.py
 (wired into the pre-commit gate on the staged source files); the data files (csv/txt) are exempt.
+
+
+**R-600 — Gitignored is not disposable: the agent never deletes anything the user created.**
+
+build/ content beyond build/tmp (and any gitignored path) is user data. Cleaning is limited to build/tmp and scratch,
+and even that only when the user asks.
 
 ## Docs
 

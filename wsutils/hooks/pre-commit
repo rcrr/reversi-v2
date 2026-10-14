@@ -42,7 +42,7 @@
 #      data, Index) must agree with the tree at every checkin.
 #   3. The license header guard (wsutils/license_header_audit.py) on the
 #      SOURCE files of THIS checkin (the staged .py/.sh/.json + hooks) —
-#      the R-591 scope; a file becomes clean when it is touched.
+#      the R-595 scope; a file becomes clean when it is touched.
 #
 # Writes nothing (all tools are read-only). Exit 0 = the commit proceeds.
 
@@ -70,7 +70,7 @@ if ! $PY wsutils/overview_audit.py; then
     exit 1
 fi
 
-# 3. The license header guard on the staged source files (the R-591 scope).
+# 3. The license header guard on the staged source files (the R-595 scope).
 STAGED_SRC=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(py|sh|json)$|^wsutils/hooks/' || true)
 if [ -n "$STAGED_SRC" ]; then
     if ! $PY wsutils/license_header_audit.py $STAGED_SRC; then

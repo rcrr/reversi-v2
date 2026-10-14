@@ -29,7 +29,7 @@
 """license_header_audit.py — the license-header guard (a CHECK tool).
 
 WHAT IT IS: a read-only CHECK over the tracked SOURCE files (every .py, the .sh scripts, the
-data .json fixtures — the R-591 scope): each must carry the standard GPL header as its first
+data .json fixtures — the R-595 scope): each must carry the standard GPL header as its first
 lines (after the shebang, when there is one), with the six marker lines in order —
 the FILE_NAME line (the basename), the "part of the reversi program" line, the project URL
 line, the Author line, the Copyright line (a 4-digit year) — inside the first 12 lines.
@@ -42,7 +42,7 @@ USAGE (from the workspace root):
 SAFETY: writes nothing. Exit 0 = every header is present and correct; 1 = at least one
 missing / malformed (fail-closed, like notes_lint).
 
-ORIGIN: the D-541 public-push wave — the R-591 enforcement (the D-540 migration put the
+ORIGIN: the D-541 public-push wave — the R-595 enforcement (the D-540 migration put the
 headers on every file; this guard keeps it true at every checkin).
 """
 
