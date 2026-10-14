@@ -278,4 +278,20 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   scratch, NO manual mkdir (build/tmp auto-created), NO .env (the gitignored one is absent by design), SKIP\_REGAB\_DB=1
   ./run\_utests.sh → 1149 tests in 45.6 s, OK, 109 skips (the 85 DB-gated + the 24 standing), zero failures. A stranger
   cloning the repo gets a project that runs.
+- MOBILITY redundancy experiment (Roberto's 8 configs in build/test\_mobility, A2050): his thesis — the mobility
+  mask + anti-mask + diff-mask are LINEARLY DEPENDENT. Verified independently: the 8 validation RMSEs match the
+  reports (≤0.01); from the additive kernel definition DLMC = LMC + ALMC is an EXACT identity — zero deviation over
+  all 1,999,179 positions, and at the design level (D = 19 + L + A, residual 0.000000, rank([1,L,A,D]) =
+  rank([1,L,A]) = 3); all three pairs span the same 2-D space, the triple adds a rank-deficient column. The
+  near-equal single LMC/ALMC scores are a corpus property (the balanced corpus: mean mover 9.66 vs opponent 9.87
+  moves), not algebra. Detailed scientific feedback delivered; design GO received.
+- D-544: the MOBILITY rework — the difference concept is GONE: a mobility is (mask, side), side ∈ {'mover',
+  'opponent'}; the opponent side is the RAW count (was 64 − A, span-equivalent under the intercept). 28 active
+  files: the core (class/set/kernel), the config schema (the Literal side field, fail-fast), the workers (the
+  binary layout u64 + u8), the 6 fixtures (rlm\_00 3 → 2 features), the tests (test\_mobility.py rewritten as the
+  spec — the dedicated mover-side, opponent-side and multi-entry cases; the rlm\_00-derived goldens recomputed via
+  independent derivations that match the pipeline; the rlm\_01/rlm\_04 analytics report re-pins after model-content
+  verification — RMSE 23.87 unchanged, the 6-position EF bit-exact), the 4 probes (incl. 2 PRE-EXISTING drift
+  re-pins in verify\_hlp\_indexes the run surfaced), the 9 mirror docs + the user guide + the naming register. Zero
+  amask/DLMC left in the active zones. The full LONG=1 suite green (1151 tests, 24 skips).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

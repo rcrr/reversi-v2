@@ -50,7 +50,10 @@ define the evaluation function.
 
 ## Next steps
 
-- Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
+- Verify the D-544 rework on A2050: the 4-config mini-experiment (no\_mob / lmc / almc / lmc\_almc, the new mask+side
+  format) must reproduce the pair's 12.47 validation RMSE — the expressivity-zero-loss proof.
+- Then the PUBLISH steps 4–5 (the secret scan, the final suite, the first push to rcrr/reversi-v2 — Roberto executes,
+  the agent advises).
 
 ## Source files
 

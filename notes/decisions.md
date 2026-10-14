@@ -1880,3 +1880,27 @@ D-543 | 2026-10-13 | The README (the public front page of the repo; Roberto's ap
          docs/user/lm\_config\_guide.md; the LAYOUT table (the nine top-level paths). Deliberately DRY — facts and
          commands, no marketing. The README lives at the repo root, OUTSIDE the docs/ mirror tree: the
          one-doc-per-source 1:1 rule is not affected (it is not a mirror doc, it is the front page).
+
+D-544 | 2026-10-14 | MOBILITY rework — the difference concept is GONE (Roberto's GO after the 8-config A2050 experiment
+         and the independent verification of his linearity thesis): a Mobility is now (name, mask, side) with side ∈
+         {'mover', 'opponent'} selecting whose legal moves are counted over the mask; index = popcount(lms & mask)
+         (mover) / popcount(alms & mask) (opponent), n\_configurations = k + 1. Rationale (verified): under the old
+         additive (mask, amask) definition, DLMC = LMC + ALMC was an EXACT algebraic identity (the 64 cancels) — zero
+         deviation over all 1,999,179 training positions, and at the design-matrix level (D = 19 + L + A, residual
+         RMS 0.000000, rank([1,L,A,D]) = rank([1,L,A]) = 3); the experiment showed all three pairs saturating at the
+         same validation RMSE (12.47–12.50) and the triple at 12.47. The opponent side is the RAW count (was 64 − A):
+         span-equivalent under the intercept, same scale as the mover, better conditioning. Scope: src (mobility.py
+         class/set/kernel, the feature.py wording, the MobilityFeatureConfig schema with the Literal['mover','opponent']
+         side field, the wrk\_features build + debug log, the model\_weights binary layout u64 mask + u8 side-code), the
+         6 rlm fixtures (rlm\_00 3 → 2 features — the DLMC entry dropped; the other five side: mover), the test suite
+         (test\_mobility.py rewritten as the spec — the dedicated mover-side, opponent-side and multi-entry cases; the
+         rlm\_00-derived goldens recomputed with independent derivations matching the pipeline: fset 9de406cf…, the
+         rlm\_01 analytics masked report re-pinned after verifying the model content unchanged — RMSE 23.87, 16 iters;
+         the rlm\_04 fset pin e9cda2ac… and the full-chain masked report re-pinned after the bit-exact 6-position EF
+         pins passed; the SU/analytics feature counts 5 → 4), the 3 probes + verify\_hlp\_indexes (4 re-pins: 2 from
+         this change — the (2,15)/(N,15) shapes — and 2 PRE-EXISTING drift the run surfaced: db\_long\_gate → db\_gate,
+         the header run-note wording), 9 mirror docs + the user guide + the naming register (the two standard
+         mobilities, the (mask, side) definition). Zero amask/DLMC left in the active zones (the sole exception is the
+         deliberate 'amask' not in src guard in verify\_wrk\_features); the history lives in this log and in git only.
+         Declared consequence: previously saved rglm\*.dat models and the old build/ experiment configs (untracked) are
+         no longer loadable/valid — all regenerable. Verified: the full LONG=1 suite green (1151 tests, 24 skips).
