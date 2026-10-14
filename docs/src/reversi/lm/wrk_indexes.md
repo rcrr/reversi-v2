@@ -19,7 +19,8 @@ materialize.
   cache_manager, no redundant re-check), `store_fn = hlp_indexes_store_to_file`,
   `validate_fn = lambda cached: hlp_indexes_is_cache_consistent(ctx, cached)` (the 2-field metadata compare),
   `compute_fn = lambda: hlp_indexes_compute(ctx)`, `logger_fn = ctx.log_event`. Then the INFO "Model attribute
-  hlp_indexes has been set." + `ctx.hlp_indexes = hlp_indexes` + the INFO checksum line +
+  hlp_indexes has been set." (DEBUG) + `ctx.hlp_indexes = hlp_indexes` + the DEBUG indexes-shape line +
+  the INFO checksum line +
   `ctx.hlp_indexes_checksum = hlp_indexes_checksum` (the cache_manager 3rd return element — the DATA checksum).
 - `_down`: INFO "Clearing hlp_indexes..." → BOTH `ctx.hlp_indexes` and `ctx.hlp_indexes_checksum` set to None.
 

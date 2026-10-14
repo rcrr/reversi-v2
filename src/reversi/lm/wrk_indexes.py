@@ -66,8 +66,9 @@ def _up(ctx: "LMContext") -> None:
         logger_fn   = ctx.log_event
     )
 
-    ctx.log_event(Relevance.INFO, "Model attribute hlp_indexes has been set.")
+    ctx.log_event(Relevance.DEBUG, "Model attribute hlp_indexes has been set.")
     ctx.hlp_indexes = hlp_indexes
+    ctx.log_event(Relevance.DEBUG, f"Indexes shape: {hlp_indexes.indexes.shape}.")
     ctx.log_event(Relevance.INFO,
                   f"Indexes checksum (hlp_indexes_checksum): {hlp_indexes_checksum}.")
     ctx.hlp_indexes_checksum = hlp_indexes_checksum
