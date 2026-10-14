@@ -1904,3 +1904,14 @@ D-544 | 2026-10-14 | MOBILITY rework — the difference concept is GONE (Roberto
          deliberate 'amask' not in src guard in verify\_wrk\_features); the history lives in this log and in git only.
          Declared consequence: previously saved rglm\*.dat models and the old build/ experiment configs (untracked) are
          no longer loadable/valid — all regenerable. Verified: the full LONG=1 suite green (1151 tests, 24 skips).
+
+D-545 | 2026-10-14 | D-544 completion — the two VVLONG-tier omissions that Roberto's VVLONG run surfaced (the standard
+         LONG=1 guard does not reach that tier): (1) the test\_feature.py PERF class (TestFeatureSetComputeIndexesPerf)
+         still constructed Mobility with the old three-argument form — the THIRD occurrence of the pattern the wave's
+         two-replacement pass missed; now (mask, 'mover'). (2) the A2050 full-chain test (TestFullChainA2050): the
+         masked analytics-report hash re-pinned to 8d609b5b… (Roberto's run value, reproduced on my own run) + the
+         rlm\_03 FeatureSet hash re-pinned to f34ee409… (independently derived: sha3(b'INTERCEPT' + the single-LMC-mover
+         mset hash + the unchanged 11-pattern pset hash)); ALL the content pins — the training-population statistics,
+         the w\_dense sha3, the optimization info, the validation metrics, the 6-position EF, the model-file size band —
+         passed UNCHANGED, confirming model identity at A2050 scale. Verified: the test\_feature PERF class OK (1M
+         positions); the A2050 chain OK (110 s); the full VVLONG=1 suite green (1151 tests, 22 skips).

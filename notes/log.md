@@ -294,4 +294,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   verification — RMSE 23.87 unchanged, the 6-position EF bit-exact), the 4 probes (incl. 2 PRE-EXISTING drift
   re-pins in verify\_hlp\_indexes the run surfaced), the 9 mirror docs + the user guide + the naming register. Zero
   amask/DLMC left in the active zones. The full LONG=1 suite green (1151 tests, 24 skips).
+- D-545: D-544 completion — Roberto's VVLONG run surfaced the two tier omissions the LONG=1 guard does not
+  reach: the test\_feature PERF class (the third old-style construction the wave's two-replacement pass missed)
+  and the A2050 full-chain goldens (the masked report hash + the rlm\_03 fset hash, independently derived).
+  All content pins passed UNCHANGED (the training stats, the w\_dense sha3, the 6-position EF, the size band) —
+  model identity at A2050 scale. The full VVLONG=1 suite green (1151 tests, 22 skips).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
