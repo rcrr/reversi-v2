@@ -2017,3 +2017,9 @@ D-557 | 2026-10-14 | The test-guard policy (Roberto's process point, agreed): th
          (or higher) runs only when the change touches what the long tiers cover (the full-chain e2e, the DB-gated and
          the scale tests), plus a closing LONG=1 at each wave's end milestone. The overview Environment section updated
          (this commit).
+
+D-558 | 2026-10-14 | The LOG wave, level 5 — INDEXES (iterative): I1 the "Model attribute hlp\_indexes has been set."
+         publication line to DEBUG; I2 (the missing B-INDEXES entry, Roberto spotted the expectation) the DEBUG
+         indexes-shape line — "Indexes shape: (199932, 6)." (the n\_positions × n\_feature-instances matrix: 1 INTERCEPT
+         + 1 LMC + 4 EDGE). The checksum line stays INFO (the identity). The mirror doc updated. Default-tier guard
+         green.
