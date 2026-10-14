@@ -33,6 +33,7 @@ from typing import List, Callable
 from pathlib import Path
 from pydantic import validate_call, ConfigDict, ValidationError
 import csv
+import time
 
 
 __all__ = ['Context', 'Worker', 'StateMachine', 'Verbosity', 'Relevance']
@@ -262,6 +263,7 @@ class StateMachine:
         """
         try:
             self.log_event(Relevance.INFO, f"Starting worker {worker.name}, {direction.upper()} step")
+            step_start = time.perf_counter()
             if direction == 'up':
                 worker.up(self.context)
             elif direction == 'down':
@@ -270,7 +272,9 @@ class StateMachine:
                 raise ValueError(
                     f"Unknown direction {direction!r}: "
                     "expected 'up' or 'down'")
+            duration = time.perf_counter() - step_start
             self.log_event(Relevance.INFO, f"Completed {direction.upper()} step for {worker.name}")
+            self.log_event(Relevance.DEBUG, f"Step {worker.name} {direction.upper()} duration: {duration:.3f} s")
         except Exception as e:
             self.log_event(Relevance.ERROR, f"Error in {worker.name} during {direction}: {str(e)}")
             raise
@@ -330,19 +334,24 @@ class StateMachine:
         if relevance >= self.verbosity:
             print(self._format_event_line(event, self.verbosity.name))
 
-    def format_event_log(self) -> str:
+    def format_event_log(self, min_relevance: Relevance = Relevance.TRACE) -> str:
         """
-        Renders the full buffered event log as live-line formatted text.
+        Renders the buffered event log (from min_relevance upward) as live-line formatted text.
 
-        Every buffered LogEntry — all relevances, the maximum-relevance replay, independent of the
-        display verbosity gate — is formatted in the live console line format (the shared formatter)
-        and joined with newlines: the content of the FINAL_LOG_PRINT file.
+        Every buffered LogEntry at or above min_relevance — independent of the display verbosity
+        gate — is formatted in the live console line format (the shared formatter) and joined with
+        newlines: the content of the FINAL_LOG_PRINT file (which passes DEBUG, keeping the TRACE
+        hot-loop detail out of the file).
+
+        Args:
+            min_relevance: The relevance floor of the render (the default TRACE = every entry).
 
         Returns:
-            str: The newline-joined full log (the empty string when no event was logged yet).
+            str: The newline-joined log (the empty string when no event was logged yet).
         """
         return "\n".join(self._format_event_line(entry, self.verbosity.name)
-                         for entry in self.logs)
+                         for entry in self.logs
+                         if entry.relevance >= min_relevance)
 
     def show_event_log(self) -> None:
         """

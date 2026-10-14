@@ -146,13 +146,15 @@ f = TMP / "b2" / "full.log"
 check("B2  the enabled write: the file exists under base_dir", f.is_file())
 lines = f.read_text(encoding="utf-8").splitlines() if f.is_file() else []
 check("B2  the write-asymmetry: the file carries its own 'Starting' line, not the 'Completed' line "
-      "(nor the 'full log written' confirmation — both post-write)",
+      "(nor the 'log written' confirmation nor the duration line — all post-write)",
       any("Starting worker FINAL_LOG_PRINT, UP step" in ln for ln in lines)
       and not any("Completed UP step for FINAL_LOG_PRINT" in ln
                   for ln in lines)
-      and not any("full log written" in ln for ln in lines))
-check("B2  the line count == the buffer at the write (the final buffer minus the two trailing post-write lines)",
-      len(lines) == len(sm.logs) - 2)
+      and not any("log written" in ln for ln in lines)
+      and not any("Step FINAL_LOG_PRINT UP duration" in ln for ln in lines))
+check("B2  the line count == the buffer at the write (the final buffer minus the three trailing "
+      "post-write lines)",
+      len(lines) == len(sm.logs) - 3)
 
 # B3 the format cross-check: an independently re-derived live line
 # (from the entry, not from format_event_log) matches the file line.
@@ -164,11 +166,13 @@ expected = (f"[{entry.time.strftime('%Y-%m-%d %H:%M:%S')} UTC] "
 check("B3  the live-line format (the independent re-derivation matches the file line)",
       expected in lines)
 
-# B4 the maximum-relevance replay: every pre-logged relevance is in
-# the file although the machine's verbosity (VERY_LOW) prints
-# nothing.
-check("B4  the maximum-relevance replay: all 4 pre-logged relevances in the file",
-      all(msg in "\n".join(lines) for _rel, msg in PRE))
+# B4 the DEBUG-upward replay: the DEBUG/INFO/WARN pre-logged messages are in
+# the file although the machine's verbosity (VERY_LOW) prints nothing, and
+# the TRACE one is kept out (the file floor).
+check("B4  the DEBUG-upward replay: the 3 non-TRACE pre-logged messages in the file, "
+      "the TRACE one out",
+      all(msg in "\n".join(lines) for _rel, msg in PRE if _rel >= Relevance.DEBUG)
+      and not any(msg in "\n".join(lines) for _rel, msg in PRE if _rel < Relevance.DEBUG))
 
 # ---------------------------------------------------------------- report
 print(f"\n{fails} mismatch(es)", file=sys.stderr)

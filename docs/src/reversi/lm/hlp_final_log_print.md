@@ -6,9 +6,10 @@ entry (default None) is the gate — the guard is in the worker (`wrk_final_log_
 
 ## API
 - `hlp_final_log_print_write_log(ctx) -> Path` — undecorated (the ctx idiom): reads `ctx.cfg.base_dir` +
-  `ctx.cfg.log_file_name`, `mkdir(parents=True, exist_ok=True)`, `write_text(ctx.format_event_log(), encoding="utf-8")`,
-  logs "FINAL_LOG_PRINT: full log written: {path}." (the post-write line — it is NOT in the file, see the write
-  asymmetry below), returns the `Path`.
+  `ctx.cfg.log_file_name`, `mkdir(parents=True, exist_ok=True)`, `write_text(ctx.format_event_log(Relevance.DEBUG),
+  encoding="utf-8")` (the buffered log from DEBUG upward — the TRACE hot-loop detail stays out of the file),
+  logs "FINAL_LOG_PRINT: log written: {path} (N lines)." at DEBUG (the post-write line — it is NOT in the file,
+  see the write asymmetry below), returns the `Path`.
   - **The write asymmetry** — the file is the buffer at the moment of the write: it carries the level's own "Starting
     worker FINAL_LOG_PRINT, UP step" line (the machine logs it before the worker call) but not this confirmation nor
     the "Completed UP step" line (both logged after the return).

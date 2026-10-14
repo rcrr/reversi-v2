@@ -65,7 +65,7 @@ class _MockCtx:
     def log_event(self, relevance, msg):
         self.events.append((relevance, msg))
 
-    def format_event_log(self):
+    def format_event_log(self, min_relevance=None):
         return self._log_text
 
 
@@ -107,14 +107,14 @@ class TestWrkFinalLogPrint(unittest.TestCase):
         self.assertFalse(list(self.tmp.glob("*.log")))
 
     def test_full_log_written(self):
-        # The configured name: the file under base_dir with the full buffered log (the mock's 2
-        # lines) + the "full log written" log.
+        # The configured name: the file under base_dir with the buffered log (the mock's 2 lines)
+        # + the "log written" confirmation.
         ctx = _make_ctx(self.tmp, log_file_name="full_run.log")
         _up(ctx)
         f = self.tmp / "full_run.log"
         self.assertTrue(f.exists())
         self.assertEqual(f.read_text(encoding="utf-8"), "line one\nline two")
-        self.assertTrue(any("full log written" in m for (_r, m) in ctx.events))
+        self.assertTrue(any("log written" in m for (_r, m) in ctx.events))
 
     def test_subdir_path(self):
         # A dir-like name: the parents are created.
@@ -170,14 +170,14 @@ class TestFinalLogPrintEndToEnd(unittest.TestCase):
                              in ln for ln in lines))
         self.assertTrue(any("Completed UP step for PLOT" in ln for ln in lines))
         self.assertIn("StateMachine initialized.", lines[0])
-        # No FINAL_LOG_PRINT no-op line (the enabled path) — and neither the "full log written"
-        # confirmation nor the "Completed" line (both logged AFTER the write). Other levels' no-op
-        # notes (e.g. "PLOT skipped") are expected content of the full log.
+        # No FINAL_LOG_PRINT no-op line (the enabled path) — and neither the "log written"
+        # confirmation nor the "Completed" line nor the step duration line (all logged AFTER the
+        # write). Other levels' no-op notes (e.g. "PLOT skipped") are expected content of the log.
         self.assertFalse(any("FINAL_LOG_PRINT skipped" in ln for ln in lines))
-        self.assertFalse(any("full log written" in ln for ln in lines))
-        # The line count == the buffer at the write (the final buffer minus the two trailing
-        # post-write lines).
-        self.assertEqual(len(lines), len(self.rlm.sm.logs) - 2)
+        self.assertFalse(any("log written" in ln for ln in lines))
+        # The line count == the buffer at the write (the final buffer minus the three trailing
+        # post-write lines: the "log written" confirmation, the "Completed" line, the duration).
+        self.assertEqual(len(lines), len(self.rlm.sm.logs) - 3)
 
 
 if __name__ == '__main__':

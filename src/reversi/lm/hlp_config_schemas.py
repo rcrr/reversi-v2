@@ -407,8 +407,8 @@ class LMConfig(LMBaseConfig):
                     "target is given.")
     log_file_name: str | None = Field(
         default=None,
-        description="The FINAL_LOG_PRINT output file name (relative to base_dir): the full run log (all levels, "
-                    "the maximum relevance, the live-line format). None (the default) -> no file, the level is a "
+        description="The FINAL_LOG_PRINT output file name (relative to base_dir): the run log from DEBUG "
+                    "upward (the live-line format). None (the default) -> no file, the level is a "
                     "no-op.")
 
     @model_validator(mode="after")

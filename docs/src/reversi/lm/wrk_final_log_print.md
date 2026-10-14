@@ -29,8 +29,8 @@ the level is a no-op and the file is NOT generated. The down is a no-op — the 
   (`mkdir(parents=True)`), UTF-8.
 - **The write asymmetry** — the file is the buffer at the moment of the write: it CARRIES the level's own
   "Starting worker FINAL_LOG_PRINT, UP step" line (the machine logs it before the worker call) but NOT the
-  "FINAL_LOG_PRINT: full log written: …" confirmation nor the "Completed UP step" line (both logged after the return).
-  Pinned by the e2e test + the probe B2.
+  "FINAL_LOG_PRINT: log written: … (N lines)." confirmation nor the "Completed UP step" line nor the step duration
+  line (all logged after the return). Pinned by the e2e test + the probe B2.
 - **NO cache** — a diagnostic (the file is a byproduct); no cache slot (like PLOT / ANOVA).
 
 ## Verified invariants
@@ -39,8 +39,8 @@ the level is a no-op and the file is NOT generated. The down is a no-op — the 
   buffered content); the base_dir subdir path (the parents created); the down (a no-op). The e2e (the rlm_00 full
   chain, `log_file_name` in the config from the start — the tmp fixture copy, verbosity NONE — nothing
   prints, the buffer captures everything): step 19 / FINAL_LOG_PRINT last, the write-asymmetry pins (the
-  "Starting" line IN, the "Completed" + "full log written" lines OUT, the line count == the buffer at the
-  write).
+  "Starting" line IN, the "Completed" + "log written" + duration lines OUT, the line count == the buffer at the
+  write minus the three trailing post-write lines).
 - Pinned by `probes/verify_final_log_print.py` (12 checks, no DB): the module structure (the factory, the skip
   branch, the hlp writer, the config field, the machine method + injection, the registration last in
   logistic_model); the behavior on a synthetic 2-worker machine (the disabled no-op, the enabled write-asymmetry

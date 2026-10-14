@@ -41,8 +41,8 @@ __all__ = ['hlp_final_log_print_write_log']
 
 def hlp_final_log_print_write_log(ctx: "LMContext") -> Path:
     """
-    Write the full run log (all buffered events, all levels, the maximum relevance) to the
-    FINAL_LOG_PRINT file.
+    Write the run log (all buffered events from DEBUG upward — the TRACE hot-loop detail stays
+    out of the file) to the FINAL_LOG_PRINT file.
 
     This function renders the machine's event log buffer (the LogEntry list the StateMachine fills
     on every log_event, independent of the display verbosity gate) and writes it to the configured
@@ -60,6 +60,8 @@ def hlp_final_log_print_write_log(ctx: "LMContext") -> Path:
     """
     log_path = Path(ctx.cfg.base_dir) / ctx.cfg.log_file_name
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    log_path.write_text(ctx.format_event_log(), encoding="utf-8")
-    ctx.log_event(Relevance.INFO, f"FINAL_LOG_PRINT: full log written: {log_path}.")
+    text = ctx.format_event_log(Relevance.DEBUG)
+    log_path.write_text(text, encoding="utf-8")
+    ctx.log_event(Relevance.DEBUG,
+                  f"FINAL_LOG_PRINT: log written: {log_path} ({len(text.splitlines())} lines).")
     return log_path

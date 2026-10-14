@@ -43,8 +43,8 @@ __all__ = ['wrk_final_log_print']
 
 def _up(ctx: "LMContext") -> None:
     """
-    Run the FINAL_LOG_PRINT level: write the full run log (via the hlp writer) — the absent
-    log_file_name is a clean no-op (the file is NOT generated).
+    Run the FINAL_LOG_PRINT level: write the run log from DEBUG upward (via the hlp writer) — the
+    absent log_file_name is a clean no-op (the file is NOT generated).
     """
     if ctx.cfg.log_file_name is None:
         ctx.log_event(Relevance.INFO, "FINAL_LOG_PRINT skipped: no log_file_name.")

@@ -827,9 +827,9 @@ class TestDisplayGoldens(unittest.TestCase):
             buf = StringIO()
             with redirect_stdout(buf):
                 sm = self._machine()  # DEBUG init line
-                sm.move_to_step(1)    # 2x INFO for CONFIG
+                sm.move_to_step(1)    # 2x INFO + the DEBUG duration line for CONFIG
         lines = buf.getvalue().splitlines()
-        self.assertEqual(len(lines), 3)
+        self.assertEqual(len(lines), 4)
         self.assertEqual(lines[0],
             "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
             "[DEBUG:    HIGH] StateMachine initialized.")
@@ -839,6 +839,9 @@ class TestDisplayGoldens(unittest.TestCase):
         self.assertEqual(lines[2],
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
             "[ INFO:    HIGH] Completed UP step for CONFIG")
+        self.assertEqual(lines[3],
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[DEBUG:    HIGH] Step CONFIG UP duration: 0.000 s")
 
     def test_format_event_log_full_replay(self):
         """
@@ -892,6 +895,8 @@ class TestDisplayGoldens(unittest.TestCase):
             "[ INFO:    HIGH] Starting worker CONFIG, UP step\n"
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
             "[ INFO:    HIGH] Completed UP step for CONFIG\n"
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[DEBUG:    HIGH] Step CONFIG UP duration: 0.000 s\n"
             "\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---\n"
             "__________________________________________________________________\n"
             "TIMESTAMP (UTC)     | STEP | WORKER          | RELEVANCE | "
@@ -902,13 +907,16 @@ class TestDisplayGoldens(unittest.TestCase):
             "Starting worker CONFIG, UP step\n"
             "2026-08-29 12:34:56 | 01   | CONFIG          | INFO      | "
             "Completed UP step for CONFIG\n"
+            "2026-08-29 12:34:56 | 01   | CONFIG          | DEBUG     | "
+            "Step CONFIG UP duration: 0.000 s\n"
         )
         self.assertEqual(buf.getvalue(), expected)
 
     def test_show_history_of_moves_golden(self):
         """
         End-to-end golden: the move's live lines, then the table — header, 80-dash rule, one row per
-        executed step (start at microsecond precision; duration pinned at 0.003000 by the frozen clock).
+        executed step (start at microsecond precision; duration pinned at 0.004000 by the frozen
+        clock — the per-step DEBUG duration line adds a tick).
         """
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
@@ -924,17 +932,21 @@ class TestDisplayGoldens(unittest.TestCase):
             "[ INFO:    HIGH] Starting worker CONFIG, UP step\n"
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
             "[ INFO:    HIGH] Completed UP step for CONFIG\n"
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[DEBUG:    HIGH] Step CONFIG UP duration: 0.000 s\n"
             "[2026-08-29 12:34:56 UTC] [02][POSITIONS      ] "
             "[ INFO:    HIGH] Starting worker POSITIONS, UP step\n"
             "[2026-08-29 12:34:56 UTC] [02][POSITIONS      ] "
             "[ INFO:    HIGH] Completed UP step for POSITIONS\n"
+            "[2026-08-29 12:34:56 UTC] [02][POSITIONS      ] "
+            "[DEBUG:    HIGH] Step POSITIONS UP duration: 0.000 s\n"
             "Step   | Worker          | Dir   | Start (UTC)                | "
             "        Dur (s)\n"
             "--------------------------------------------------------------------------------\n"
             "1      | CONFIG          | up    | 2026-08-29 12:34:56.002000 | "
-            "       0.003000\n"
-            "2      | POSITIONS       | up    | 2026-08-29 12:34:56.006000 | "
-            "       0.003000\n"
+            "       0.004000\n"
+            "2      | POSITIONS       | up    | 2026-08-29 12:34:56.007000 | "
+            "       0.004000\n"
         )
         self.assertEqual(buf.getvalue(), expected)
 
