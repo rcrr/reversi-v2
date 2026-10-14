@@ -53,11 +53,36 @@ def _up(ctx: "LMContext") -> None:
     Run the CONFIG level: load + validate the LM JSON5 config, publish the model (ctx.cfg), the
     use_cache flag and the config fingerprint (the sha3_256 of the normalized dump) on the context.
     """
-    ctx.log_event(Relevance.INFO, f"Loading configuration file '{ctx.config_file_path}' ...")
     cfg = _load(ctx)
     ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} loaded.")
     _validate(ctx, cfg)
     ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} validated.")
+    # The operational sections echo (DEBUG): the log is self-sufficient on WHAT THE RUN RAN WITH —
+    # the connection echo carries the dbname/user/host, never the password.
+    db = cfg.regab_data_set.regab_db_connection
+    ctx.log_event(Relevance.DEBUG,
+                  f"optimization: max_iters={cfg.optimization.max_iters}, m={cfg.optimization.m}, "
+                  f"c1={cfg.optimization.c1}, c2={cfg.optimization.c2}, "
+                  f"min_grad={cfg.optimization.min_grad}, "
+                  f"min_p_fun_decrease={cfg.optimization.min_p_fun_decrease}, "
+                  f"high_performance_fg={cfg.optimization.high_performance_fg}")
+    ctx.log_event(Relevance.DEBUG,
+                  f"stat_model: frequency_cut_off={cfg.stat_model.frequency_cut_off}, "
+                  f"logit_clipping={cfg.stat_model.logit_clipping}, "
+                  f"ridge_regularization={cfg.stat_model.ridge_regularization}")
+    ctx.log_event(Relevance.DEBUG,
+                  f"su_analysis: enable={cfg.su_analysis.enable}, "
+                  f"corpus: seed={cfg.su_analysis.corpus.seed}, "
+                  f"total_positions={cfg.su_analysis.corpus.total_positions}, "
+                  f"su_pairs={cfg.su_analysis.su_pairs}")
+    ctx.log_event(Relevance.DEBUG,
+                  f"anova: enable={cfg.anova.enable}, top_k_adherence={cfg.anova.top_k_adherence}")
+    ctx.log_event(Relevance.DEBUG,
+                  f"regab_data_set: db={db.dbname}@{db.host} (user {db.user}), "
+                  f"bid={cfg.regab_data_set.bid}, status={cfg.regab_data_set.status}")
+    ctx.log_event(Relevance.DEBUG,
+                  f"validation_data_set: bid={cfg.validation_data_set.bid}, "
+                  f"status={cfg.validation_data_set.status}")
     ctx.log_event(Relevance.INFO, f"Model name: {cfg.name}")
     ctx.log_event(Relevance.INFO, f"Model description: {cfg.description}")
     ctx.log_event(Relevance.INFO, f"Model base_dir: {cfg.base_dir}")

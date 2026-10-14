@@ -13,7 +13,10 @@ that follow. It writes NO cache file; the configuration provenance is EMBEDDED i
 
 ## Architecture
 
-- `_up`: log → `_load` → `_validate` → INFO (name/description/ base_dir) → `ctx.use_cache = cfg.use_cache` →
+- `_up`: `_load` → INFO "loaded" → `_validate` → INFO "validated" → the DEBUG echo of the operational
+  sections (one line each: optimization, stat_model, su_analysis, anova, regab_data_set — the
+  dbname/user/host, never the password — and validation_data_set) → INFO (name/description/ base_dir) →
+  `ctx.use_cache = cfg.use_cache` →
   `ctx.cfg = cfg` → the fingerprint:
   `ctx.config_checksum = hashlib.sha3_256(cfg.model_dump_json(indent=4).encode()).hexdigest()` (the normalized dump is
   the EFFECTIVE configuration of the run — the base_dir override included, pydantic defaults resolved — and this is the
