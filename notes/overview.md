@@ -25,10 +25,11 @@ define the evaluation function.
   LM configs), scipy (gradient / ANOVA / plot), matplotlib (the PLOT step).
 - Test command: `./run_utests.sh` (the canonical runner; tiers: default fast ~17 s, LONG=1, VLONG=1, VVLONG=1 ~3.5 min
   incl. the A2050 chain and implies LONG, VLONG; PERF=1 adds the print-only perf tests). The standard pre-commit run is
-  `LONG=1 ./run_utests.sh`; VLONG=1 only when useful. A single module:
-  `.venv/bin/python -m unittest test.reversi[.zone].<module>` (the zones: lm, tools). The DB-gated suites (test\_regab +
-  the worker suites) need a live PostgreSQL + .env, or `SKIP_REGAB_DB=1` to skip the DB tests. The runner is unittest by
-  design (pytest is not a dependency).
+  the DEFAULT tier (`./run_utests.sh` — it is complete); LONG=1 (or higher) only when the change touches what the long
+  tiers cover (the full-chain e2e, the DB-gated and the scale tests), and a closing LONG=1 at each wave's end milestone.
+  A single module: `.venv/bin/python -m unittest test.reversi[.zone].<module>` (the zones: lm, tools). The DB-gated
+  suites (test\_regab + the worker suites) need a live PostgreSQL + .env, or `SKIP_REGAB_DB=1` to skip the DB tests. The
+  runner is unittest by design (pytest is not a dependency).
 - Probes: tracked under probes/ (hub: verify\_logistic\_model.py owns the pipeline-wide state; rules:
   notes/probe\_rules.md).
 - Workspace utils: wsutils/ — the workspace utilities (the notes/docs format re-wrapper, the source prose re-wrapper,

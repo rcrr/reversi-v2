@@ -340,4 +340,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - LOG wave, level 4 (D-556, iterative): the POSITIONS worker — the publication line to DEBUG, the
   dataset identity lines stay INFO. First commit under the new guard practice (default tier before
   the commit, LONG at the wave end).
+- D-557: the test-guard policy in the overview — the default tier is the standard pre-commit run,
+  LONG=1 on demand + at the wave-end milestone.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

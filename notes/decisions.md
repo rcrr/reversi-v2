@@ -2011,3 +2011,9 @@ D-556 | 2026-10-14 | The LOG wave, level 4 — POSITIONS (iterative): P1 the "Mo
          agreed with Roberto: the DEFAULT tier suite before every commit (it is now complete), LONG=1 only when the
          change touches what the long tiers cover, a closing LONG=1 at the wave-end milestone — this commit is the first
          under the new practice (default OK).
+
+D-557 | 2026-10-14 | The test-guard policy (Roberto's process point, agreed): the standard pre-commit run is the DEFAULT
+         tier (the complete fast suite) — not the blanket LONG=1 the overview carried from the earlier sessions; LONG=1
+         (or higher) runs only when the change touches what the long tiers cover (the full-chain e2e, the DB-gated and
+         the scale tests), plus a closing LONG=1 at each wave's end milestone. The overview Environment section updated
+         (this commit).
