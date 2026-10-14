@@ -25,8 +25,9 @@ arrays + the training population stats are derived for the workers that follow.
   positions (key: mover, opponent): [TOTAL: N] — data set loaded from cache (regab_allow_duplicate: …)"); on the COMPUTE
   path the full line ([TOTAL] + [FOUND]/[REMOVED] + [PERCENT]) is logged inside `wrk_positions_extract_and_prepare` before the store.
   Then the post-processing (unrelated to caching): `rds.generate_positions_and_game_values()` → `ctx.positions` /
-  `ctx.game_values`; `ctx.rds_checksum` = the duck-typed DATA checksum (the 3rd return element); INFO logs; the
-  population stats with numpy over `game_values` → `ctx.training_pop_stats = {'count', 'mean', 'std_dev', 'variance'}`.
+  `ctx.game_values`; `ctx.rds_checksum` = the duck-typed DATA checksum (the 3rd return element); the DEBUG
+  publication log; the population stats with numpy over `game_values` (the INFO log) →
+  `ctx.training_pop_stats = {'count', 'mean', 'std_dev', 'variance'}`.
 - `_down`: INFO "Clearing training game positions, game_values and rds_checksum attributes." → the 4 context attributes
   (`positions`, `game_values`, `rds_checksum`, `training_pop_stats`) set to None.
 - `wrk_positions_is_cache_consistent`: compares (1) the connection tuple `(dbname, user, host, port)` — the cached side is
