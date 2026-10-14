@@ -124,8 +124,9 @@ training set's connection is used).
 
 `pattern_set`: `name` (required) + `patterns: [ { "name": str, "mask": 16-hex } ]` (default empty).
 
-`mobility_set`: `name` (required) + `mobility_features: [ { "name": str, "mask": 16-hex, "amask": 16-hex } ]`
-(default empty) — `mask` the legal-moves bitboard, `amask` the anti (opponent) one.
+`mobility_set`: `name` (required) + `mobility_features: [ { "name": str, "mask": 16-hex, "side": "mover" | "opponent" } ]`
+(default empty) — `mask` the counted-squares bitboard, `side` whose legal moves are counted over it: the mover's or the
+opponent's. The same mask with the two sides is the standard LMC + ALMC pair.
 
 ### `stat_model` (required)
 
@@ -248,9 +249,8 @@ Every section present, every option at a non-default value where it matters:
         "mobility_set": {
             "name": "BasicMobilitySet",
             "mobility_features": [
-                { "name": "LMC",  "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000" },
-                { "name": "ALMC", "mask": "0000000000000000", "amask": "FFFFFFFFFFFFFFFF" },
-                { "name": "DLMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "FFFFFFFFFFFFFFFF" }
+                { "name": "LMC",  "mask": "FFFFFFFFFFFFFFFF", "side": "mover" },
+                { "name": "ALMC", "mask": "FFFFFFFFFFFFFFFF", "side": "opponent" }
             ]
         }
     },

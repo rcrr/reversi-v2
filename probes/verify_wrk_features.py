@@ -33,7 +33,7 @@
 # (src/reversi/lm/wrk_features.py) and of its test file
 # (test/reversi/lm/test_wrk_features.py), session 22
 # Re-pinned in session 22 (D-082) to the fixed
-# behaviour: R1 (the amask log prints m.amask), M1-M3 (factory
+# behaviour: R1 (the debug log prints the mask + side), M1-M3 (factory
 # @validate_call, the 2 whitespace lines, the orphan comment
 # removed), test T1-T4 + M2 (the tmp-dir idiom, the SKIP_REGAB_DB gate,
 # the dead import now load-bearing, header grammar, whitespace
@@ -105,8 +105,8 @@ check("A5 worker does not import cache_manager (pure compute, no cache files)",
 check("A6 M1 FIXED (D-082): @validate_call on the factory + the pydantic import",
       "@validate_call" in src and "from pydantic import validate_call, ConfigDict" in src
       and '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_features() -> Worker:' in src)
-check("A7 R1 FIXED (D-082): amask debug log prints m.amask",
-      'amask = {m.amask:016X}' in src and 'amask = {m.mask:016X}' not in src)
+check("A7 R1 FIXED (D-082): the mobility debug log prints the mask + side",
+      'side = {m.side}' in src and 'amask' not in src)
 check("A8 M3 FIXED (D-082): the orphan 'Empty String SHA-256 Hash' comment removed",
       "Empty String SHA-256 Hash" not in src
       and "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" not in src)
@@ -156,38 +156,37 @@ check("B4a intercept feature", fs.intercept is not None
       and fs.intercept.name == "INTERCEPT"
       and int(fs.intercept.n_configurations) == 1
       and int(fs.intercept.n_instances) == 1)
-check("B4b MobilitySet 'BasicMobilitySet' with the 3 fixture members",
+check("B4b MobilitySet 'BasicMobilitySet' with the 2 fixture members",
       fs.mset.name == "BasicMobilitySet"
-      and {(str(m.name), int(m.mask), int(m.amask)) for m in fs.mset.mobilities}
-      == {("LMC", ALL1, 0), ("ALMC", 0, ALL1), ("DLMC", ALL1, ALL1)})
+      and {(str(m.name), int(m.mask), m.side) for m in fs.mset.mobilities}
+      == {("LMC", ALL1, "mover"), ("ALMC", ALL1, "opponent")})
 check("B4c PatternSet 'BasicPatternSet' with the 2 fixture members",
       fs.pset.name == "BasicPatternSet"
       and {(str(p.name), int(p.mask)) for p in fs.pset.patterns} == {("ELLE", 0x107), ("EDGE", 0xFF)})
-check("B5 feature order: intercept, mobilities sorted (mask, amask), patterns sorted mask",
-      [f.name for f in fs.features] == ["INTERCEPT", "ALMC", "LMC", "DLMC", "EDGE", "ELLE"])
-check("B6 n_features 6, n_instances 16 (1 + 1+1+1 + 8+4)",
-      len(fs.features) == 6 and fs.n_instances == 16)
-check("B7 per-feature counts (LMC 65/1, ALMC 65/1, DLMC 129/1, ELLE 81/8, EDGE 6561/4)",
+check("B5 feature order: intercept, mobilities sorted (mask, side), patterns sorted mask",
+      [f.name for f in fs.features] == ["INTERCEPT", "LMC", "ALMC", "EDGE", "ELLE"])
+check("B6 n_features 5, n_instances 15 (1 + 1+1 + 8+4)",
+      len(fs.features) == 5 and fs.n_instances == 15)
+check("B7 per-feature counts (LMC 65/1, ALMC 65/1, ELLE 81/8, EDGE 6561/4)",
       {f.name: (int(f.n_configurations), int(f.n_instances)) for f in fs.features}
-      == {"INTERCEPT": (1, 1), "LMC": (65, 1), "ALMC": (65, 1), "DLMC": (129, 1),
+      == {"INTERCEPT": (1, 1), "LMC": (65, 1), "ALMC": (65, 1),
           "EDGE": (6561, 4), "ELLE": (81, 8)})
 
-# R1 behaviour pin: the DEBUG lines print m.mask twice.
-# cfg order: [LMC, ALMC, DLMC]; LMC amask is 0, ALMC mask is 0.
+# R1 behaviour pin: the DEBUG lines print the mask + side.
+# cfg order: [LMC, ALMC]; both full-board masks, the two sides.
 m_lines = [l for l in s1.splitlines() if "Mobility: name =" in l]
-check("B8a 3 mobility debug lines", len(m_lines) == 3)
+check("B8a 2 mobility debug lines", len(m_lines) == 2)
 lmc = next(l for l in m_lines if "name = LMC" in l)
 almc = next(l for l in m_lines if "name = ALMC" in l)
-check("B8b R1 FIXED (D-082): LMC line now prints the true amask = 0000000000000000",
-      "mask = FFFFFFFFFFFFFFFF, amask = 0000000000000000" in lmc)
-check("B8c R1 FIXED (D-082): ALMC line now prints the true amask = FFFFFFFFFFFFFFFF",
-      "mask = 0000000000000000, amask = FFFFFFFFFFFFFFFF" in almc)
+check("B8b R1 FIXED (D-082): LMC line prints the full-board mask + side mover",
+      "mask = FFFFFFFFFFFFFFFF, side = mover" in lmc)
+check("B8c R1 FIXED (D-082): ALMC line prints the full-board mask + side opponent",
+      "mask = FFFFFFFFFFFFFFFF, side = opponent" in almc)
 
 # Independent derivation through the public API.
 my_mset = MobilitySet("BasicMobilitySet", [
-    Mobility("LMC", u("FFFFFFFFFFFFFFFF"), u("0000000000000000")),
-    Mobility("ALMC", u("0000000000000000"), u("FFFFFFFFFFFFFFFF")),
-    Mobility("DLMC", u("FFFFFFFFFFFFFFFF"), u("FFFFFFFFFFFFFFFF")),
+    Mobility("LMC", u("FFFFFFFFFFFFFFFF"), "mover"),
+    Mobility("ALMC", u("FFFFFFFFFFFFFFFF"), "opponent"),
 ])
 my_pset = PatternSet("BasicPatternSet", [
     Pattern("ELLE", u("0000000000000107")),
@@ -245,8 +244,8 @@ check("B13c second run: identical feature set (name + hash)",
 
 tsrc = (ROOT / "test" / "reversi" / "lm" / "test_wrk_features.py").read_text()
 
-check("C1 188 lines",
-      len(tsrc.splitlines()) == 188)
+check("C1 187 lines",
+      len(tsrc.splitlines()) == 187)
 check("C2 2 classes / 3 test methods (the D-106 step-3 guard class added; the D-082 golden content test kept)",
       "class TestLMWorkerFeatures" in tsrc
       and "class TestLMWorkerFeaturesGuards" in tsrc
@@ -272,14 +271,14 @@ check("C7 M1 resolved (I-012 realized): the stale POSITIONS-dependency comment i
 check("C8 M2 FIXED (D-082): no trailing-whitespace lines",
       not any(line != line.rstrip() for line in tsrc.splitlines() if not line.lstrip().startswith("#")))
 check("C9 golden test: the 3 hash literals pinned (fs / mset / pset)",
-      "453e918aeabfa3f7ff43f110ab72719b3f1d1906158933436234b7bab075a159" in tsrc
-      and "2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94" in tsrc
+      "9de406cfce702bf2ae80fee401138bec2bdaf7b1b38de94dc4c065fadd47da73" in tsrc
+      and "d857e3c3e1d2fcadcea4d0125c69e518c74a34dc694598ac9ad57dda1e3037b8" in tsrc
       and "04d52f12d3438393dd3cd9d47df73c1135ffdf9ed8e9f4d4571f5d1adcbb8c18" in tsrc)
-check("C10 golden test: the feature-order + counts pin (6 features, 16 instances)",
+check("C10 golden test: the feature-order + counts pin (5 features, 15 instances)",
       "[(f.name, f.n_configurations, f.n_instances)" in tsrc
-      and "('INTERCEPT', 1, 1), ('ALMC', 65, 1), ('LMC', 65, 1)" in tsrc
-      and "('DLMC', 129, 1), ('EDGE', 6561, 4), ('ELLE', 81, 8)]" in tsrc
-      and "self.assertEqual(fs.n_instances, 16)" in tsrc)
+      and "('INTERCEPT', 1, 1), ('LMC', 65, 1), ('ALMC', 65, 1)" in tsrc
+      and "('EDGE', 6561, 4), ('ELLE', 81, 8)]" in tsrc
+      and "self.assertEqual(fs.n_instances, 15)" in tsrc)
 
 print(f"\n{fails} mismatch(es)")
 sys.exit(1 if fails else 0)

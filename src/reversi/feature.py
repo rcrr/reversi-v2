@@ -178,7 +178,7 @@ class FeatureSet:
         Initializes a new FeatureSet instance from the given name and the three feature sources: an
         optional intercept Feature, an optional MobilitySet, and an optional PatternSet. The
         features list is built in the order intercept, mobilities (the MobilitySet's sorted (mask,
-        amask) order), patterns (the PatternSet's sorted mask order); n_instances is their sum and
+        side) order), patterns (the PatternSet's sorted mask order); n_instances is their sum and
         the hash is derived as described in the class docstring.
 
         Raises:
@@ -234,7 +234,7 @@ class FeatureSet:
         if self.mset:
             prt(f"  MobilitySet: name = {self.mset.name}, hash = {self.mset.hash}")
             for i, m in enumerate(self.mset.mobilities):
-                prt(f"    {i:02d} name = {m.name:10s}, mask = 0x{m.mask:016X}, amask = 0x{m.amask:016X}")
+                prt(f"    {i:02d} name = {m.name:10s}, mask = 0x{m.mask:016X}, side = {m.side}")
         else:
             prt(f"  MobilitySet is None.")
         if self.pset:
@@ -253,7 +253,7 @@ class FeatureSet:
         The per-feature column blocks (the column-labelling view over the compute_indexes layout):
         the (name, col_start, col_end, n_configurations, n_instances) tuples over the non-intercept
         features, in the fset.features order — the documented column layout: the intercept (column
-        0, if present), then the mobilities in the MobilitySet's sorted (mask, amask) order, then
+        0, if present), then the mobilities in the MobilitySet's sorted (mask, side) order, then
         the patterns in the PatternSet's sorted mask order. Each feature occupies n_instances
         columns (its D8 instance columns), so the blocks are instance-aware. The intercept is not a
         block: it is fset.intercept, at column 0 when present.
@@ -278,7 +278,7 @@ class FeatureSet:
 
         - column 0: the intercept feature (constant 0), if present; - then one column per mobility,
         in the MobilitySet's sorted
-          (mask, amask) order (its compute_indexes block);
+          (mask, side) order (its compute_indexes block);
         - then, for each pattern in the PatternSet's sorted mask order,
           n_instances(pattern) columns: the principal index of each orbit
           instance, in the pattern's unique-mask first-seen (D8 instance)

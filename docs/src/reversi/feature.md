@@ -21,18 +21,18 @@ matrix a feature-table evaluation consumes).
   auto `__repr__` without `ref`, not frozen.
 - `FeatureSet.__init__` (validated): a present intercept must be `Category.INTERCEPT` (else ValueError "wrong
   category"); the `features` list is built in the order intercept, then the mobilities in the MobilitySet's sorted
-  (mask, amask) order, then the patterns in the PatternSet's sorted mask order — the child sets' sorted STORAGE order,
+  (mask, side) order, then the patterns in the PatternSet's sorted mask order — the child sets' sorted STORAGE order,
   not the caller's insertion order; `n_instances` is the sum; the `hash` is sha3_256 over `b'INTERCEPT'` (if present) +
   the mset hash hex string (if present) + the pset hash hex string (if present) — the child HASH values (transitively
   their sorted mask contents), not raw masks; the set name is NOT part of the hash.
 - `print_summary` (validated): writes to an IO object (default stdout) — header line (name, length, hash), intercept
-  present/None, per-set name+hash lines, then one line per mobility (name + mask + amask) and one per pattern (mask),
+  present/None, per-set name+hash lines, then one line per mobility (name + mask + side) and one per pattern (mask),
   closed by the "Features: [i, category, ...]" legend line
   `{i:02d} {category} {name:10s} {n_instances} {n_configurations:10,d}`.
 - `feature_blocks` (property): the per-feature column blocks (the column-labelling view over the compute_indexes
   layout) — the `(name, col_start, col_end, n_configurations, n_instances)` tuples over the NON-intercept features,
   in the `features` order (the documented layout: the intercept owns column 0 if present, then the mobilities in the
-  MobilitySet's sorted (mask, amask) order, then the patterns in the PatternSet's sorted mask order); each feature
+  MobilitySet's sorted (mask, side) order, then the patterns in the PatternSet's sorted mask order); each feature
   occupies its `n_instances` contiguous columns (its D8 instance columns), so the blocks are instance-aware; the
   intercept is not a block (it is `fset.intercept`).
 - `compute_indexes(positions) -> IndexArray` (validated): the uint32 index array of shape positions.shape + (I,) —

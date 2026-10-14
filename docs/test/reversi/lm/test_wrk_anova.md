@@ -12,7 +12,7 @@ ctx, the synthetic indexes + the game values).
 
 ## Goldens pinned
 
-- The synthetic raw codes: the rlm_00 fixture's feature set (the LMC / the ALMC / the DLMC + the ELLE / the EDGE), the
+- The synthetic raw codes: the rlm_00 fixture's feature set (the LMC / the ALMC + the ELLE / the EDGE), the
   100 positions, the random raw codes (the 0..n_conf range) + the random game values (the standard normal).
 - The ANOVA: one line per sub-variable (the instance count) — the eta²/omega² are computed (the kernel).
 - The graceful degradation: the tables None -> the adherence SKIPPED (the log note), the ANOVA runs (it does not need

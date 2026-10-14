@@ -1,39 +1,37 @@
 # reversi/mobility.py
-The mobility feature of the Reversi engine: a scalar table-lookup feature counting the mover's legal moves masked by a
-square set (`mask`), optionally combined with the opponent's pseudo-legal moves masked by a second set (`amask`).
-Standard instances (the glossary in the class docstring): LMC = Legal Move Count (`popcount(lms)`), ALMC = Anti Legal
-Move Count (`64 − popcount(alms)`), DLMC = Difference Legal Move Count (both all-64). Numba kernel, `Index` (uint32)
-indexes.
+The mobility feature of the Reversi engine: a scalar table-lookup feature counting ONE player's legal moves masked by a
+square set (`mask`), selected by a side flag (`side`): 'mover' counts the mover's legal moves (the standard LMC — Legal
+Move Count — uses the full-board mask), 'opponent' counts the opponent's (the standard ALMC — Anti Legal Move Count).
+Numba kernel, `Index` (uint32) indexes.
 
 ## API
 
 | name | contract |
 |---|---|
-| `Mobility(name: str, mask: Bitboard, amask: Bitboard)` | Strict `@validate_call` (any other type → `ValidationError`); sets `n_configurations = k + a + 1` and `n_instances = 1`; `__repr__`; `print()` the `[Mobility: name = {name:8s}, mask = 0x…, amask = 0x…]` line |
-| `MobilitySet(name: str, mobilities: List[Mobility])` | Strict `@validate_call`; duplicate names or duplicate (mask, amask) pairs → `ValueError`; sorted storage; `sha3_256` hash over the 16 LE bytes per element in sorted order; `__repr__`; `names` / `masks` are `@property` |
-| `MobilitySet.compute_indexes(positions: PositionArray) -> IndexArray` | The uint32 index matrix of shape positions.shape + (L,) via the Numba kernel (a 1-D batch gives (N, L); any-shape batches supported, the 1-D path with no flatten copy); the column contract (docstring): column j is the j-th mobility in the set's SORTED (mask, amask) order, NOT the caller's insertion order — label columns with `ms.names` (a `@property`, not a method) |
+| `Mobility(name: str, mask: Bitboard, side: Literal['mover', 'opponent'])` | Strict `@validate_call` (any other type → `ValidationError`); sets `n_configurations = k + 1` and `n_instances = 1`; `__repr__`; `print()` the `[Mobility: name = {name:8s}, mask = 0x…, side = …]` line |
+| `MobilitySet(name: str, mobilities: List[Mobility])` | Strict `@validate_call`; duplicate names or duplicate (mask, side) pairs → `ValueError` (the SAME mask with the two sides is a valid pair — the standard LMC + ALMC); sorted storage; `sha3_256` hash over the 8 LE mask bytes + 1 side byte per element in sorted order; `__repr__`; `names` / `masks` are `@property` |
+| `MobilitySet.compute_indexes(positions: PositionArray) -> IndexArray` | The uint32 index matrix of shape positions.shape + (L,) via the Numba kernel (a 1-D batch gives (N, L); any-shape batches supported, the 1-D path with no flatten copy); the column contract (docstring): column j is the j-th mobility in the set's SORTED (mask, side) order, NOT the caller's insertion order — label columns with `ms.names` (a `@property`, not a method) |
 | `popcount64(b)` | Scalar/vectorized SWAR popcount (a test/inspection helper), `@nb.vectorize(uint32(uint64), cache=True)`; OUT of `__all__` (the test file imports it by name) |
 
 ## Architecture
 
 - Imports: `reversi.board` (Bitboard, BitboardArray, PositionArray, legal_moves, bitboard_count), `reversi.index`
   (the `Index` / `IndexArray` type aliases), numpy, numba; `__all__` = [Mobility, MobilitySet].
-- `Mobility`: the class docstring carries the LMC/ALMC/DLMC glossary + the index formula + the n_configurations
-  semantics; `__init__`; `print`.
+- `Mobility`: the class docstring carries the LMC/ALMC glossary + the index formula + the n_configurations semantics;
+  `__init__`; `print`.
 - `MobilitySet`: the docstring states the sorted-order contract; `__init__` (dup checks, sorted storage, hash); `names`,
-  `masks` ((N, 2) uint64), `print_summary`, `compute_indexes`.
+  `masks` ((N, 2) uint64: column 0 the mask, column 1 the side code 0 = mover / 1 = opponent), `print_summary`,
+  `compute_indexes`.
 - Kernels: `popcount64` over `_numba_popcount64_kernel` (the SWAR UFunc); `_numba_compute_indexes_kernel` (`@nb.njit`,
   (N, L) output, scalar ops — only the output matrix is allocated).
 
-The index formula (verified): `index = popcount(lms & mask) + (popcount(amask) − popcount(alms & amask))`. Range
-`[0, k + a]` with every integer reachable, so **`n_configurations = k + a + 1` is the count of DISTINCT index values**
-(the feature-table size), not `(k + 1)(a + 1)`. Underflow-safe: `popcount(alms & amask) ≤ a` always, so the kernel's
-`shifts[j] − alms_count` never wraps. Overlapping mask/amask are legal (DLMC has both all-64 — a square in both
-contributes +1 and −1); `lms ∩ alms` is not guaranteed empty, no special case.
+The index formula (verified): `index = popcount(lms & mask)` for `side = 'mover'`, `index = popcount(alms & mask)` for
+`side = 'opponent'`. Range `[0, k]` with every integer reachable, so **`n_configurations = k + 1` is the count of
+DISTINCT index values** (the feature-table size), not the number of (lms, alms) pairs.
 
-The set hash = `sha3_256` over `mask.to_bytes(8, 'little') + amask.to_bytes(8, 'little')` per element in sorted order —
-the `PatternSet.hash` construction style; order-insensitive; empty set → `sha3_256(b'')` (ACCEPTED — the deliberate
-divergence from PatternSet fail-fast).
+The set hash = `sha3_256` over `mask.to_bytes(8, 'little') + <1 side byte: 0 mover / 1 opponent>` per element in sorted
+order — the `PatternSet.hash` construction style; order-insensitive; empty set → `sha3_256(b'')` (ACCEPTED — the
+deliberate divergence from PatternSet fail-fast).
 
 ## Verified invariants
 
@@ -41,19 +39,20 @@ Pinned by `probes/verify_mobility.py` (the 5 active sections: 1, 2, 3, 4, 6) and
 
 - popcount64 (section 1): scalar + vectorized vs `int.bit_count()` on 200,010 values (edge constants + 200,000 random
   64-bit) — zero mismatches; vectorized shape/dtype (uint32) exact.
-- n_configurations (section 2): == the number of DISTINCT index values, brute force over all (lms, alms) subsets for 6
-  (k, a) cases incl. the overlapping (4,4).
-- compute_indexes (section 3): vs pure-Python ground truth on 200 random positions × 5 mobilities (LMC/ALMC/DLMC + 2
-  partial masks, columns in sorted order) — all match; dtype/shape (N, L) uint32 exact.
-- The golden (section 4): the suite's `[53, 13, 66]` re-derived independently — golden position (mover
+- n_configurations (section 2): == the number of DISTINCT index values, brute force over all mask subsets for 6
+  (mask, side) cases incl. the same mask on both sides.
+- compute_indexes (section 3): vs pure-Python ground truth on 200 random positions × 6 mobilities (the full-board
+  LMC/ALMC pair + 2 partial masks on both sides, columns in sorted order) — all match; dtype/shape (N, L) uint32 exact.
+- The golden (section 4): the suite's `[13, 11]` re-derived independently — golden position (mover
   `0x40001ccaeb400024`, 17 stones; opponent `0x92fc6234143c7848`, 27 stones) has lms = `0x2c03810000820690` (13), alms =
-  `0x2002810100838012` (11); sorted columns ALMC = 64−11 = 53, LMC = 13, DLMC = 13+53 = 66.
+  `0x2002810100838012` (11); sorted columns LMC = 13, ALMC = 11.
 - The N-D shape edges (suite): the (1,2) → (1,2,L), (2,1,2) → (2,1,2,L), F-order (1,2) parity and the empty
   (0,2) → (0,2,L) batches, element-wise as the 1-D call; the strict argument typing (None / list / str / plain
   ndarray → ValidationError, the subTest loop).
-- The underflow boundary (section 6): mask = amask = 0xF, lms = 0, alms = 0x8 → index 3, kernel == ground truth.
-- The standard-set hash (suite pin): `2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94` for the
-  LMC/ALMC/DLMC triple — literal-pinned in test_hash_calculation_verification + test_print_summary.
+- The opponent-side boundary (section 6): mask = 0xF, side = opponent, the crafted position (mover E1, opponent
+  F1/G1/H1 → alms = D1) → index 1, kernel == ground truth.
+- The standard-set hash (suite pin): `d857e3c3e1d2fcadcea4d0125c69e518c74a34dc694598ac9ad57dda1e3037b8` for the
+  LMC/ALMC pair — literal-pinned in test_hash_calculation_verification + test_print_summary.
 
 ## Open issues
 
@@ -77,6 +76,6 @@ None.
 ## Integration
 
 - The FEATURES pipeline level: wrk_features builds the level's `Mobility` objects from the config
-  (`cfg_mset.mobility_features`); the feature order there is [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE].
+  (`cfg_mset.mobility_features`); the feature order there is [INTERCEPT, LMC, ALMC, EDGE, ELLE].
 - `test_mobility.md` mirrors the suite; `index.md` is the type-alias home reference; `pattern.md` the sibling-module
   reference (hash construction).

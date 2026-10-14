@@ -161,10 +161,9 @@ PAT13 = [
     ('RCT2X4', 0x0000003C3C000000),
     ('CORE',   0x0000001818000000),
 ]
-MOB3 = [
-    ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
-    ('ALMC', 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
-    ('DLMC', 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
+MOB2 = [
+    ('LMC',  0xFFFFFFFFFFFFFFFF, 'mover'),
+    ('ALMC', 0xFFFFFFFFFFFFFFFF, 'opponent'),
 ]
 
 POSITIONS = [
@@ -181,9 +180,9 @@ GOLDEN = [
 ]
 
 # Golden from test_feature.py TestFeatureSet.test_init
-GOLDEN_N_INSTANCES = [1, 1, 1, 1, 8, 4, 4, 4, 4, 4, 4, 4, 1, 2, 4, 4, 2]
-GOLDEN_FEATURE_HASH = 'f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167'
-GOLDEN_MSET_HASH = '2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94'
+GOLDEN_N_INSTANCES = [1, 1, 1, 8, 4, 4, 4, 4, 4, 4, 4, 1, 2, 4, 4, 2]
+GOLDEN_FEATURE_HASH = '6e5d4fb1c737b14005d4a5d772f49ddb7d488fd385ff185a99cd78dada1771ad'
+GOLDEN_MSET_HASH = 'd857e3c3e1d2fcadcea4d0125c69e518c74a34dc694598ac9ad57dda1e3037b8'
 GOLDEN_PSET_HASH = 'ff97ce55dcb0ebc5f4b62272dde7c3ead438b0feec2411fd258f68a7210040ea'
 
 failures = 0
@@ -207,9 +206,11 @@ print("=" * 72)
 print("A. Hashes (re-implemented, no reversi.feature / no .hash attribute)")
 print("=" * 72)
 
-mob_sorted = sorted(MOB3, key=lambda t: (t[1], t[2]))
-mset_hash = sha3_le(*[v for _, m, a in mob_sorted for v in (m, a)])
-check("MobilitySet hash (3, sorted (mask,amask))", mset_hash, GOLDEN_MSET_HASH)
+mob_sorted = sorted(MOB2, key=lambda t: (t[1], t[2]))
+mset_hash = hashlib.sha3_256(b''.join(
+    m.to_bytes(8, 'little') + (b'\x00' if s == 'mover' else b'\x01')
+    for _, m, s in mob_sorted)).hexdigest()
+check("MobilitySet hash (2, sorted (mask, side))", mset_hash, GOLDEN_MSET_HASH)
 print(f"    mobilities sorted order: {[n for n, _, _ in mob_sorted]}")
 
 pat_sorted = sorted(PAT13, key=lambda t: t[1])
@@ -236,10 +237,10 @@ for name, m in pat_sorted:
     n, _ = orbit_size(m)
     ninst_pat.append(n)
     print(f"    {name:8s} mask=0x{m:016X}  n_instances={n}")
-expected = [1, 1, 1, 1] + ninst_pat  # intercept + 3 mobilities + 13 patterns
-check("full per-feature n_instances list (1+3+13)",
+expected = [1, 1, 1] + ninst_pat  # intercept + 2 mobilities + 13 patterns
+check("full per-feature n_instances list (1+2+13)",
       expected, GOLDEN_N_INSTANCES)
-check("sum (FeatureSet.n_instances)", sum(expected), 53)
+check("sum (FeatureSet.n_instances)", sum(expected), 52)
 
 # ---------------------------------------------------------------------------
 # C. compute_indexes golden, pure Python (intercept + LMC + EDGE + DIAG4)
@@ -300,7 +301,7 @@ f_int = F.Feature.new_intercept()
 ml = [x[0] for x in POSITIONS]
 ol = [x[1] for x in POSITIONS]
 positions = make_position(ml, ol)
-small_mset = MobilitySet('S', [Mobility('LMC', Bitboard(FULL), Bitboard(0))])
+small_mset = MobilitySet('S', [Mobility('LMC', Bitboard(FULL), 'mover')])
 small_pset = PatternSet('S', [Pattern('EDGE', Bitboard(EDGE)),
                               Pattern('DIAG4', Bitboard(DIAG4))])
 small_fset = F.FeatureSet('S', f_int, small_mset, small_pset)

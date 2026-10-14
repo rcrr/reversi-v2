@@ -71,11 +71,11 @@ class TestClientEvaluationFunction(unittest.TestCase):
         self._rng = np.random.default_rng(SEED)
 
         # The rlm_04 feature layout (the fixture rlm_04.json): intercept + LMC (the full board,
-        # amask 0) + EDGE (row 1).
+        # side mover) + EDGE (row 1).
         intercept = Feature.new_intercept()
         mset = MobilitySet(
             "MOBILITY",
-            [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0))])
+            [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), 'mover')])
         pset = PatternSet("EDGE", [Pattern("EDGE", Bitboard(0xFF))])
         self.fs = FeatureSet("SYNTH_RLM04", intercept, mset, pset)
 

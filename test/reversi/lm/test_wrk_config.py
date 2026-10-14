@@ -190,7 +190,7 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
                 "name": "FSet",
                 "intercept": False,
                 "mobility_set": {"name": "MSet", "mobility_features": [
-                    {"name": "M", "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000"}
+                    {"name": "M", "mask": "FFFFFFFFFFFFFFFF", "side": "mover"}
                 ]},
                 "pattern_set": {"name": "PSet", "patterns": [
                     {"name": "P", "mask": "00000000000000FF"}

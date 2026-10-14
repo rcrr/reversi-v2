@@ -136,11 +136,11 @@ def _load_mobility(ctx: "LMContext") -> MobilitySet:
         mset_name = cfg_mset.name
         ctx.log_event(Relevance.DEBUG, f"Mobility set name: '{mset_name}', mobilities:")
         mobility_features = [
-            Mobility(elt.name, elt.mask, elt.amask) for elt in cfg_mset.mobility_features]
+            Mobility(elt.name, elt.mask, elt.side) for elt in cfg_mset.mobility_features]
         for i, m in enumerate(mobility_features):
             ctx.log_event(Relevance.DEBUG,
                           f"  -{i:02}- Mobility: name = {m.name:8s}, mask = {m.mask:016X}, "
-                          f"amask = {m.amask:016X}")
+                          f"side = {m.side}")
         mset = MobilitySet(cfg_mset.name, mobility_features)
         ctx.log_event(Relevance.DEBUG, f"Mobility set object created, hash = '{mset.hash}'.")
     else:

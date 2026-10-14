@@ -410,7 +410,7 @@ class TestMarginalAccumulator(unittest.TestCase):
             Feature.new_intercept(),
             MobilitySet('mob', [Mobility('LMC',
                                          u('FFFFFFFFFFFFFFFF'),
-                                         u('0000000000000000'))]),
+                                         'mover')]),
             PatternSet('pat', [Pattern('R2', u('000000000000FF00'))]))
 
     @staticmethod
@@ -424,7 +424,7 @@ class TestMarginalAccumulator(unittest.TestCase):
             Feature.new_intercept(),
             MobilitySet('mob', [Mobility('LMC',
                                          u('FFFFFFFFFFFFFFFF'),
-                                         u('0000000000000000'))]),
+                                         'mover')]),
             PatternSet('pat', [Pattern('W14', u('00000000003FFF00'))]))
 
     @staticmethod

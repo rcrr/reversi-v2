@@ -241,7 +241,7 @@ class TestFullChainA2030(unittest.TestCase):
 
         # FeatureSet (the hash is a definitive structural check: names + sorted mask contents,
         # transitive over mset/pset)
-        self.assertEqual(mw.feature_set.hash, 'ec4f15374a00b729629d62ee0eb4354cbf163950672b7a9db9f81375e40559ef')
+        self.assertEqual(mw.feature_set.hash, 'e9cda2ac3c14c5542bc9ebac648c340af7885757fa2f7801c27645caa58c7f69')
         self.assertEqual(mw.feature_set.hash, ctx.feature_set.hash)
 
         # Core inference arrays
@@ -311,7 +311,7 @@ class TestFullChainA2030(unittest.TestCase):
         # The config fingerprint line (the masked-hash golden masks the run-dependent hex value).
         self.assertIn(f"Config SHA3-256             : {ctx.config_checksum}", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         'fae8fe750a178b4bc17f1e9721c0e505e4a3773cbe2c2ce224f30aba95fead7b')
+                         '42a095cac995dcf3edb2d9a65fe6706fdbbafbdfb04deecee9b3fb10bcd99c33')
 
         # --- The client's Evaluation Function: bit-exact on 6 pinned training positions (rlm_04 has
         # frequency_cut_off=10, so training positions touching below-cutoff configurations exercise

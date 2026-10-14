@@ -110,7 +110,7 @@ class TestWrkPlot(unittest.TestCase):
         intercept = Feature.new_intercept()
         mset = MobilitySet("MOBILITY",
                            [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
-                                     Bitboard(0))])
+                                     'mover')])
         pset = PatternSet("EDGE", [Pattern("EDGE", Bitboard(0xFF))])
         fs = FeatureSet("SYNTH_RLM04", intercept, mset, pset)
         offsets = np.concatenate(
@@ -310,7 +310,7 @@ class TestWrkPlot(unittest.TestCase):
         intercept = Feature.new_intercept()
         mset = MobilitySet("MOBILITY",
                            [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
-                                     Bitboard(0))])
+                                     'mover')])
         pset = PatternSet("EDGE", [Pattern("EDGE", Bitboard(0xFF))])
         fs = FeatureSet("SYNTH_RLM04", intercept, mset, pset)
         offsets = np.concatenate(

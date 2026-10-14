@@ -77,7 +77,7 @@ class TestFeature(unittest.TestCase):
         self.assertIsNone(f.ref)
 
     def test_new_from_mobility(self):
-        m = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
+        m = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), 'mover')
         f = Feature.new_from_mobility(m)
         self.assertIsNotNone(f)
         self.assertEqual(f.category, Feature.Category.MOBILITY)
@@ -116,8 +116,7 @@ class TestFeature(unittest.TestCase):
             repr(Feature.new_intercept()),
             "Feature(category=<Category.INTERCEPT: 0>, name='INTERCEPT', "
             "n_configurations=1, n_instances=1)")
-        lmc = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
-                       Bitboard(0x0000000000000000))
+        lmc = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), 'mover')
         self.assertEqual(
             repr(Feature.new_from_mobility(lmc)),
             "Feature(category=<Category.MOBILITY: 1>, name='LMC', "
@@ -133,10 +132,8 @@ class TestFeature(unittest.TestCase):
         Pin field-wise __eq__ with ref compared by object identity: Mobility and Pattern define no
         value __eq__, so distinct but field-identical refs make their Features unequal.
         """
-        m1 = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
-                      Bitboard(0x0000000000000000))
-        m2 = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
-                      Bitboard(0x0000000000000000))
+        m1 = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), 'mover')
+        m2 = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), 'mover')
         a = Feature.new_from_mobility(m1)
         b = Feature.new_from_mobility(m2)
         self.assertEqual(a, a)
@@ -147,8 +144,7 @@ class TestFeature(unittest.TestCase):
                             Feature.new_from_pattern(p2))
         self.assertNotEqual(a, Feature.new_intercept())
         self.assertNotEqual(a, Feature.new_from_pattern(p1))
-        d = Mobility("DLMC", Bitboard(0xFFFFFFFFFFFFFFFF),
-                     Bitboard(0x0000000000000000))
+        d = Mobility("ALMC", Bitboard(0xFFFFFFFFFFFFFFFF), 'opponent')
         self.assertNotEqual(a, Feature.new_from_mobility(d))
 
     def test_unhashable(self):
@@ -176,11 +172,10 @@ class TestFeatureSet(unittest.TestCase):
         ]
         plf = lambda x: [Pattern(n, Bitboard(m)) for n, m in x]
         mobility_set_data = [
-            ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
-            ('ALMC', 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
-            ('DLMC', 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
+            ('LMC',  0xFFFFFFFFFFFFFFFF, 'mover'),
+            ('ALMC', 0xFFFFFFFFFFFFFFFF, 'opponent'),
         ]
-        mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
+        mlf = lambda x: [Mobility(n, Bitboard(m), s) for n, m, s in x]
         self.intercept = Feature.new_intercept()
         self.mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
         self.pset = PatternSet('TestPatternSet', plf(pattern_set_data))
@@ -194,20 +189,20 @@ class TestFeatureSet(unittest.TestCase):
         self.assertEqual(feature_set.mset, self.mset)
         self.assertEqual(feature_set.pset, self.pset)
 
-        self.assertEqual(feature_set.n_instances, 53)
+        self.assertEqual(feature_set.n_instances, 52)
 
-        expected_n_instances = [1, 1, 1, 1, 8, 4, 4, 4, 4, 4, 4, 4, 1, 2, 4, 4, 2]
+        expected_n_instances = [1, 1, 1, 8, 4, 4, 4, 4, 4, 4, 4, 1, 2, 4, 4, 2]
         computed_n_instances = [f.n_instances for f in feature_set.features]
         self.assertEqual(computed_n_instances, expected_n_instances)
 
-        expected_names = ['INTERCEPT', 'ALMC', 'LMC', 'DLMC',
+        expected_names = ['INTERCEPT', 'LMC', 'ALMC',
                           '2X5COR', 'XEDGE', 'R2', 'CORNER',
                           'R3', 'DIAG4', 'R4', 'DIAG5', 'CORE',
                           'RCT2X4', 'DIAG6', 'DIAG7', 'DIAG8']
         computed_names = [f.name for f in feature_set.features]
         self.assertEqual(computed_names, expected_names)
 
-        expected_hash = 'f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167'
+        expected_hash = '6e5d4fb1c737b14005d4a5d772f49ddb7d488fd385ff185a99cd78dada1771ad'
         self.assertEqual(feature_set.hash, expected_hash)
 
     def test_init_intercept_only(self):
@@ -227,14 +222,14 @@ class TestFeatureSet(unittest.TestCase):
         """Partial-None: mset present, intercept and pset None."""
         feature_set = FeatureSet('MobilityOnly', None, self.mset, None)
         self.assertEqual(feature_set.hash,
-                         '239e4df42493da52f536f6b3017712a18da05fa48925b76d12adc688d008ecf3')
+                         'e05260806cb36d0fec026d36021c220979262cf81eb70123d724131f4ad1e610')
         self.assertEqual([f.name for f in feature_set.features],
-                         ['ALMC', 'LMC', 'DLMC'])
-        self.assertEqual(feature_set.n_instances, 3)
+                         ['LMC', 'ALMC'])
+        self.assertEqual(feature_set.n_instances, 2)
         positions = make_position([0x01054FD4327E1C10, 0x40785CEAFB400004],
                                   [0xE8D03028C880C084, 0x92042214043C7878])
         indexes = feature_set.compute_indexes(positions)
-        self.assertEqual(indexes.shape, (2, 3))
+        self.assertEqual(indexes.shape, (2, 2))
         np.testing.assert_array_equal(indexes, self.mset.compute_indexes(positions))
 
     def test_init_pattern_only(self):
@@ -261,14 +256,13 @@ class TestFeatureSet(unittest.TestCase):
             actual_output = buffer.getvalue()
 
         expected_output = (
-            "FeatureSet: name = TestFeatureSet, length = 17, hash ="
-            " f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167\n"
+            "FeatureSet: name = TestFeatureSet, length = 16, hash ="
+            " 6e5d4fb1c737b14005d4a5d772f49ddb7d488fd385ff185a99cd78dada1771ad\n"
             "  Intercept is present.\n"
             "  MobilitySet: name = TestMobilitySet, hash ="
-            " 2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94\n"
-            "    00 name = ALMC      , mask = 0x0000000000000000, amask = 0xFFFFFFFFFFFFFFFF\n"
-            "    01 name = LMC       , mask = 0xFFFFFFFFFFFFFFFF, amask = 0x0000000000000000\n"
-            "    02 name = DLMC      , mask = 0xFFFFFFFFFFFFFFFF, amask = 0xFFFFFFFFFFFFFFFF\n"
+            " d857e3c3e1d2fcadcea4d0125c69e518c74a34dc694598ac9ad57dda1e3037b8\n"
+            "    00 name = LMC       , mask = 0xFFFFFFFFFFFFFFFF, side = mover\n"
+            "    01 name = ALMC      , mask = 0xFFFFFFFFFFFFFFFF, side = opponent\n"
             "  PatternSet: name = TestPatternSet, hash ="
             " ff97ce55dcb0ebc5f4b62272dde7c3ead438b0feec2411fd258f68a7210040ea\n"
             "    00 name = 2X5COR    , mask = 0x0000000000001F1F\n"
@@ -286,22 +280,21 @@ class TestFeatureSet(unittest.TestCase):
             "    12 name = DIAG8     , mask = 0x0102040810204080\n"
             "  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]\n"
             "    00 0 INTERCEPT  1          1\n"
-            "    01 1 ALMC       1         65\n"
-            "    02 1 LMC        1         65\n"
-            "    03 1 DLMC       1        129\n"
-            "    04 2 2X5COR     8     59,049\n"
-            "    05 2 XEDGE      4     59,049\n"
-            "    06 2 R2         4      6,561\n"
-            "    07 2 CORNER     4     19,683\n"
-            "    08 2 R3         4      6,561\n"
-            "    09 2 DIAG4      4         81\n"
-            "    10 2 R4         4      6,561\n"
-            "    11 2 DIAG5      4        243\n"
-            "    12 2 CORE       1         81\n"
-            "    13 2 RCT2X4     2      6,561\n"
-            "    14 2 DIAG6      4        729\n"
-            "    15 2 DIAG7      4      2,187\n"
-            "    16 2 DIAG8      2      6,561\n"
+            "    01 1 LMC        1         65\n"
+            "    02 1 ALMC       1         65\n"
+            "    03 2 2X5COR     8     59,049\n"
+            "    04 2 XEDGE      4     59,049\n"
+            "    05 2 R2         4      6,561\n"
+            "    06 2 CORNER     4     19,683\n"
+            "    07 2 R3         4      6,561\n"
+            "    08 2 DIAG4      4         81\n"
+            "    09 2 R4         4      6,561\n"
+            "    10 2 DIAG5      4        243\n"
+            "    11 2 CORE       1         81\n"
+            "    12 2 RCT2X4     2      6,561\n"
+            "    13 2 DIAG6      4        729\n"
+            "    14 2 DIAG7      4      2,187\n"
+            "    15 2 DIAG8      2      6,561\n"
         )
         self.assertEqual(actual_output, expected_output)
 
@@ -325,7 +318,7 @@ class TestFeatureSet(unittest.TestCase):
     def test_init_invalid_intercept_category_raises_value_error(self):
         """Test that passing a non-INTERCEPT feature as the intercept argument raises ValueError."""
         # Create a valid Mobility feature
-        m = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
+        m = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), 'mover')
         wrong_intercept = Feature.new_from_mobility(m)
 
         with self.assertRaises(ValueError) as context:
@@ -362,11 +355,10 @@ class TestFeatureSetFeatureBlocks(unittest.TestCase):
         ]
         plf = lambda x: [Pattern(n, Bitboard(m)) for n, m in x]
         mobility_set_data = [
-            ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
-            ('ALMC', 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
-            ('DLMC', 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
+            ('LMC',  0xFFFFFFFFFFFFFFFF, 'mover'),
+            ('ALMC', 0xFFFFFFFFFFFFFFFF, 'opponent'),
         ]
-        mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
+        mlf = lambda x: [Mobility(n, Bitboard(m), s) for n, m, s in x]
         self.intercept = Feature.new_intercept()
         self.mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
         self.pset = PatternSet('TestPatternSet', plf(pattern_set_data))
@@ -378,31 +370,30 @@ class TestFeatureSetFeatureBlocks(unittest.TestCase):
         feature_set = FeatureSet('TestFeatureSet', self.intercept,
                                  self.mset, self.pset)
         self.assertEqual(feature_set.feature_blocks, [
-            ('ALMC',   1,  2,   65,   1),
-            ('LMC',    2,  3,   65,   1),
-            ('DLMC',   3,  4,  129,   1),
-            ('2X5COR', 4, 12, 59049,  8),
-            ('XEDGE', 12, 16, 59049,  4),
-            ('R2',    16, 20,  6561,  4),
-            ('CORNER',20, 24, 19683,  4),
-            ('R3',    24, 28,  6561,  4),
-            ('DIAG4', 28, 32,    81,  4),
-            ('R4',    32, 36,  6561,  4),
-            ('DIAG5', 36, 40,   243,  4),
-            ('CORE',  40, 41,    81,  1),
-            ('RCT2X4',41, 43,  6561,  2),
-            ('DIAG6', 43, 47,   729,  4),
-            ('DIAG7', 47, 51,  2187,  4),
-            ('DIAG8', 51, 53,  6561,  2),
+            ('LMC',    1,  2,   65,   1),
+            ('ALMC',   2,  3,   65,   1),
+            ('2X5COR', 3, 11, 59049,  8),
+            ('XEDGE', 11, 15, 59049,  4),
+            ('R2',    15, 19,  6561,  4),
+            ('CORNER',19, 23, 19683,  4),
+            ('R3',    23, 27,  6561,  4),
+            ('DIAG4', 27, 31,    81,  4),
+            ('R4',    31, 35,  6561,  4),
+            ('DIAG5', 35, 39,   243,  4),
+            ('CORE',  39, 40,    81,  1),
+            ('RCT2X4',40, 42,  6561,  2),
+            ('DIAG6', 42, 46,   729,  4),
+            ('DIAG7', 46, 50,  2187,  4),
+            ('DIAG8', 50, 52,  6561,  2),
         ])
 
     def test_feature_blocks_without_intercept(self):
         """No intercept: the blocks start at column 0."""
         feature_set = FeatureSet('NoIntercept', None, self.mset, self.pset)
         blocks = feature_set.feature_blocks
-        self.assertEqual(len(blocks), 16)
-        self.assertEqual(blocks[0], ('ALMC', 0, 1, 65, 1))
-        self.assertEqual(blocks[-1], ('DIAG8', 50, 52, 6561, 2))
+        self.assertEqual(len(blocks), 15)
+        self.assertEqual(blocks[0], ('LMC', 0, 1, 65, 1))
+        self.assertEqual(blocks[-1], ('DIAG8', 49, 51, 6561, 2))
         self.assertEqual(sum(b[2] - b[1] for b in blocks),
                          feature_set.n_instances)
 
@@ -442,9 +433,9 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
         ]
         plf = lambda x: [Pattern(n, Bitboard(m)) for n, m in x]
         mobility_set_data = [
-            ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
+            ('LMC',  0xFFFFFFFFFFFFFFFF, 'mover'),
         ]
-        mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
+        mlf = lambda x: [Mobility(n, Bitboard(m), s) for n, m, s in x]
         intercept = Feature.new_intercept()
         mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
         pset = PatternSet('TestPatternSet', plf(pattern_set_data))
@@ -597,9 +588,9 @@ class TestFeatureSetComputeIndexesFullSet(unittest.TestCase):
         ]
         plf = lambda x: [Pattern(n, Bitboard(m)) for n, m in x]
         mobility_set_data = [
-            ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
+            ('LMC',  0xFFFFFFFFFFFFFFFF, 'mover'),
         ]
-        mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
+        mlf = lambda x: [Mobility(n, Bitboard(m), s) for n, m, s in x]
         intercept = Feature.new_intercept()
         mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
         pset = PatternSet('TestPatternSet', plf(pattern_set_data))

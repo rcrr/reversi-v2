@@ -130,7 +130,7 @@ def model_weights_write_file(ctx: "LMContext",
             for m in fs.mset.mobilities:
                 w.write_string(m.name)
                 w.write_u64(int(m.mask))
-                w.write_u64(int(m.amask))
+                w.write_u8(0 if m.side == 'mover' else 1)
         else:
             w.write_u8(0)
 
@@ -228,8 +228,8 @@ def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights
             for _ in range(n_mob):
                 m_name = r.read_string()
                 m_mask = r.read_u64()
-                m_amask = r.read_u64()
-                mobilities.append(Mobility(m_name, m_mask, m_amask))
+                m_side = 'mover' if r.read_u8() == 0 else 'opponent'
+                mobilities.append(Mobility(m_name, m_mask, m_side))
             mset = MobilitySet(mset_name, mobilities)
 
         has_pset = r.read_u8()

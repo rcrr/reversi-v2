@@ -87,7 +87,7 @@
         "mobility_set": {
             "name": "MOBILITY",
             "mobility_features": [
-                { "name": "LMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "0000000000000000" }
+                { "name": "LMC", "mask": "FFFFFFFFFFFFFFFF", "side": "mover" }
             ]
         }
     }

@@ -84,11 +84,10 @@ class TestWrkClientCheck(unittest.TestCase):
         rng = np.random.default_rng(SEED)
 
         # The rlm_04 feature layout (the fixture rlm_04.json, as in test_client.py): intercept + LMC
-        # (the full board, amask 0) + EDGE (row 1) — the production iwmap pin [0, 1, 66, 6627].
+        # (the full board, side mover) + EDGE (row 1) — the production iwmap pin [0, 1, 66, 6627].
         intercept = Feature.new_intercept()
         mset = MobilitySet("MOBILITY",
-                           [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
-                                     Bitboard(0))])
+                           [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), 'mover')])
         pset = PatternSet("EDGE", [Pattern("EDGE", Bitboard(0xFF))])
         fs = FeatureSet("SYNTH_RLM04", intercept, mset, pset)
         offsets = np.concatenate(

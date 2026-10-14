@@ -31,7 +31,7 @@ from pydantic import (BaseModel, Field, PositiveInt, NonNegativeInt,
                       field_validator, field_serializer,
                       ConfigDict, model_validator)
 
-from typing import List, Dict, Annotated, Optional, Any, Tuple
+from typing import List, Dict, Annotated, Optional, Any, Tuple, Literal
 
 from pathlib import Path
 
@@ -320,12 +320,12 @@ class PatternSetConfig(LMBaseConfig):
 class MobilityFeatureConfig(LMBaseConfig):
     """Configuration for a mobility feature."""
     name: str
-    mask: Bitboard = Field(..., description="Legal moves mask in HEX format, no 0x prefix, just 16 digits.")
-    amask: Bitboard = Field(..., description="Anti legal moves mask in HEX format, no 0x prefix, just 16 digits.")
+    mask: Bitboard = Field(..., description="Counted-squares mask in HEX format, no 0x prefix, just 16 digits.")
+    side: Literal['mover', 'opponent'] = Field(..., description="Whose legal moves are counted over the mask: 'mover' or 'opponent'.")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    @field_validator("mask", "amask", mode="before")
+    @field_validator("mask", mode="before")
     @classmethod
     def parse_hex_to_bitboard(cls, h: str) -> Bitboard:
         """
@@ -333,7 +333,7 @@ class MobilityFeatureConfig(LMBaseConfig):
         """
         return bitboard_from_hex_str(h)
 
-    @field_serializer("mask", "amask")
+    @field_serializer("mask")
     def serialize_mask_to_hex(self, mask: Bitboard) -> str:
         return f"{mask:016X}"
 

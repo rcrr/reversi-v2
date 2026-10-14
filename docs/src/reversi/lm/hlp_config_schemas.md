@@ -21,14 +21,14 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 | `RegabDataSetConfig` | the connection + `bid` + strict `status` (the ec is the root `empty_count`, D-283) |
 | `PatternConfig` | `name` + `mask: Bitboard` (hex-string in, 16-hex out) |
 | `PatternSetConfig` | `name` + `patterns: List[PatternConfig]` (default empty) |
-| `MobilityFeatureConfig` | `name` + `mask` + `amask`, both Bitboard |
+| `MobilityFeatureConfig` | `name` + `mask` (Bitboard) + `side` (`Literal['mover', 'opponent']`) |
 | `MobilitySetConfig` | `name` + `mobility_features` (default empty) |
 | `FeatureSetConfig` | `name='NoNameFeatureSet'`, `intercept=False`, optional `mobility_set` / `pattern_set` |
 | `StatModelConfig` | `frequency_cut_off` (PositiveInt=1), `logit_clipping` (0.05, 0<x<0.5), `ridge_regularization` (0.0, ge=0) |
 
 ## Architecture
 
-- **The bitboard mask pair** — `PatternConfig.mask` and `MobilityFeatureConfig.mask` / `amask` are `Bitboard` (from
+- **The bitboard masks** — `PatternConfig.mask` and `MobilityFeatureConfig.mask` are `Bitboard` (from
   board.py) behind a `mode="before"` `field_validator` (`bitboard_from_hex_str`) and a `field_serializer`
   (`f"{mask:016X}"`): in, a 16-digit hex string with NO 0x prefix (case-insensitive); out, uppercase 16-hex.
   `model_config` is `arbitrary_types_allowed`.

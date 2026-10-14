@@ -21,10 +21,10 @@ created FIRST so a mid-setup failure still leaves a cleanable dir) + a `Logistic
   hex), the mset `2e553593…08a94` (the same literal test_mobility pins), the pset `04d52f12…c18` — independently
   re-derived from the public API.
 - The name `'NoNameFeatureSet'` (the schema default — the fixture has no name key).
-- The members: the MobilitySet 'BasicMobilitySet' with the 3 fixture entries in the sorted (mask, amask) order (ALMC
-  0/FFFF…, LMC FFFF…/0, DLMC FFFF…/FFFF…); the PatternSet 'BasicPatternSet' with the 2 fixture entries in the sorted
+- The members: the MobilitySet 'BasicMobilitySet' with the 2 fixture entries in the sorted (mask, side) order (LMC
+  FFFF…/mover, ALMC FFFF…/opponent); the PatternSet 'BasicPatternSet' with the 2 fixture entries in the sorted
   mask order (EDGE 0x00000000000000FF, ELLE 0x0000000000000107).
-- The feature list order + per-feature counts: [INTERCEPT 1/1, ALMC 65/1, LMC 65/1, DLMC 129/1, EDGE 6561/4, ELLE 81/8]
+- The feature list order + per-feature counts: [INTERCEPT 1/1, LMC 65/1, ALMC 65/1, EDGE 6561/4, ELLE 81/8]
   and `n_instances` 16.
 
 ## Conventions

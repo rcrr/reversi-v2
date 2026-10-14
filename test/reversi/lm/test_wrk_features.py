@@ -111,9 +111,9 @@ class TestLMWorkerFeatures(unittest.TestCase):
         # Golden hashes: the FeatureSet hash is sha3_256 over b'INTERCEPT' + the mset hash hex
         # string + the pset hash hex string.
         self.assertEqual(fs.hash,
-                         '453e918aeabfa3f7ff43f110ab72719b3f1d1906158933436234b7bab075a159')
+                         '9de406cfce702bf2ae80fee401138bec2bdaf7b1b38de94dc4c065fadd47da73')
         self.assertEqual(fs.mset.hash,
-                         '2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94')
+                         'd857e3c3e1d2fcadcea4d0125c69e518c74a34dc694598ac9ad57dda1e3037b8')
         self.assertEqual(fs.pset.hash,
                          '04d52f12d3438393dd3cd9d47df73c1135ffdf9ed8e9f4d4571f5d1adcbb8c18')
 
@@ -123,13 +123,12 @@ class TestLMWorkerFeatures(unittest.TestCase):
         self.assertEqual(fs.intercept.n_configurations, 1)
         self.assertEqual(fs.intercept.n_instances, 1)
 
-        # MobilitySet: the 3 fixture members, in the sorted (mask, amask) order.
+        # MobilitySet: the 2 fixture members, in the sorted (mask, side) order.
         self.assertEqual(fs.mset.name, 'BasicMobilitySet')
-        self.assertEqual([(m.name, f'{m.mask:016X}', f'{m.amask:016X}')
+        self.assertEqual([(m.name, f'{m.mask:016X}', m.side)
                           for m in fs.mset.mobilities],
-                         [('ALMC', '0000000000000000', 'FFFFFFFFFFFFFFFF'),
-                          ('LMC', 'FFFFFFFFFFFFFFFF', '0000000000000000'),
-                          ('DLMC', 'FFFFFFFFFFFFFFFF', 'FFFFFFFFFFFFFFFF')])
+                         [('LMC', 'FFFFFFFFFFFFFFFF', 'mover'),
+                          ('ALMC', 'FFFFFFFFFFFFFFFF', 'opponent')])
 
         # PatternSet: the 2 fixture members, in the sorted mask order.
         self.assertEqual(fs.pset.name, 'BasicPatternSet')
@@ -141,9 +140,9 @@ class TestLMWorkerFeatures(unittest.TestCase):
         # n_configurations / n_instances.
         self.assertEqual([(f.name, f.n_configurations, f.n_instances)
                           for f in fs.features],
-                         [('INTERCEPT', 1, 1), ('ALMC', 65, 1), ('LMC', 65, 1),
-                          ('DLMC', 129, 1), ('EDGE', 6561, 4), ('ELLE', 81, 8)])
-        self.assertEqual(fs.n_instances, 16)
+                         [('INTERCEPT', 1, 1), ('LMC', 65, 1), ('ALMC', 65, 1),
+                          ('EDGE', 6561, 4), ('ELLE', 81, 8)])
+        self.assertEqual(fs.n_instances, 15)
 
 
 class TestLMWorkerFeaturesGuards(unittest.TestCase):

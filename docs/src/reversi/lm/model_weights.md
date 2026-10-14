@@ -27,11 +27,11 @@ positions without the database, the cache, or most of the pipeline state.
   (f32); `converged` is NOT persisted (derivable from `reason == 'CONVERGED_*'`); 5. validation metrics — 4 of the 7:
   `vld_samples` (u32), `vld_rmse_y`/`vld_mae_y`/`vld_loss` (f32); `vld_mse_z`/`vld_mae_z`/`vld_mse_y` are NOT
   persisted; 6. FeatureSet — `name` + `intercept` flag (u8); 7. MobilitySet — presence flag (u8) + `name` + count (u32)
-  + per mobility `name`/`mask` (u64)/`amask` (u64); 8. PatternSet — presence flag (u8) + `name` + count (u32) + per
+  + per mobility `name`/`mask` (u64)/`side` (u8: 0 = mover, 1 = opponent); 8. PatternSet — presence flag (u8) + `name` + count (u32) + per
   pattern `name`/`mask` (u64); 9. `iwmap_feature_offset` (write_array u32) + `w_dense` (write_array f32).
 - `model_weights_read_file`: the guards (version `not in (1, 2)` raises, the v1 files stay readable, the backward-compat
   the v2 spec required), then the v2-only config provenance read + sentinel, then the mirror read — reconstructing
-  `Mobility`/`Pattern` objects (the `int(m.mask)` / `int(m.amask)` conversions normalize numpy uint64 scalars to Python
+  `Mobility`/`Pattern` objects (the `int(m.mask)` conversion normalizes numpy uint64 scalars to Python
   ints), `MobilitySet`/`PatternSet`, the intercept via `Feature.new_intercept()`, the two arrays via `read_array` (dtype
   preserved: u32 / f32 — the round-trip is bit-exact, verified by tobytes sha3), and the dataclass with
   `config_dump`/`config_checksum` (None on v1).

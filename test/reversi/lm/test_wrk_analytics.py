@@ -353,7 +353,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         self.assertNotIn("PROBABILITY", content)
         self.assertNotIn("SU Sample Consistency", content)
         self.assertEqual(_masked_report_hash(content),
-                         "176a80b5d3d70549c62c12be127982ac7baaed60281ebc542bd457c1d3670162")
+                         "a246cf9df0240258d44ebe0ac21cac4b533f0b89cbbe6f954823f32fc9a632ff")
 
         logs = self.mock_stdout.getvalue()
         self.assertIn("Optimization Status         : CONVERGED_MIN_GRAD (16 iters)", logs)
@@ -522,12 +522,12 @@ class TestSuSampleColumns(unittest.TestCase):
         self.assertIn("| PROBABILITY | SU_PROBABILITY |", rep)
         self.assertIn(_expected_su_line(ctx, 'LMC', blocks), rep)
         self.assertEqual(
-            rep.count("TV 0.0000  chi2 0.0 (p 1.00e+00, merged 0)"), 5)
-        self.assertEqual(rep.count("->  CONSISTENT"), 5)
+            rep.count("TV 0.0000  chi2 0.0 (p 1.00e+00, merged 0)"), 4)
+        self.assertEqual(rep.count("->  CONSISTENT"), 4)
 
     def test_ok_marginal(self):
         # The 9-count 0 -> 1 LMC shift (the hand-computed TV 0.03, the chi2 9/47 + 9/53 = 0.3613):
-        # the LMC line is MARGINAL, the other 4 features stay CONSISTENT.
+        # the LMC line is MARGINAL, the other 3 features stay CONSISTENT.
         ctx, blocks = _make_su_ctx(self.tmp, 300, 'marginal')
         rep = hlp_analytics_format_file_report(ctx)
         self.assertIn(_expected_su_line(ctx, 'LMC', blocks), rep)
@@ -535,7 +535,7 @@ class TestSuSampleColumns(unittest.TestCase):
             "TV 0.0300  chi2 0.4 (p 5.48e-01, merged 0)  ->  MARGINAL",
             rep)
         self.assertEqual(rep.count("->  MARGINAL"), 1)
-        self.assertEqual(rep.count("->  CONSISTENT"), 4)
+        self.assertEqual(rep.count("->  CONSISTENT"), 3)
 
     def test_ok_deviating_inf_chi2(self):
         # The one-point LMC corpus mass: the DB observes codes the corpus never shows (the
@@ -547,7 +547,7 @@ class TestSuSampleColumns(unittest.TestCase):
             "TV 0.5000  chi2 inf (p 0.00e+00, merged 1)  ->  DEVIATING",
             rep)
         self.assertEqual(rep.count("->  DEVIATING"), 1)
-        self.assertEqual(rep.count("->  CONSISTENT"), 4)
+        self.assertEqual(rep.count("->  CONSISTENT"), 3)
 
     def test_too_small(self):
         # The corpus under 2x the training size (3 < 200): the N/A header note, no columns, the 135 separator.
@@ -647,7 +647,7 @@ class TestSuSampleEndToEnd(unittest.TestCase):
 
     def test_su_columns_real_corpus(self):
         """
-        The 10,000-position corpus vs the 200 training positions: the two SU columns + the 5
+        The 10,000-position corpus vs the 200 training positions: the two SU columns + the 4
         consistency lines in the file report, each re-derived from the ctx.
         """
         self.rlm.move_to_step('ANALYTICS')
@@ -656,7 +656,7 @@ class TestSuSampleEndToEnd(unittest.TestCase):
             encoding="utf-8")
         self.assertIn("PROBABILITY", content)
         self.assertIn("SU_PROBABILITY", content)
-        self.assertEqual(content.count("SU Sample Consistency"), 5)
+        self.assertEqual(content.count("SU Sample Consistency"), 4)
         ctx = self.rlm.context
         blocks = ctx.feature_set.feature_blocks
         for (name, c0, c1, _nc, n_inst) in blocks:

@@ -79,18 +79,17 @@ A FeatureSet is a named collection of features chosen at will among the intercep
 
 ## Mobility
 
-A Mobility is a scalar table-lookup feature: the mover's legal moves counted over a set of squares (the mask),
-optionally combined with the opponent's pseudo-legal moves counted over a second set (the amask).
+A Mobility is a scalar table-lookup feature: ONE player's legal moves counted over a set of squares (the mask), selected
+by a side flag ('mover' or 'opponent').
 
-- On a position with the mover's legal moves lms and the opponent's moves alms: index = popcount(lms & mask) +
-  (popcount(amask) − popcount(alms & amask)).
-- With popcount(mask) = k and popcount(amask) = a, the index runs over 0..k+a with every value reachable, so
-  n\_configurations = k + a + 1 is the count of DISTINCT index values (the feature-table size) — not the count of (lms,
-  alms) pairs.
-- A mobility has no symmetry instances: n\_instances = 1 — the mask/amask pair defines the feature directly (unlike a
-  Pattern).
-- The three standard mobilities (full-board masks): LMC — Legal Move Count, popcount(lms); ALMC — Anti Legal Move Count,
-  64 − popcount(alms); DLMC — Difference Legal Move Count, popcount(lms) + 64 − popcount(alms).
+- On a position with the mover's legal moves lms and the opponent's moves alms: index = popcount(lms & mask) for side =
+  'mover', index = popcount(alms & mask) for side = 'opponent'.
+- With popcount(mask) = k, the index runs over 0..k with every value reachable, so n\_configurations = k + 1 is the
+  count of DISTINCT index values (the feature-table size) — not the count of (lms, alms) pairs.
+- A mobility has no symmetry instances: n\_instances = 1 — the (mask, side) pair defines the feature directly (unlike a
+  Pattern). The same mask with the two sides is a valid pair of features (the standard LMC + ALMC).
+- The two standard mobilities (full-board mask): LMC — Legal Move Count, popcount(lms); ALMC — Anti Legal Move Count,
+  popcount(alms).
 
 ## Pattern
 

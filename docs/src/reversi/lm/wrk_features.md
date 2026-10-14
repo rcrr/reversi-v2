@@ -27,8 +27,8 @@ zero-feature guard test drives `_load_features` directly.)
 - `_load_patterns`: truthy `cfg.feature_set.pattern_set` → `Pattern(elt.name, elt.mask)` per element (the schema's
   field_validator already converted the 16-hex no-0x strings to Bitboard) → `PatternSet(name, patterns)`; DEBUG lines
   per pattern (name, 16-hex mask); else None.
-- `_load_mobility`: truthy `cfg.feature_set.mobility_set` → `Mobility(elt.name, elt.mask, elt.amask)` per element →
-  `MobilitySet(name, mobilities)`; DEBUG lines per mobility (name, mask, amask); else None. The `if cfg_x:` truthiness
+- `_load_mobility`: truthy `cfg.feature_set.mobility_set` → `Mobility(elt.name, elt.mask, elt.side)` per element →
+  `MobilitySet(name, mobilities)`; DEBUG lines per mobility (name, mask, side); else None. The `if cfg_x:` truthiness
   gates: the intercept is a genuine truthiness check, the two sets are pydantic models — present or None.
 
 ## Verified invariants
@@ -36,13 +36,13 @@ zero-feature guard test drives `_load_features` directly.)
 Pinned by the 41-check `probes/verify_wrk_features.py` + the 3-test `test_wrk_features.py`.
 
 - Source shape: `__all__ = ['wrk_features']`, the factory name "FEATURES", the LMContext import under
-  TYPE_CHECKING (circular guard), the worker does NOT import cache_manager, the `@validate_call` factory, the amask log,
+  TYPE_CHECKING (circular guard), the worker does NOT import cache_manager, the `@validate_call` factory, the side log,
   no non-comment trailing whitespace — probe A1-A9.
 - The loaded state: step 2 / "FEATURES"; the feature_set populated; the 'NoNameFeatureSet' default name; the intercept;
-  the MobilitySet 'BasicMobilitySet' with the 3 fixture members in sorted (mask, amask) order; the PatternSet
+  the MobilitySet 'BasicMobilitySet' with the 2 fixture members in sorted (mask, side) order; the PatternSet
   'BasicPatternSet' with the 2 fixture members in sorted mask order; the feature order (intercept, mobilities,
-  patterns); n_features 6 / n_instances 16; the per-feature counts (LMC 65/1, ALMC 65/1, DLMC 129/1, ELLE 81/8, EDGE
-  6561/4); the 3 mobility DEBUG lines with the TRUE amasks — probe B2-B8c.
+  patterns); n_features 5 / n_instances 15; the per-feature counts (LMC 65/1, ALMC 65/1, ELLE 81/8, EDGE
+  6561/4); the 2 mobility DEBUG lines with the mask + side — probe B2-B8c.
 - The independent re-derivation: the mset/pset hashes match a public-API build from the fixture values; the fs hash =
   sha3_256(b'INTERCEPT' + mset.hash + pset.hash); the independent FeatureSet is identical (feature list + hash) — probe
   B9a-d.
@@ -66,7 +66,7 @@ None.
 ## Conventions
 
 - The pure-compute level: no cache file, no cache_manager, no DB of its own — the flat rlmwf_02_FEATURES* naming never
-  materializes; the mobility DEBUG log prints the true amask (probe B8a-c).
+  materializes; the mobility DEBUG log prints the mask + side (probe B8a-c).
 - Test artifacts: the shared CUSTOM_TMP_BASE idiom + the WORKSPACE_ROOT / CUSTOM_TMP_BASE anchoring; the suite is
   DB-free.
 

@@ -161,9 +161,8 @@ def u(h):
 
 
 my_mset = MobilitySet("BasicMobilitySet", [
-    Mobility("LMC", u("FFFFFFFFFFFFFFFF"), u("0000000000000000")),
-    Mobility("ALMC", u("0000000000000000"), u("FFFFFFFFFFFFFFFF")),
-    Mobility("DLMC", u("FFFFFFFFFFFFFFFF"), u("FFFFFFFFFFFFFFFF")),
+    Mobility("LMC", u("FFFFFFFFFFFFFFFF"), "mover"),
+    Mobility("ALMC", u("FFFFFFFFFFFFFFFF"), "opponent"),
 ])
 my_pset = PatternSet("BasicPatternSet", [
     Pattern("ELLE", u("0000000000000107")),
@@ -238,8 +237,8 @@ positions2 = np.array([[0x0280820280828002, 0x0041414141414100],
 fake_ctx = types.SimpleNamespace(rds_checksum="RDSFAKE", feature_set=my_fs, positions=positions2)
 res = hlp_indexes.hlp_indexes_compute(fake_ctx)
 expected = my_fs.compute_indexes(positions2)
-check("B12 compute: (2, 16) uint32 matrix identical to FeatureSet.compute_indexes called directly",
-      res.indexes.shape == (2, 16) and res.indexes.dtype == np.uint32
+check("B12 compute: (2, 15) uint32 matrix identical to FeatureSet.compute_indexes called directly",
+      res.indexes.shape == (2, 15) and res.indexes.dtype == np.uint32
       and np.array_equal(res.indexes, expected))
 check("B13 compute: the checksums come from the ctx (rds_checksum + feature_set.hash)",
       res.rds_checksum == "RDSFAKE" and res.feature_set_hash == my_fs.hash)
@@ -286,9 +285,9 @@ check("C4 the sidecar is the flat sha3_256sum line over the .dat file "
       and sc.split()[0] != m1.context.hlp_indexes_checksum)
 n_pos = len(m1.context.positions)
 indep = m1.context.feature_set.compute_indexes(m1.context.positions)
-check("C5 indexes shape (N, 16) uint32 (N = the training position count, 16 = the fixture n_instances sum) "
+check("C5 indexes shape (N, 15) uint32 (N = the training position count, 15 = the fixture n_instances sum) "
       "and identical to the independent recompute",
-      ri.indexes.shape == (n_pos, 16) and ri.indexes.dtype == np.uint32
+      ri.indexes.shape == (n_pos, 15) and ri.indexes.dtype == np.uint32
       and np.array_equal(ri.indexes, indep))
 
 out2 = io.StringIO()
@@ -354,11 +353,11 @@ check("E2 D-084 T1 (D-085: re-anchored via test.reversi.paths): the idiom — im
       and "mkdtemp" not in tsrc and "shutil" not in tsrc)
 check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the move to INDEXES runs POSITIONS — "
       "a DB hit on a fresh base dir, the FEATURES-before-POSITIONS order)",
-      "SKIP_REGAB_DB" in tsrc and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates" in tsrc
+      "SKIP_REGAB_DB" in tsrc and "db_gate(self)  # the SKIP_REGAB_DB gate" in tsrc
       and "self.rlm.move_to_step('FEATURES')" in tsrc)
 check("E4 D-084 T3: header grammar 'How to run the wrk_indexes unit tests.' + the DB run note",
       "How to run the wrk_indexes unit tests." in tsrc
-      and "a live regab DB + LONG=1 is required;" in tsrc)
+      and "a live regab DB is required;" in tsrc)
 check("E5 the rlmwf_05_INDEXES.dat + .SHA3-256 pins and the 'Executing heavy computation' pin",
       "rlmwf_05_INDEXES.dat" in tsrc and "rlmwf_05_INDEXES.dat.SHA3-256" in tsrc
       and '"Executing heavy computation"' in tsrc)
