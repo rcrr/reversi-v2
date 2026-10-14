@@ -239,8 +239,8 @@ class TestClientEvaluationFunction(unittest.TestCase):
     def test_performance_10k_smoke(self):
         """
         The 10k-board SMOKE version of test_performance_1m (ungated: it runs in the simple default
-        tier, a plain smoke check, not a PERF-gated one): no print — the standard tests print
-        nothing.
+        tier): the vectorized EF over a dense 10,000-board batch, with the parity sanity check
+        (the first 100 outputs bit-exact vs the scalar EF) + a deterministic re-run.
         """
         size = 10_000
         positions = self._positions(size)
