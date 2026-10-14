@@ -316,4 +316,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   docstring now states only the parity check). The wave: D-544 (the rework) → D-545 (the VVLONG completion)
   → D-546 (the definition precision) → D-548 (the smoke print removed) → D-549 (this docstring). The A2050
   verification reproduced the pair's 12.47 in the new format. Session closed; a new one opens.
+- LOG wave, step 1 (D-550): the three agreed changes — the per-step DEBUG duration line in the state
+  machine, the FINAL\_LOG\_PRINT closing DEBUG "log written (N lines)" line, and the file floor at
+  DEBUG (the TRACE hot-loop detail stays out of the file; TRACE reserved for the L-BFGS loop / the
+  Numba kernels). Display goldens + the final-log test + the probe re-pinned. Full LONG=1 suite green.
+  The per-level reclassifications follow, one level per wave.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

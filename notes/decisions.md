@@ -1951,3 +1951,17 @@ D-549 | 2026-10-14 | The docstring discipline (Roberto's principle): we write wh
          now states only what the test does (the 10,000-board vectorized EF parity check + the deterministic re-run).
          The mirror doc updated at both mentions. The MOBILITY wave is CLOSED with this (D-544 → D-545 → D-546 → D-548
          → D-549); a new session opens. Verified: the full LONG=1 suite green.
+
+D-550 | 2026-10-14 | The LOG wave, step 1 (Roberto's GO for the three agreed changes; the per-level waves follow one
+         level at a time, each with its own D): (1) the StateMachine now logs a DEBUG per-step duration line after every
+         "Completed UP step" ("Step <WORKER> <DIR> duration: 0.123 s" — perf\_counter); (2) FINAL\_LOG\_PRINT closes
+         with a DEBUG "log written: <path> (N lines)" line (replacing the old INFO "full log written"); (3) the
+         FINAL\_LOG\_PRINT file floor is now DEBUG — format\_event\_log takes a min\_relevance parameter (default TRACE
+         = the old behavior) and the writer passes Relevance.DEBUG, keeping the TRACE hot-loop detail out of the file
+         (the TRACE level stays reserved for the L-BFGS loop / the Numba kernels, per Roberto). The config field
+         description updated. Collateral goldens: the state machine's 3 display goldens (the new DEBUG line in the
+         stdout pin + the event-log table row; the frozen-clock history durations 0.003000 → 0.004000 — the extra
+         log\_event per step adds a tick), the final-log test (the mock's min\_relevance parameter, the "log written"
+         pins, the trailing post-write count 2 → 3), the probe B2/B4. The per-level reclassifications (the L-BFGS
+         iterations, the outlier lines, the cache boilerplate, …) are the FOLLOWING waves — this one touches no worker.
+         Verified: the full LONG=1 suite green.
