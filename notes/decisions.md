@@ -1927,3 +1927,12 @@ D-546 | 2026-10-14 | The MOBILITY definition precision (Roberto's review of the 
          (test\_mobility.py). Docs-only change — zero behavior change; the two random\_game.py kernel comments ("the
          opponent's legal set on the swapped view") are engine-level descriptions of the kernel computation and were
          deliberately left. Verified: the three mobility probes green, the full LONG=1 suite green.
+
+D-547 | 2026-10-14 | The [PERF …] print in a non-PERF run (Roberto's observation on a default-tier run): the DIAGNOSIS —
+         test\_client.py's test\_performance\_1m is correctly double-gated (PERF=1 + LONG=1) and was skipped; the line
+         he saw came from test\_performance\_10k\_smoke, the DELIBERATE ungated 10k-board smoke benchmark of the default
+         tier, which reused the same "[PERF …]" print prefix as the house PERF pattern — cosmetic confusion, not a
+         missing gate. The FIX: the smoke twin now prints the "[SMOKE make\_evaluation\_array]" prefix (the docstring
+         states the rule: a non-PERF run must never show a [PERF …] line); the 1M PERF test keeps the house prefix. The
+         mirror doc updated at both mentions. Verified: the module in the default tier prints [SMOKE …] with zero [PERF
+         …] lines (10 tests ok, 2 skips); the full LONG=1 suite green.

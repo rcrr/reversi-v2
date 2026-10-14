@@ -304,4 +304,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   moves it would have if it were its turn). The approved wording applied to all 8 active-zone locations (the
   mobility.py docstrings x4, the config schema, the mirror doc, the naming register, the opponent-side test
   docstring). Docs-only; probes + full LONG=1 suite green.
+- D-547: Roberto's observation — a [PERF …] line in a PERF=0 run. Diagnosis: NOT a missing gate (the 1M test is
+  double-gated PERF=1 + LONG=1); the line was the deliberate UNGATED 10k smoke twin reusing the house [PERF …]
+  prefix. Fix: the smoke twin prints [SMOKE …] now (a non-PERF run must never show a [PERF …] line); mirror doc
+  updated. Default-tier module run: [SMOKE …] present, zero [PERF …]; full LONG=1 suite green.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
