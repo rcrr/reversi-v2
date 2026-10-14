@@ -325,4 +325,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   C2 the six DEBUG operational-section echoes in (the log now self-sufficient on the run's parameters;
   the DB echo never carries the password). Reviewed on the target-level artifact, committed after the
   full LONG=1 suite green.
+- LOG wave, level 2 (D-552, iterative): the FEATURES worker — F1 the three "object created,
+  hash" DEBUG lines out, F2 the raw intercept-config echo out, F3 the per-feature table gains the
+  two cumulative position columns (first design-matrix column, first w\_dense weight). Reviewed on
+  the target-level artifact, committed after the full LONG=1 suite green.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

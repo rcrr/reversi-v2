@@ -1974,3 +1974,12 @@ D-551 | 2026-10-14 | The LOG wave, level 1 — CONFIG (the iterative per-level p
          with the dbname/user/host — never the password — and the validation data set): the log is now self-sufficient
          on WHAT THE RUN RAN WITH. The mirror doc updated. Verified on the target\_level=CONFIG artifact run (the
          18-line log reviewed by Roberto) + the full LONG=1 suite green.
+
+D-552 | 2026-10-14 | The LOG wave, level 2 — FEATURES (iterative, reviewed on the target-level artifact): F1 the three
+         DEBUG "… set object created, hash = '…'" lines removed (the name+hash live in the INFO summary); F2 the DEBUG
+         "Intercept feature configuration: '…'" raw-echo removed; F3 (Roberto) the per-feature DEBUG table gains two
+         cumulative columns — first\_inst\_pos (the feature's first design-matrix column) and first\_conf\_pos (its
+         first w\_dense weight, the per-feature iwmapping offset): the log now shows WHERE each feature sits in the
+         model vectors. The cumulative arithmetic casts the numpy uint8 fields to int (the raw product overflows uint8).
+         The mirror doc updated. Verified on the target \_level=FEATURES artifact (first\_conf\_pos 0/1/66 as expected)
+         + the full LONG=1 suite green.
