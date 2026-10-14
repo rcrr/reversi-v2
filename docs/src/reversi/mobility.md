@@ -1,7 +1,9 @@
 # reversi/mobility.py
-The mobility feature of the Reversi engine: a scalar table-lookup feature counting ONE player's legal moves masked by a
-square set (`mask`), selected by a side flag (`side`): 'mover' counts the mover's legal moves (the standard LMC — Legal
-Move Count — uses the full-board mask), 'opponent' counts the opponent's (the standard ALMC — Anti Legal Move Count).
+The mobility feature of the Reversi engine: a scalar table-lookup feature counting the moves available for a player
+over a square set (`mask`), selected by a side flag (`side`). The game rules define the available moves only for the
+player to move: 'mover' counts the mover's legal moves (the mobility — the standard LMC, Legal Move Count, uses the
+full-board mask); the anti-mobility is a feature-level definition: 'opponent' counts the moves the opponent would have
+if it were the opponent's turn to move (the would-be moves — the standard ALMC, Anti Legal Move Count).
 Numba kernel, `Index` (uint32) indexes.
 
 ## API

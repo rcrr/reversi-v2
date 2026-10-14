@@ -53,14 +53,17 @@ __all__ = ['Mobility',
 
 class Mobility:
     """
-    The Mobility class is a measure of the available moves for ONE player, counted over a defined
-    set of squares (the mask) and selected by a side flag. With side = 'mover' it counts the
-    mover's legal moves in the mask (the standard "LMC", Legal Move Count, uses the full-board
-    mask); with side = 'opponent' it counts the opponent's legal moves in the same mask (the
-    standard "ALMC", Anti Legal Move Count, uses the full-board mask).
+    The Mobility class is a scalar table-lookup feature counting the moves available for a player over a
+    defined set of squares (the mask), selected by a side flag. The game rules define the available moves
+    only for the player to move: with side = 'mover' the feature counts the mover's legal moves in the
+    mask — the mobility (the standard "LMC", Legal Move Count, uses the full-board mask). The rules define
+    no such quantity for the opponent; the anti-mobility is a feature-level definition: with side =
+    'opponent' the feature counts the moves the opponent would have if it were the opponent's turn to move
+    (the would-be moves alms), over the same mask (the standard "ALMC", Anti Legal Move Count, uses the
+    full-board mask).
 
-    On a position with the mover's legal moves lms and the opponent's legal moves alms, the
-    feature index is:
+    On a position with the mover's legal moves lms and the opponent's would-be moves alms, the feature
+    index is:
 
         index = popcount(lms & mask)    if side = 'mover'
         index = popcount(alms & mask)   if side = 'opponent'
@@ -81,7 +84,8 @@ class Mobility:
         Args:
             name: The human-readable label for the mobility (e.g., "LMC", "ALMC").
             mask: The 64-bit mask defining the squares counted for this mobility feature.
-            side: The player whose legal moves are counted over the mask ('mover' or 'opponent').
+            side: Which player's moves are counted over the mask: the mover's legal moves, or the
+            opponent's would-be moves ('mover' or 'opponent').
         """
 
         self.name = name
@@ -206,7 +210,8 @@ class MobilitySet:
             popcount(lms[i]  & mask_j)   if side_j = 'mover'
             popcount(alms[i] & mask_j)   if side_j = 'opponent'
 
-        where lms[i] / alms[i] are the legal moves of the mover / opponent.
+        where lms[i] / alms[i] are the mover's legal moves / the opponent's would-be moves (the moves
+        the opponent would have if it were its turn).
 
         Column contract: the L output columns follow the set's sorted (mask, side) order (the
         same order returned by names and masks), NOT the caller's insertion order. Label columns
@@ -274,8 +279,8 @@ def _numba_compute_indexes_kernel(lms: np.ndarray, alms: np.ndarray,
                                   masks: np.ndarray, sides: np.ndarray) -> np.ndarray:
     """
     Optimized Numba kernel to process indexes loop-by-loop without temporary memory
-    allocations. For each (position, mobility) pair it counts the legal moves of the side
-    selected by the one-byte side code (0 = mover, 1 = opponent) over the mobility mask.
+    allocations. For each (position, mobility) pair it counts the mover's legal moves (side code 0)
+    or the opponent's would-be moves (side code 1) over the mobility mask.
     """
     N = lms.shape[0]
     L = masks.shape[0]

@@ -472,9 +472,10 @@ class TestMobilitySet(unittest.TestCase):
 
     def test_compute_indexes_opponent_side_counts_opponent_moves(self):
         """
-        The opponent side counts the OPPONENT's legal moves over the mask: a direct, raw count.
-        The position has the mover on E1 (no legal moves) and the opponent on F1, G1, H1 (one
-        legal move, D1) — with the A1-D1 mask the opponent index is exactly 1.
+        The opponent side counts the opponent's WOULD-BE moves over the mask — a direct, raw count:
+        the moves the opponent would have if it were its turn to move. The position has the mover on
+        E1 (no legal moves) and the opponent on F1, G1, H1 (one would-be move, D1) — with the A1-D1
+        mask the opponent index is exactly 1.
         """
         ml = [
             Mobility('OPP_SIDE_TEST', Bitboard(0x000000000000000F), 'opponent')

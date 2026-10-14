@@ -79,11 +79,13 @@ A FeatureSet is a named collection of features chosen at will among the intercep
 
 ## Mobility
 
-A Mobility is a scalar table-lookup feature: ONE player's legal moves counted over a set of squares (the mask), selected
-by a side flag ('mover' or 'opponent').
+A Mobility is a scalar table-lookup feature counting the moves available for a player over a set of squares (the mask),
+selected by a side flag. The game rules define the available moves only for the player to move (side = 'mover' — the
+mobility); the anti-mobility (side = 'opponent') is a feature-level definition: the moves the opponent would have if it
+were the opponent's turn to move (the would-be moves).
 
-- On a position with the mover's legal moves lms and the opponent's moves alms: index = popcount(lms & mask) for side =
-  'mover', index = popcount(alms & mask) for side = 'opponent'.
+- On a position with the mover's legal moves lms and the opponent's would-be moves alms: index = popcount(lms & mask)
+  for side = 'mover', index = popcount(alms & mask) for side = 'opponent'.
 - With popcount(mask) = k, the index runs over 0..k with every value reachable, so n\_configurations = k + 1 is the
   count of DISTINCT index values (the feature-table size) — not the count of (lms, alms) pairs.
 - A mobility has no symmetry instances: n\_instances = 1 — the (mask, side) pair defines the feature directly (unlike a

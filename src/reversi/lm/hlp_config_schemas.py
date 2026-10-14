@@ -321,7 +321,7 @@ class MobilityFeatureConfig(LMBaseConfig):
     """Configuration for a mobility feature."""
     name: str
     mask: Bitboard = Field(..., description="Counted-squares mask in HEX format, no 0x prefix, just 16 digits.")
-    side: Literal['mover', 'opponent'] = Field(..., description="Whose legal moves are counted over the mask: 'mover' or 'opponent'.")
+    side: Literal['mover', 'opponent'] = Field(..., description="Which player's moves are counted over the mask: the mover's legal moves, or the opponent's would-be moves.")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
