@@ -13,7 +13,9 @@ the corpus engine, the binio layout, the signature, the statistics kernels).
 - `wrk_su_analysis() -> Worker` — the factory (@validate_call).
 - `_up(ctx)`: the enable no-op (the "disabled" log, the tables cleared) → the cache_manager_load_or_compute over
   the hlp (the load with checksum=False — the manager verifies the sidecar at its step 2, no double hash) → the
-  "loaded from cache / computed" log → the hlp statistics (phase 2) → the ctx.su_analysis_tables publication.
+  the DEBUG "loaded from cache / computed" log → the hlp statistics (phase 2, the report's data
+  rows stay in the report file — the log carries only the "report written" INFO) → the
+  ctx.su_analysis_tables publication (the DEBUG log).
 - `_down(ctx)`: clears the ctx.su_analysis_tables (the failure recovery).
 
 ## Architecture

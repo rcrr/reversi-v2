@@ -1084,7 +1084,6 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
                 f"K_obs{kobs:>{kw}}, H {h:>{hw}}, H_norm {hn:>{hnw}}, coverage {cov:>{covw}}, "
                 f"never-obs{never:>{nw}}")
         lines.append(line)
-        ctx.log_event(Relevance.INFO, line)
     lines.append("")
     thresholds = cfg_fa.rarity_thresholds or []
     if thresholds:
@@ -1108,7 +1107,6 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
             parts = [f"{labels[j]}{bins[j]:>{bwidths[j]}}" for j in range(len(labels))]
             line = f"  {name:<{name_w}} inst {i:>{inst_w}}: " + " | ".join(parts)
             lines.append(line)
-            ctx.log_event(Relevance.INFO, line)
         lines.append("")
     lines.append("Section C: Symmetrical uncertainty")
     lines.extend(_SU_DESCRIPTION)
@@ -1118,11 +1116,9 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
     for gk, grp in su_groups:
         header = " - ".join(gk)
         lines.append(header)
-        ctx.log_event(Relevance.INFO, header)
         for (an, ai, bn, bi, s) in grp[:20]:
             line = f"  SU {an}[{ai}] - {bn}[{bi}] = {s:.4f}"
             lines.append(line)
-            ctx.log_event(Relevance.INFO, line)
         if not grp:
             lines.append("  (none)")
     report_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / cfg_fa.report_file_name

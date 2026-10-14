@@ -73,14 +73,14 @@ def _up(ctx: "LMContext") -> None:
         compute_fn  = lambda: hlp_su_analysis_compute(ctx),
         logger_fn   = ctx.log_event,
     )
-    ctx.log_event(Relevance.INFO,
+    ctx.log_event(Relevance.DEBUG,
                   f"SU_ANALYSIS corpus: "
                   f"{'loaded from cache' if cache_hit else 'computed'}.")
     # Phase 2 — the statistics (cheap, recomputed on EVERY run).
     hlp_su_analysis_statistics(ctx, tables)
     # Publish the tables on the ctx (for the ANOVA level).
     ctx.su_analysis_tables = tables
-    ctx.log_event(Relevance.INFO,
+    ctx.log_event(Relevance.DEBUG,
                   "su_analysis_tables published on the ctx.")
 
 
