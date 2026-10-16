@@ -2023,3 +2023,8 @@ D-558 | 2026-10-14 | The LOG wave, level 5 — INDEXES (iterative): I1 the "Mode
          indexes-shape line — "Indexes shape: (199932, 6)." (the n\_positions × n\_feature-instances matrix: 1 INTERCEPT
          + 1 LMC + 4 EDGE). The checksum line stays INFO (the identity). The mirror doc updated. Default-tier guard
          green.
+
+D-559 | 2026-10-16 | The LOG wave, level 6 — DESIGN\_MTR (iterative): D1 the "Model attribute design\_matrix has been
+         set." publication line to DEBUG; D2 the "Design Matrix computed/loaded. Shape: …" line to DEBUG (the bounded
+         detail, consistent with the INDEXES shape line). The checksum line stays INFO (the identity). The mirror doc
+         updated. Default-tier guard green.

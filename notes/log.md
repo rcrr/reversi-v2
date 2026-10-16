@@ -344,4 +344,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   LONG=1 on demand + at the wave-end milestone.
 - LOG wave, level 5 (D-558, iterative): the INDEXES worker — the publication line to DEBUG + the
   new DEBUG indexes-shape line (199932 × 6).
+- LOG wave, level 6 (D-559, iterative): the DESIGN\_MTR worker — the publication + the shape lines
+  to DEBUG.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
