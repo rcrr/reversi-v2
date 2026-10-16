@@ -65,8 +65,8 @@ def _up(ctx: "LMContext") -> None:
     )
 
     ctx.design_matrix = dm_obj.X
-    ctx.log_event(Relevance.INFO, "Model attribute design_matrix has been set.")
-    ctx.log_event(Relevance.INFO,
+    ctx.log_event(Relevance.DEBUG, "Model attribute design_matrix has been set.")
+    ctx.log_event(Relevance.DEBUG,
                   f"Design Matrix computed/loaded. Shape: {ctx.design_matrix.shape}")
 
     ctx.log_event(Relevance.INFO,

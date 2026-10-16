@@ -19,8 +19,9 @@ pipeline; the flat files DO materialize (the DB test pins their existence).
   already verified by cache_manager), `store_fn = hlp_design_matrix_store_to_file`,
   `validate_fn = lambda cached_dm: hlp_design_matrix_is_cache_consistent(ctx, cached_dm)` (the 1-field metadata
   compare), `compute_fn = lambda: hlp_design_matrix_compute(ctx)`, `logger_fn = ctx.log_event`. Then
-  `ctx.design_matrix = dm_obj.X` (the BARE ndarray, NOT the object) + the INFO "Design Matrix computed/loaded. Shape:
-  {shape}." + "Design matrix checksum (design_matrix_checksum): {checksum}." lines + `ctx.design_matrix_checksum =
+  `ctx.design_matrix = dm_obj.X` (the BARE ndarray, NOT the object) + the DEBUG "Design Matrix
+  computed/loaded. Shape: {shape}" line + the INFO "Design matrix checksum (design_matrix_checksum):
+  {checksum}." line + `ctx.design_matrix_checksum =
   dm_checksum` (the 2nd attribute, the DATA checksum — the cache_manager 3rd return element).
 - `_down`: INFO "Clearing Design Matrix attribute..." → BOTH attributes to None — `ctx.design_matrix` AND
   `ctx.design_matrix_checksum` (the house shape: object + checksum).
