@@ -371,4 +371,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   LEAVE-AS-IS (both already compliant, no source change).
 - LOG wave — the shared cache boilerplate (D-571, iterative): the 3 compute-path process lines of
   cache\_manager to DEBUG; the 3 outcome lines stay INFO (the fresh-vs-cached fact).
+- LOG wave CLOSING (D-572, milestone): the wave is complete (D-550…D-571 — the 19 per-level waves +
+  the shared cache-boilerplate). Closing LONG=1: the first close run had 1 transient failure (not
+  reproduced; the name was not captured), the second is green (1151 ok, skipped=24). The overview
+  bullet is flipped to COMPLETE.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

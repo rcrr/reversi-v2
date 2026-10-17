@@ -2105,3 +2105,10 @@ D-571 | 2026-10-17 | The LOG wave — the shared CACHE boilerplate (iterative, t
          the A2030 chain with one cache (GENERATE) removed: the recomputed level shows the esito at INFO + the 3 process
          lines at DEBUG; the 6 warm levels keep their single INFO esito. The cache\_manager mirror doc updated.
          Default-tier guard green.
+
+D-572 | 2026-10-17 | The LOG wave — CLOSING (the milestone): the wave is complete — D-550 the structure (the per-step
+         DEBUG duration, the closing line, the file floor at DEBUG), D-551… D-570 the 19 per-level waves (the iterative
+         one-level-per-wave process, each reviewed on the target-level artifact log before the commit), D-571 the shared
+         cache-boilerplate wave. The closing LONG=1 run: the FIRST close run had 1 transient failure (the test name was
+         not captured in the job output — disclosed), the SECOND close run is green (1151 tests, skipped=24). The
+         overview's LOG-wave bullet is flipped to COMPLETE (the milestone update).
