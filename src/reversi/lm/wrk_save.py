@@ -27,6 +27,8 @@
 
 from __future__ import annotations
 
+import hashlib
+
 from pydantic import validate_call, ConfigDict
 
 from typing import TYPE_CHECKING
@@ -58,6 +60,13 @@ def _up(ctx: "LMContext") -> None:
     # stands alone).
     model_weights_write_file(ctx, output_path, compressed=True)
     ctx.log_event(Relevance.INFO, f"Model weights saved to {output_path}")
+    # The integrity echo (the bounded detail): the final artifact is the one file with no checksum
+    # line yet — every other artifact (indexes, design matrix, wmaps, zed, w_dense, the data sets)
+    # has its. The compressed file bytes hash is deterministic (lz4 is deterministic per content).
+    file_bytes = output_path.read_bytes()
+    file_checksum = hashlib.sha3_256(file_bytes).hexdigest()
+    ctx.log_event(Relevance.DEBUG,
+                  f"Model weights file: {len(file_bytes)} bytes, checksum: {file_checksum}.")
 
 
 def _down(ctx: "LMContext") -> None:

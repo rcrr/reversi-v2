@@ -24,7 +24,9 @@ persist across runs).
 - `__all__ = ['wrk_save']`.
 - `_up`: INFO "Saving model weights to disk..." → `output_path = ctx.cfg.base_dir / ctx.cfg.output` → the comment block
   (the single-source semantics) → `model_weights_write_file(ctx, output_path, compressed=True)` → INFO "Model weights
-  saved to {output_path}". The SAVE log span is these 2 lines (plus the state-machine's "Starting worker SAVE, UP step"
+  saved to {output_path}" → DEBUG "Model weights file: {size} bytes, checksum: {sha3-256}." (the
+  integrity echo — the final artifact's size + checksum, the compressed bytes hash). The SAVE log
+  span is these 3 lines (plus the state-machine's "Starting worker SAVE, UP step"
   / "Completed UP step" lines).
 - `_down`: INFO "Clearing save attributes..." + the comment "Nothing to clear from context, as we just read from it." —
   SAVE's `_down` clears nothing (like ANOVA, CLIENT_CHECK and PLOT); VALIDATE and ANALYTICS each clear 4 fields.
