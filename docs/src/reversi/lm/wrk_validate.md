@@ -21,7 +21,8 @@ metrics dict plus the published series and records — and logs the metric block
   (vld_mae_y is 0 — perfect Y-space fit)" instead of dividing by zero).
 - The top-20 extreme-residual report (it belongs to the level that COMPUTES the residuals): the
   header line + 20 lines carrying the rank, the validation index, the position's bitboards, the game value, the fitted
-  value and the residual. The order is `hlp_validate.hlp_validate_top_outliers`, so it is deterministic.
+  value and the residual — logged at DEBUG (the per-position detail; the metric block stays INFO). The order is
+  `hlp_validate.hlp_validate_top_outliers`, so it is deterministic.
 - `_outlier_records`: the 20 records as raw values (index, mover, opponent, game_value, fitted, residual) — the data
   behind the report, published for the levels that consume it.
 - `_down`: logs "Clearing validation attributes..." and clears the four attributes.

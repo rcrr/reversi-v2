@@ -91,10 +91,10 @@ def _up(ctx: "LMContext") -> None:
 
     # The top-20 extreme-residual report: it belongs to the level that COMPUTES the residuals; the
     # 20 records are published for the levels that consume them.
-    ctx.log_event(Relevance.INFO,
+    ctx.log_event(Relevance.DEBUG,
                   "Top 20 extreme validation residuals (outlier report):")
     for rank, rec in enumerate(ctx.vld_outliers, 1):
-        ctx.log_event(Relevance.INFO,
+        ctx.log_event(Relevance.DEBUG,
                       f"  {rank:2d}. vld position {rec['index']:>7d} "
                       f"({rec['mover']:016X}/{rec['opponent']:016X}): "
                       f"game value {rec['game_value']:+.0f}, "
