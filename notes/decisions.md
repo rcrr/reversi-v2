@@ -2028,3 +2028,10 @@ D-559 | 2026-10-16 | The LOG wave, level 6 — DESIGN\_MTR (iterative): D1 the "
          set." publication line to DEBUG; D2 the "Design Matrix computed/loaded. Shape: …" line to DEBUG (the bounded
          detail, consistent with the INDEXES shape line). The checksum line stays INFO (the identity). The mirror doc
          updated. Default-tier guard green.
+
+D-560 | 2026-10-17 | The LOG wave, level 7 — ANOVA (iterative, option (b) per Roberto — the SU\_ANALYSIS precedent): the
+         per-feature rows (the 5 eta²/omega² + the 5 adherence) REMOVED from the log (their canonical home: the report +
+         the CSV — the log carries only the two "written" artifact lines). The exhaustive anova config section (all 5
+         fields, export\_csv true) verified the CSV path on the artifact run. The two tests that pinned the per-feature
+         rows in the log re-pinned on the REPORT content (same data, the right home). The mirror doc updated.
+         Default-tier guard green.

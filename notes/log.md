@@ -346,4 +346,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   new DEBUG indexes-shape line (199932 × 6).
 - LOG wave, level 6 (D-559, iterative): the DESIGN\_MTR worker — the publication + the shape lines
   to DEBUG.
+- LOG wave, level 7 (D-560, iterative): the ANOVA worker — the per-feature rows out of the log
+  (option b, the report is their home), the two tests re-pinned on the report. The exhaustive anova
+  config section verified the CSV path.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
