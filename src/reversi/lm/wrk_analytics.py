@@ -63,9 +63,11 @@ def _up(ctx: "LMContext") -> None:
     # 2. Format the console report
     console_report = hlp_analytics_format_console_report(ctx)
 
-    # 3. Log the report line by line so it shows up in the StateMachine logs
+    # 3. Log the report line by line (at DEBUG — the bounded report body; its canonical home is
+    # the report file, which the INFO "saved to" line points to) so it shows up in the StateMachine
+    # logs
     for line in console_report.strip().split('\n'):
-        ctx.log_event(Relevance.INFO, line)
+        ctx.log_event(Relevance.DEBUG, line)
 
     # 4. Save the complete report to a text file using the config filename
     file_report = hlp_analytics_format_file_report(ctx)

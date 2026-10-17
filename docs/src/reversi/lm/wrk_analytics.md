@@ -20,7 +20,7 @@ semantics; `_down` does NOT unlink it). The machine contract: `_up` publishes th
 - `_up`: `log_event(INFO, "Generating model analytics report...")`; `ctx.train_metrics = hlp_analytics_compute_training_metrics(ctx)`
   (pre-declared on LMContext); `dense = hlp_analytics_compute_training_dense_metrics(ctx)` → `ctx.train_dense_metrics = dense.metrics`
   + `ctx.train_dense_rn = dense.rn_y` (both pre-declared on LMContext); `console_report = hlp_analytics_format_console_report(ctx)`;
-  the 18 header lines logged line by line; `file_report = hlp_analytics_format_file_report(ctx)` written to
+  the 18 header lines logged line by line at DEBUG (the bounded report body — its canonical home is the file report); `file_report = hlp_analytics_format_file_report(ctx)` written to
   `ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name`; `log_event(INFO, "Analytics report saved to ...")`;
   publishes `ctx.analytics_report = console_report` ("Store in context if needed by the SAVE worker later").
 - `_down`: logs "Clearing analytics attributes..." then clears the FOUR attributes to None — the scope is complete:
@@ -36,8 +36,8 @@ Pinned by the 36-check `probes/verify_analytics.py` + the 15-test worker suite (
   pydantic import, NO pathlib import, NO cache_manager import (A9), `_up` sets the 4 ctx attributes, `_down` clears all
   four, `Worker("ANALYTICS", ...)`, 0 non-comment trailing-ws lines.
 - The live rlm_02 flow (probe C-tier + the suite): the full pipeline through ANALYTICS (step 15, no crash) with the
-  22-line log span (the 2 worker INFO lines as endpoints, the 2 data-module INFO lines + 18 header lines between
-  them); the 7-metric + 4-key
+  22-line log span (the 2 worker INFO lines as endpoints, the 2 data-module INFO lines + 18 DEBUG header lines
+  between them); the 7-metric + 4-key
   dense goldens (the module doc's live invariants); the file report at `base_dir/model_analytics_report.txt`
   byte-deterministic (date-masked sha3_256 `bda8209842fa11cd6b0335cf99fbfdfd401bbc3b09e1d5a1f3e60338a4b3cc75` —
   C5a/C5b); NO rlmwf_15* file and the rlmwf_* set unchanged (C7/C7b); the 2nd instance: identical 3 attributes
