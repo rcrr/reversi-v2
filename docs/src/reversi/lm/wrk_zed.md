@@ -17,8 +17,8 @@ publishes the 4 context attributes, `_down` clears ALL FOUR.
   pydantic; `LMContext` under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by design — pinned by probe B).
 - `_up`: INFO "Computing Zed array (Z) and transformations..." → the by-design comment ("ZED computation is very fast
   (vectorized math), so we compute it on the fly without disk caching.") → `zed_obj = hlp_zed_compute(ctx)` →
-  `zed_checksum = zed_obj.compute_sha3_256_hash()` → publishes `ctx.y2z / ctx.z2y / ctx.z / ctx.zed_checksum` → the 2
-  INFO lines (the shape + the checksum).
+  `zed_checksum = zed_obj.compute_sha3_256_hash()` → publishes `ctx.y2z / ctx.z2y / ctx.z / ctx.zed_checksum` →
+  the 3 lines (the DEBUG shape + the DEBUG range + the INFO checksum).
 - `_down`: INFO "Clearing Zed attributes..." → ALL FOUR attributes to None (the house shape — pinned by
   `test_down_clears_zed_attributes`).
 

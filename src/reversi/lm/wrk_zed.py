@@ -56,7 +56,9 @@ def _up(ctx: "LMContext") -> None:
     ctx.z = zed_obj.z
     ctx.zed_checksum = zed_checksum
 
-    ctx.log_event(Relevance.INFO, f"Zed array computed. Shape: {ctx.z.shape}")
+    ctx.log_event(Relevance.DEBUG, f"Zed array computed. Shape: {ctx.z.shape}")
+    ctx.log_event(Relevance.DEBUG,
+                  f"Zed array range: min {ctx.z.min():.4f}, max {ctx.z.max():.4f}.")
     ctx.log_event(Relevance.INFO, f"Zed array checksum (zed_checksum): {zed_checksum}.")
 
 
