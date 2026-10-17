@@ -2049,3 +2049,12 @@ D-562 | 2026-10-17 | The LOG wave, level 9 — ZED (iterative): Z1 the "Zed arra
 D-563 | 2026-10-17 | The LOG wave, level 10 — GRADIENT (iterative, LEAVE-AS-IS): the level is already compliant — the
          start line + the one bounded result line ("Gradient function generated (high\_performance: True)." — a run
          fact, INFO-deserving) + the machine lines. No source change.
+
+D-564 | 2026-10-17 | The LOG wave, level 11 — OPTIMIZE (iterative, Roberto's correction to my TRACE proposal): the whole
+         L-BFGS loop output (the per-iteration lines at the configured log\_every\_n cadence + the terminal
+         Converged/Stopped/fgc/Restart lines) moves from INFO to DEBUG — the iteration frequency is already
+         USER-THROTTLED by the config (log\_every\_n: 1/5/10/20), so it is bounded-by-choice detail that stays in the
+         log file, not hot-loop TRACE. One line changed (the wrk\_optimize logger\_fn sink); the opt\_lbfgs tool and its
+         tests are untouched. The level's own lines (Starting, "Optimization finished. Reason…", the w\_checksum,
+         Completed) stay INFO. The mirror doc updated. Verified on a fresh run (the checkpoint removed from build/tmp):
+         77 lines — 5 INFO + 72 DEBUG. Default-tier guard green.

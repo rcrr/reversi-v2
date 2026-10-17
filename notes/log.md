@@ -355,4 +355,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   range line (the clipping endpoints at a glance).
 - LOG wave, level 10 (D-563): the GRADIENT worker reviewed — LEAVE-AS-IS (already compliant, no
   source change).
+- LOG wave, level 11 (D-564, iterative): the OPTIMIZE worker — the L-BFGS loop output to DEBUG
+  (Roberto's correction: the log\_every\_n config is the user's frequency throttle, so the
+  per-iteration lines stay in the log, at DEBUG).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
