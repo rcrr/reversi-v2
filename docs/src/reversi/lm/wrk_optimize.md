@@ -1,7 +1,8 @@
 # reversi/lm/wrk_optimize.py
 The OPTIMIZE worker of the LM pipeline — the 11th active level (step 11). `_up` implements a 4-step recipe:
 (1) consult the existing checkpoint (if any) through the two hlp_optimize gates, deciding between completed-load,
-warm-resume and scratch; (2) build the two lbfgs wrappers (`logger_fn` → `ctx.log_event`, `save_fn` →
+warm-resume and scratch; (2) build the two lbfgs wrappers (`logger_fn` → `ctx.log_event` at DEBUG,
+  `save_fn` →
 intermediate INCOMPLETE checkpoints); (3) run `lbfgs` (opt_lbfgs) with the GRADIENT-level `ctx.fg` closure
 (float32 contract); (4) update the context (`w`, `opt_info`, `w_checksum`) and save the final checkpoint.
 The checkpoint is written on EVERY run (final save unconditional; intermediate only when `save_every_n > 0`)
@@ -25,7 +26,7 @@ and read only when `checkpoint_path.exists() and ctx.use_cache` (a cache-disable
     consistency check (incl. the ridge gate) → mismatch: WARN "Starting from scratch"; converged or `iters >= max_iters`
     → completed: load cp['w'] + `w_checksum` + `opt_info`, `return` (skip lbfgs); `iters < max_iters` → warm-resume:
     w_init + the initial sl/yl/rho/iter from the checkpoint (the old trailing else was unreachable — iters is an int).
-  - step 2: `logger_fn` (INFO) + `save_fn` (7 params, matches the lbfgs hint; writes an INCOMPLETE/non-converged
+  - step 2: `logger_fn` (DEBUG) + `save_fn` (7 params, matches the lbfgs hint; writes an INCOMPLETE/non-converged
     checkpoint; `iters=k+1` — completed-count semantics, as the final save).
   - step 3: the `lbfgs` call: `fg=ctx.fg`, `x0=w_init`, the 8 config scalars, both wrappers, the 4 warm-start kwargs.
   - step 4: `ctx.w = w_opt`, `ctx.opt_info = hlp_optimize_info_dict(info)`,

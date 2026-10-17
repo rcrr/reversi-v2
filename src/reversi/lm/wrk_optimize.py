@@ -108,7 +108,7 @@ def _up(ctx: "LMContext") -> None:
 
     # 2. Setup wrappers
     def logger_fn(msg: str):
-        ctx.log_event(Relevance.INFO, msg)
+        ctx.log_event(Relevance.DEBUG, msg)
 
     def save_fn(w, sl, yl, rho, k, f, g_norm):
         hlp_optimize_save_checkpoint(
