@@ -2045,3 +2045,7 @@ D-562 | 2026-10-17 | The LOG wave, level 9 — ZED (iterative): Z1 the "Zed arra
          (the missing B-ZED entry) the new DEBUG range line — "Zed array range: min 0.0100, max 0.9900." (the
          logit-clipping endpoints show at a glance). The checksum line stays INFO (the identity). The mirror doc
          updated. Default-tier guard green.
+
+D-563 | 2026-10-17 | The LOG wave, level 10 — GRADIENT (iterative, LEAVE-AS-IS): the level is already compliant — the
+         start line + the one bounded result line ("Gradient function generated (high\_performance: True)." — a run
+         fact, INFO-deserving) + the machine lines. No source change.

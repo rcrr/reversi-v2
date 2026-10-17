@@ -353,4 +353,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   lines to DEBUG.
 - LOG wave, level 9 (D-562, iterative): the ZED worker — the shape line to DEBUG + the new DEBUG
   range line (the clipping endpoints at a glance).
+- LOG wave, level 10 (D-563): the GRADIENT worker reviewed — LEAVE-AS-IS (already compliant, no
+  source change).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
