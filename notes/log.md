@@ -359,4 +359,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (Roberto's correction: the log\_every\_n config is the user's frequency throttle, so the
   per-iteration lines stay in the log, at DEBUG).
 - LOG wave, level 12 (D-565, iterative): the GENERATE worker — the shape line to DEBUG.
+- LOG wave, level 13 (D-566, iterative): the VLD\_POSITIONS worker — the publication line to
+  DEBUG (the POSITIONS pattern, mirrored).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

@@ -2062,3 +2062,9 @@ D-564 | 2026-10-17 | The LOG wave, level 11 — OPTIMIZE (iterative, Roberto's c
 D-565 | 2026-10-17 | The LOG wave, level 12 — GENERATE (iterative): G1 the "Dense weight vector generated/loaded. Shape:
          (6627,)" line to DEBUG (the bounded detail, the house pattern of the shape lines — DESIGN\_MTR / WMAPS / ZED).
          The checksum line stays INFO (the identity). The mirror doc updated. Default-tier guard green.
+
+D-566 | 2026-10-17 | The LOG wave, level 13 — VLD\_POSITIONS (iterative): V1 the "Model attributes vld\_positions,
+         vld\_game\_values and vld\_rds\_checksum have been set." publication line to DEBUG (the POSITIONS pattern,
+         mirrored). The dataset identity lines (the TOTAL + provenance, the vld\_rds\_checksum), the population stats
+         and the validation-independence check stay INFO (real facts). The shared cache-manager boilerplate stays for
+         the dedicated cache wave. The mirror doc updated. Default-tier guard green.
