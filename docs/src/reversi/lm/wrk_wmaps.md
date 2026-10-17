@@ -18,7 +18,8 @@ pipeline (the flat `rlmwf_07_WMAPS.dat` + binio sidecar DO materialize).
   verified by cache_manager), `store_fn = hlp_wmaps_store_to_file`,
   `validate_fn = lambda cached: hlp_wmaps_is_cache_consistent(ctx, cached)` (the 2-field metadata compare),
   `compute_fn = lambda: hlp_wmaps_compute(ctx)`, `logger_fn = ctx.log_event`. Then the 6 separate context attributes are
-  populated (feature_w_ranges, iwmap_feature_offset, iwmap, wmap, wmap_fallback, w) + the INFO "Total weights (W)" line
+  populated (feature_w_ranges, iwmap_feature_offset, iwmap, wmap, wmap_fallback, w) + the DEBUG
+  publication line + the DEBUG "Total weights (W)" line
   + `ctx.wmaps_obj_checksum = wmaps_obj_checksum` (the 7th attribute, the DATA checksum — the cache_manager 3rd return
   element).
 - `_down`: INFO "Clearing WMAPS and W attributes..." → all 7 attributes to None — the 6 arrays AND

@@ -72,10 +72,10 @@ def _up(ctx: "LMContext") -> None:
     ctx.wmap = wmaps_obj.wmap
     ctx.wmap_fallback = wmaps_obj.wmap_fallback
     ctx.w = wmaps_obj.w
-    ctx.log_event(Relevance.INFO,
+    ctx.log_event(Relevance.DEBUG,
                   "Model attributes feature_w_ranges, iwmap_feature_offset, iwmap, wmap, "
                   "wmap_fallback, w have been set.")
-    ctx.log_event(Relevance.INFO, f"WMAPS computed/loaded. Total weights (W): {len(ctx.w)}")
+    ctx.log_event(Relevance.DEBUG, f"WMAPS computed/loaded. Total weights (W): {len(ctx.w)}")
 
     ctx.log_event(Relevance.INFO, f"Wmaps object checksum (wmaps_obj_checksum): {wmaps_obj_checksum}.")
     ctx.wmaps_obj_checksum = wmaps_obj_checksum
