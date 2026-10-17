@@ -2080,3 +2080,10 @@ D-568 | 2026-10-17 | The LOG wave, level 15 — ANALYTICS (iterative): A1 the re
          per-item like the SU tables), so it stays in the log file at DEBUG; its canonical home is the file report, and
          the INFO "Analytics report saved to …" line points to it. The start / phase lines and the artifact line stay
          INFO. The mirror doc updated. Default-tier guard green.
+
+D-569 | 2026-10-17 | The LOG wave, level 16 — SAVE (iterative): S1 the existing lines LEAVE-AS-IS (the start + the
+         "Model weights saved to …" artifact line at INFO — the pattern). S2 (the missing B-SAVE entry) the new DEBUG
+         integrity echo: "Model weights file: {size} bytes, checksum: {sha3-256}." — the final artifact was the ONE file
+         with no checksum line, while every other artifact (indexes, design matrix, wmaps, zed, w\_dense, the data sets)
+         has its; the compressed bytes hash is deterministic (lz4 per content). The mirror doc updated. Default-tier
+         guard green.

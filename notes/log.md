@@ -365,4 +365,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   per-position lines) to DEBUG, as one unit.
 - LOG wave, level 15 (D-568, iterative): the ANALYTICS worker — the report body to DEBUG (bounded
   content; the file report is its canonical home).
+- LOG wave, level 16 (D-569, iterative): the SAVE worker — the existing lines leave-as-is + the
+  new DEBUG integrity echo (the final artifact's size + checksum).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
