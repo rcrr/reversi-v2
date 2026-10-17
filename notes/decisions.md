@@ -2068,3 +2068,9 @@ D-566 | 2026-10-17 | The LOG wave, level 13 — VLD\_POSITIONS (iterative): V1 t
          mirrored). The dataset identity lines (the TOTAL + provenance, the vld\_rds\_checksum), the population stats
          and the validation-independence check stay INFO (real facts). The shared cache-manager boilerplate stays for
          the dedicated cache wave. The mirror doc updated. Default-tier guard green.
+
+D-567 | 2026-10-17 | The LOG wave, level 14 — VALIDATE (iterative): VA1 the whole outlier block (the "Top 20 extreme
+         validation residuals (outlier report):" header + the 20 per-position lines) to DEBUG — the per-position detail
+         (the roadmap's "VALIDATE outliers → DEBUG"), moved as ONE unit so the header is not left dangling at INFO. The
+         6 metric lines (MSE / MAE / MAE(y) / RMSE(y) / RMSE-MAE + the completion line) stay INFO (the model quality,
+         the bounded post-mortem gold). The mirror doc updated. Default-tier guard green.

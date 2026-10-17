@@ -361,4 +361,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - LOG wave, level 12 (D-565, iterative): the GENERATE worker — the shape line to DEBUG.
 - LOG wave, level 13 (D-566, iterative): the VLD\_POSITIONS worker — the publication line to
   DEBUG (the POSITIONS pattern, mirrored).
+- LOG wave, level 14 (D-567, iterative): the VALIDATE worker — the outlier block (header + 20
+  per-position lines) to DEBUG, as one unit.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
