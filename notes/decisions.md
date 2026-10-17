@@ -2035,3 +2035,8 @@ D-560 | 2026-10-17 | The LOG wave, level 7 — ANOVA (iterative, option (b) per 
          fields, export\_csv true) verified the CSV path on the artifact run. The two tests that pinned the per-feature
          rows in the log re-pinned on the REPORT content (same data, the right home). The mirror doc updated.
          Default-tier guard green.
+
+D-561 | 2026-10-17 | The LOG wave, level 8 — WMAPS (iterative): W1 the "Model attributes … have been set." publication
+         line to DEBUG; W2 the "WMAPS computed/loaded. Total weights (W): …" line to DEBUG (the bounded detail,
+         consistent with the DESIGN\_MTR shape line). The checksum line stays INFO (the identity). The mirror doc
+         updated. Default-tier guard green.

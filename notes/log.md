@@ -349,4 +349,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - LOG wave, level 7 (D-560, iterative): the ANOVA worker — the per-feature rows out of the log
   (option b, the report is their home), the two tests re-pinned on the report. The exhaustive anova
   config section verified the CSV path.
+- LOG wave, level 8 (D-561, iterative): the WMAPS worker — the publication + the total-weights
+  lines to DEBUG.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
