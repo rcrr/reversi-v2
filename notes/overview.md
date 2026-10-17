@@ -51,10 +51,6 @@ define the evaluation function.
 
 ## Next steps
 
-- The LOG wave is COMPLETE (D-550…D-571, the iterative one-level-per-wave process): all 19 pipeline levels reviewed (the
-  per-level waves — the unbounded per-item report content out of the log, the bounded detail at DEBUG, the
-  identity/outcome/artifact lines at INFO) + the shared cache-boilerplate wave. The final log file is at the DEBUG
-  floor; the closing LONG=1 run is green (1151 tests, 1 transient failure on the first close run, not reproduced).
 - The PUBLISH steps 4–5 (the secret scan, the final suite, the first push to rcrr/reversi-v2 — Roberto executes, the
   agent advises).
 
