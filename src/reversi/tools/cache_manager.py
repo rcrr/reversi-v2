@@ -127,16 +127,16 @@ def _compute_and_store(cache_path: Path, compute_fn: ComputeFunc[T],
         tuple: The (False, data, data_checksum) triple — always a fresh computation (cache_hit
             False), the computed data, and its duck-typed data checksum (None when absent).
     """
-    logger_fn(Relevance.INFO, "Executing heavy computation...")
+    logger_fn(Relevance.DEBUG, "Executing heavy computation...")
     data = compute_fn()
 
     data_checksum = _compute_sha3_256_hash(data)
 
-    logger_fn(Relevance.INFO, f"Computation finished. Storing to cache '{cache_path}'...")
+    logger_fn(Relevance.DEBUG, f"Computation finished. Storing to cache '{cache_path}'...")
     store_fn(data, cache_path)
 
     write_sha3_256_sidecar(cache_path, suffix=SHA3_256_CHECKSUM_SUFFIX)
-    logger_fn(Relevance.INFO, "Cache file and checksum successfully written.")
+    logger_fn(Relevance.DEBUG, "Cache file and checksum successfully written.")
 
     return False, data, data_checksum
 

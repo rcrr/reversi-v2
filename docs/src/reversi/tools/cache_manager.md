@@ -11,7 +11,7 @@ API, no cycle). House `@validate_call` gate: `cache_path` coerced `str` → `Pat
 | `cache_manager_load_or_compute(...)` | The only public API. 4-step pipeline (below). Returns `(cache_hit: bool, data: T, data_checksum: str \| None)` |
 | `_verify_checksum(path)` | Step 2: thin wrapper over binio's `verify_sha3_256_sidecar`; maps `FileNotFoundError` / `BinaryFormatError` / `UnicodeDecodeError` → `False` (a bad sidecar invalidates, never crashes) |
 | `_delete_cache_files(path)` | Unlinks data + sidecar, both `missing_ok=True` (idempotent) |
-| `_compute_and_store(...)` | The shared "compute" tail: INFO log, `compute_fn()`, data checksum, `store_fn(data, path)`, binio `write_sha3_256_sidecar`, INFO logs; returns `(False, data, data_checksum)` |
+| `_compute_and_store(...)` | The shared "compute" tail: DEBUG log, `compute_fn()`, data checksum, `store_fn(data, path)`, binio `write_sha3_256_sidecar`, DEBUG logs (the compute-path process lines at DEBUG — the LOG wave; the outcome lines of `cache_manager_load_or_compute` stay INFO/WARN/ERROR); returns `(False, data, data_checksum)` |
 | `_compute_sha3_256_hash(data)` | Duck typing: if the data object has a callable `compute_sha3_256_hash` attribute, call it and return the result, else `None` |
 | `SHA3_256_CHECKSUM_SUFFIX` · `ComputeFunc / LoadFunc / StoreFunc / ValidateFunc / LoggerFunc` | `".SHA3-256"` sidecar suffix constant; the 5 callback type aliases |
 
@@ -19,7 +19,7 @@ API, no cycle). House `@validate_call` gate: `cache_path` coerced `str` → `Pat
 
 - The helpers: `_verify_checksum` (the binio call + the exception mapping); `_delete_cache_files` (both unlinks with
   `missing_ok=True`); `_compute_sha3_256_hash` (the getattr duck-typing, the callable gate, the None case);
-  `_compute_and_store` (the shared compute tail: the INFO log, compute, the data checksum, store, the sidecar, return).
+  `_compute_and_store` (the shared compute tail: the DEBUG log, compute, the data checksum, store, the sidecar, return).
 - `cache_manager_load_or_compute` (the validate_call gate + the pipeline): Step 0 → Step 1 → Step 2 (the checksum
   gate) → Step 3 (the try wraps load + checksum + validate; the False branch) → success.
 
