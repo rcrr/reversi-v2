@@ -369,4 +369,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   new DEBUG integrity echo (the final artifact's size + checksum).
 - LOG wave, levels 17-18 (D-570): the CLIENT\_CHECK + PLOT workers reviewed together —
   LEAVE-AS-IS (both already compliant, no source change).
+- LOG wave — the shared cache boilerplate (D-571, iterative): the 3 compute-path process lines of
+  cache\_manager to DEBUG; the 3 outcome lines stay INFO (the fresh-vs-cached fact).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

@@ -2094,3 +2094,14 @@ D-570 | 2026-10-17 | The LOG wave, levels 17-18 — CLIENT\_CHECK + PLOT (iterat
          PLOT: the no-op branches are clean one-liners; the enabled branch is bounded-by-choice (one "Plot 'X' saved: …"
          artifact line per requested plot name — the user's config list, the log\_every\_n logic) + the "PLOT done"
          summary — all INFO, as they should be. No source change.
+
+D-571 | 2026-10-17 | The LOG wave — the shared CACHE boilerplate (iterative, the dedicated wave after the 19 per-level
+         waves): C1 the 3 COMPUTE-PATH process lines of cache\_manager ("Executing heavy computation...", "Computation
+         finished. Storing to cache '...'...", "Cache file and checksum successfully written.") from INFO to DEBUG — the
+         phase chatter (the level's own Starting/Completed delimit the phase already; a cold run carried 7×3 = 21 of
+         them at INFO). C2 the 3 OUTCOME lines stay INFO ("Cache successfully loaded and validated from ...", "Cache
+         file not found at .... Forcing computation.", "Cache not allowed by configuration. Forcing computation.") — the
+         per-level fresh-vs-cached fact, readable at a glance; the WARN/ERROR failure paths are untouched. Verified on
+         the A2030 chain with one cache (GENERATE) removed: the recomputed level shows the esito at INFO + the 3 process
+         lines at DEBUG; the 6 warm levels keep their single INFO esito. The cache\_manager mirror doc updated.
+         Default-tier guard green.
