@@ -17,7 +17,7 @@ GENERATE is the last cache level before VLD_POSITIONS (rlmwf_13).
   `cache_manager_load_or_compute`: `cache_path = ctx.get_cache_file_full_path_for_current_level()`,
   `is_allowed = ctx.use_cache`, `load_fn = hlp_generate_load_from_file`, `store_fn = hlp_generate_store_to_file`,
   `validate_fn` = the is_cache_consistent closure, `compute_fn` = the hlp_generate_compute_w_dense closure,
-  `logger_fn = ctx.log_event`. Then `ctx.w_dense = dense_obj.w_dense` + the shape log, and `ctx.dense_w_checksum` (the
+  `logger_fn = ctx.log_event`. Then `ctx.w_dense = dense_obj.w_dense` + the DEBUG shape log, and `ctx.dense_w_checksum` (the
   duck-typed hash the flow returns).
 - `_down`: logs "Clearing dense weight vector..." and sets `ctx.w_dense = None` + `ctx.dense_w_checksum = None` — the
   scope pinned by the worker test `test_down_clears_generate_attributes`.

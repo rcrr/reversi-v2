@@ -65,7 +65,7 @@ def _up(ctx: "LMContext") -> None:
     )
 
     ctx.w_dense = dense_obj.w_dense
-    ctx.log_event(Relevance.INFO,
+    ctx.log_event(Relevance.DEBUG,
                   f"Dense weight vector generated/loaded. Shape: {ctx.w_dense.shape}")
 
     ctx.log_event(Relevance.INFO, f"Dense weight vector (dense_w_checksum): {dense_w_checksum}.")
