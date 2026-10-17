@@ -2112,3 +2112,18 @@ D-572 | 2026-10-17 | The LOG wave — CLOSING (the milestone): the wave is compl
          cache-boilerplate wave. The closing LONG=1 run: the FIRST close run had 1 transient failure (the test name was
          not captured in the job output — disclosed), the SECOND close run is green (1151 tests, skipped=24). The
          overview's LOG-wave bullet is flipped to COMPLETE (the milestone update).
+
+D-573 | 2026-10-17 | The A2050 full-chain size-band fix (the new-workspace first run failure, Roberto's "not robust
+         test" report — the investigation): the test is NOT broken by a library version — the embedded config dumps of
+         the same run in the two workspaces are byte-identical EXCEPT the 7 path bytes (pydantic 2.14.0/2.14.1 serialize
+         identically — diffed). The root cause is WORKSPACE-PATH-DEPENDENCE: the absolute base\_dir sits in the embedded
+         dump, and the 7-char workspace rename (…/dsh/… → …/reversi-v2/…) changes 7 content bytes that the LZ4 match
+         cascade amplifies into a ~48-byte compressed-size shift on the 517 KB file (same mkdtemp name: 517081 old /
+         517129 new; the A2030 23 KB file shifts only +5 — 23559/23564, comfortable in its band). The 8-random-char
+         mkdtemp tail is small (200-variant experiment on a real file: a 9-byte span, 517128-517137). The fix: the A2050
+         band widened 516991-517091 → 516991-517191 (spanning both measured centers 517041/517089 with ~100-byte
+         margins; still a gross-regression net) + the comment now documents the path dependence. The A2030 band is
+         untouched. The mirror doc updated — and its TWO stale band values corrected in the same pass (A2050
+         516692-516892 and A2030 23183-23283 predated the last re-pins). Note: yesterday's first-close-run transient
+         failure in the OLD workspace was NOT this test (A2050 was in-band there) — it remains unidentified (the name
+         was not captured) and never recurred.

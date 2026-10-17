@@ -514,13 +514,17 @@ class TestFullChainA2050(unittest.TestCase):
 
         # --- Saved model file: exists, size band, sidecar --- As in A2030 — the embedded dump
         # carries the run's base_dir (a random mkdtemp path), so no sha3 literal golden and the size
-        # literal is a band (the 8 random base_dir chars change LZ4's match structure by a few
-        # bytes). Determinism is pinned by the read-back provenance + the same-base-dir byte identity.
+        # literal is a band (the 8 random base_dir chars change LZ4's match structure — a measured
+        # 9-byte tail). The band is also WORKSPACE-PATH-DEPENDENT: the absolute base_dir sits in
+        # the dump, and a 7-char workspace rename (…/dsh/… → …/reversi-v2/…) shifts the compressed
+        # size by ~48 bytes through the LZ4 match cascade — the band spans both measured centers
+        # (517041 / 517089). Determinism is pinned by the read-back provenance + the same-base-dir
+        # byte identity.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(516991 < st_size < 517091,
-                        f"v2 model file size {st_size} outside the 516991-517091 band")
+        self.assertTrue(516991 < st_size < 517191,
+                        f"v2 model file size {st_size} outside the 516991-517191 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---

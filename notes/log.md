@@ -278,101 +278,95 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   scratch, NO manual mkdir (build/tmp auto-created), NO .env (the gitignored one is absent by design), SKIP\_REGAB\_DB=1
   ./run\_utests.sh → 1149 tests in 45.6 s, OK, 109 skips (the 85 DB-gated + the 24 standing), zero failures. A stranger
   cloning the repo gets a project that runs.
-- MOBILITY redundancy experiment (Roberto's 8 configs in build/test\_mobility, A2050): his thesis — the mobility
-  mask + anti-mask + diff-mask are LINEARLY DEPENDENT. Verified independently: the 8 validation RMSEs match the
-  reports (≤0.01); from the additive kernel definition DLMC = LMC + ALMC is an EXACT identity — zero deviation over
-  all 1,999,179 positions, and at the design level (D = 19 + L + A, residual 0.000000, rank([1,L,A,D]) =
-  rank([1,L,A]) = 3); all three pairs span the same 2-D space, the triple adds a rank-deficient column. The
-  near-equal single LMC/ALMC scores are a corpus property (the balanced corpus: mean mover 9.66 vs opponent 9.87
-  moves), not algebra. Detailed scientific feedback delivered; design GO received.
-- D-544: the MOBILITY rework — the difference concept is GONE: a mobility is (mask, side), side ∈ {'mover',
-  'opponent'}; the opponent side is the RAW count (was 64 − A, span-equivalent under the intercept). 28 active
-  files: the core (class/set/kernel), the config schema (the Literal side field, fail-fast), the workers (the
-  binary layout u64 + u8), the 6 fixtures (rlm\_00 3 → 2 features), the tests (test\_mobility.py rewritten as the
-  spec — the dedicated mover-side, opponent-side and multi-entry cases; the rlm\_00-derived goldens recomputed via
-  independent derivations that match the pipeline; the rlm\_01/rlm\_04 analytics report re-pins after model-content
-  verification — RMSE 23.87 unchanged, the 6-position EF bit-exact), the 4 probes (incl. 2 PRE-EXISTING drift
-  re-pins in verify\_hlp\_indexes the run surfaced), the 9 mirror docs + the user guide + the naming register. Zero
-  amask/DLMC left in the active zones. The full LONG=1 suite green (1151 tests, 24 skips).
-- D-545: D-544 completion — Roberto's VVLONG run surfaced the two tier omissions the LONG=1 guard does not
-  reach: the test\_feature PERF class (the third old-style construction the wave's two-replacement pass missed)
-  and the A2050 full-chain goldens (the masked report hash + the rlm\_03 fset hash, independently derived).
-  All content pins passed UNCHANGED (the training stats, the w\_dense sha3, the 6-position EF, the size band) —
-  model identity at A2050 scale. The full VVLONG=1 suite green (1151 tests, 22 skips).
-- D-546: the definition precision on review — the game rules define the available moves only for the player to
-  move (the mobility); the anti-mobility is OUR feature-level definition: the opponent's would-be moves (the
-  moves it would have if it were its turn). The approved wording applied to all 8 active-zone locations (the
-  mobility.py docstrings x4, the config schema, the mirror doc, the naming register, the opponent-side test
-  docstring). Docs-only; probes + full LONG=1 suite green.
-- D-547: Roberto's observation — a [PERF …] line in a PERF=0 run. Diagnosis: NOT a missing gate (the 1M test is
-  double-gated PERF=1 + LONG=1); the line was the deliberate UNGATED 10k smoke twin reusing the house [PERF …]
-  prefix. Fix: the smoke twin prints [SMOKE …] now (a non-PERF run must never show a [PERF …] line); mirror doc
-  updated. Default-tier module run: [SMOKE …] present, zero [PERF …]; full LONG=1 suite green.
-- D-548: Roberto's rule — the standard tests print NOTHING. The 10k smoke twin removed its print entirely
-  (with the benchmark-only warmup + timing that fed it), scoped to that one test only; mirror doc updated. The
-  module now runs silent in the default tier; full LONG=1 suite green.
-- D-549 + MOBILITY wave CLOSED: Roberto's docstring principle — we write what the program DOES, never what it
-  does NOT (the "no print" negation in the smoke test's docstring was useless and misleading — removed; the
-  docstring now states only the parity check). The wave: D-544 (the rework) → D-545 (the VVLONG completion)
-  → D-546 (the definition precision) → D-548 (the smoke print removed) → D-549 (this docstring). The A2050
-  verification reproduced the pair's 12.47 in the new format. Session closed; a new one opens.
-- LOG wave, step 1 (D-550): the three agreed changes — the per-step DEBUG duration line in the state
-  machine, the FINAL\_LOG\_PRINT closing DEBUG "log written (N lines)" line, and the file floor at
-  DEBUG (the TRACE hot-loop detail stays out of the file; TRACE reserved for the L-BFGS loop / the
-  Numba kernels). Display goldens + the final-log test + the probe re-pinned. Full LONG=1 suite green.
-  The per-level reclassifications follow, one level per wave.
-- LOG wave, level 1 (D-551, iterative): the CONFIG worker — C1 the redundant "Loading …" line out,
-  C2 the six DEBUG operational-section echoes in (the log now self-sufficient on the run's parameters;
-  the DB echo never carries the password). Reviewed on the target-level artifact, committed after the
-  full LONG=1 suite green.
-- LOG wave, level 2 (D-552, iterative): the FEATURES worker — F1 the three "object created,
-  hash" DEBUG lines out, F2 the raw intercept-config echo out, F3 the per-feature table gains the
-  two cumulative position columns (first design-matrix column, first w\_dense weight). Reviewed on
-  the target-level artifact, committed after the full LONG=1 suite green.
-- LOG wave, level 3 (D-553, iterative): the SU\_ANALYSIS worker — the per-instance / per-pair
-  data rows out of the log (the report file is their home), the corpus + publication lines to
-  DEBUG. 18 → 8 lines. Reviewed on the target-level artifact, committed after the full LONG=1
+- MOBILITY redundancy experiment (Roberto's 8 configs in build/test\_mobility, A2050): his thesis — the mobility mask +
+  anti-mask + diff-mask are LINEARLY DEPENDENT. Verified independently: the 8 validation RMSEs match the reports
+  (≤0.01); from the additive kernel definition DLMC = LMC + ALMC is an EXACT identity — zero deviation over all
+  1,999,179 positions, and at the design level (D = 19 + L + A, residual 0.000000, rank([1,L,A,D]) = rank([1,L,A]) = 3);
+  all three pairs span the same 2-D space, the triple adds a rank-deficient column. The near-equal single LMC/ALMC
+  scores are a corpus property (the balanced corpus: mean mover 9.66 vs opponent 9.87 moves), not algebra. Detailed
+  scientific feedback delivered; design GO received.
+- D-544: the MOBILITY rework — the difference concept is GONE: a mobility is (mask, side), side ∈ {'mover', 'opponent'};
+  the opponent side is the RAW count (was 64 − A, span-equivalent under the intercept). 28 active files: the core
+  (class/set/kernel), the config schema (the Literal side field, fail-fast), the workers (the binary layout u64 + u8),
+  the 6 fixtures (rlm\_00 3 → 2 features), the tests (test\_mobility.py rewritten as the spec — the dedicated
+  mover-side, opponent-side and multi-entry cases; the rlm\_00-derived goldens recomputed via independent derivations
+  that match the pipeline; the rlm\_01/rlm\_04 analytics report re-pins after model-content verification — RMSE 23.87
+  unchanged, the 6-position EF bit-exact), the 4 probes (incl. 2 PRE-EXISTING drift re-pins in verify\_hlp\_indexes the
+  run surfaced), the 9 mirror docs + the user guide + the naming register. Zero amask/DLMC left in the active zones. The
+  full LONG=1 suite green (1151 tests, 24 skips).
+- D-545: D-544 completion — Roberto's VVLONG run surfaced the two tier omissions the LONG=1 guard does not reach: the
+  test\_feature PERF class (the third old-style construction the wave's two-replacement pass missed) and the A2050
+  full-chain goldens (the masked report hash + the rlm\_03 fset hash, independently derived). All content pins passed
+  UNCHANGED (the training stats, the w\_dense sha3, the 6-position EF, the size band) — model identity at A2050 scale.
+  The full VVLONG=1 suite green (1151 tests, 22 skips).
+- D-546: the definition precision on review — the game rules define the available moves only for the player to move (the
+  mobility); the anti-mobility is OUR feature-level definition: the opponent's would-be moves (the moves it would have
+  if it were its turn). The approved wording applied to all 8 active-zone locations (the mobility.py docstrings x4, the
+  config schema, the mirror doc, the naming register, the opponent-side test docstring). Docs-only; probes + full LONG=1
   suite green.
-- D-554: the R-595/R-600 enactment on Roberto's confirmation — the rename + the new rule committed
-  (the 4 files), the overview bullet out.
-- D-555: the overview Next-steps refresh — the closed MOBILITY bullet out, the LOG-wave-in-progress
-  bullet in (D-550…D-553 done, next POSITIONS).
-- LOG wave, level 4 (D-556, iterative): the POSITIONS worker — the publication line to DEBUG, the
-  dataset identity lines stay INFO. First commit under the new guard practice (default tier before
-  the commit, LONG at the wave end).
-- D-557: the test-guard policy in the overview — the default tier is the standard pre-commit run,
-  LONG=1 on demand + at the wave-end milestone.
-- LOG wave, level 5 (D-558, iterative): the INDEXES worker — the publication line to DEBUG + the
-  new DEBUG indexes-shape line (199932 × 6).
-- LOG wave, level 6 (D-559, iterative): the DESIGN\_MTR worker — the publication + the shape lines
-  to DEBUG.
-- LOG wave, level 7 (D-560, iterative): the ANOVA worker — the per-feature rows out of the log
-  (option b, the report is their home), the two tests re-pinned on the report. The exhaustive anova
-  config section verified the CSV path.
-- LOG wave, level 8 (D-561, iterative): the WMAPS worker — the publication + the total-weights
-  lines to DEBUG.
-- LOG wave, level 9 (D-562, iterative): the ZED worker — the shape line to DEBUG + the new DEBUG
-  range line (the clipping endpoints at a glance).
-- LOG wave, level 10 (D-563): the GRADIENT worker reviewed — LEAVE-AS-IS (already compliant, no
-  source change).
-- LOG wave, level 11 (D-564, iterative): the OPTIMIZE worker — the L-BFGS loop output to DEBUG
-  (Roberto's correction: the log\_every\_n config is the user's frequency throttle, so the
-  per-iteration lines stay in the log, at DEBUG).
+- D-547: Roberto's observation — a [PERF …] line in a PERF=0 run. Diagnosis: NOT a missing gate (the 1M test is
+  double-gated PERF=1 + LONG=1); the line was the deliberate UNGATED 10k smoke twin reusing the house [PERF …] prefix.
+  Fix: the smoke twin prints [SMOKE …] now (a non-PERF run must never show a [PERF …] line); mirror doc updated.
+  Default-tier module run: [SMOKE …] present, zero [PERF …]; full LONG=1 suite green.
+- D-548: Roberto's rule — the standard tests print NOTHING. The 10k smoke twin removed its print entirely (with the
+  benchmark-only warmup + timing that fed it), scoped to that one test only; mirror doc updated. The module now runs
+  silent in the default tier; full LONG=1 suite green.
+- D-549 + MOBILITY wave CLOSED: Roberto's docstring principle — we write what the program DOES, never what it does NOT
+  (the "no print" negation in the smoke test's docstring was useless and misleading — removed; the docstring now states
+  only the parity check). The wave: D-544 (the rework) → D-545 (the VVLONG completion) → D-546 (the definition
+  precision) → D-548 (the smoke print removed) → D-549 (this docstring). The A2050 verification reproduced the
+  pair's 12.47 in the new format. Session closed; a new one opens.
+- LOG wave, step 1 (D-550): the three agreed changes — the per-step DEBUG duration line in the state machine, the
+  FINAL\_LOG\_PRINT closing DEBUG "log written (N lines)" line, and the file floor at DEBUG (the TRACE hot-loop detail
+  stays out of the file; TRACE reserved for the L-BFGS loop / the Numba kernels). Display goldens + the final-log test +
+  the probe re-pinned. Full LONG=1 suite green. The per-level reclassifications follow, one level per wave.
+- LOG wave, level 1 (D-551, iterative): the CONFIG worker — C1 the redundant "Loading …" line out, C2 the six DEBUG
+  operational-section echoes in (the log now self-sufficient on the run's parameters; the DB echo never carries the
+  password). Reviewed on the target-level artifact, committed after the full LONG=1 suite green.
+- LOG wave, level 2 (D-552, iterative): the FEATURES worker — F1 the three "object created, hash" DEBUG lines out, F2
+  the raw intercept-config echo out, F3 the per-feature table gains the two cumulative position columns (first
+  design-matrix column, first w\_dense weight). Reviewed on the target-level artifact, committed after the full LONG=1
+  suite green.
+- LOG wave, level 3 (D-553, iterative): the SU\_ANALYSIS worker — the per-instance / per-pair data rows out of the log
+  (the report file is their home), the corpus + publication lines to DEBUG. 18 → 8 lines. Reviewed on the target-level
+  artifact, committed after the full LONG=1 suite green.
+- D-554: the R-595/R-600 enactment on Roberto's confirmation — the rename + the new rule committed (the 4 files), the
+  overview bullet out.
+- D-555: the overview Next-steps refresh — the closed MOBILITY bullet out, the LOG-wave-in-progress bullet in
+  (D-550…D-553 done, next POSITIONS).
+- LOG wave, level 4 (D-556, iterative): the POSITIONS worker — the publication line to DEBUG, the dataset identity lines
+  stay INFO. First commit under the new guard practice (default tier before the commit, LONG at the wave end).
+- D-557: the test-guard policy in the overview — the default tier is the standard pre-commit run, LONG=1 on demand + at
+  the wave-end milestone.
+- LOG wave, level 5 (D-558, iterative): the INDEXES worker — the publication line to DEBUG + the new DEBUG indexes-shape
+  line (199932 × 6).
+- LOG wave, level 6 (D-559, iterative): the DESIGN\_MTR worker — the publication + the shape lines to DEBUG.
+- LOG wave, level 7 (D-560, iterative): the ANOVA worker — the per-feature rows out of the log (option b, the report is
+  their home), the two tests re-pinned on the report. The exhaustive anova config section verified the CSV path.
+- LOG wave, level 8 (D-561, iterative): the WMAPS worker — the publication + the total-weights lines to DEBUG.
+- LOG wave, level 9 (D-562, iterative): the ZED worker — the shape line to DEBUG + the new DEBUG range line (the
+  clipping endpoints at a glance).
+- LOG wave, level 10 (D-563): the GRADIENT worker reviewed — LEAVE-AS-IS (already compliant, no source change).
+- LOG wave, level 11 (D-564, iterative): the OPTIMIZE worker — the L-BFGS loop output to DEBUG (Roberto's correction:
+  the log\_every\_n config is the user's frequency throttle, so the per-iteration lines stay in the log, at DEBUG).
 - LOG wave, level 12 (D-565, iterative): the GENERATE worker — the shape line to DEBUG.
-- LOG wave, level 13 (D-566, iterative): the VLD\_POSITIONS worker — the publication line to
-  DEBUG (the POSITIONS pattern, mirrored).
-- LOG wave, level 14 (D-567, iterative): the VALIDATE worker — the outlier block (header + 20
-  per-position lines) to DEBUG, as one unit.
-- LOG wave, level 15 (D-568, iterative): the ANALYTICS worker — the report body to DEBUG (bounded
-  content; the file report is its canonical home).
-- LOG wave, level 16 (D-569, iterative): the SAVE worker — the existing lines leave-as-is + the
-  new DEBUG integrity echo (the final artifact's size + checksum).
-- LOG wave, levels 17-18 (D-570): the CLIENT\_CHECK + PLOT workers reviewed together —
-  LEAVE-AS-IS (both already compliant, no source change).
-- LOG wave — the shared cache boilerplate (D-571, iterative): the 3 compute-path process lines of
-  cache\_manager to DEBUG; the 3 outcome lines stay INFO (the fresh-vs-cached fact).
-- LOG wave CLOSING (D-572, milestone): the wave is complete (D-550…D-571 — the 19 per-level waves +
-  the shared cache-boilerplate). Closing LONG=1: the first close run had 1 transient failure (not
-  reproduced; the name was not captured), the second is green (1151 ok, skipped=24). The overview
-  bullet is flipped to COMPLETE.
+- LOG wave, level 13 (D-566, iterative): the VLD\_POSITIONS worker — the publication line to DEBUG (the POSITIONS
+  pattern, mirrored).
+- LOG wave, level 14 (D-567, iterative): the VALIDATE worker — the outlier block (header + 20 per-position lines) to
+  DEBUG, as one unit.
+- LOG wave, level 15 (D-568, iterative): the ANALYTICS worker — the report body to DEBUG (bounded content; the file
+  report is its canonical home).
+- LOG wave, level 16 (D-569, iterative): the SAVE worker — the existing lines leave-as-is + the new DEBUG integrity echo
+  (the final artifact's size + checksum).
+- LOG wave, levels 17-18 (D-570): the CLIENT\_CHECK + PLOT workers reviewed together — LEAVE-AS-IS (both already
+  compliant, no source change).
+- LOG wave — the shared cache boilerplate (D-571, iterative): the 3 compute-path process lines of cache\_manager to
+  DEBUG; the 3 outcome lines stay INFO (the fresh-vs-cached fact).
+- LOG wave CLOSING (D-572, milestone): the wave is complete (D-550…D-571 — the 19 per-level waves + the shared
+  cache-boilerplate). Closing LONG=1: the first close run had 1 transient failure (not reproduced; the name was not
+  captured), the second is green (1151 ok, skipped=24). The overview bullet is flipped to COMPLETE.
+- The A2050 size-band fix (D-573): the new-workspace first LONG run failed the A2050 size band — the investigation
+  proved it is WORKSPACE-PATH-DEPENDENCE (the absolute base\_dir in the embedded dump; a 7-char rename shifts the
+  compressed size ~48 bytes through the LZ4 cascade), NOT a library version (the dumps diff to exactly the 7 path
+  bytes). Band widened 516991-517191 + comment + the mirror's two stale band values corrected.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
