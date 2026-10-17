@@ -2087,3 +2087,10 @@ D-569 | 2026-10-17 | The LOG wave, level 16 — SAVE (iterative): S1 the existin
          with no checksum line, while every other artifact (indexes, design matrix, wmaps, zed, w\_dense, the data sets)
          has its; the compressed bytes hash is deterministic (lz4 per content). The mirror doc updated. Default-tier
          guard green.
+
+D-570 | 2026-10-17 | The LOG wave, levels 17-18 — CLIENT\_CHECK + PLOT (iterative, LEAVE-AS-IS, recorded together): both
+         are already compliant. CLIENT\_CHECK: the start + the one bounded verification-result line ("Client check
+         passed: … max difference 0.000e+00 (tolerance 1.0e-08)" — a real fact, INFO-deserving) + the machine lines.
+         PLOT: the no-op branches are clean one-liners; the enabled branch is bounded-by-choice (one "Plot 'X' saved: …"
+         artifact line per requested plot name — the user's config list, the log\_every\_n logic) + the "PLOT done"
+         summary — all INFO, as they should be. No source change.

@@ -367,4 +367,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   content; the file report is its canonical home).
 - LOG wave, level 16 (D-569, iterative): the SAVE worker — the existing lines leave-as-is + the
   new DEBUG integrity echo (the final artifact's size + checksum).
+- LOG wave, levels 17-18 (D-570): the CLIENT\_CHECK + PLOT workers reviewed together —
+  LEAVE-AS-IS (both already compliant, no source change).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
