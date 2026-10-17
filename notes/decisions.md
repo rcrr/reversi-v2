@@ -2074,3 +2074,9 @@ D-567 | 2026-10-17 | The LOG wave, level 14 — VALIDATE (iterative): VA1 the wh
          (the roadmap's "VALIDATE outliers → DEBUG"), moved as ONE unit so the header is not left dangling at INFO. The
          6 metric lines (MSE / MAE / MAE(y) / RMSE(y) / RMSE-MAE + the completion line) stay INFO (the model quality,
          the bounded post-mortem gold). The mirror doc updated. Default-tier guard green.
+
+D-568 | 2026-10-17 | The LOG wave, level 15 — ANALYTICS (iterative): A1 the report body (the 18 header lines, the single
+         emission site in the wrk\_analytics loop) to DEBUG — it is BOUNDED report content (fixed structure, not
+         per-item like the SU tables), so it stays in the log file at DEBUG; its canonical home is the file report, and
+         the INFO "Analytics report saved to …" line points to it. The start / phase lines and the artifact line stay
+         INFO. The mirror doc updated. Default-tier guard green.

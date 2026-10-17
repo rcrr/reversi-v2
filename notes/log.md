@@ -363,4 +363,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   DEBUG (the POSITIONS pattern, mirrored).
 - LOG wave, level 14 (D-567, iterative): the VALIDATE worker — the outlier block (header + 20
   per-position lines) to DEBUG, as one unit.
+- LOG wave, level 15 (D-568, iterative): the ANALYTICS worker — the report body to DEBUG (bounded
+  content; the file report is its canonical home).
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
