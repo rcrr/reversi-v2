@@ -2058,3 +2058,7 @@ D-564 | 2026-10-17 | The LOG wave, level 11 — OPTIMIZE (iterative, Roberto's c
          tests are untouched. The level's own lines (Starting, "Optimization finished. Reason…", the w\_checksum,
          Completed) stay INFO. The mirror doc updated. Verified on a fresh run (the checkpoint removed from build/tmp):
          77 lines — 5 INFO + 72 DEBUG. Default-tier guard green.
+
+D-565 | 2026-10-17 | The LOG wave, level 12 — GENERATE (iterative): G1 the "Dense weight vector generated/loaded. Shape:
+         (6627,)" line to DEBUG (the bounded detail, the house pattern of the shape lines — DESIGN\_MTR / WMAPS / ZED).
+         The checksum line stays INFO (the identity). The mirror doc updated. Default-tier guard green.
