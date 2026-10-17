@@ -2127,3 +2127,11 @@ D-573 | 2026-10-17 | The A2050 full-chain size-band fix (the new-workspace first
          516692-516892 and A2030 23183-23283 predated the last re-pins). Note: yesterday's first-close-run transient
          failure in the OLD workspace was NOT this test (A2050 was in-band there) — it remains unidentified (the name
          was not captured) and never recurred.
+
+D-574 | 2026-10-17 | The PUBLISH campaign — COMPLETE (the milestone): steps 4-5 executed by Roberto (the secret scan
+         clean — the .env untracked, its values placeholders/public test data, the code references schema fields only;
+         the final suite green; the first push of rcrr/reversi-v2 to GitHub). The new workspace
+         /home/rcrr/base/prj/reversi-v2 (the fresh clone) is OPERATIONAL: the venv rebuilt from the pyproject manifest,
+         the .env copied, the default suite green, and the D-573 size-band fix committed + pushed (the push/pull
+         round-trip verified by Roberto). The old workspace /home/rcrr/base/prj/dsh stays in place (untouched — the
+         R-600 ruling). The overview's PUBLISH bullet is removed (the campaign is done — the no-Done-bullets rule).

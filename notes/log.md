@@ -369,4 +369,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   proved it is WORKSPACE-PATH-DEPENDENCE (the absolute base\_dir in the embedded dump; a 7-char rename shifts the
   compressed size ~48 bytes through the LZ4 cascade), NOT a library version (the dumps diff to exactly the 7 path
   bytes). Band widened 516991-517191 + comment + the mirror's two stale band values corrected.
+- PUBLISH campaign COMPLETE (D-574, milestone): Roberto executed steps 4-5 — the secret scan clean, the final suite
+  green, the first push of rcrr/reversi-v2 to GitHub. The new workspace /home/rcrr/base/prj/reversi-v2 (the fresh clone)
+  is operational (venv + .env + default suite green); the D-573 fix is pushed; the push/pull round-trip verified. The
+  old dsh workspace stays in place, untouched.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).

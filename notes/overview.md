@@ -51,8 +51,6 @@ define the evaluation function.
 
 ## Next steps
 
-- The PUBLISH steps 4–5 (the secret scan, the final suite, the first push to rcrr/reversi-v2 — Roberto executes, the
-  agent advises).
 
 ## Source files
 
