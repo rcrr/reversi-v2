@@ -263,8 +263,6 @@ def _compute_anova_lines(ctx) -> list:
             groups = ctx.hlp_indexes.indexes[..., c0 + i]
             r = hlp_anova_eta_omega(groups, ctx.game_values)
             anova_lines.append((name, i, r['k'], r['n'], r['eta2'], r['omega2']))
-            ctx.log_event(Relevance.INFO,
-                          f"  ANOVA {name}[{i}]: eta2 {r['eta2']:.4f}, omega2 {r['omega2']:.4f} (K {r['k']})")
     return anova_lines
 
 
@@ -306,10 +304,6 @@ def _compute_adherence_lines(ctx) -> list | None:
                 a = hlp_anova_adherence(db_counts, ideal_counts)
                 adherence_lines.append((name, i, a['chi2'], a['p'], a['merged'], a['kl'], a['tv']))
         adherence_lines.sort(key=lambda x: x[6], reverse=True)
-        for (name, i, chi2, p, merged, kl, tv) in adherence_lines[:cfg_anova.top_k_adherence]:
-            ctx.log_event(Relevance.INFO,
-                          f"  Adherence {name}[{i}]: TV {tv:.4f}, KL {kl:.4f}, chi2 {chi2:.2f} "
-                          f"(p {p:.2e}, merged {merged})")
         return adherence_lines
     ctx.log_event(Relevance.INFO, "  Adherence SKIPPED (the SU_ANALYSIS level was disabled — no corpus in the ctx).")
     return None

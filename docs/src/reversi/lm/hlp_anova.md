@@ -28,9 +28,10 @@ tables).
   `_chi_square_goodness(observed, expected, min_expected=5) -> dict` (the statistic + the scipy p-value + the
   merged tail; the disjoint support -> chi2 +inf, p 0; the p is nan if the merged result has fewer than 2 cells).
 - The two PRIVATE per-sub-variable line builders: `_compute_anova_lines(ctx) -> list`
-  (the eta²/omega² per sub-variable, one log line per row) + `_compute_adherence_lines(ctx) -> list | None` (the
-  adherence per sub-variable, the TV descending, the top-N logged; the graceful-degradation None branch with the
-  SKIPPED log note).
+  (the eta²/omega² per sub-variable — the rows go to the report, the log carries only the artifact
+  lines) + `_compute_adherence_lines(ctx) -> list | None` (the adherence per sub-variable, the TV
+  descending, the top-N to the report; the graceful-degradation None branch with the SKIPPED log
+  note).
 
 ## Architecture
 - The wrk/hlp split: the worker owns the LEVEL (the enable guard + the two FLOW calls);

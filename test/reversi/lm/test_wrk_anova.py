@@ -128,14 +128,14 @@ class TestWrkAnova(unittest.TestCase):
         self.assertFalse((self.tmp / "anova").exists())
 
     def test_anova(self):
-        # The eta²/omega² per sub-variable: the log has one ANOVA line per sub-variable (the
-        # instance count). Counted by the "eta2" marker (the "ANOVA report written" line also says
-        # ANOVA now — the level name).
+        # The eta²/omega² per sub-variable: the REPORT has one ANOVA line per sub-variable (the
+        # instance count — the log carries only the "report written" artifact line). Counted by
+        # the "eta2" marker in the report content.
         ctx, blocks = _make_ctx(self.tmp, enable=True, tables=None)
         _up(ctx)
         n_sub = sum(ni for (_n, c0, c1, _nc, ni) in blocks)
-        n_lines = sum(1 for (_r, m) in ctx.events if "eta2" in m)
-        self.assertEqual(n_lines, n_sub)
+        report = (self.tmp / "anova" / "anova_report.txt").read_text(encoding="utf-8")
+        self.assertEqual(report.count("eta2"), n_sub)
 
     def test_adherence_graceful_degradation(self):
         # The tables None (the SU_ANALYSIS disabled): the adherence is SKIPPED (the log note), the
@@ -158,8 +158,8 @@ class TestWrkAnova(unittest.TestCase):
         ctx.su_analysis_tables = {'marginal': marginal,
                                        'joint': None}
         _up(ctx)
-        self.assertTrue(any("Adherence" in m
-                            for (_r, m) in ctx.events))
+        report = (self.tmp / "anova" / "anova_report.txt").read_text(encoding="utf-8")
+        self.assertTrue("Adherence" in report)
 
     def test_report_written(self):
         # The TXT report (the dir_name under base_dir).
