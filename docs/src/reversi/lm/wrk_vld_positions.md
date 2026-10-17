@@ -34,7 +34,8 @@ set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.S
     line is logged inside `wrk_positions_extract_and_prepare` before the store.
   - Post-processing: `vld_positions, vld_game_values = vld_rds.generate_positions_and_game_values()` (the board.py
     `Position` structured dtype, mover/opponent u64); the 3 rds-derived fields set (`vld_rds_checksum` is the
-    duck-typed `RegabDataSet.compute_sha3_256_hash` over `df_mogv`); population stats logged + stored in
+    duck-typed `RegabDataSet.compute_sha3_256_hash` over `df_mogv`; the publication is the DEBUG
+    "Model attributes … have been set." line); population stats logged + stored in
     `ctx.vld_pop_stats` (count int + mean/std_dev/ variance np.float64 over the int8 game values).
   - The validation-independence check: `overlap = regab_count_position_overlap(ctx.positions, ctx.vld_positions)` — the
     number of vld records whose (mover, opponent) key is also in the training set (a pandas inner-merge over the two key

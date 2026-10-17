@@ -91,7 +91,7 @@ def _up(ctx: "LMContext") -> None:
     ctx.vld_rds_checksum = vld_rds_checksum
 
     ctx.log_event(Relevance.INFO, f"Regab validation data set object checksum (vld_rds_checksum): {vld_rds_checksum}.")
-    ctx.log_event(Relevance.INFO, "Model attributes vld_positions, vld_game_values and vld_rds_checksum have been set.")
+    ctx.log_event(Relevance.DEBUG, "Model attributes vld_positions, vld_game_values and vld_rds_checksum have been set.")
 
     count = len(vld_game_values)
     mean = np.mean(vld_game_values)
