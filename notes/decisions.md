@@ -2040,3 +2040,8 @@ D-561 | 2026-10-17 | The LOG wave, level 8 — WMAPS (iterative): W1 the "Model 
          line to DEBUG; W2 the "WMAPS computed/loaded. Total weights (W): …" line to DEBUG (the bounded detail,
          consistent with the DESIGN\_MTR shape line). The checksum line stays INFO (the identity). The mirror doc
          updated. Default-tier guard green.
+
+D-562 | 2026-10-17 | The LOG wave, level 9 — ZED (iterative): Z1 the "Zed array computed. Shape: …" line to DEBUG; Z2
+         (the missing B-ZED entry) the new DEBUG range line — "Zed array range: min 0.0100, max 0.9900." (the
+         logit-clipping endpoints show at a glance). The checksum line stays INFO (the identity). The mirror doc
+         updated. Default-tier guard green.
