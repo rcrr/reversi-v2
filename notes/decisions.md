@@ -2135,3 +2135,11 @@ D-574 | 2026-10-17 | The PUBLISH campaign — COMPLETE (the milestone): steps 4-
          the .env copied, the default suite green, and the D-573 size-band fix committed + pushed (the push/pull
          round-trip verified by Roberto). The old workspace /home/rcrr/base/prj/dsh stays in place (untouched — the
          R-600 ruling). The overview's PUBLISH bullet is removed (the campaign is done — the no-Done-bullets rule).
+
+D-575 | 2026-10-17 | The forward roadmap established (the post-PUBLISH planning session): the overview Next-steps
+         section populated with the seven open campaigns — FEATURE-SET, LATEX, MULTI-PLY, MOVE-PROB, ENDGAME-SOLVER,
+         REGAB, TEST-BATCH (each with its scope, as recorded in the overview); and the open backlog (notes/ideas.md)
+         seeded with two forward-looking ideas — I-021 (the ResNet extension of the logistic model: the Softplus-neuron
+         term over the pattern-pair embeddings) and I-022 (the ANSI-C-to-Rust port). Notes-only change (overview.md +
+         ideas.md); no source or test files touched. Drive-by: the overview's stale test\_mobility Suite cell corrected
+         (31 → 33, the fresh gate measurement revealed the drift).

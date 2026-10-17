@@ -51,6 +51,36 @@ define the evaluation function.
 
 ## Next steps
 
+- The FEATURE-SET campaign (the scope): the first extended use of the completed pipeline (also an ergonomics check —
+  corrections may surface). Identify the feature set that maximizes the evaluation function's predictive capacity
+  relative to its complexity (the number of features and the number of parameters); determine the optimal hyperparameter
+  values; establish whether a single model definition stays valid across the resolved EC range [26..0] or distinct
+  per-phase optima exist; verify whether Buro's LOGISTELLO set is the best compromise for the logistic model, or if a
+  more competitive set can be found; develop the examples for the LaTeX document.
+- The LATEX campaign (the artifact document): a draft exists in the legacy Reversi repository (the starting point). The
+  document explains the model, its mathematical properties, the pipeline implementation, and the results achieved;
+  define the workspace governance for the LaTeX documents — the compilation and generation pipeline, and a document
+  structure split into appropriately sized files.
+- The MULTI-PLY campaign: the current EF is zero-ply; develop the N-ply game expansion (the alpha-beta search over the
+  EF) delivering an evaluation based on a game tree search; evaluate the statistical properties of the resulting
+  function.
+- The MOVE-PROB campaign: develop an algorithm that assigns each legal move a probability of being the best move (a
+  distribution over the legal-move set); develop a statistical validation method for the assignment of these
+  probabilities.
+- The ENDGAME-SOLVER campaign: port the endgame\_solver program (the ANSI C code of the legacy Reversi repository) into
+  reversi-v2 — a feature-by-feature analysis (some features to be dropped, some preserved), then the porting scope plan,
+  the implementation plan, and the port implementation.
+- The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
+  reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
+  exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python
+  pipeline — nothing is deleted, it simply disappears); the game position resolver (the ANSI C program regab\_solve —
+  the batching + REGAB DB-interaction front end, calling the same solve primitive as endgame\_solver) stays in C and is
+  ported as C to the v2 format (too performance-critical for Python). An inventory and a migration strategy precede the
+  port, and a simple migration tool moves the data from the original format to the v2 format.
+- The TEST-BATCH campaign: the v2 database format decouples the tests from the years-long generated data (EC=20); plan
+  generation scripts for the test sets (EC < 20, perhaps 16 or fewer — runs in days, replicable in days), and build all
+  the suite's tests on documented, replicable batches; port the REGAB solved-position generation to Python (drop the
+  full-random-game constraint — the seed, the EC, and the batch game count are specified at generation time).
 
 ## Source files
 
@@ -148,7 +178,7 @@ define the evaluation function.
 | test/reversi/test\_board.py | complete | 308/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |
-| test/reversi/test\_mobility.py | complete | 31/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
+| test/reversi/test\_mobility.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
 | test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
 | test/reversi/test\_pattern.py | complete | 76/0/3/0/0 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |
 | test/reversi/test\_random\_game.py | complete | 43/0/1/0/0 | [docs/test/reversi/test\_random\_game.md](docs/test/reversi/test\_random\_game.md) |

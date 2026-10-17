@@ -374,3 +374,25 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   is operational (venv + .env + default suite green); the D-573 fix is pushed; the push/pull round-trip verified. The
   old dsh workspace stays in place, untouched.
 - Next: step 4 (the secret scan, the final suite) and step 5 (the push).
+
+## 2026-10-17 — session 120 (the post-PUBLISH roadmap — D-575)
+
+- Session opened: with the pipeline complete and published (D-574), Roberto populates the overview Next-steps section
+  with the forward campaign roadmap — the next phase is USING the completed pipeline.
+- Seven campaigns recorded in notes/overview.md Next steps (non-prioritized): FEATURE-SET, LATEX, MULTI-PLY,
+  MOVE-PROB, ENDGAME-SOLVER, REGAB, TEST-BATCH.
+- The REGAB entry refined over the exchange into three components with distinct fates: position generation → Python
+  (the existing random\_game code + the DB insert), classification generation out of the v2 DDL (superseded by the
+  dynamic pipeline — not dropped), and the regab\_solve resolver staying in C to the v2 format (the batching +
+  DB-interaction front end calling the same solve primitive as endgame\_solver).
+- A near-duplicate caught: "port the ANSI C program regab solve" was the REGAB resolver component, merged into the
+  REGAB entry (one fact, one home) rather than added as a separate campaign.
+- Two forward-looking ideas seeded in notes/ideas.md (the open backlog was empty): I-021 (the ResNet extension of the
+  logistic model) and I-022 (the ANSI-C-to-Rust port) — both status `idea`, placed in the backlog (not Next steps) as
+  uncommitted proposals.
+- D-575 recorded (the roadmap setup). Notes-only change (overview.md + ideas.md); no source/test files touched.
+- Drive-by bookkeeping fix: the overview's test\_mobility Suite cell was stale (31/0/1) — the fresh gate measurement
+  (33/0/1; the file has 33 tests) revealed the drift, corrected to 33/0/1/0/0.
+- Closing LONG=1 gate run (R-840): green (1145 ok, skipped=24) — the per-module measurement regenerated for the
+  pre-commit gate (scratch/suite\_audit.txt; the disposable scratch/ was empty in the fresh clone).
+- Session closed by the user.
