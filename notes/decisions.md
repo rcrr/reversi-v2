@@ -2153,3 +2153,13 @@ D-576 | 2026-10-17 | The LATEX campaign — governance established (the first tr
          the English headings -> babel[italian]. Two authoring tools (G8) prototyped + validated: make spell (the
          pre-checkin gate) and make pdf2png (the visual inspection). Overview Index gains the latex\_rules line. The PDF
          is committed only at a release (G4); the content/structure is phase 2. No source/test files touched.
+
+D-577 | 2026-10-18 | The book .tex sources adopt the standard GPL header + the R-595 guard extended to .tex (Roberto's
+         confirmation): every hand-written .tex (main + the 020/040/060/080 chapters + the generated 100 appendix) now
+         carries the standard 26-line GPL header in the %-comment variant (Author + Copyright 2026 + the reversi-v2
+         URL), matching the .py/.sh/.json sources. wsutils/license\_header\_audit.py gains a TEX\_MARKERS set and the
+         \*.tex scope (the FILE\_NAME lstrip now also strips %); the pre-commit gate checks the .tex at checkin. The
+         generated appendix emits its header from scratch/gen\_appendix.py so it survives regeneration. Third-party .sty
+         packages (othelloboard.sty, Steven Hall, LPPL) are explicitly exempt and keep their own header; the
+         build-artifact includeonly.tex (gitignored, Makefile-regenerated) is out of scope. notes/rules.md (R-595) +
+         notes/latex\_rules.md (zone §1) updated to record the scope. No commit yet (Roberto's general check first).

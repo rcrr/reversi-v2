@@ -11,6 +11,9 @@ milestone), notes/naming.md (the domain vocabulary the book explains).
 - latex/ (workspace root, a top-level zone) — the authored BOOK. It is a third kind of content, NOT the docs/ mirror
   zone (R-330): docs/ mirrors the code; latex/ is a publication. The .tex sources, the Makefile, and the tools are
   tracked in git.
+- Every .tex source carries the standard 26-line GPL header (R-595, the %-comment variant); the guard
+  wsutils/license\_header\_audit.py checks them at the pre-commit gate. Third-party .sty packages (e.g.
+  othelloboard.sty, LPPL) are exempt and keep their own header.
 - It is a BOOK (~200 pages), not a paper. A 10-page paper may be distilled from it later, only if the results warrant.
   Content scope: the pattern theory, the board, the D8, the logistic model's mathematical structure, the pipeline
   structure, the software user guide, the pipeline-step explanations, a set of examples, and the results.

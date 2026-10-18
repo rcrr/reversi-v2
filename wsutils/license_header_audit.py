@@ -29,11 +29,12 @@
 """license_header_audit.py — the license-header guard (a CHECK tool).
 
 WHAT IT IS: a read-only CHECK over the tracked SOURCE files (every .py, the .sh scripts, the
-data .json fixtures — the R-595 scope): each must carry the standard GPL header as its first
-lines (after the shebang, when there is one), with the six marker lines in order —
-the FILE_NAME line (the basename), the "part of the reversi program" line, the project URL
-line, the Author line, the Copyright line (a 4-digit year) — inside the first 12 lines.
-The .json fixtures use the C-style /* ... */ variant of the same markers.
+book .tex sources, the data .json fixtures — the R-595 scope): each must carry the standard GPL
+header as its first lines (after the shebang, when there is one), with the marker lines in order
+— the FILE_NAME line (the basename), the "part of the reversi program" line, the project URL line,
+the Author line, the Copyright line (a 4-digit year) — inside the first 12 lines. The .json
+fixtures use the C-style /* ... */ variant and the .tex sources the %-comment variant of the
+same markers.
 
 USAGE (from the workspace root):
   .venv/bin/python wsutils/license_header_audit.py                # every tracked source file
@@ -85,10 +86,23 @@ C_MARKERS = [
     (re.compile(r'^\s*\* License$'), 'the License marker'),
 ]
 
+TEX_MARKERS = [
+    (re.compile(r'^%$'), 'the opening bare % line'),
+    (re.compile(r'^% [A-Za-z0-9_.-]+$'), 'the FILE_NAME line'),
+    (re.compile(r'^%$'), 'the separator % line'),
+    (re.compile(r'^% This file is part of the reversi program$'), 'the "part of the reversi program" line'),
+    (re.compile(rf'^% {re.escape(URL)}$'), 'the project URL line'),
+    (re.compile(r'^%$'), 'the separator % line'),
+    (re.compile(r'^% Author Roberto Corradini mailto:rob_corradini@yahoo\.it$'), 'the Author line'),
+    (re.compile(r'^% Copyright \d{4} Roberto Corradini\. All rights reserved\.$'), 'the Copyright line'),
+    (re.compile(r'^%$'), 'the separator % line'),
+    (re.compile(r'^% License$'), 'the License marker'),
+]
+
 
 def tracked_sources():
     out = subprocess.run(
-        ['git', '-C', ROOT, 'ls-files', '*.py', '*.sh', 'wsutils/hooks/*', 'test/reversi/data/*.json'],
+        ['git', '-C', ROOT, 'ls-files', '*.py', '*.sh', '*.tex', 'wsutils/hooks/*', 'test/reversi/data/*.json'],
         capture_output=True, text=True).stdout.split()
     return [f for f in out if os.path.isfile(os.path.join(ROOT, f))]
 
@@ -99,7 +113,9 @@ def audit(rel):
     lines = open(path, encoding='utf-8').read().split('\n')
     start = 1 if lines and lines[0].startswith('#!') else 0
     window = lines[start:start + 12]
-    markers = C_MARKERS if rel.endswith('.json') else HASH_MARKERS
+    markers = (C_MARKERS if rel.endswith('.json')
+               else TEX_MARKERS if rel.endswith('.tex')
+               else HASH_MARKERS)
     problems = []
     i = 0
     for rx, label in markers:
@@ -109,7 +125,7 @@ def audit(rel):
         i += 1
     # the FILE_NAME line (the second line of the header) must carry THIS file's basename
     name = os.path.basename(rel)
-    first = window[1].lstrip().lstrip('#* ').strip()
+    first = window[1].lstrip().lstrip('#* %').strip()
     if first != name:
         problems.append(f'the FILE_NAME line says {first!r}, the file is {name!r}')
     return problems
