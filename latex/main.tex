@@ -1,24 +1,121 @@
+%
+% main.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
 \documentclass{book}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[italian]{babel}   % Italian section headings: Capitolo / Indice (G8)
+\usepackage{lmodern}                        % the historical document's font: Latin Modern
+\renewcommand{\familydefault}{\sfdefault}   % sans-serif body (as in the historical document)
+\usepackage{sfmath}                          % sans-serif math (as in the historical document)
+\usepackage[italian]{babel}                 % Italian section headings: Capitolo / Indice (G8)
 \usepackage{geometry}
-\geometry{a4paper, margin=2.5cm}
+\geometry{a4paper, left=2cm, right=2cm, top=3cm, bottom=3cm}   % the historical document's margins (wider text body)
+\usepackage{url}                             % the \url in the author block
+\usepackage{hyperref}                        % clickable links (as in the historical document)
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  filecolor=magenta,
+  urlcolor=cyan,
+  pdftitle={Reversi},
+}
+\usepackage{subcaption}    % the \subfigure in the board figures
+\usepackage{othelloboard}  % the Reversi board drawing (the historical document's package)
+\usepackage{xcolor}
+\usepackage{listings}      % the SQL / bash code blocks (the Game Positions section)
+\usepackage{enumitem}      % the description-list options
+\usepackage{amsmath}       % equations (the D4 group-theory section)
+\usepackage{amssymb}       % math symbols (\trianglelefteq, \mathcal, \subset, ...)
+\usepackage{bm}            % \bm{D_4}
+\usepackage{booktabs}      % \toprule / \midrule / \bottomrule in the tables
+\usepackage{tikz}          % the subgroup-lattice (Hasse) diagram
+\usepackage[most]{tcolorbox}  % the pattern-catalog boxes (Appendix A)
+\usepackage{tabularx}       % the pattern-catalog tables (Appendix A)
+\usepackage{expl3}          % the \formatPositions regex (Appendix A)
+\definecolor{mauve}{rgb}{0.88, 0.69, 1.0}
+\lstset{
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\color{blue},
+  stringstyle=\color{mauve},
+  commentstyle=\color{gray},
+  breaklines=true,
+  showstringspaces=false,
+  frame=single
+}
+
+% The book class has no built-in `abstract` environment (article/report do); define one.
+\providecommand{\abstractname}{Riassunto}
+\newenvironment{abstract}{%
+  \clearpage
+  \begin{center}\bfseries\abstractname\end{center}%
+  \vspace{\baselineskip}%
+}{%
+  \vspace{\baselineskip}%
+  \clearpage
+}
 
 % Fast-compile switch (G3): `make latex CH=NNN` writes \includeonly{reversi_NNN_slug}
 % here; empty -> a full build. See notes/latex_rules.md.
 \input{includeonly}
 
-\title{Reversi --- il modello logistico}   % working title; finalized in phase 2 (content)
-\author{[autore]}                            % byline to be set
+\title{Reversi}
+\author{Roberto Corradini \\[0.2cm]
+\small \texttt{rob\_corradini@yahoo.com} \\[0.1cm]
+\url{https://github.com/rcrr/reversi-v2}}
 \date{\today}
 
 \begin{document}
 \maketitle
+\begin{abstract}
+\normalsize
+Reversi è un ecosistema di programmi e strumenti informatici per studiare il gioco da tavolo Othello, anche chiamato Reversi.
+L'intento è studiare, capire, sviluppare algoritmi e modelli che possano progredire nella realizzazione di un agente
+sintetico ed autonomo che sia in grado di giocare una partita in maniera autorevole. E in prospettiva di tendere alla
+risoluzione matematica del gioco, o quantomeno ad una sua approssimazione probabilistica.
+I programmi sono scritti principalmente in ANSI C, Python, SQL, con altri linguaggi come Common Lisp, Java, Clojure, R usati
+per sperimentazioni, ma non rilevanti nella sostanza.
+Il corpo principale del programma è sviluppato in C, e comprende l'endgame solver, il generatore di partite random, il
+solutore integrato con il database REGAB, e le funzioni di risoluzione del modello di ML basato sulla Regressione Logistica.
+Il Database SQL REGAB, sviluppato in PostgreSQL, ed in linguaggio procedurale PL/pgSQL, contiene le posizioni random
+che poi vengono risolte e taggate con il valore vero del game.
+Il codice in C è stato poi portato in Python, per poter operare più agilmente con l'ecosistema attivo del Machine-Learning, AI,
+calcolo scientifico, acceleratori GPU, e tutto quanto serve per la ricerca di frontiera.
+Il codice in C rimane più performante per la risoluzione delle posizioni, il codice in Python è più consono allo sviluppo
+dei Modelli per la definizione di evaluation function più evolute.
+\end{abstract}
+
 \tableofcontents
 
 \include{reversi_020_introduzione}
 \include{reversi_040_board}
 \include{reversi_060_pattern}
+\include{reversi_080_evaluation_function}
+
+\appendix
+\include{reversi_100_appendix_catalogo}
 
 \end{document}

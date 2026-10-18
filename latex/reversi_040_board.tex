@@ -1,3 +1,614 @@
+%
+% reversi_040_board.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
 \chapter{La board}
 
-[Capitolo 040 --- scheletro. Da sviluppare nella fase 2 (contenuti).]
+\section{Rappresentazione del dominio}
+
+La BOARD Reversi è composta da 64 celle, otto righe ed otto colonne, numerate da 0, in alto a sinistra (North-West, NW),
+a 63, in basso a destra (South-East, SE).
+
+La configurazione della BOARD è rappresentata con due interi a 64 bit (indifferentemente senza segno \texttt{uint64} o con segno \texttt{int64}).
+Ognuno dei 64 bit è associato ad una cella. Il bit meno significativo è associato ad \texttt{a1}, quello più significativo ad \texttt{h8},
+procedendo da sinistra verso destra per righe.
+
+Il primo intero rappresenta le celle del \texttt{GIOCATORE (PLAYER)} che deve effettuare la mossa, il secondo le celle dell'\texttt{AVVERSARIO (OPPONENT)}.
+
+Con due valori \texttt{int64} viene quindi rappresentata la \texttt{POSIZIONE (GAME\_POSITION)}, come mostrato in figura~\ref{fig:reversi-bitboard-patterns}.
+
+Unico vincolo, o invariante, della rappresentazione è la formula: \texttt{PLAYER \&\& OPPONENT == 0},
+che formalizza il divieto di avere sia un disco del giocatore che uno dell'avversario contemporaneamente nella stessa cella.
+
+Quando una cella ha zero sia per il giocatore che per l'avversario è vuota.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{1}{2}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{2}{1}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+      \end{othelloboard}
+    }
+    \caption{Initial game position.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small 00}
+        \posannotation{b1}{\small 01}
+        \posannotation{c1}{\small 02}
+        \posannotation{d1}{\small ...}
+        \posannotation{a2}{\small 08}
+        \posannotation{b2}{\small 09}
+        \posannotation{c2}{\small ...}
+        \posannotation{g8}{\small ...}
+        \posannotation{h8}{\small 63}
+      \end{othelloboard}
+    }
+    \caption{Rappresentazione della bitboard.}
+  \end{subfigure}
+
+  \vskip\baselineskip
+
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small 00}
+        \posannotation{b1}{\small 01}
+        \posannotation{c1}{\small 02}
+        \posannotation{d1}{\small 03}
+        \posannotation{e1}{\small 04}
+        \posannotation{f1}{\small 05}
+        \posannotation{g1}{\small 06}
+        \posannotation{h1}{\small 07}
+      \end{othelloboard}
+    }
+    \caption{EDGE pattern.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a2}{\small 00}
+        \posannotation{b2}{\small 01}
+        \posannotation{c2}{\small 02}
+        \posannotation{d2}{\small 03}
+        \posannotation{e2}{\small 04}
+        \posannotation{f2}{\small 05}
+        \posannotation{g2}{\small 06}
+        \posannotation{h2}{\small 07}
+      \end{othelloboard}
+    }
+    \caption{R2 pattern.}
+  \end{subfigure}
+
+  \caption{Ordine dei bit per la definizione della bitboard e dei pattern.}
+  \label{fig:reversi-bitboard-patterns}
+\end{figure}
+
+\section{Le posizioni (Game Positions)}
+
+Ogni posizione è descritta dal \texttt{VALORE} dell'end-game ottenuto risolvendo la posizione stessa in maniera esatta con
+apposito programma che applica l'algoritmo \texttt{MINIMAX} (o sue varianti sempre esatte ma più efficienti come \texttt{ALPHA-BETA}).
+
+I \texttt{VALORI} possibili di una posizione sono i numeri interi pari compresi nell'intervallo \texttt{[-64..+64]}, pari alla differenza
+di dischi dei due colori risultante alla fine della partita.
+Zero significa pareggio, valori negativi una sconfitta, valori positivi una vittoria.
+
+Le posizioni random, generate per costituire il dataset per il machine-learning (ML), sono archiviate in un database SQL chiamato REGAB (Reversi End-GAme Base).
+Prendiamo una posizione risolta da REGAB con il comando SQL:
+
+\begin{lstlisting}[language=SQL]
+  SELECT seq, mover, opponent, empty_count, game_value, best_move FROM regab_prng_gp WHERE batch_id = 7 AND empty_count = 20 AND status = 'CMS' LIMIT 1;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+   seq    |        mover        |       opponent       | empty_count | game_value | best_move
+ ----------+---------------------+----------------------+-------------+------------+-----------
+  68230056 | 4611717676283199524 | -7855295674223658936 |          20 |         10 | F8
+ (1 row)
+\end{verbatim}
+}
+
+Possiamo poi ricavare dal database ulteriori informazioni, come una vista 2D della posizione:
+
+\begin{lstlisting}[language=SQL]
+  SELECT game_position_pp_mop(mover, opponent, player) AS pos_68230056 FROM regab_prng_gp WHERE seq = 68230056;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+     pos_68230056
+ -----------------------
+     a b c d e f g h   +
+  1  . . @ O . @ O .   +
+  2  . . . O O O O .   +
+  3  . . O O O O @ .   +
+  4  @ @ O @ O @ @ @   +
+  5  . @ O @ O O @ @   +
+  6  . O @ @ @ O O .   +
+  7  . . O O O O O O   +
+  8  . O . . O . @ O   +
+  Player to move: BLACK
+ (1 row)
+\end{verbatim}
+}
+
+Dove il carattere \texttt{'.'} significa cella vuota, \texttt{'@'} disco nero, e \texttt{'O'} disco bianco.
+In questo caso il ``player to move'' è il \texttt{BLACK} che quindi è il \texttt{PLAYER}, mentre il giocatore bianco
+è l' \texttt{OPPONENT}.
+
+O una rappresentazione come stringa che poi possiamo usare come input per l'eseguibile che calcola il valore del game:
+
+\begin{lstlisting}[language=SQL]
+  SELECT game_position_to_string((mover, opponent, player)) AS pos_as_string_68230056 FROM regab_prng_gp WHERE seq = 68230056;
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+                      pos_as_string_68230056
+ -------------------------------------------------------------------
+  ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+ (1 row)
+\end{verbatim}
+}
+
+Dove il carattere \texttt{'.'} significa cella vuota, \texttt{'b'} disco nero, \texttt{'w'} disco bianco. Il carattere più a sinistra
+rappresenta la cella \texttt{00} (a1), muovendosi poi verso destra fino al carattere 64 che rappresenta la cella \texttt{63} (h8);
+l'ultimo carattere a destra rappresenta invece il giocatore che deve muovere, \texttt{'b'} per \texttt{BLACK} e \texttt{'w'} per \texttt{WHITE}.
+
+Eseguiamo il programma \texttt{endgame\_solver} dove il flag \texttt{-s es} richiama l' ``exact solver'':
+
+\begin{lstlisting}[language=bash]
+  ./build/bin/endgame_solver -s es -g ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+\end{lstlisting}
+
+{\tiny
+\begin{verbatim}
+     a b c d e f g h
+  1  . . @ O . @ O .
+  2  . . . O O O O .
+  3  . . O O O O @ .
+  4  @ @ O @ O @ @ @
+  5  . @ O @ O O @ @
+  6  . O @ @ @ O O .
+  7  . . O O O O O O
+  8  . O . . O . @ O
+ Player to move: BLACK
+
+ [node_count=45798972, leaf_count=8265202]
+ Final outcome: best move=F8, position value=10
+\end{verbatim}
+}
+
+Il risultato è la posizione data da risolvere con il conto dei nodi e delle foglie del ``game-tree'' navigati dall'algoritmo.
+Il programma, lanciato in batch mode, ha risolto e quindi taggato le posizioni del database REGAB con il valore esatto del game.
+
+Ai fini del machine learning (ML) un record posizione di esempio con header è rappresentato come segue:
+
+{\tiny
+\begin{verbatim}
+             PLAYER ;             OPPONENT ; GAME_VALUE
+ 4611717676283199524 ; -7855295674223658936 ;         10
+\end{verbatim}
+}
+
+Dove:
+
+\begin{description}[leftmargin=*,widest=GAME\_VALUE,labelsep=1em]
+\item[PLAYER] è la configurazione della board dei dischi occupati dal giocatore che deve muovere, in formato \texttt{int64} con segno.
+  Il bit meno significativo è la casella \texttt{a1}, si procede per righe, come specificato sopra.
+\item[OPPONENT] è la configurazione della board dei dischi occupati dall'avversario, stesso formato usato per \texttt{PLAYER}.
+\item[GAME\_VALUE] è il valore esatto del game
+\end{description}
+
+Il valore del \texttt{GAME\_VALUE} è ottenuto con un software di soluzione esatta della posizione.
+Il database contiene decine di milioni di record posizione risolti.
+Le posizioni sono generate eseguendo delle mosse legali scelte a random a partire dalle condizione iniziali.
+
+\section{Geometria della Scacchiera: Il Gruppo Diedrale \texorpdfstring{$\bm{D_4}$}{D4}}
+
+\subsection{Rotazioni della bitboard}
+
+Sia gli square set che le board sono passibili di otto differenti trasformazioni, che ruotano rigidamente, oppure specchiano la bitboard rispetto gli assi di simmetria
+naturali. Le trasformazioni sono poi usate per calcolare gli indici delle istanze dei diversi pattern.
+La board può essere ruotata di zero, 90, 180, 270 gradi in senso orario, e può essere specchiata secondo gli assi verticale, orizontale, diagonale NW-SE e diagonale NE-SW.
+Sono poi definite le operazioni delle otto antitrasformazioni che riportano la bitboard nella condizione originale.
+
+A titolo di esempio la board:
+
+{\tiny
+\begin{verbatim}
+A1 B1 C1 D1 E1 F1 G1 H1
+A2 B2 C2 D2 E2 F2 G2 H2
+A3 B3 C3 D3 E3 F3 G3 H3
+A4 B4 C4 D4 E4 F4 G4 H4
+A5 B5 C5 D5 E5 F5 G5 H5
+A6 B6 C6 D6 E6 F6 G6 H6
+A7 B7 C7 D7 E7 F7 G7 H7
+A8 B8 C8 D8 E8 F8 G8 H8
+\end{verbatim}
+}
+
+ruotata in senso orario di 90 gradi diventa:
+
+{\tiny
+\begin{verbatim}
+A8 A7 A6 A5 A4 A3 A2 A1
+B8 B7 B6 B5 B4 B3 B2 B1
+C8 C7 C6 C5 C4 C3 C2 C1
+D8 D7 D6 D5 D4 D3 D2 D1
+E8 E7 E6 E5 E4 E3 E2 E1
+F8 F7 F6 F5 F4 F3 F2 F1
+G8 G7 G6 G5 G4 G3 G2 G1
+H8 H7 H6 H5 H4 H3 H2 H1
+\end{verbatim}
+}
+
+Le otto trasformazioni sono quindi definite dai metodi omonimi nelle due classi SquareSet e Board come
+descritti nella tabella \ref{tab:bitboard_transformations}.
+Inoltre le due classi hanno definiti i metodi \texttt{transformations} ed \texttt{anti\_transformations} che ritornano
+un array di otto posizioni contenente le bitboard trasformate o anti-trasformate.
+
+\begin{table}[h]
+\centering
+\caption{Trasformazioni della bitboard}
+\label{tab:bitboard_transformations}
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Pos.} & \textbf{Descrizione} & \textbf{Trasformazione} & \textbf{Anti-Trasformazione} \\ \hline
+0 & Rotazione zero gradi oraria  & \texttt{ro000} & \texttt{ro000} \\ \hline
+1 & Rotazione 90 gradi oraria    & \texttt{ro090} & \texttt{ro270} \\ \hline
+2 & Rotazione 180 gradi oraria   & \texttt{ro180} & \texttt{ro180} \\ \hline
+3 & Rotazione 270 gradi oraria   & \texttt{ro270} & \texttt{ro090} \\ \hline
+4 & Specchiatura asse verticale  & \texttt{fvert} & \texttt{fvert} \\ \hline
+5 & Specchiatura diagonale H1-A8 & \texttt{fh1a8} & \texttt{fh1a8} \\ \hline
+6 & Specchiatura asse orizontale & \texttt{fhori} & \texttt{fhori} \\ \hline
+7 & Specchiatura diagonale A1-H8 & \texttt{fa1h8} & \texttt{fa1h8} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Definizione e Composizione del Gruppo}
+\label{sec:gruppo_diedrale}
+
+Le trasformazioni geometriche che agiscono sulla scacchiera del Reversi formano un gruppo matematico
+noto come \textbf{Gruppo Diedrale di ordine 8}, indicato con il simbolo $\bm{D_4}$.
+Questo gruppo rappresenta l'insieme completo delle simmetrie di un quadrato.
+
+Il gruppo $D_4$ (gruppo delle simmetrie del quadrato) ha ordine $|D_4| = 8$. In totale, esistono \textbf{10 sottogruppi}, suddivisi come segue:
+
+\begin{itemize}
+    \item \textbf{Ordine 1:} L'identità $\{e\}$.
+    \item \textbf{Ordine 2:}
+    \begin{itemize}
+        \item Sottogruppo generato dalla rotazione di $180^\circ$: $\langle R_{180} \rangle = \{e, R_{180}\}$.
+        \item 2 sottogruppi dalle riflessioni mediane: $\{e, S_h\}$ e $\{e, S_v\}$.
+        \item 2 sottogruppi dalle riflessioni diagonali: $\{e, S_{d1}\}$ e $\{e, S_{d2}\}$.
+    \end{itemize}
+    \item \textbf{Ordine 4:}
+    \begin{itemize}
+        \item Sottogruppo ciclico delle rotazioni: $C_4 = \{e, R_{90}, R_{180}, R_{270}\}$.
+        \item 2 sottogruppi isomorfi al gruppo di Klein $V_4$:
+        \begin{itemize}
+            \item $V_{4(m)} = \{e, R_{180}, S_h, S_v\}$ (mediane).
+            \item $V_{4(d)} = \{e, R_{180}, S_{d1}, S_{d2}\}$ (diagonali).
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Ordine 8:} Il gruppo stesso $D_4$.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcl}
+\toprule
+\textbf{Ordine} & \textbf{Quantità} & \textbf{Descrizione} \\
+\midrule
+1 & 1 & Sottogruppo banale (Identità) \\
+2 & 5 & Riflessioni e rotazione di $180^\circ$ \\
+4 & 3 & Sottogruppo rotazionale e gruppi di Klein \\
+8 & 1 & Gruppo totale $D_4$ \\
+\midrule
+\textbf{Totale} & \textbf{10} & \\
+\bottomrule
+\end{tabular}
+\caption{Distribuzione dei sottogruppi di $D_4$}
+\end{table}
+
+\subsection{Logica e Interpretazione del Grafo dei Sottogruppi di $D_4$}
+Il grafo dei sottogruppi di $D_4$ è un \textbf{Diagramma di Hasse} che rappresenta visivamente la struttura algebrica del gruppo delle simmetrie del quadrato.
+La sua interpretazione segue regole logiche precise:
+
+Ogni segmento (linea) che congiunge un nodo inferiore $A$ a un nodo superiore $B$ indica una relazione di \textbf{inclusione}: $A \subset B$.
+\begin{itemize}
+  \item Se esiste un percorso ascendente tra due nodi, il gruppo superiore contiene tutti gli elementi del gruppo inferiore.
+  \item Il diagramma mostra solo le inclusioni "minimali": non si tracciano linee superflue (ad esempio, dall'identità al gruppo totale) perché la relazione è transitiva.
+\end{itemize}
+
+Il grafo è strutturato verticalmente in base all'\textbf{ordine} (numero di elementi) dei sottogruppi, rispettando il \textit{Teorema di Lagrange}:
+\begin{enumerate}
+  \item \textbf{Livello 8 (Cima):} Rappresenta il gruppo $D_4$ stesso. Contiene tutte le 8 simmetrie.
+  \item \textbf{Livello 4 (Intermedio):} Contiene i sottogruppi massimali. Notiamo $C_4$ (rotazioni pure) e i due gruppi di Klein $V_4$. Ogni gruppo di questo livello contiene esattamente 3 sottogruppi di ordine 2.
+  \item \textbf{Livello 2 (Atomi):} Composti dall'identità e da un elemento invertibile (una riflessione o la rotazione di $180^\circ$). Sono i "mattoni" fondamentali del gruppo.
+  \item \textbf{Livello 1 (Base):} Il sottogruppo banale $\{e\}$.
+\end{enumerate}
+
+Osservando il grafo, si nota che il sottogruppo $\langle R_{180} \rangle$ è l'unico del livello 2 ad essere collegato a \textbf{tutti} i sottogruppi di ordine 4.
+\[
+\{e, R_{180}\} = C_4 \cap V_{4(m)} \cap V_{4(d)}
+\]
+Logicamente, questo accade perché la rotazione di $180^\circ$ commuta con tutti gli elementi del gruppo e fa parte del \textbf{centro} di $D_4$,
+indicando che è una simmetria comune sia alle rotazioni che alle riflessioni assiali/diagonali, questo è il Ruolo Centrale di $R_{180}$.
+
+\subsection{Proprietà Algebriche Visibili}
+\begin{itemize}
+    \item \textbf{Sottogruppi Normali:} Dal grafo si può intuire quali sottogruppi siano normali ($H \trianglelefteq D_4$). Ad esempio, tutti i sottogruppi di ordine 4 sono normali in $D_4$ poiché hanno indice 2.
+    \item \textbf{Complementarietà:} Il fatto che $C_4$ e $V_4$ siano su rami diversi mostra che una riflessione non può mai essere generata da una rotazione di $90^\circ$.
+\end{itemize}
+
+\begin{figure}[h!]
+    \centering
+
+    \begin{tikzpicture}[node distance=2.5cm, every node/.style={fill=white, inner sep=2pt}]
+
+        % --- LIVELLO 4: Ordine 8 ---
+        \node (D4) at (0,6) {$D_4$};
+
+        % --- LIVELLO 3: Ordine 4 ---
+        \node (C4) at (-4.5,4) {$C_4 = \{e, R_{90}, R_{180}, R_{270}\}$};
+        \node (V4m) at (0,4) {$V_{4(m)} = \{e, R_{180}, S_h, S_v\}$};
+        \node (V4d) at (4.5,4) {$V_{4(d)} = \{e, R_{180}, S_{d1}, S_{d2}\}$};
+
+        % --- LIVELLO 2: Ordine 2 ---
+        \node (S180) at (0,2) {$\{e, R_{180}\}$};
+        \node (Sh) at (-6,2) {$\{e, S_h\}$};
+        \node (Sv) at (-3,2) {$\{e, S_v\}$};
+        \node (Sd1) at (3,2) {$\{e, S_{d1}\}$};
+        \node (Sd2) at (6,2) {$\{e, S_{d2}\}$};
+
+        % --- LIVELLO 1: Ordine 1 ---
+        \node (e) at (0,0) {$\{e\}$};
+
+        % --- CONNESSIONI ---
+        \draw (D4) -- (C4); \draw (D4) -- (V4m); \draw (D4) -- (V4d);
+        \draw (C4) -- (S180);
+        \draw (V4m) -- (S180); \draw (V4m) -- (Sh); \draw (V4m) -- (Sv);
+        \draw (V4d) -- (S180); \draw (V4d) -- (Sd1); \draw (V4d) -- (Sd2);
+        \draw (S180) -- (e); \draw (Sh) -- (e); \draw (Sv) -- (e); \draw (Sd1) -- (e); \draw (Sd2) -- (e);
+
+    \end{tikzpicture}
+
+    \caption{Reticolo dei sottogruppi del gruppo diedrale $D_4$.}
+    \label{fig:reticoloD4}
+\end{figure}
+
+\subsection{Tabella di Cayley del Gruppo Diedrale $D_4$}
+Come si può osservare nella Tabella \ref{tab:cayley_d4}, il gruppo non è commutativo.
+La tabella seguente mostra il prodotto $G \cdot H$, dove $G$ è l'elemento della riga e $H$ l'elemento della colonna.
+In questa rappresentazione, il prodotto segue l'ordine operativo da sinistra a destra: si applica prima la
+trasformazione $G$ e successivamente la trasformazione $H$ al risultato, ovvero $y = H(G(x))$.
+Si noti che la tabella \textbf{non è simmetrica} rispetto alla diagonale principale, a conferma che $D_4$ non è abeliano.
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.8}
+\setlength{\tabcolsep}{10pt}
+\begin{tabular}{c|cccc|cccc}
+$\cdot$ & $e$ & $r$ & $r^2$ & $r^3$ & $s_v$ & $s_h$ & $d_1$ & $d_2$ \\ \hline
+$e$     & $e$ & $r$ & $r^2$ & $r^3$ & $s_v$ & $s_h$ & $d_1$ & $d_2$ \\
+$r$     & $r$ & $r^2$ & $r^3$ & $e$   & $d_1$ & $d_2$ & $s_h$ & $s_v$ \\
+$r^2$   & $r^2$ & $r^3$ & $e$   & $r$   & $s_h$ & $s_v$ & $d_2$ & $d_1$ \\
+$r^3$   & $r^3$ & $e$   & $r$   & $r^2$ & $d_2$ & $d_1$ & $s_v$ & $s_h$ \\ \hline
+$s_v$   & $s_v$ & $d_2$ & $s_h$ & $d_1$ & $e$   & $r^2$ & $r^3$ & $r$   \\
+$s_h$   & $s_h$ & $d_1$ & $s_v$ & $d_2$ & $r^2$ & $e$   & $r$   & $r^3$ \\
+$d_1$   & $d_1$ & $s_v$ & $d_2$ & $s_h$ & $r$   & $r^3$ & $e$   & $r^2$ \\
+$d_2$   & $d_2$ & $s_h$ & $d_1$ & $s_v$ & $r^3$ & $r$   & $r^2$ & $e$   \\
+\end{tabular}
+  \caption{Tabella di Cayley del gruppo $D_4$ con evidenza delle classi di equivalenza.}
+  \label{tab:cayley_d4}
+\end{table}
+
+\subsection{Composizione del Gruppo}
+Il gruppo $G = \{T_0, T_1, \dots, T_7\}$ è composto da 8 elementi fondamentali:
+\begin{itemize}
+  \item \textbf{4 Rotazioni:} $0^\circ$ (l'elemento \textit{Identità} $e$), $90^\circ$, $180^\circ$ e $270^\circ$.
+  \item \textbf{4 Riflessioni:} Orizzontale, Verticale e le due Diagonali.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Elementi del Gruppo Diedrale $D_4$ e relative Anti-trasformazioni.}
+\label{tab:d4_inverses}
+\begin{tabular}{@{}clllc@{}}
+\hline
+\textbf{Indice} & \textbf{Operatore} & \textbf{Descrizione Geometrica} & \textbf{Inverso ($T^{-1}$)} & \textbf{Ordine} \\ \hline
+0 & $e$      & Identità ($0^\circ$)          & $T_0$ & 1 \\
+1 & $r$      & Rotazione $90^\circ$ (CW)     & $T_3$ & 4 \\
+2 & $r^2$    & Rotazione $180^\circ$         & $T_2$ & 2 \\
+3 & $r^3$    & Rotazione $270^\circ$ (CW)    & $T_1$ & 4 \\
+4 & $s$      & Riflessione Orizzontale       & $T_4$ & 2 \\
+5 & $sr$     & Riflessione Diagonale (P)     & $T_5$ & 2 \\
+6 & $sr^2$   & Riflessione Verticale         & $T_6$ & 2 \\
+7 & $sr^3$   & Riflessione Diagonale (A)     & $T_7$ & 2 \\ \hline
+\end{tabular}
+\end{table}
+
+L'ordine di un elemento \(T\in D_{4}\) rappresenta il ciclo di ripetizione della trasformazione geometrica.
+Gli elementi di ordine 2, detti involuzioni, sono auto-inversi (\(T=T^{-1}\)), semplificando la logica di mappatura tra istanze simmetriche.
+
+\subsection{Degenerazione del Sottogruppo $V_{4(d)}$ su Pattern Diagonali}
+Abbiamo due differenze da considerare nella similitudine che intercorre la board di reversi e il gruppo $D_4$, una sostanziale ed una più incidentale.
+La seconda, che generalemnte trascureremo si basa sulla osservazione che la configurazione iniziale (Asimmetria di colore) i quattro dischi centrali sono disposti a "X": due bianchi e due neri incrociati.
+Questa disposizione rompe alcune simmetrie di $D_4$, ad esempio, una rotazione di 90 gradi o una riflessione assiale (orizzontale/verticale) scambia i colori dei dischi centrali.
+
+La prima, invece è basata sulla osservazione che il quadrato è una entità continua, mentre la board è discreta.
+
+Il gruppo $D_4$ agisce su un insieme di $64$ elementi distinti (le celle della board, una griglia discreta $8 \times 8$).
+Il \textit{caveat} fondamentale è che tale azione \textbf{non è libera}: la struttura a griglia impone un vincolo cinematico per cui lo spostamento di una singola cella determina univocamente il trascinamento delle altre $63$. Questa metrica rigida non è una proprietà intrinseca del gruppo $D_4$ \textit{per sé}, bensì deriva dall'\textbf{embedding} (immersione) del gruppo nella matrice discreta delle celle.
+
+In un modello geometrico continuo, tutte le riflessioni e le rotazioni ammettono punti fissi (gli assi di simmetria e il centro). Tuttavia, in una board $8 \times 8$, la discretizzazione introduce una netta distinzione tra i sottogruppi:
+
+\begin{itemize}
+    \item \textbf{Rotazioni ($C_4$):} Non ammettono celle fisse. Poiché la dimensione $n=8$ è pari, il centro di rotazione cade esattamente nell'intersezione tra quattro celle, mai sopra una di esse.
+    \item \textbf{Riflessioni Mediane ($S_h, S_v$):} Non ammettono celle fisse. Gli assi di riflessione passano \textit{tra} le righe o \textit{tra} le colonne, spostando ogni cella della scacchiera.
+    \item \textbf{L'Eccezione Diagonale:} Le riflessioni diagonali ($S_{d1}, S_{d2}$), appartenenti al sottogruppo di Klein $V_{4(d)}$, rappresentano l'unica eccezione logica. Esse sono le sole a possedere \textbf{punti fissi discreti}: ogni diagonale interseca esattamente $8$ celle che rimangono invarianti sotto l'azione di riflessione.
+\end{itemize}
+
+Questo fenomeno rompe l'\textbf{omogeneità dell'azione} del gruppo sulla scacchiera: le diagonali agiscono come "ancore" geometriche, creando un'asimmetria fondamentale tra il comportamento dei pattern assiali e quelli diagonali.
+
+
+Sia $\mathcal{P}$ un pattern di dischi sulla board di Reversi. Definiamo il sottogruppo di simmetria del pattern come $G_{\mathcal{P}} = \{ \sigma \in D_4 \mid \sigma(\mathcal{P}) = \mathcal{P} \}$.
+
+Se il pattern $\mathcal{P}$ giace interamente sulla diagonale principale $d_1$ (ovvero tutte le celle occupate appartengono all'insieme dei punti fissi di $S_{d1}$), si verifica una \textbf{degenerazione dell'azione del gruppo}:
+
+\begin{equation}
+    S_{d1}(\mathcal{P}) \equiv e(\mathcal{P}) = \mathcal{P}
+\end{equation}
+
+Mentre $D_4$ ammette formalmente 10 sottogruppi, l'interazione con la griglia discreta $8 \times 8$ crea una distinzione fenomenologica:
+\begin{itemize}
+    \item \textbf{V4d Standard:} Agisce su pattern fuori diagonale (genera 4 istanze).
+    \item \textbf{V4d Degenerato:} Agisce su pattern diagonali, dove le riflessioni collassano nell'identità o nella rotazione di $180^\circ$.
+\end{itemize}
+In questo sottocaso, l'insieme delle trasformazioni efficaci si riduce a $\{e, R_{180}\}$, ma con la proprietà unica che $S_{d1}$ agisce come operatore neutro \textit{sul contenuto} delle celle.
+
+
+\subsection{Struttura Algebrica e Generatori}
+
+Il gruppo diedrale $D_4$ può essere descritto in modo compatto attraverso i suoi \textbf{generatori}. Invece di considerare le otto trasformazioni come elementi isolati, le definiamo come combinazioni di due operazioni fondamentali.
+
+\subsection{I Generatori: Rotazione e Riflessione}
+Il gruppo $D_4$ è generato da due elementi fondamentali:
+\begin{itemize}
+    \item $r$: una rotazione di $90^\circ$ in senso orario (ordine 4, per cui $r^4 = e$).
+    \item $s$: una riflessione rispetto all'asse orizzontale (ordine 2, per cui $s^2 = e$).
+\end{itemize}
+
+\subsection{Relazioni Fondamentali e Proprietà Non-Abeliana}
+La struttura del gruppo è determinata dalla relazione di interazione tra questi due generatori. In $D_4$, vale la seguente relazione fondamentale:
+\begin{equation}
+    rs = sr^{-1} \quad (\text{ovvero } rs = sr^3)
+\end{equation}
+Questa uguaglianza dimostra formalmente che il gruppo \textbf{non è abeliano}: applicare una rotazione seguita da una riflessione ($rs$) non equivale ad applicare una riflessione seguita dalla stessa rotazione ($sr$).
+
+\subsection{Scomposizione degli Elementi}
+Grazie ai generatori $r$ e $s$, l'insieme degli otto elementi di $D_4$ può essere ripartito in due sottoinsiemi disgiunti:
+\begin{enumerate}
+    \item \textbf{Sottogruppo delle Rotazioni (Ciclico):}
+    \begin{equation}
+        R = \{e, r, r^2, r^3\}
+    \end{equation}
+    Questi elementi mantengono l'orientamento (chirale) originale della scacchiera.
+
+    \item \textbf{Insieme delle Riflessioni (Classe Laterale):}
+    \begin{equation}
+        S = \{s, sr, sr^2, sr^3\}
+    \end{equation}
+    Ogni elemento di questo insieme rappresenta una riflessione. Algebricamente, una riflessione ``composta'' (come quella diagonale) è vista come l'atto di ribaltare la scacchiera ($s$) e successivamente ruotarla per raggiungere l'asse di simmetria desiderato.
+\end{enumerate}
+
+\subsection{Interpretazione Geometrica}
+La notazione $sr^k$ spiega la natura delle simmetrie speculari:
+\begin{itemize}
+    \item $s$: Riflessione Orizzontale.
+    \item $sr$: Riflessione rispetto alla Diagonale Principale.
+    \item $sr^2$: Riflessione Verticale.
+    \item $sr^3$: Riflessione rispetto alla Diagonale Anti-principale.
+\end{itemize}
+Questa classificazione è di fondamentale importanza per il software: permette di mappare ogni possibile simmetria della scacchiera utilizzando solo due funzioni atomiche (\textit{rotate} e \textit{reflection}) e le loro composizioni.
+
+\subsection{Implementazione Computazionale (Parallel Bit Manipulation)}
+
+Dal punto di vista dell'efficienza algoritmica, le trasformazioni del gruppo $D_4$ non sono implementate come rotazioni geometriche classiche, ma come sequenze di \textit{Parallel Bit Manipulation} (tecnica nota come \textit{Delta Swap}). Questa scelta permette di eseguire ogni simmetria in tempo costante $O(1)$ senza l'ausilio di cicli o tabelle di lookup pesanti.
+
+\subsection{Composizione delle Trasformazioni}
+Sebbene algebricamente il gruppo sia generato da rotazioni e riflessioni, nel software è più efficiente utilizzare le riflessioni assiali e diagonali come primitive atomiche. Le rotazioni vengono quindi derivate dalla composizione di queste ultime, come illustrato nella Tabella \ref{tab:code_mapping}.
+
+\begin{table}[h]
+\centering
+\caption{Mappatura delle funzioni del software sugli elementi di $D_4$.}
+\label{tab:code_mapping}
+\begin{tabular}{lll}
+\hline
+\textbf{Elemento Algebrico} & \textbf{Funzione nel Software} & \textbf{Composizione Logica} \\ \hline
+$e$ (Identità) & \texttt{ro000} & - \\
+$s$ (Riflessione Orizzontale) & \texttt{fhori} & Primitive \\
+$sr^2$ (Riflessione Verticale) & \texttt{fvert} & Primitive \\
+$sr$ (Riflessione Diagonale) & \texttt{fh1a8} & Primitive \\
+$r$ (Rotazione $90^\circ$ CW) & \texttt{ro090} & \texttt{fh1a8} $\circ$ \texttt{fhori} \\
+$r^2$ (Rotazione $180^\circ$) & \texttt{ro180} & \texttt{fhori} $\circ$ \texttt{fvert} \\
+$r^3$ (Rotazione $90^\circ$ ACW) & \texttt{ro270} & \texttt{fhori} $\circ$ \texttt{fh1a8} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Analisi dell'Efficienza}
+L'approccio utilizzato riduce il \textit{branching} della CPU.
+Operazioni come \texttt{fh1a8} utilizzano maschere costanti (\textit{k1, k2, k4}) e operazioni
+di \textit{shift} e \textit{XOR} per scambiare interi blocchi di bit simultaneamente.
+Questo garantisce che la valutazione dei pattern rimanga performante anche durante ricerche profonde nell'albero di gioco.

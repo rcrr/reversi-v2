@@ -2163,3 +2163,18 @@ D-577 | 2026-10-18 | The book .tex sources adopt the standard GPL header + the R
          packages (othelloboard.sty, Steven Hall, LPPL) are explicitly exempt and keep their own header; the
          build-artifact includeonly.tex (gitignored, Makefile-regenerated) is out of scope. notes/rules.md (R-595) +
          notes/latex\_rules.md (zone §1) updated to record the scope. No commit yet (Roberto's general check first).
+
+D-578 | 2026-10-18 | The LATEX campaign — phase-2 content ported (the milestone): the legacy draft's content is re-homed
+         into the book. Chapter 2 "La board" gains 2.1 (domain representation), 2.2 (game positions — the SQL schema +
+         the PLAYER/OPPONENT/GAME\_VALUE invariants) and 2.3 (the full legacy ch.4 — the D4 dihedral group: the 8
+         transformations, the 10 subgroups, the Hasse lattice, the Cayley table, the generators + relations). Chapter 3
+         "I pattern" gains 3.1 (pattern theory + canonicalization — the orbit-stabilizer theorem, the classification
+         table) and 3.2 (definition + index calculation — the C pack/unpack + compute-index code). New chapter 4 "La
+         funzione di valutazione" (the legacy ch.7 — the additive pattern model, the logistic function, the target, the
+         MSE + Ridge cost, the gradient). New Appendix A "Catalogo dei Pattern" (the legacy ch.8) — 29 patterns, each
+         with its metadata box + the 8 D4 board subfigures. The legacy Introduction (ch.1) is obsolete and skipped. The
+         appendix is generated statically from mdp.csv (scratch/gen\_appendix.py, gitignored) because datatool is not
+         installed, keeping the book self-contained. The preamble gains amsmath/amssymb/bm/booktabs/ tikz (D4),
+         listings/enumitem/xcolor (positions), tcolorbox[most]/tabularx/expl3 (appendix); othelloboard.sty (Steven Hall,
+         LPPL) is copied in. Every .tex source carries the standard GPL header (per D-577). Build green: 56 pages, 0
+         hard errors.

@@ -418,3 +418,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   tex2txt.py, dict.txt, .gitignore, the 3-chapter skeleton) + notes/latex\_rules.md (G1-G8) + the overview Index line.
   Prepared for the first LATEX checkin (pending Roberto's file-by-file review of the git radar); no commit made.
   Content/structure is phase 2.
+
+## 2026-10-18 — session 122 (LATEX phase-2 content ported + the .tex license adoption, D-577/D-578)
+- Ported the legacy draft's content into the book (phase 2), chapter by chapter, faithful to the source: chapter 2 "La
+  board" (2.1 domain representation, 2.2 game positions, 2.3 the D4 dihedral group — the full legacy ch.4 with the
+  transformations/subgroups/Hasse/Cayley tables), chapter 3 "I pattern" (3.1 pattern theory + canonicalization, 3.2
+  definition + index calculation with the C code), chapter 4 "La funzione di valutazione" (the legacy ch.7 —
+  model/target/cost/gradient), and Appendix A "Catalogo dei Pattern" (the legacy ch.8 — 29 patterns, each with its
+  metadata box + the 8 D4 board subfigures). The legacy Introduction (ch.1) is obsolete — skipped.
+- The appendix is generated statically from mdp.csv (scratch/gen\_appendix.py) because datatool is not installed; the
+  book stays self-contained (no datatool/CSV at build time). The preamble gained amsmath/amssymb/bm/booktabs/tikz +
+  listings/enumitem/xcolor + tcolorbox[most]/tabularx/expl3; othelloboard.sty (Steven Hall, LPPL) copied in.
+- D-577: every hand-written .tex source adopts the standard 26-line GPL header (the %-comment variant); the R-595 guard
+  (license\_header\_audit.py) extended to .tex. othelloboard.sty (third-party, LPPL) + the build-artifact
+  includeonly.tex are exempt.
+- Gates green: the license audit passes on all 153 tracked sources; notes\_lint green; the build is 56 pages, 0 hard
+  errors. Two checkins: D-577 (the license governance) + D-578 (the content milestone).

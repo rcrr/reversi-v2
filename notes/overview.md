@@ -57,10 +57,11 @@ define the evaluation function.
   values; establish whether a single model definition stays valid across the resolved EC range [26..0] or distinct
   per-phase optima exist; verify whether Buro's LOGISTELLO set is the best compromise for the logistic model, or if a
   more competitive set can be found; develop the examples for the LaTeX document.
-- The LATEX campaign (the artifact document): a draft exists in the legacy Reversi repository (the starting point). The
-  document explains the model, its mathematical properties, the pipeline implementation, and the results achieved;
-  define the workspace governance for the LaTeX documents — the compilation and generation pipeline, and a document
-  structure split into appropriately sized files.
+- The LATEX campaign (the artifact document): the book zone is governed (D-576) and the legacy draft's content is ported
+  (D-578) — chapter 2 (the board: domain representation, game positions, the D4 group), chapter 3 (the pattern theory +
+  index calculation), chapter 4 (the evaluation function), and Appendix A (the 29-pattern catalog); the build is green
+  at 56 pages. Next: phase 3 (writing/refining the chapters), the results section (fills in as FEATURE-SET lands), and a
+  fresh Introduction (the legacy one is obsolete).
 - The MULTI-PLY campaign: the current EF is zero-ply; develop the N-ply game expansion (the alpha-beta search over the
   EF) delivering an evaluation based on a game tree search; evaluate the statistical properties of the resulting
   function.
