@@ -434,3 +434,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   includeonly.tex are exempt.
 - Gates green: the license audit passes on all 153 tracked sources; notes\_lint green; the build is 56 pages, 0 hard
   errors. Two checkins: D-577 (the license governance) + D-578 (the content milestone).
+
+## 2026-10-18 — session 123 (LATEX — new Appendix B "Regole del gioco", D-580)
+ - Added Appendix B "Regole del gioco" to the book: the official Othello rules, translated into Italian from the
+   World Othello Federation's official-rules page (the source cited explicitly, title + URL, for copyright clarity).
+ - All 12 board diagrams reconstructed with the othelloboard package (not copied images): the setup, the outflanking
+   example, the rule-2/4/5 illustrations (with the move/flip arrows in red so they read on black discs), and the
+   sample game (the first two move pairs, grouped as one 2x2 figure).
+ - A terminology note defines "aggiramento" (the Italian for "outflank", verb "aggirare") with the common players'
+   expressions; a final section covers the WOF early-termination scoring rule (empty squares count for the winner,
+   total always 64), quoting the WOC Rules Section IV.8 with the source PDF link.
+ - Iterated with Roberto (surgical tweaks): removed the "reconstructed with othelloboard" sentence, translated
+   everything to Italian, grouped the outflanking + sample-game figures as figure/subfigure, made the arrows red.
+ - Gates green: the license audit passes on the new .tex; the build is 60 pages, 0 hard errors, 0 undefined
+   references; notes\_lint green. One checkin: D-580.

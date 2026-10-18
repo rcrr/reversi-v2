@@ -2182,3 +2182,15 @@ D-578 | 2026-10-18 | The LATEX campaign — phase-2 content ported (the mileston
 D-579 | 2026-10-18 | The latex/ .gitignore gains auto/ (the Flyspell/Emacs proofreading cache, main.el): a G4 compliance
          fix — the spell-check cache is a local build artifact and was showing as untracked noise. Trivial one-line
          addition; no source/content change.
+
+D-580 | 2026-10-18 | New Appendix B "Regole del gioco" (the game rules) added to the book. The official rules are
+         translated into Italian from the World Othello Federation's official-rules page, with the source cited
+         explicitly (title + URL) for copyright clarity. The 12 board diagrams are reconstructed with the othelloboard
+         package rather than copied as images: the initial setup, the outflanking example (before/after), the rule-2/4/5
+         illustrations (with the move/flip arrows), and the sample game (the first two move pairs). A terminology note
+         defines "aggiramento" (verb "aggirare") — the Italian for "outflank" — alongside the common players'
+         expressions (intrappolare, chiudere a panino, prendere in mezzo, stringere). A final section covers the WOF
+         scoring rule for early-terminated games (empty squares are counted for the winner, so the official total is
+         always 64), quoting the World Othello Championships Rules (Section IV.8 "Scoring") with the source PDF link.
+         The chapter is wired into main.tex after Appendix A. Build green: 60 pages, 0 hard errors, 0 undefined
+         references.

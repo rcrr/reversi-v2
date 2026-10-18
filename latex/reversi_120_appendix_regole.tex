@@ -1,0 +1,290 @@
+%
+% reversi_120_appendix_regole.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Appendice B — Regole del gioco.
+%
+% Le regole che seguono sono tradotte dalla pubblicazione della World Othello
+% Federation (WOF), la fonte autorizzata delle regole ufficiali del gioco. Le
+% figure sono ricostruite con il package othelloboard a partire dai diagrammi
+% originali della pagina WOF. La fonte e' citata espressamente.
+%-----------------------------------------------------------------------------
+
+\captionsetup[subfigure]{justification=centering}
+
+%--- Helpers per le figure delle regole ---------------------------------------
+% \rulesboard{<stringa 64 char, UNA sola riga>}{<annotazioni e frecce>}
+%   Disegna una scacchiera 8x8 (con i riferimenti a-h / 1-8) a partire da una
+%   stringa di 64 caratteri (O = disco bianco, X = disco nero, - = cella vuota),
+%   letti riga per riga (riga 1 in alto, da colonna a a h), e applica le
+%   annotazioni/frecce passate come secondo argomento.
+\newcommand{\rulesboard}[2]{%
+  \begin{othelloboard}{1}%
+    \drawboardfromstring{#1}%
+    #2%
+  \end{othelloboard}%
+}
+
+% Frecce ROSSE: visibili sia sui dischi neri sia sulle caselle vuote.
+\newcommand{\arrR}[2]{\put(#1,#2){\textcolor{red}{\vector(1,0){14}}}}
+\newcommand{\arrL}[2]{\put(#1,#2){\textcolor{red}{\vector(-1,0){14}}}}
+\newcommand{\arrU}[2]{\put(#1,#2){\textcolor{red}{\vector(0,1){14}}}}
+\newcommand{\arrD}[2]{\put(#1,#2){\textcolor{red}{\vector(0,-1){14}}}}
+
+\chapter{Regole del gioco}
+
+Questa appendice riporta le regole ufficiali del gioco, tradotte dalla
+pubblicazione della \textbf{World Othello Federation (WOF)}:
+
+\begin{quote}\small
+\emph{Official rules for the game Othello}, World Othello Federation.\\
+\url{https://www.worldothello.org/about/about-othello/othello-rules/official-rules/english}
+\end{quote}
+
+\section{Obiettivo del gioco}
+
+L'obiettivo del gioco è avere la maggioranza dei dischi rivolti verso l'alto
+sulla scacchiera, del proprio colore, alla fine della partita.
+
+\section{Un minuto per impararlo\ldots}
+
+Ogni giocatore prende 32 dischi e sceglie un colore da usare per tutta la
+partita. Nero piazza due dischi neri e Bianco piazza due dischi bianchi come
+mostrato in Figura~\ref{fig:rules-setup}.
+
+\begin{figure}[htbp]
+  \centering
+  \scalebox{0.62}{%
+    \rulesboard{---------------------------OX------XO---------------------------}{}%
+  }
+  \caption{La partita inizia sempre con questa disposizione.}
+  \label{fig:rules-setup}
+\end{figure}
+
+Una mossa consiste nel ``aggirare'' il disco (o i dischi)
+dell'avversario, per poi ribaltare il disco (o i dischi) aggirato al
+proprio colore. Aggirare significa piazzare un disco sulla scacchiera
+in modo che la fila (o le file) di dischi dell'avversario sia delimitata a
+ciascuna estremità da un disco del proprio colore. (Una ``fila'' può essere
+composta da uno o più dischi).
+
+\begin{quote}\small
+\textbf{Il termine.} Nel linguaggio regolamentare l'operazione si chiama
+\emph{aggiramento} (verbo: \emph{aggirare}): ``una mossa è valida se permette
+l'aggiramento di una o più pedine avversarie.'' Nel gergo tra giocatori si
+usano anche espressioni come \emph{intrappolare}, \emph{chiudere a panino},
+\emph{prendere in mezzo} o \emph{stringere}, a indicare la stessa idea:
+mettere i dischi avversari in mezzo a due dischi del proprio colore.
+\end{quote}
+
+Ecco un esempio. Il disco bianco A era già a posto sulla scacchiera. La
+collocazione del disco bianco B aggira la fila di tre dischi neri.
+Bianco ribalta i dischi aggirati e ora la fila è così:
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.5}{%
+      \rulesboard{--------------------------OXXXO---------------------------------}%
+        {\posannotation{C4}{A}\posannotation{G4}{B}}%
+    }
+    \caption{La mossa di aggiramento: viene posto il disco bianco B.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.5}{%
+      \rulesboard{--------------------------OOOOO---------------------------------}%
+        {\posannotation{C4}{A}\posannotation{G4}{B}}%
+    }
+    \caption{I tre dischi aggirati vengono ribaltati in bianco.}
+  \end{subfigure}
+  \caption{Esempio di aggiramento di una fila di tre dischi.}
+  \label{fig:rules-outflank}
+\end{figure}
+
+\section{Regole di Othello}
+
+\begin{enumerate}
+  \item Nero muove sempre per primo.
+
+  \item Se al tuo turno non puoi aggirare e ribaltare almeno un disco
+    avversario, il tuo turno è annullato e l'avversario muove di nuovo.
+    Tuttavia, se una mossa è a tua disposizione, non puoi cedere il turno.
+    % L'elenco originale non ha una regola 3; la numerazione riprende da 4.
+    \setcounter{enumi}{3}
+
+    \begin{figure}[htbp]
+      \centering
+      \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \scalebox{0.5}{%
+          \rulesboard{----------------XO--------O-------O-------X---------------------}%
+            {\arrU{60}{118}}%
+        }
+        \caption{Disco posto}
+      \end{subfigure}
+      \hfill
+      \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \scalebox{0.5}{%
+          \rulesboard{----------------XXX-------X-------X-------X---------------------}%
+            {\arrR{22}{132}\arrU{60}{94}\arrU{60}{70}}%
+        }
+        \caption{Questi dischi ribaltati}
+      \end{subfigure}
+      \caption{La mossa (a) e i dischi ribaltati (b).}
+      \label{fig:rules-r2}
+    \end{figure}
+
+  \item I giocatori non possono saltare oltre i propri dischi per aggirare
+    un disco avversario. (Vedi Figura~\ref{fig:rules-r4}.)
+
+    \begin{figure}[htbp]
+      \centering
+      \scalebox{0.62}{%
+        \rulesboard{------------------------------------------------XOXOOX----------}%
+          {\arrD{12}{50}\posannotation{B7}{1}}%
+      }
+      \caption{Questo disco aggira e ribalta solo il disco bianco 1.}
+      \label{fig:rules-r4}
+    \end{figure}
+
+  \item I dischi possono essere aggirati solo come risultato diretto di
+    una mossa e devono trovarsi nella linea diretta del disco posto.
+    (Vedi Figure~\ref{fig:rules-r5}a e~\ref{fig:rules-r5}b.)
+
+    \begin{figure}[htbp]
+      \centering
+      \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \scalebox{0.5}{%
+          \rulesboard{X-------O-------OOOX----X---------------------------------------}%
+            {\arrR{-2}{180}}%
+        }
+        \caption{Disco posto qui}
+      \end{subfigure}
+      \hfill
+      \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \scalebox{0.5}{%
+          \rulesboard{X-------X-------XOOX----X---------------------------------------}%
+            {\arrR{-2}{156}\arrR{-2}{132}\posannotation{B3}{1}\posannotation{C3}{2}}%
+        }
+        \caption{Questi 2 dischi ribaltati. I dischi 1 e 2 non vengono ribaltati (anche se sembrano aggirati).}
+      \end{subfigure}
+      \caption{Vengono ribaltati solo i dischi nella linea diretta della mossa.}
+      \label{fig:rules-r5}
+    \end{figure}
+
+  \item Tutti i dischi aggirati in una mossa devono essere ribaltati,
+    anche se sarebbe a vantaggio del giocatore non ribaltarli affatto.
+
+  \item Una volta che un disco è posto su una casella, non può più essere
+    mosso su un'altra casella più tardi nella partita.
+
+  \item Quando non è più possibile per nessuno dei due giocatori muovere, la
+    partita è finita. I dischi vengono contati e il giocatore con la
+    maggioranza del proprio colore visibile è il vincitore.
+
+    \begin{quote}\itshape
+      Nota: è possibile che una partita finisca prima che tutte e 64 le
+      caselle siano riempite.
+    \end{quote}
+\end{enumerate}
+
+\section{Partita di esempio}
+
+Nero muove per primo. Un disco nero può essere posto in C4, D3, E6 o F5 per
+aggirare un disco bianco. Nero decide di posizionare un disco in C4
+(Vedi Figura~\ref{fig:rules-sg}a). Il disco bianco aggirato tra i due
+dischi neri viene ribaltato (Vedi Figura~\ref{fig:rules-sg}b). Ora è il turno
+di Bianco. Un disco bianco può essere posto in C3, E3 o C5 per aggirare
+un disco nero. Bianco decide di posizionare un disco in C3 (Vedi
+Figura~\ref{fig:rules-sg}c). Il disco nero aggirato tra i due dischi
+bianchi viene ribaltato (Vedi Figura~\ref{fig:rules-sg}d).
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.5}{%
+      \rulesboard{--------------------------XOX------XO---------------------------}{}%
+    }
+    \caption{Nero posiziona un disco in C4.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.5}{%
+      \rulesboard{--------------------------XXX------XO---------------------------}{}%
+    }
+    \caption{Il disco bianco aggirato (D4) viene ribaltato.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.5}{%
+      \rulesboard{------------------O-------XXX------XO---------------------------}{}%
+    }
+    \caption{Bianco posiziona un disco in C3.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.5}{%
+      \rulesboard{------------------O-------XOX------XO---------------------------}{}%
+    }
+    \caption{Il disco nero aggirato (D4) viene ribaltato.}
+  \end{subfigure}
+  \caption{Le prime due coppie di mosse della partita di esempio.}
+  \label{fig:rules-sg}
+\end{figure}
+
+La partita prosegue in questo modo fino a quando nessuno dei due giocatori può
+più muovere. Il giocatore con più dischi a questo punto è il vincitore.
+
+\section{Punteggio e fine anticipata della partita}
+
+Nei campionati internazionali regolati dalla World Othello Federation (WOF),
+quando la partita termina in anticipo — perché nessun giocatore ha più mosse
+valide, oppure perché uno dei due subisce un ``cappotto'' (\emph{wipeout})
+perdendo tutte le proprie pedine — le caselle rimaste vuote vengono assegnate
+d'ufficio al vincitore. La somma dei punti dei due giocatori nei verbali
+ufficiali deve quindi essere sempre pari a 64: la differenza finale include
+anche tutte le caselle vuote accumulate dal vincitore.
+
+\begin{quote}\small
+\emph{World Othello Championships Rules}, Sezione IV.8 ``Scoring'':\\
+``The official score of the game will be determined by counting up the discs
+of each colour on the board, counting empty squares for the winner.''\\
+(Traduzione: ``Il punteggio ufficiale della partita sarà determinato contando
+i dischi di ciascun colore sulla scacchiera, contando le caselle vuote a
+favore del vincitore.'')\\
+\url{https://www.worldothello.org/application/files/8816/9235/2069/NEW_WOC_Rules_2023.pdf}
+\end{quote}
