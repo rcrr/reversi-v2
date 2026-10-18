@@ -2143,3 +2143,13 @@ D-575 | 2026-10-17 | The forward roadmap established (the post-PUBLISH planning 
          term over the pattern-pair embeddings) and I-022 (the ANSI-C-to-Rust port). Notes-only change (overview.md +
          ideas.md); no source or test files touched. Drive-by: the overview's stale test\_mobility Suite cell corrected
          (31 → 33, the fresh gate measurement revealed the drift).
+
+D-576 | 2026-10-17 | The LATEX campaign — governance established (the first tracked milestone): the book zone latex/
+         created and validated from the scratch spike. The zone carries the Makefile (latex [CH=NNN] fast-compile,
+         spell, pdf2png, latex-warn, clean), the master main.tex (book + babel[italian]), the tex2txt.py spell filter,
+         the dict.txt personal domain dictionary, the .gitignore (build/ per G4), and a 3-chapter skeleton (chapters
+         020/040/060). notes/latex\_rules.md written (G1-G8). The spike (scratch/latex\_spike/, gitignored) validated
+         the design before promotion: the 9pp full vs the 5pp single-chapter fast build, and the visual tool catching
+         the English headings -> babel[italian]. Two authoring tools (G8) prototyped + validated: make spell (the
+         pre-checkin gate) and make pdf2png (the visual inspection). Overview Index gains the latex\_rules line. The PDF
+         is committed only at a release (G4); the content/structure is phase 2. No source/test files touched.

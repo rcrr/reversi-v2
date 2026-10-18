@@ -1,0 +1,14 @@
+# Personal dictionary (G8) — domain terms legitimately used in the Italian text.
+# aspell -d it would otherwise flag these as foreign/unknown; the Makefile `spell`
+# target removes them from aspell's output via `grep -vFx -f dict.txt`. Add terms
+# here as the content is written (one per line).
+board
+pattern
+patterns
+bitboard
+bitboards
+mobility
+logistic
+regab
+endgame
+evaluation

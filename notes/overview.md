@@ -225,6 +225,7 @@ Test data (test/reversi/data/):
 - notes/overview\_rules.md — the format rules of notes/overview.md
 - notes/wsutils.md — the workspace-utils rules
 - notes/probe\_rules.md — verification-apparatus rules
+- notes/latex\_rules.md — the LaTeX book (the latex/ zone) governance: build, structure, the spell + visual tools
 - notes/hist\_log/log\_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
 - notes/hist\_log/log\_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
 - notes/hist\_log/log\_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)

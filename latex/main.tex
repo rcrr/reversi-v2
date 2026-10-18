@@ -1,0 +1,24 @@
+\documentclass{book}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}   % Italian section headings: Capitolo / Indice (G8)
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+% Fast-compile switch (G3): `make latex CH=NNN` writes \includeonly{reversi_NNN_slug}
+% here; empty -> a full build. See notes/latex_rules.md.
+\input{includeonly}
+
+\title{Reversi --- il modello logistico}   % working title; finalized in phase 2 (content)
+\author{[autore]}                            % byline to be set
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\include{reversi_020_introduzione}
+\include{reversi_040_board}
+\include{reversi_060_pattern}
+
+\end{document}

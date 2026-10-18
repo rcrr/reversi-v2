@@ -722,7 +722,7 @@ def kind_of(name):
     if b == 'design_principles.md':
         return 'design'
     if b in ('overview_rules.md', 'decisions_rules.md', 'log_rules.md', 'docs_rules.md',
-             'probe_rules.md', 'wsutils.md', 'naming.md'):
+             'probe_rules.md', 'wsutils.md', 'naming.md', 'latex_rules.md'):
         return 'rulefile'
     if b in ('ideas.md', 'ideas_closed.md'):
         return 'ideas'
@@ -737,7 +737,7 @@ def main(argv):
         files = [ROOT / f'notes/{n}' for n in
                  ('rules.md', 'decisions.md', 'log.md', 'overview.md', 'ideas.md', 'ideas_closed.md',
                   'naming.md', 'design_principles.md', 'wsutils.md', 'overview_rules.md', 'decisions_rules.md',
-                  'log_rules.md', 'docs_rules.md', 'probe_rules.md')]
+                  'log_rules.md', 'docs_rules.md', 'probe_rules.md', 'latex_rules.md')]
     linters = {'decisions': lint_decisions, 'rules': lint_rules, 'design': lint_design,
                'journal': lint_journal, 'overview': lint_overview, 'rulefile': lint_rulefile, 'ideas': lint_ideas}
     total = 0

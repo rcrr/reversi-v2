@@ -379,14 +379,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 
 - Session opened: with the pipeline complete and published (D-574), Roberto populates the overview Next-steps section
   with the forward campaign roadmap — the next phase is USING the completed pipeline.
-- Seven campaigns recorded in notes/overview.md Next steps (non-prioritized): FEATURE-SET, LATEX, MULTI-PLY,
-  MOVE-PROB, ENDGAME-SOLVER, REGAB, TEST-BATCH.
-- The REGAB entry refined over the exchange into three components with distinct fates: position generation → Python
-  (the existing random\_game code + the DB insert), classification generation out of the v2 DDL (superseded by the
-  dynamic pipeline — not dropped), and the regab\_solve resolver staying in C to the v2 format (the batching +
-  DB-interaction front end calling the same solve primitive as endgame\_solver).
-- A near-duplicate caught: "port the ANSI C program regab solve" was the REGAB resolver component, merged into the
-  REGAB entry (one fact, one home) rather than added as a separate campaign.
+- Seven campaigns recorded in notes/overview.md Next steps (non-prioritized): FEATURE-SET, LATEX, MULTI-PLY, MOVE-PROB,
+  ENDGAME-SOLVER, REGAB, TEST-BATCH.
+- The REGAB entry refined over the exchange into three components with distinct fates: position generation → Python (the
+  existing random\_game code + the DB insert), classification generation out of the v2 DDL (superseded by the dynamic
+  pipeline — not dropped), and the regab\_solve resolver staying in C to the v2 format (the batching + DB-interaction
+  front end calling the same solve primitive as endgame\_solver).
+- A near-duplicate caught: "port the ANSI C program regab solve" was the REGAB resolver component, merged into the REGAB
+  entry (one fact, one home) rather than added as a separate campaign.
 - Two forward-looking ideas seeded in notes/ideas.md (the open backlog was empty): I-021 (the ResNet extension of the
   logistic model) and I-022 (the ANSI-C-to-Rust port) — both status `idea`, placed in the backlog (not Next steps) as
   uncommitted proposals.
@@ -396,3 +396,25 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - Closing LONG=1 gate run (R-840): green (1145 ok, skipped=24) — the per-module measurement regenerated for the
   pre-commit gate (scratch/suite\_audit.txt; the disposable scratch/ was empty in the fresh clone).
 - Session closed by the user.
+
+## 2026-10-17 — session 121 (the LATEX campaign — governance established, D-576)
+
+- Session opened: the LATEX campaign (the artifact book) begins. Working in scratch/ (gitignored, no checkin) per
+  Roberto, until the governance is clarified.
+- The document is a BOOK (~200pp), not a paper; a 10pp paper may be distilled later if the results warrant.
+- Governance G1-G7 settled with Roberto: the latex/ zone; Make + latexmk + pdflatex; the include/includeonly
+  fast-compile + the reversi\_NNN\_slug.tex (3-digit, step 20) naming; all build artifacts gitignored in build/ (the PDF
+  only at a release); notes/latex\_rules.md (the overview Index line deferred until clear); Italian-first; interleaved
+  with FEATURE-SET.
+- A scratch spike (scratch/latex\_spike/) validated the design before promotion: the 9pp full vs the 5pp single-chapter
+  fast build (the includeonly gotcha — it matches the FULL filename — fixed by the Makefile glob-resolving CH=NNN to the
+  chapter base name).
+- Roberto added two authoring tools (G8), both prototyped + validated in the spike: make spell (tex2txt.py strips the
+  markup -> aspell -d it, filtered against the domain dictionary; a pre-checkin gate) and make pdf2png (Nia renders the
+  pages to PNG and inspects them visually, as with the pipeline PLOTs). The visual tool immediately caught a real defect
+  the compiler hides: the English "CONTENTS/Chapter" headings -> fixed with \usepackage[italian]{babel} -> confirmed
+  "INDICE/Capitolo".
+- Promotion (this milestone, D-576): the validated design is homed in the tracked latex/ zone (Makefile, main.tex,
+  tex2txt.py, dict.txt, .gitignore, the 3-chapter skeleton) + notes/latex\_rules.md (G1-G8) + the overview Index line.
+  Prepared for the first LATEX checkin (pending Roberto's file-by-file review of the git radar); no commit made.
+  Content/structure is phase 2.
