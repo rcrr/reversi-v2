@@ -2178,3 +2178,7 @@ D-578 | 2026-10-18 | The LATEX campaign — phase-2 content ported (the mileston
          listings/enumitem/xcolor (positions), tcolorbox[most]/tabularx/expl3 (appendix); othelloboard.sty (Steven Hall,
          LPPL) is copied in. Every .tex source carries the standard GPL header (per D-577). Build green: 56 pages, 0
          hard errors.
+
+D-579 | 2026-10-18 | The latex/ .gitignore gains auto/ (the Flyspell/Emacs proofreading cache, main.el): a G4 compliance
+         fix — the spell-check cache is a local build artifact and was showing as untracked noise. Trivial one-line
+         addition; no source/content change.

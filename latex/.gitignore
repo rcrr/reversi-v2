@@ -1,3 +1,4 @@
 # G4: all build artifacts are gitignored; the final PDF is committed only at a release.
 build/
+auto/
 includeonly.tex
