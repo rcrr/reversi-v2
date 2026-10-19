@@ -2328,3 +2328,14 @@ D-589 | 2026-10-19 | Resolved D1 at Roberto's call: the code and the vocabulary 
          green (`py_compile` on all four .py, `notes_lint` 0, `latex_lint` 0); the full probe sweep is 16/24 with those
          8 pre-existing red; VVLONG green (exit 0, the full 19-level pipeline runs to completion on the live regab DB,
          no failures).
+
+D-590 | 2026-10-19 | At Roberto's call, the spellcheck dictionary (dict.txt) is now lowercase by definition and matched
+         case-insensitively. Rationale: the filter was grep -vFx (case-sensitive), so every term had to be added in each
+         casing it appears in (Count and count, Legal and legal, Reversi and reversi, ...); 642 word entries carried 64
+         pure case-duplicates. The change: (1) the Makefile spell target now uses grep -vFxi; (2) dict.txt is normalised
+         to one lowercase entry per term (642 -> 578 words, the case-duplicates collapse), header updated to say so.
+         Verified: a micro-test confirms aspell emits flagged words in their original casing and the case-insensitive
+         filter suppresses a dict term in any casing while still flagging a genuine unknown (Feature suppressed,
+         FeatureX kept); the full-book make spell is green (0) on the lowercased dict. The only trade-off is cosmetic:
+         the dict no longer records a term's canonical casing (FeatureSet -> featureset), which is fine because the
+         point is to accept the term in any casing.

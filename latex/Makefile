@@ -33,11 +33,12 @@ latex:
 	latexmk -pdf -interaction=nonstopmode -outdir=$(OUT) $(MAIN).tex
 
 # Italian spellcheck: strip the LaTeX markup (tex2txt.py), then aspell -d it with the
-# personal domain dictionary (dict.txt). Exits non-zero if any word is flagged.
+# personal domain dictionary (dict.txt, lowercase entries, matched case-insensitively).
+# Exits non-zero if any word is flagged.
 spell:
 	@echo "=== Italian spellcheck (aspell -d it + $(DICT)) over the .tex prose ==="
 	@rc=0; for f in $(MAIN).tex reversi_*.tex; do \
-		bad=$$($(PY) tex2txt.py < $$f | aspell list -d it 2>/dev/null | grep -vFx -f $(DICT)); \
+		bad=$$($(PY) tex2txt.py < $$f | aspell list -d it 2>/dev/null | grep -vFxi -f $(DICT)); \
 		if [ -n "$$bad" ]; then echo "-- $$f --"; echo "$$bad"; rc=1; fi; \
 	done; \
 	[ $$rc -eq 0 ] && echo "(no misspellings found)"; exit $$rc

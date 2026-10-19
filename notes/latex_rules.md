@@ -57,9 +57,10 @@ The "sensors" for a long writing campaign (the first two are Makefile targets; t
 - `make spell` — Italian spellcheck, **MUST be green (0 misspellings) before every checkin** (a hard gate). tex2txt.py
   strips the LaTeX markup (comments, environments, structural commands, [options]; keeps the prose and the {arg} of text
   commands) → `aspell list -d it` → the flagged words are filtered against dict.txt (the personal domain dictionary)
-  with `grep -vFx`. Exits non-zero if any word survives. A foreign (e.g. English) verbatim passage is marked with the
-  \enverbatim{…} identity macro, which tex2txt.py skips (D-585). Domain terms (board, pattern, bitboard, …) go in
-  dict.txt, not in the filter.
+  with `grep -vFxi` (case-insensitive: dict.txt stores each term lowercase, so one entry covers every casing — D-590).
+  Exits non-zero if any word survives. A foreign (e.g. English) verbatim passage is marked with the \enverbatim{…}
+  identity macro, which tex2txt.py skips (D-585). Domain terms (board, pattern, bitboard, …) go in dict.txt, not in the
+  filter.
 - `make pdf2png` — renders the built PDF to per-page PNGs (pdftoppm) under build/pages/, which Nia inspects VISUALLY
   (the same path as the pipeline PLOTs). It catches what a green build hides — layout / pagination / localization
   defects. It already earned its keep in the spike (it exposed the English "CONTENTS / Chapter" headings).

@@ -530,3 +530,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     mismatch fail identically on the stashed original D8 code. Checks per Roberto: lint green (`py_compile`,
     `notes_lint` 0, `latex_lint` 0), probe sweep 16/24 (the 8 red are pre-existing), VVLONG green (exit 0, full 19-level
     pipeline on the live regab DB). One checkin: D-589.
+  - At Roberto's call, made the spellcheck dict lowercase-by-definition and case-insensitive: the Makefile spell filter
+    is now grep -vFxi and dict.txt is normalised to one lowercase entry per term (642 -> 578 words; the 64
+    case-duplicates collapse). Verified with a micro-test (a dict term is suppressed in any casing, a genuine unknown is
+    still flagged) and a green full-book make spell (0). Documented in the G8 rule (LaTeX rules). One checkin: D-590.
