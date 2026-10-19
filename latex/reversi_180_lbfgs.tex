@@ -1,0 +1,790 @@
+%
+% reversi_180_lbfgs.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+%
+% Capitolo 9 — L'algoritmo L-BFGS: il solutore numerico del livello OPTIMIZE,
+% trattato in pieno: approssimazione inversa dell'Hessiano a memoria limitata,
+% ricorsione a doppio ciclo, ricerca del passo con condizioni di Wolfe forti
+% e interpolazione di Hermite cubica.
+%
+
+\chapter{L'algoritmo L-BFGS}
+
+\label{ch:lbfgs}
+
+Il capitolo 8 ha definito la funzione di perdita $J(\bm{w})$ — l'errore
+quadratico medio con regolarizzazione di ridge — e il suo gradiente, e ha
+spiegato \emph{perché} la minimizzazione non può essere affidata al metodo di
+Newton: l'Hessiana di $J$ avrebbe dimensioni incompatibili con la memoria
+disponibile (centinaia di migliaia di pesi per i pattern più ricchi), mentre
+il gradiente si calcola a ogni iterazione senza problemi. Il capitolo 5 ha
+quindi introdotto il livello \texttt{OPTIMIZE} della pipeline, che esegue
+l'ottimizzazione dei pesi con un algoritmo a \emph{memoria limitata} della
+famiglia BFGS — in sigla L-BFGS — senza però svilupparne la trattazione
+matematica: tutto quel dettaglio è stato qui rimandato, a questo capitolo.
+
+Questo è dunque il capitolo di riferimento per il solutore: contiene la
+trattazione matematica \emph{completa} dell'algoritmo implementato nel modulo
+\texttt{reversi/tools/opt\_lbfgs.py} — l'approssimazione inversa dell'Hessiana
+costruita implicitamente sulla finestra dei $m$ passi più recenti
+(\/\emph{two-loop recursion}), la ricerca del passo a ogni iterazione
+(condizioni di Wolfe \emph{forti}, espansione guidata da interpolazione cubica
+di Hermite, fase di \emph{zoom}) e la descrizione puntuale delle scelte di
+implementazione, ciascuna collegata alla formula che essa realizza.
+
+\section{Perché la memoria limitata}
+
+Sia $\bm{x}$ il vettore dei parametri da stimare (nel nostro caso il vettore
+di pesi $\bm{w}$) e $f(\bm{x})$ il funzionale da minimizzare, di classe
+$C^1$. L'idea dei metodi \emph{quasi-Newton} è sostituire la matrice
+$[\nabla^2 f(\bm{x}_k)]^{-1}$ del metodo di Newton con una matrice
+$\bm{H}_k$ mantenuta ricorsivamente: a ogni passo si usa la direzione
+\begin{equation}
+\label{eq:quasi-newton-direction}
+\bm{p}_k = -\,\bm{H}_k\,\bm{g}_k,
+\qquad
+\bm{g}_k = \nabla f(\bm{x}_k),
+\end{equation}
+e si aggiorna $\bm{H}_k$ a $k{+}1$ usando solo le differenze di gradiente
+osservate. Il metodo di BFGS classico fa esattamente questo, ma mantiene
+\emph{esplicita} una matrice $n\times n$: $O(n^2)$ memoria per matrice e
+$O(n^2)$ operazioni per moltiplicazione $\bm{H}_k\bm{g}_k$. Con $n$ nell'ordine
+di $10^5$--$10^6$ l'approccio è fuori portata.
+
+L'osservazione di cui si alimenta la variante a memoria limitata (Liu,
+Storey, 1989; Byrd, Nocedal, 1995) è che l'aggiornamento BFGS ha una
+struttura di \emph{somma di rank due} che può essere applicata a un vettore
+\emph{senza mai formare la matrice}: il prodotto $\bm{H}_{k+1}\bm{g}$ si
+calcola a partire dal prodotto $\bm{H}_k\bm{g}$, da un passo $\bm{s}$ e da una
+differenza di gradiente $\bm{y}$, con costi $O(n)$ per vettore coinvolto. Se
+invece di aggiornare una matrice completa si tengono solo gli $m$ \emph{coppie}
+più recenti $(\bm{s}_i,\bm{y}_i)$ — con $m \ll n$, tipicamente $5 \le m \le 20$
+— si ottiene un'approssimazione $\bm{H}_k$ di rango effettivo $2m$, rappresentata
+da $2m$ vettori ($O(mn)$ memoria) e applicabile a un gradiente con $O(mn)$
+operazioni. Per $m=50$ e $n \sim 10^5$ si passa da $\sim 10^{10}$ coefficienti
+(matrice piena) a $\sim 10^{7}$ (la finestra): questo è il motivo per cui
+l'ottimizzazione dei pesi della pipeline è affidata a L-BFGS.
+
+\section{L'aggiornamento BFGS e la sua forma implicita}
+
+Partiamo dall'aggiornamento che L-BFGS rappresenta implicitamente. Al passo
+$k$ l'algoritmo compie la mossa
+\begin{equation}
+\bm{x}_{k+1} = \bm{x}_k + \alpha_k \bm{p}_k,
+\end{equation}
+dove $\alpha_k > 0$ è il passo scelto dalla ricerca del passo (\/\S\ref{sec:lbfgs-line-search})
+e definisce le due grandezze fondamentali:
+\begin{equation}
+\label{eq:s-y}
+\bm{s}_k = \bm{x}_{k+1} - \bm{x}_k,
+\qquad
+\bm{y}_k = \bm{g}_{k+1} - \bm{g}_k,
+\qquad
+\bm{g}_{k+1} = \nabla f(\bm{x}_{k+1}).
+\end{equation}
+La coppia $(\bm{s}_k,\bm{y}_k)$ soddisfa la \emph{condizione secante}:
+\begin{equation}
+\label{eq:secant}
+\bm{H}_{k+1}\,\bm{y}_k = \bm{s}_k,
+\end{equation}
+cioè l'approssimazione $\bm{H}_{k+1}$ dell'inversa dell'Hessiana deve
+``riprodurre'' il passo effettivamente compiuto quando la applica alla
+differenza di gradiente. Tra tutte le matrici che soddisfano la (\ref{eq:secant}),
+l'aggiornamento BFGS è quella che minimizza la distanza (in una norma pesata
+dall'Hessiana precedente) da $\bm{H}_k$; la sua forma canonica è
+\begin{equation}
+\label{eq:bfgs-update}
+\bm{H}_{k+1} =
+(\bm{I} - \rho_k \bm{s}_k \bm{y}_k^{\!\top})\,
+\bm{H}_k\,
+(\bm{I} - \rho_k \bm{y}_k \bm{s}_k^{\!\top})
+\;+\; \rho_k\, \bm{s}_k \bm{s}_k^{\!\top},
+\qquad
+\rho_k = \frac{1}{\bm{y}_k^{\!\top}\bm{s}_k}.
+\end{equation}
+Due dettagli che l'implementazione rispetta:
+
+\begin{itemize}
+\item l'esistenza di $\rho_k$ richiede $\bm{y}_k^{\!\top}\bm{s}_k > 0$;
+  questa è la \emph{condizione di curvatura}, e vale in ogni vicinato
+  dell'ottimo per una funzione convessa. Il codice impone la condizione con
+  una soglia esplicita (\/\S\ref{sec:lbfgs-history}): una coppia che non la
+  soddisfa viene \emph{scartata}, non archiviata;
+\item nell'implementazione il fattore di scala di $\bm{H}_0$ non è l'identità
+  ma $\gamma \bm{I}$ con $\gamma$ ricalcolato a ogni iterazione
+  (\/\S\ref{sec:lbfgs-twoloop}): è una variante precisa di cui va resa
+  esplicita la formula.
+\end{itemize}
+
+\section{La ricorsione a doppio ciclo}
+\label{sec:lbfgs-twoloop}
+
+L'apporto centrale della forma a memoria limitata è questo: se $\bm{H}_0$ è
+sufficientemente semplice, il prodotto $\bm{H}_k\bm{g}$ — e quindi la
+direzione di ricerca (\ref{eq:quasi-newton-direction}) — si calcola
+ricorsivamente sulle $m$ coppie più recenti, senza mai costruire
+$\bm{H}_k$. Iterando $m$ volte la (\ref{eq:bfgs-update}) dal punto $k-m$ si
+ottiene, per $i = k-1, k-2, \dots, k-m$ indicizzate nella finestra:
+\begin{equation}
+\label{eq:twoloop}
+\bm{H}_k = \bm{V}_m\,\bigl(\gamma \bm{I}\bigr)\,\bm{V}_m^{\!\top},
+\end{equation}
+dove $\bm{V}_m$ è il prodotto in catena degli $m$ fattori a forma di
+$(\bm{I}-\rho_i\bm{s}_i\bm{y}_i^{\!\top})(\bm{I}-\rho_i\bm{y}_i\bm{s}_i^{\!\top})
++\rho_i\bm{s}_i\bm{s}_i^{\!\top}$ di (\ref{eq:bfgs-update}). Svolgendo il
+prodotto e applicandolo a $\bm{g}$ si ottiene la \emph{ricorsione a doppio
+ciclo} (two-loop recursion), che è esattamente ciò che implementa la funzione
+\texttt{\_two\_loop\_recursion} di \texttt{opt\_lbfgs.py}:
+
+\begin{enumerate}
+\item \textbf{primo ciclo} (dall'ultimo verso il primo): si parte da
+  $\delta \leftarrow \bm{g}$ e, per $i = m-1, \dots, 0$,
+  \begin{equation}
+  \label{eq:twoloop-loop1}
+  \alpha_i = \rho_i\, \bm{s}_i^{\!\top}\delta,
+  \qquad
+  \delta \leftarrow \delta - \alpha_i\, \bm{y}_i;
+  \end{equation}
+\item \textbf{scalatura}: si applica il fattore centrale
+  \begin{equation}
+  \label{eq:twoloop-gamma}
+  \bm{r} \leftarrow \gamma\,\delta,
+  \qquad
+  \gamma =
+  \begin{cases}
+  \dfrac{\bm{s}_{m-1}^{\!\top}\bm{y}_{m-1}}
+         {\bm{y}_{m-1}^{\!\top}\bm{y}_{m-1}}, & m > 0,\\[2mm]
+  1, & m = 0,
+  \end{cases}
+  \end{equation}
+  cioè $\gamma\bm{I}$ è la scelta di $\bm{H}_0$: non l'identità, ma la matrice
+  diagonale che \emph{interpoli la secante più recente} (è il classico
+  scalare $\gamma$ di L-BFGS, qui ricalcolato a ogni iterazione dalla coppia
+  più recente della finestra);
+\item \textbf{secondo ciclo} (dal primo verso l'ultimo): per $i = 0, \dots, m-1$,
+  \begin{equation}
+  \label{eq:twoloop-loop2}
+  \beta_i = \rho_i\, \bm{y}_i^{\!\top}\bm{r},
+  \qquad
+  \bm{r} \leftarrow \bm{r} + (\alpha_i - \beta_i)\, \bm{s}_i.
+  \end{equation}
+\end{enumerate}
+
+Il vettore $\bm{r}$ risultante è $\bm{H}_k\bm{g}$; la direzione di ricerca
+è la sua negata:
+\begin{equation}
+\label{eq:p-direction}
+\bm{p}_k = -\,\bm{H}_k\bm{g}_k.
+\end{equation}
+Con finestra vuota ($m=0$) la (\ref{eq:twoloop-gamma}) dà $\gamma = 1$ e la
+ricorsione degenera in $\bm{H}_k\bm{g} = \bm{g}$: la direzione è la
+discesa del gradiente, come deve essere al primo passo.
+
+Il listing mostra il codice reale (sostanzialmente integrale; i commenti
+spiegativi del modulo sono rimossi):
+
+\begin{lstlisting}[language=python, caption={La ricorsione a doppio ciclo, da
+\texttt{opt\_lbfgs.py}: la struttura dei due cicli e la scalatura $\gamma$.}]
+def _two_loop_recursion(g, s, y, rho):
+    m = len(s)
+    alpha = np.zeros(m)
+
+    prod = np.empty(g.shape, dtype=np.float64)   # buffer prodotto, preallocato
+
+    delta = g.copy()
+    for i in reversed(range(m)):
+        alpha[i] = rho[i] * np.dot(s[i], delta)  # (5): alpha_i
+        np.multiply(y[i], alpha[i], out=prod)
+        np.subtract(delta, prod, out=delta)      # (5): delta
+
+    if m > 0:
+        last_s = s[-1]; last_y = y[-1]
+        gamma = np.dot(last_s, last_y) / np.dot(last_y, last_y)
+    else:
+        gamma = 1.0
+    r = gamma * delta                            # (6)
+
+    for i in range(m):
+        beta = rho[i] * np.dot(y[i], r)          # (7)
+        np.multiply(s[i], alpha[i] - beta, out=prod)
+        np.add(r, prod, out=r)                   # (7): r
+    return r
+\end{lstlisting}
+
+I costi sono quelli promessi: $2m$ prodotti scalari e $4m$ vettori- scalar
+di dimensione $n$, quindi $O(mn)$ operazioni e $O(mn)$ memoria per la
+finestra. Il confronto con Newton è il motivo dell'esistenza di tutto il
+capitolo: $O(mn)$ contro $O(n^2)$ a passo, e $O(mn)$ contro $O(n^2)$ di
+memoria.
+
+\section{La ricerca del passo}
+\label{sec:lbfgs-line-search}
+
+Fissa la direzione $\bm{p}_k$ (che deve essere \emph{di discesa},
+$\bm{p}_k^{\!\top}\bm{g}_k < 0$; il caso contrario è gestito dal riavvio,
+\/\S\ref{sec:lbfgs-restart}), il problema della ricerca del passo è
+unidimensionale: minimizzare la funzione restrittà
+\begin{equation}
+\label{eq:phi}
+\varphi(\alpha) = f(\bm{x}_k + \alpha\,\bm{p}_k),
+\qquad \alpha \ge 0.
+\end{equation}
+L'implementazione non cerca il minimo esatto (richiederebbe troppe
+valutazioni di $f$ e del gradiente) ma un punto che soddisfi le
+\emph{condizioni di Wolfe forti}, con le due costanti $c_1, c_2$ della
+configurazione (default $c_1 = 10^{-4}$, $c_2 = 0{.}9$, con il vincolo
+$0 < c_1 < c_2 < 1$ imposto dallo schema di configurazione):
+\begin{equation}
+\label{eq:wolfe}
+\varphi(\alpha) \le \varphi(0) + c_1\,\alpha\,\varphi'(0)
+\qquad\text{(sufficiente discesa, Armijo)}
+\end{equation}
+\begin{equation}
+\label{eq:wolfe-curv}
+\bigl|\varphi'(\alpha)\bigr| \le -\,c_2\,\varphi'(0)
+\qquad\text{(curvatura)}.
+\end{equation}
+Qui $\varphi'(0) = \bm{g}_k^{\!\top}\bm{p}_k < 0$ e
+$\varphi'(\alpha) = \nabla f(\bm{x}_k + \alpha\bm{p}_k)^{\!\top}\bm{p}_k$.
+L'implementazione, la funzione \texttt{\_strong\_wolfe\_line\_search},
+segue la struttura classica in \emph{due fasi}: una fase di
+\emph{espansione} (si cresce $\alpha$ finché il punto non è candidato) e una
+fase di \emph{zoom} (si stringe un intervallo che contiene il candidato).
+Entrambe usano come prossimo punto di prova il minimo dell'interpolante
+cubica di Hermite costruita sui valori noti — l'interpolazione di cui al
+\/\S\ref{sec:lbfgs-hermite} — con un numero massimo di iterazioni fissi.
+
+\subsection{La fase di espansione}
+
+Si parte da $\alpha = 1$ (\emph{non} da un valore adattivo: il passo
+unitario è il primo tentativo) e si valuta $\varphi$ e $\varphi'$; i valori
+già conosciuti all'origine sono quelli di $\bm{x}_k$, riutilizzati senza
+ricalcolo. A ogni iterazione $i$ l'algoritmo verifica, in questo ordine,
+(codice di \texttt{\_strong\_wolfe\_line\_search}):
+
+\begin{enumerate}
+\item se $\varphi(\alpha_1) > \varphi(0) + c_1\alpha_1\varphi'(0)$
+  \emph{oppure}, per $i>0$, se $\varphi(\alpha_1) \ge \varphi(\alpha_{\mathrm{prev}})$
+  (la funzione smette di scendere): si è ``superato'' il minimo
+  raggiungibile lungo la retta — si passa alla fase di zoom sull'intervallo
+  $[0, \alpha_1]$;
+\item se $|\varphi'(\alpha_1)| \le -c_2\varphi'(0)$: il punto soddisfa le
+  Wolfe forti — \textbf{accettato}, la ricerca si conclude;
+\item se $\varphi'(\alpha_1) \ge 0$: la derivata è già tornata positiva
+  prima ancora che la curvatura fosse soddisfatta — zoom sull'intervallo
+  $[\alpha_1, 0]$ (passato con estremi invertiti, la fase di zoom li
+  riordina internamente).
+\end{enumerate}
+
+Se nessuna condizione si verifica e il budget di espansione non è esaurito
+(default \texttt{max\_iters} $= 3$), si sceglie il prossimo $\alpha$:
+\begin{equation}
+\label{eq:expansion-next}
+\alpha_{\mathrm{new}} =
+\min\bigl(\hat{\alpha}_{\mathrm{cub}},\; \alpha_{\max}\bigr),
+\qquad \alpha_{\max} = 10,
+\end{equation}
+dove $\hat{\alpha}_{\mathrm{cub}}$ è il minimo dell'interpolante cubica di
+Hermite sull'intervallo $[0, \alpha_1]$ (\/\S\ref{sec:lbfgs-hermite});
+se l'interpolante non ha un minimo stazionario valido in intervallo, la
+regola di fallback è il \emph{raddoppio}: $\alpha_{\mathrm{new}} = 2\alpha_1$.
+A budget esaurito il punto corrente viene accettato comunque: è una
+safety-valve che garantisce che la ricerca del passo non diverga mai in
+valutazioni.
+
+In sintesi: l'origine è già in cache, la fase di espansione costa al più
+3 valutazioni di $\varphi$ (il punto $\alpha = 1$ e al più due punti
+interpolati), la fase di zoom al più 20.
+
+\subsection{La fase di zoom}
+\label{sec:lbfgs-zoom}
+
+La funzione \texttt{\_zoom} riceve due estremi $a_{\mathrm{lo}}, a_{\mathrm{hi}}$
+(il caso di estremi invertiti viene normalizzato all'inizio di ogni
+iterazione: $x_0 = \min$, $x_1 = \max$) e un budget di
+\texttt{max\_iters} $= 20$. A ogni iterazione:
+
+\begin{enumerate}
+\item si leggono (dalla cache, v. oltre) $\varphi$ e $\varphi'$ ai due
+  estremi;
+\item si calcola il minimo $\hat{\alpha}$ dell'interpolante cubica di
+  Hermite su $[x_0, x_1]$; se l'interpolante non fornisce un minimo valido
+  (nessuna radice reale, o nessuna con curvatura positiva, o fuori
+  intervallo), il punto di prova è il \emph{punto medio}:
+  \begin{equation}
+  \label{eq:zoom-next}
+  \alpha = \hat{\alpha}
+  \quad\text{se valido},\qquad
+  \alpha = \tfrac{1}{2}(x_0 + x_1)\ \text{altrimenti};
+  \end{equation}
+\item si valutano $\varphi(\alpha)$ e $\varphi'(\alpha)$ e si applica il
+  test di accettazione e la riduzione dell'intervallo:
+  \begin{itemize}
+  \item se $\varphi(\alpha) > \varphi(0) + c_1\alpha\varphi'(0)$
+    \emph{oppure} $\varphi(\alpha) \ge \varphi(a_{\mathrm{lo}})$:
+    $a_{\mathrm{hi}} \leftarrow \alpha$;
+  \item altrimenti, se $|\varphi'(\alpha)| \le -c_2\varphi'(0)$:
+    \textbf{accettato};
+  \item altrimenti, se $\varphi'(\alpha)(a_{\mathrm{hi}} - a_{\mathrm{lo}})
+    \ge 0$: $a_{\mathrm{hi}} \leftarrow a_{\mathrm{lo}}$ (il minimo è
+    per forza oltre $\alpha$ nella direzione opposta); in ogni caso
+    $a_{\mathrm{lo}} \leftarrow \alpha$.
+  \end{itemize}
+\end{enumerate}
+
+A budget esaurito si accetta l'ultimo $\alpha$ valutato (stessa
+safety-valve dell'espansione). La struttura è quella della ricerca del
+minimo unidimensionale ``cubica- con-ricaduta-sul-mediano'' usata dai
+sottoroutine di line search di Brent/Press et al.; le uniche differenze
+rispetto a quelle referenze sono la cadenza fissa di accettazione per
+sopraffusione di budget e l'assenza di un'interpolazione quadratica
+separata: il codice usa \emph{solo} la cubica di Hermite e il punto medio.
+
+\subsection{L'interpolazione cubica di Hermite}
+\label{sec:lbfgs-hermite}
+
+Il cuore numerico della ricerca del passo è la funzione
+\texttt{\_hermite\_cubic\_interp}, che costruisce e valuta l'interpolante
+cubica $h$ che coincide in \emph{valore e derivata prima} con $\varphi$ agli
+estremi $x_0, x_1$ di un intervallo. Posto
+$h = x_1 - x_0$, $t = (x - x_0)/h$ e denotando
+$y_0 = \varphi(x_0)$, $y_1 = \varphi(x_1)$,
+$dy_0 = \varphi'(x_0)$, $dy_1 = \varphi'(x_1)$, l'interpolante è
+\begin{equation}
+\label{eq:hermite}
+h(x) = y_0\,h_0(t) + y_1\,h_1(t) + dy_0\,h\,h_2(t) + dy_1\,h\,h_3(t),
+\end{equation}
+con i quattro \emph{polinomi base di Hermite}
+\begin{equation}
+\label{eq:hermite-basis}
+\begin{aligned}
+h_0(t) &= 2t^3 - 3t^2 + 1, & h_1(t) &= -2t^3 + 3t^2,\\
+h_2(t) &= t^3 - 2t^2 + t,  & h_3(t) &= t^3 - t^2.
+\end{aligned}
+\end{equation}
+Questi polinomi soddisfano le condizioni di cardinalità
+$h_j(i) = \delta_{ji}$ e $h_j'(i) = 0$ per $j = 0,1$ e
+$h_2'(0) = h_3'(1) = 1$, $h_2'(1) = h_3'(0) = 0$: per questo
+(\ref{eq:hermite}) interpola esattamente valori e derivate ai due nodi.
+La funzione di codice valuta inoltre le derivate prima e seconda di $h$
+(stesse combinazioni lineari dei polinomi base derivati) perché
+serviranno a decidere se un punto stazionario è un minimo.
+
+La funzione \texttt{\_hermite\_cubic\_interp\_min} trova il minimo
+dell'interpolante in $[x_0, x_1]$ derivando (\ref{eq:hermite}):
+$h'(x) = 0$ è equivalente a un'equazione quadratica in $t$,
+\begin{equation}
+\label{eq:hermite-quadratic}
+a\,t^2 + b\,t + c = 0,
+\end{equation}
+con i coefficienti calcolati dal codice:
+\begin{equation}
+\label{eq:hermite-coeffs}
+\begin{aligned}
+a &= -6\,dy + 3\,h\,(dy_0 + dy_1),\\
+b &= \;\;6\,dy - 2\,h\,(2\,dy_0 + dy_1),\\
+c &= \;\;\;\;\;\;h\,dy_0,
+\end{aligned}
+\qquad dy = y_1 - y_0.
+\end{equation}
+La procedura di selezione è:
+\begin{itemize}
+\item se $a = 0$ (l'interpolante è al più quadratica in $t$) oppure il
+  discriminante $b^2 - 4ac \le 0$: nessun punto stazionario reale —
+  funzione non utile, si ritorna all'algoritmo chiamante che cadrà sul
+  fallback (raddoppio o punto medio);
+\item altrimenti si calcolano le due radici
+  $t = \dfrac{-b \pm \sqrt{b^2 - 4ac}}{2a}$, si mappano in
+  $x = x_0 + t\,h$ e si \emph{verificano}: solo una radice con
+  $h''(x) > 0$ è un minimo locale. Il codice testa la prima e poi la
+  seconda; se nessuna ha curvatura positiva, ritorna `Nonè.
+\end{itemize}
+Nota che la verifica `curvatura positiva è essenziale: l'interpolante
+cubica può avere un massimo e un minimo in intervallo, e usare il massimo
+come prossimo passo di prova porterebbe la ricerca nella direzione
+sbagliata.
+
+\subsection{La cache delle valutazioni}
+
+Un dettaglio di implementazione che ha un ruolo matematico preciso: la
+funzione $\varphi$ usata dalla ricerca del passo è \emph{chiusa su una
+cache} a chiavi $\alpha$:
+\begin{lstlisting}[language=python, caption={La cache per-$\alpha$ dentro
+\texttt{\_strong\_wolfe\_line\_search}.}]
+cache = {}
+
+def phi(alpha):
+    if alpha not in cache:
+        f, grad = fg(x + alpha * p)
+        cache[alpha] = FG(f, grad)
+    fg_val = cache[alpha]
+    return fg_val.fun, np.dot(fg_val.grad, p)
+\end{lstlisting}
+Ogni valutazione di $f$ al punto $\bm{x} + \alpha\bm{p}$ costa, in questo
+problema, un passaggio completo sulla matrice di disegno (tutte le
+posizioni del set di addestramento): è la valutazione più costosa di
+tutta la run. La cache garantisce che un $\alpha$ già visto (l'origine
+$\alpha = 0$ viene messa in cache \emph{prima} di iniziare, riutilizzando
+il gradiente appena calcolato nell'iterazione principale) non venga mai
+ricalcolato: la fase di zoom, che rilegge continuamente i due estremi
+dell'intervallo, non produce quindi \emph{alcuna} valutazione extra su di
+essi. Il costo reale di una ricerca del passo è il numero di $\alpha$
+\emph{distinti} valutati: 1 (l'origine, gratuita) $+$ al più 3
+(espansione) $+$ al più 20 (zoom).
+
+\section{La gestione della finestra $(s, y)$}
+\label{sec:lbfgs-history}
+
+Alla fine di ogni iterazione l'algoritmo aggiorna la finestra di memoria.
+Il codice, nel corpo principale di \texttt{lbfgs}, compie:
+
+\begin{lstlisting}[language=python, caption={L'aggiornamento della finestra
+di memoria, da \texttt{lbfgs}.}]
+x_new = x + alpha * p
+s = x_new - x
+y = fgv_new.grad - fgv.grad
+
+if np.dot(y, s) > CURVATURE_THRESHOLD:   # 1e-15
+    if len(sl) == m:
+        sl.pop(0); yl.pop(0); rho.pop(0)
+    sl.append(s); yl.append(y)
+    rho.append(1.0 / np.dot(y, s))
+\end{lstlisting}
+
+Le regole sono tre, e ciascuna corrisponde a un requisito matematico:
+
+\begin{enumerate}
+\item \textbf{condizione di curvatura}: la coppia $(\bm{s},\bm{y})$ viene
+  archiviata solo se $\bm{y}^{\!\top}\bm{s} > 10^{-15}$ (la costante
+  \texttt{CURVATURE\_THRESHOLD}). È la guardiola numerica che assicura
+  che $\rho = 1/(\bm{y}^{\!\top}\bm{s})$ sia ben definita e che
+  l'aggiornamento (\ref{eq:bfgs-update}) mantenga
+  $\bm{H}_{k+1}$ definita positiva; una coppia con
+  $\bm{y}^{\!\top}\bm{s} \le 0$ (possibile lontano dall'ottimo, su funzioni
+  non convesse) viene \emph{scartata} senza far avanzare la finestra;
+\item \textbf{rotazione FIFO}: a finestra piena ($m$ coppie) la coppia più
+  \emph{vecchia} viene rimossa (\texttt{pop(0)}) prima di inserire la
+  nuova: la finestra contiene sempre le $m$ coppie \emph{più recenti},
+  come richiesto dalla formulazione (\ref{eq:twoloop});
+\item \textbf{archiviazione di $\rho$}: lo scalare
+  $\rho_i = 1/(\bm{y}_i^{\!\top}\bm{s}_i)$ viene calcolato e memorizzato
+  \emph{una volta sola}, al momento dell'inserzione, e non ricalcolato a
+  ogni uso nella ricorsione: la (\ref{eq:twoloop-loop1}) e la
+  (\ref{eq:twoloop-loop2}) lo usano come dato.
+\end{enumerate}
+
+Le tre liste \texttt{sl}, \texttt{yl}, \texttt{rho} (una per componente
+della coppia) restano sempre \emph{allineate} e della stessa lunghezza
+$\le m$; questo invariante è garantito a costruzione e ri-verificato al
+salvaggio dei checkpoint (\/\S\ref{sec:lbfgs-checkpoint}).
+
+\section{Il riavvio e i criteri di arresto}
+\label{sec:lbfgs-restart}
+
+\subsection{Il riavvio}
+
+Prima della ricerca del passo, l'algoritmo verifica che la direzione
+calcolata sia \emph{di discesa}:
+\begin{equation}
+\bm{p}_k^{\!\top}\bm{g}_k \ge 0
+\quad\Longrightarrow\quad
+\text{riavvio}.
+\end{equation}
+In tal caso la finestra viene \emph{vuotata} ($\bm{H}_k$ degrada
+all'identità, $\gamma = 1$) e la direzione torna la discesa del gradiente,
+$\bm{p}_k = -\bm{g}_k$. È la clausola di \emph{restart} classica di L-BFGS:
+l'approssimazione $\bm{H}_k$ non è più definita positiva (ad esempio per
+una sequenza di coppie scartate dalla condizione di curvatura, o per
+accumulo di errore in float32 lontano dall'ottimo) e proseguire con una
+$\bm{H}_k$ malcondizionata sarebbe controproducente; ripartire dalla
+discesa del gradiente ricostuisce progressivamente una finestra sana.
+
+\subsection{I due criteri di convergenza}
+
+La run si arresta per uno di tre motivi, codificati nel campo
+\texttt{reason} del dizionario di informazione restituito:
+
+\begin{itemize}
+\item \texttt{CONVERGED\_MIN\_GRAD}: la norma del gradiente
+  $\|\bm{g}_k\| < \epsilon_g$ per $N_g$ iterazioni \emph{consecutive}
+  (default $\epsilon_g = 10^{-5}$, $N_g = 3$; la coppia è il parametro
+  \texttt{min\_grad} $= [\epsilon_g, N_g]$). È il criterio di
+  \emph{stazionarietà} classico: in un minimo locale il gradiente tende a
+  zero. Il requisito ``per $N_g$ iterazioni consecutive'' (contatore
+  azzerato alla prima iterazione non conforme) rende il criterio robusto
+  contro le oscillazioni transitorie della norma;
+\item \texttt{CONVERGED\_LOW\_PROGRESS}: il \emph{calo relativo} della
+  funzione
+  \[
+  \frac{f_{k-1} - f_k}{|f_k|} < \epsilon_f
+  \]
+  per $N_f$ iterazioni consecutive (default
+  $\epsilon_f = 10^{-14}$, $N_f = 7$; la coppia è il parametro
+  \texttt{min\_p\_fun\_decrease} $= [\epsilon_f, N_f]$; ``p'' sta per
+  \emph{percentage} in senso di frazione). È un criterio di
+  \emph{stall}: la run non sta più scendendo in modo misurabile, anche se
+  il gradiente non è ancora sotto soglia. Particolare: per $f_k = 0$ il
+  calo relativo non è definito e il contatore viene \emph{congelato}
+  (né incrementato né azzerato), così da non far divergere né
+  falsificare il test;
+\item \texttt{MAX\_ITERS\_REACHED}: il budget di iterazioni
+  \texttt{max\_iters} (default 100 nell'API; 500 nella configurazione di
+  pipeline) è esaurito senza che i due criteri sopra si siano verificati.
+\end{itemize}
+
+L'ordine di valutazione a ogni iterazione $k$ è: prima il test sul
+gradiente (sul punto corrente, \emph{prima} di calcolare la direzione),
+poi il test sul calo relativo (che confronta il punto corrente con il
+precedente, tramite la variabile \texttt{fgv\_fun\_prev} aggiornata a
+fine passo), infine — solo se nessuno dei due ha fermato la run — la
+calcolazione della direzione, la ricerca del passo e l'aggiornamento.
+
+\section{Scelte di implementazione}
+\label{sec:lbfgs-impl}
+
+Ogni scelta del modulo \texttt{opt\_lbfgs.py} è il riflesso di una formula
+del \S\S\ref{sec:lbfgs-twoloop}--\ref{sec:lbfgs-hermite}; le elenchiamo
+collegandole esplicitamente.
+
+\subsection{La struttura del modulo e il contratto \texttt{FG}}
+
+Il modulo è \emph{autosufficiente}: non importa nulla dalla pipeline
+(né \texttt{LMContext}, né database, né livelli). L'unica cosa che
+chiede al chiamante è una funzione \texttt{fg} che, dato un vettore
+$\bm{x}$, restituisca la coppia (valore di $f$, gradiente). La coppia è
+incapsulata nel named-tuple \texttt{FG} $= (\texttt{fun},\texttt{grad})$,
+che è il tipo con cui il modulo dialoga internamente (la cache della
+ricerca del passo, il riporto del risultato). Questa separazione è ciò
+che permette al medesimo solutore di essere usato sia dal livello
+\texttt{OPTIMIZE} della pipeline (dove \texttt{fg} è la closure
+gradiente del modello logistico) sia dai test unitari su funzioni
+sintetiche (quadratiche, Rosenbrock, Zakharov).
+
+\subsection{I tipi di dato: il contratto float32}
+
+\texttt{lbfgs} accetta $\bm{x}_0$ solo in \texttt{float32} o
+\texttt{float64} (altrimenti \texttt{TypeError}) e ne fa una
+\emph{copia} (\texttt{x = x0.copy()}), così che l'input del chiamante non
+venga mai mutato. Il contratto di pipeline che questa scelta serve è
+preciso: il vettore di pesi viaggia in \texttt{float32} dall'inizio alla
+fine della run, e l'ottimizzatore \emph{deve} restituire un vettore
+\texttt{float32} (la verifica è nel test
+\texttt{test\_float32\_end\_to\_end}: \texttt{x}, tutti i $\bm{s}$ e
+$\bm{y}$ archiviati, e la norma del gradiente restano float32).
+Internamente la ricorsione a doppio ciclo opera con una semantica di dtype
+particolare, che il sotto-paragrafo successivo spiega.
+
+\subsection{Il buffer di prodotto preallocato (identità bit-per-bit)}
+
+Il listing 1 mostra il buffer \texttt{prod}, allocato \emph{una volta per
+chiamata} in \texttt{float64} e riusato a ogni operazione vettoriale
+intermedia tramite la forma \texttt{out=} di NumPy:
+\texttt{np.multiply(y[i], alpha[i], out=prod)} seguito da
+\texttt{np.subtract(delta, prod, out=delta)}. Il motivo è una questione
+di \emph{identità numerica}, non solo di performance:
+
+\begin{itemize}
+\item il prodotto di uno scalare \texttt{float64} (il $\alpha_i$) per un
+  array \texttt{float32} produce in NumPy un array \texttt{float64};
+  l'assegnazione in-place su un buffer \texttt{float32}
+  (\texttt{delta -= alpha * y}) fa quindi \emph{primiero il prodotto in
+  f64 e poi il downcast in f32} — esattamente la semantica che il buffer
+  \texttt{prod} in f64 + \texttt{out=} replica;
+\item l'allocazione di $2m$ array temporanei \emph{freschi} a ogni
+  chiamata (il comportamento ``classico'' di
+  \texttt{delta -= alpha * y}) era il vero collo di bottiglia a scala
+  reale: con $m = 93$ e $n = 77943$ in f32 si trattava di $\sim 58$ MB
+  di allocazioni per chiamata. Il buffer singolo preallocato elimina
+  l'overhead di allocazione \emph{senza cambiare un solo bit} del
+  risultato: il test \texttt{test\_out\_equals\_original\_bit\_identical}
+  fissa l'identità bit-per-bit contro l'implementazione di riferimento,
+  su tre configurazioni seed/dimensione/dtype (f32 $n=50$ $m=5$;
+  f32 $n=500$ $m=9$; f64 $n=64$ $m=7$).
+\end{itemize}
+
+La ricorsione è implementata in \emph{NumPy puro}, senza kernelli
+compilati: a scala reale il collo di bottiglia non è il conteggio delle
+operazioni ma l'allocazione dei temporanei vettoriali (con $m$ nell'ordine
+di una decina di coppie e $n$ di $10^5$ componenti, $2m$ prodotti
+vettoriali freschi a ogni chiamata ammontano a decine di MB), e il buffer
+preallocato con semantica bit-per-bit è l'intero meccanismo di
+performance: la traiettoria L-BFGS non cambia, solo la memoria
+temporanea smette di essere riallocata.
+
+\subsection{La configurazione del solutore}
+
+La tabella raccoglie i parametri di \texttt{lbfgs} con il loro ruolo
+matematico e il default di pipeline (lo schema pydantic
+\texttt{hlp\_config\_schemas.py} li espone nella sezione
+\texttt{optimization} del file di configurazione):
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+Parametro & Ruolo matematico & Default API & Default pipeline \\
+\midrule
+\texttt{c1}        & Costante di Armijo, (\ref{eq:wolfe}) & $10^{-4}$ & $10^{-4}$ \\
+\texttt{c2}        & Costante di curvatura, (\ref{eq:wolfe-curv}) & $0.9$ & $0.9$ \\
+\texttt{min\_grad} & $[\epsilon_g, N_g]$ del test di stazionarietà & $[10^{-5}, 3]$ & dalla config \\
+\texttt{min\_p\_fun\_decrease} & $[\epsilon_f, N_f]$ del test di stall & $[10^{-14}, 7]$ & dalla config \\
+\texttt{max\_iters} & Budget assoluto di iterazioni $k$ & $100$ & $500$ \\
+\texttt{m}         & Lunghezza della finestra di memoria, (\ref{eq:twoloop}) & $10$ & $50$ \\
+\texttt{log\_every\_n} & Cadenza di logging (0 = silenzioso) & $0$ & dalla config \\
+\texttt{save\_every\_n} & Cadenza di checkpoint (0 = nessuno) & $0$ & dalla config \\
+\bottomrule
+\end{tabular}
+\caption{Parametri di \texttt{lbfgs} con il ruolo matematico di ciascuno.}
+\end{table}
+
+Lo schema di configurazione \emph{impone} $c_2 > c_1$ (validazione
+pydantic): la disuguaglianza è la condizione di coerenza delle Wolfe
+forti, non un capriccio dell'interfaccia.
+
+\subsection{Logging e conteggio delle valutazioni}
+
+Il logging (cadenza \texttt{log\_every\_n}, sink \texttt{logger}
+iniettato, default \texttt{print}) riporta a ogni iterazione loggata: il
+valore di $f$, la norma del gradiente, il $\alpha$ accettato, l'occupazione
+della finestra $\,|\texttt{sl}|/m\,$ e il \emph{numero di chiamate a
+\texttt{fg} dall'ultima riga di log}. Il contatore di chiamate
+(\texttt{fg\_call\_count}) è incrementato da un wrapper
+\texttt{fgc\_plain} che circonda la funzione del chiamante: è la misura
+diretta del costo reale della run in valutazioni del funzionale, il
+quantità che conta quando si confrontano due configurazioni. La riga
+finale riporta il totale.
+
+\subsection{Checkpoint e warm start}
+\label{sec:lbfgs-checkpoint}
+
+L'ottimizzazione dei pesi è la fase più lunga della pipeline (ordine di
+grandezza: minuti a ore, a seconda della scala del modello); un crash a
+metà run non deve far perdere tutto. Per questo \texttt{lbfgs} espone due
+meccanismi simmetrici:
+
+\begin{itemize}
+\item \textbf{salvaggio periodico}: a ogni
+  $k \bmod \texttt{save\_every\_n} = 0$ (con $k > 0$) viene invocato il
+  callback \texttt{save\_fn} con la firma a 7 argomenti
+  \texttt{save\_fn}$(\bm{x}, \texttt{sl}, \texttt{yl}, \texttt{rho}, k, f,
+  g_{\mathrm{norm}}^{\max})$. Il sesto argomento non è la norma del
+  gradiente corrente ma il \emph{massimo} di una finestra scorrevole
+  (\texttt{FixedSizeMaxList}) delle ultime $N_g$ norme: è la quantità
+  che il criterio \texttt{CONVERGED\_MIN\_GRAD} monitora, e salvarla
+  ``come lo vede il criterio'' rende il checkpoint auto-consistente.
+  Nel livello \texttt{OPTIMIZE} il callback è
+  \texttt{hlp\_optimize\_save\_checkpoint}, che serializza in un file
+  binario (compressione LZ4, sidecar SHA3-256) lo \emph{stato completo}
+  della run: i metadati di configurazione (checksum della matrice di
+  disegno, checksum del vettore $\bm{z}$, coefficiente di ridge,
+  tolleranze, budget), il vettore di pesi $\bm{w}$ e la finestra
+  $(\bm{s}_i, \bm{y}_i, \rho_i)_{i=1}^{m}$ in ordine cronologico;
+\item \textbf{warm start}: i parametri \texttt{initial\_sl},
+  \texttt{initial\_yl}, \texttt{initial\_rho} e \texttt{initial\_iter}
+  permettono a una nuova chiamata a \texttt{lbfgs} di \emph{riprendere}
+  dallo stato checkpointato: la finestra viene pre-popolata (la
+  ricorsione a doppio ciclo la trova già pronta all'ingresso nel ciclo
+  principale) e la numerazione di $k$ continua da \texttt{initial\_iter}
+  (il vincolo \texttt{initial\_iter} $< \texttt{max\_iters}$ è validato
+  all'ingresso, \texttt{ValueError} altrimenti).
+\end{itemize}
+
+La coerenza del checkpoint con la run corrente è verificata a carico dal
+livello \texttt{OPTIMIZE} con tre \emph{gate}: checksum della matrice di
+disegno (le posizioni e il feature set non sono cambiati), checksum del
+vettore $\bm{z}$ (i target non sono cambiati), coefficiente di ridge
+(il funzionale non è cambiato). Se uno dei tre gate fallisce, il
+checkpoint è scartato e la run riparte da zero: la finestra $(s,y,\rho)$
+di un'altra funzione non è trasferibile. Un checkpoint la cui run è
+\emph{già completata} (\texttt{reason} di convergenza, o
+$\texttt{iters} \ge \texttt{max\_iters}$) viene usato per caricare
+direttamente i pesi finali, saltando l'ottimizzazione intera.
+
+\section{Il contratto di uscita}
+
+A fine run \texttt{lbfgs} restituisce la coppia
+$(\bm{x}^{\star}, \texttt{info})$ dove \texttt{info} è un dizionario a
+nove chiavi:
+\begin{itemize}
+\item \texttt{w}: il vettore di pesi ottimizzato (è \emph{lo stesso
+  oggetto} di $\bm{x}^{\star}$, non una copia);
+\item \texttt{converged} (bool) e \texttt{reason} (una delle tre stringhe
+  di \S\ref{sec:lbfgs-restart});
+\item \texttt{iters}: il numero assoluto di iterazioni completate
+  ($k_{\mathrm{fin}} + 1$);
+\item \texttt{f} e \texttt{g\_norm}: il valore del funzionale e la norma
+  del gradiente \emph{al punto risultato} (non all'ultima iterazione
+  loggata: sono ricalcolati sullo stato finale);
+\item \texttt{sl}, \texttt{yl}, \texttt{rho}: la finestra di memoria
+  finale — lo stato da ripassare come \texttt{initial\_*} a un eventuale
+  warm start successivo.
+\end{itemize}
+
+Il livello \texttt{OPTIMIZE} proietta il dizionario sulle cinque chiavi
+rilevanti per il contesto (\texttt{hlp\_optimize\_info\_dict}:
+\texttt{converged}, \texttt{reason}, \texttt{iters}, \texttt{f},
+\texttt{g\_norm}), pubblica \texttt{ctx.w} $= \bm{x}^{\star}$ e il suo
+checksum SHA3-256, e salva il checkpoint finale. Il livello
+\texttt{GENERATE} che segue consuma $\bm{x}^{\star}$ come vettore di
+pesi del modello: è il ponte numerico tra l'ottimizzazione trattata in
+questo capitolo e la funzione di valutazione del capitolo 8.
+
+\section{Riepilogo}
+
+L'algoritmo implementato in \texttt{opt\_lbfgs.py} è un L-BFGS con:
+
+\begin{itemize}
+\item approssimazione inversa dell'Hessiana a memoria limitata,
+  rappresentata dalle $m$ coppie $(\bm{s}_i,\bm{y}_i,\rho_i)$ più
+  recenti e applicata al gradiente con la ricorsione a doppio ciclo, con
+  il fattore centrale $\gamma\bm{I}$ ricalcolato a ogni iterazione dalla
+  coppia più recente (\/\S\ref{sec:lbfgs-twoloop});
+\item ricerca del passo a condizioni di Wolfe \emph{forti}, in due fasi —
+  espansione (al più 3 iterazioni, passo iniziale $\alpha = 1$,
+  $\alpha_{\max} = 10$, fallback a raddoppio) e zoom (al più 20
+  iterazioni, fallback a punto medio) — con prossimo punto di prova
+  dato dal minimo dell'interpolante cubica di Hermite, costruito sui
+  valori \emph{e} sulle derivate prime agli estremi dell'intervallo
+  (\/\S\ref{sec:lbfgs-line-search}--\S\ref{sec:lbfgs-hermite});
+\item finestra di memoria a rotazione FIFO con condizione di curvatura
+  $\bm{y}^{\!\top}\bm{s} > 10^{-15}$ all'inserzione
+  (\/\S\ref{sec:lbfgs-history});
+\item riavvio a discesa del gradiente quando la direzione non è di
+  discesa, e doppi criterio di arresto (stazionarietà del gradiente,
+  stall del calo relativo) oltre al budget di iterazioni
+  (\/\S\ref{sec:lbfgs-restart});
+\item checkpointing periodico e warm start per la ripresa da crash
+  (\/\S\ref{sec:lbfgs-checkpoint}).
+\end{itemize}
+
+Ogni componente è testata in isolamento dalla suite
+\texttt{test\_opt\_lbfgs.py} (24 test): l'identità bit-per-bit della
+ricorsione a doppio ciclo, il contratto del dizionario \texttt{info},
+la validazione degli input, i tre motivi di arresto, la convergenza su
+funzioni sintetiche a difficoltà crescente (quadratica, Rosenbrock,
+Zakharov 20D) e la coerenza del warm start (100 iterazioni continue
+contro 50 $+$ 50 con salvataggio/ripresa, entro $10^{-4}$).

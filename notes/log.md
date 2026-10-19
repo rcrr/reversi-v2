@@ -466,3 +466,20 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    proper Unicode accented vowels (not the ASCII-apostrophe convention); kept one listings block free of multi-byte
    characters (listings reads verbatim and chokes on them).
  - Gates green: build 64 pages, 0 hard errors, 0 undefined references; notes\_lint green. One checkin: D-582.
+
+## 2026-10-19 — session 126 (LATEX — the six per-level pipeline chapters, D-583)
+ - Wrote the six per-level pipeline chapters (one per §5.2 phase), the detailed follow-up to the pipeline-overview
+   chapter (D-582): 6 Setup (the CONFIG level + every config option in tables, then FEATURES), 7 Corpus e analisi
+   delle feature (SU\_ANALYSIS/POSITIONS/INDEXES/ANOVA/WMAPS), 8 Costruzione del modello (DESIGN\_MATRIX/ZED/
+   GRADIENT/a brief OPTIMIZE/GENERATE), 9 L'algoritmo L-BFGS (the full solver: implicit BFGS, two-loop recursion,
+   strong-Wolfe line search with the exact cubic-Hermite interpolation, the (s,y) window, restart + stopping, the
+   implementation choices), 10 Validazione e analisi (VLD\_POSITIONS/VALIDATE/ANALYTICS), 11 Persistenza e output
+   (SAVE/CLIENT\_CHECK/PLOT/FINAL\_LOG\_PRINT).
+ - Drafted by six parallel subagents (one per chapter, each reading its levels' sources), wired into main.tex after
+   chapter 100 and before \appendix (the new chapters 6-11), and reviewed the drafts.
+ - Fixes from the review: the accented-vowel conversion also ate the math primes (\varphi') and two Python string
+   quotes in listings (restored); escaped a \texttt caret and a bare underscore; corrected a section cross-reference;
+   fixed a typo. One typesetting fix: the sans-serif math (sfmath) mis-positions a \bar accent when a subscript
+   follows, so the ANOVA y-bar means use \overline{y} (verified on a mini-doc to center correctly).
+ - Gates green: build 112 pages, 0 hard errors, 0 undefined references; spellcheck clean; notes\_lint green. One
+   checkin: D-583.

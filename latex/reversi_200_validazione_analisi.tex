@@ -1,0 +1,577 @@
+%
+% reversi_200_validazione_analisi.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: Validazione e analisi.
+%
+% Il dettaglio della fase "Validazione e analisi" della pipeline (i livelli
+% VLD_POSITIONS, VALIDATE e ANALYTICS): il caricamento del set di validazione,
+% il forward pass del modello sul set a parte con metriche e rilevazione degli
+% outlier, e le statistiche sul set di addestramento con il report analitico.
+%-----------------------------------------------------------------------------
+
+\chapter{Validazione e analisi}
+
+Questa è la quarta delle cinque fasi in cui si raggruppano i 19 livelli della
+pipeline (tabella~\ref{tab:pipeline-levels} del capitolo 5): la fase
+\emph{Validazione e analisi}. I suoi tre livelli — \texttt{VLD\_POSITIONS},
+\texttt{VALIDATE} e \texttt{ANALYTICS} — verificano il modello che il livello
+\texttt{GENERATE} ha appena addestrato, e lo verificano in due direzioni
+complementari.
+
+Da una parte c'è la \emph{generalizzazione}: il modello viene eseguito su un
+set di posizioni a parte, tenute fuori dall'addestramento (\emph{held-out}),
+per misurare quanto bene stima il valore di gioco di posizioni che non ha mai
+visto. D'altra parte c'è l'\emph{adattamento}: il modello viene ri-eseguito sul
+set di addestramento stesso, per misurare quanto bene lo ha appreso e per
+costruire il report analitico che, feature per feature, documenta ciò che il
+modello ha appreso. Le due direzioni rispondono a domande diverse — la prima
+chiede ``il modello funziona?'', la seconda ``il modello è coerente e
+spiegabile?'' — e insieme completano il quadro della qualità della run.
+
+Alla fine della fase, sul contesto \texttt{LMContext} sono pubblicati: le
+posizioni e i valori di validazione, le metriche di validazione e le serie
+per-posizione (i valori fitted e i residui), i record degli outlier, le
+metriche di addestramento (in entrambe le passate, compressa e densa) e il
+report analitico. Sono esattamente gli artefatti che la fase di
+\emph{Persistenza e output} (capitolo successivo) consumerà: il file del
+modello incorpora le metriche, la verifica del client le confronta bit per
+bit, i grafici le disegnano.
+
+\section{\texttt{VLD\_POSITIONS}: il set di validazione}
+
+Il primo livello della fase carica le posizioni di validazione e i loro valori
+di gioco reali, da una \emph{sorgente distinta} dal set di addestramento. La
+sorgente è sempre il database REGAB (il corpus di partite risolte), ma la
+fetta interrogata è diversa: la sezione di configurazione
+\texttt{validation\_data\_set} dichiara soltanto \texttt{bid} (l'elenco dei
+batch) e \texttt{status} (l'elenco degli stati di gioco, stringhe di tre
+lettere); il numero di caselle vuote \texttt{empty\_count} (l'EC) non è
+ridichiarato qui, ma è ereditato dal root della configurazione — è lo stesso
+EC che governa sia l'estrazione sia il controllo di consistenza della cache.
+In pratica, il set di validazione è una fetta \emph{altra} dello stesso
+corpus: partite di batch o di stato diversi, su cui il modello non è stato
+addestrato. La tabella riepiloga i due set a confronto:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+ & \textbf{Addestramento} & \textbf{Validazione} \\
+\midrule
+Sezione config.     & \texttt{regab\_data\_set} & \texttt{validation\_data\_set} \\
+\texttt{bid} / \texttt{status} & dichiarati & dichiarati (fetta diversa) \\
+\texttt{empty\_count} (EC) & dal root & ereditato dal root (lo stesso) \\
+Livello che carica  & \texttt{POSITIONS} & \texttt{VLD\_POSITIONS} \\
+Attributi pubblicati & \texttt{positions}, \texttt{game\_values} & \texttt{vld\_positions}, \texttt{vld\_game\_values} \\
+Scopo & addestrare i pesi $w$ & misurare la generalizzazione \\
+\bottomrule
+\end{tabular}
+\caption{I due set di dati a confronto: stessa sorgente (REGAB), stessa
+policy di dedup, fette e scopi diversi.}
+\label{tab:train-vld}
+\end{table}
+
+L'estrazione riutilizza la \emph{compute path} del livello \texttt{POSITIONS}
+(\texttt{wrk\_positions\_extract\_and\_prepare}), parametrizzata con i
+bid/status di validazione: interrogazione del database e, a seguire,
+applicazione della policy \texttt{regab\_allow\_duplicate} — la stessa policy
+di deduplicazione per chiave \texttt{(mover, opponent)} usata sul set di
+addestramento, applicata alla fetta di validazione. Intorno a questa compute
+path il livello inserisce il flusso \emph{load-or-compute} standard della
+pipeline, \texttt{cache\_manager\_load\_or\_compute}, che decide se ricaricare
+il data set da cache o ricalcolarlo:
+
+\begin{lstlisting}[language=python, caption={Il flusso load-or-compute del livello VLD\_POSITIONS.}]
+cache_hit, vld_rds, vld_rds_checksum = cache_manager_load_or_compute(
+    cache_path  = ctx.get_cache_file_full_path_for_current_level(),
+    is_allowed  = ctx.use_cache,
+    load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False),
+    store_fn    = regab_store_data_set_to_file,
+    validate_fn = lambda cached_vld_rds: (
+        wrk_positions_is_cache_consistent(ctx, cached_vld_rds,
+                                           bid=vld_cfg.bid,
+                                           status=vld_cfg.status)),
+    compute_fn  = lambda: wrk_positions_extract_and_prepare(
+                          ctx, bid=vld_cfg.bid, status=vld_cfg.status),
+    logger_fn   = ctx.log_event
+)
+\end{lstlisting}
+
+La callback di validazione, \texttt{wrk\_positions\_is\_cache\_consistent}, è
+la stessa del livello \texttt{POSITIONS} con gli override di bid/status:
+confronta i parametri di connessione al database e i parametri della query
+(bid, status, EC) tra la configurazione live e i metadati del data set
+cachato; un'eventuale inconsistenza rende la cache invalida e forza il
+ricalcolo. Come per l'addestramento, il file di cache conserva il data set
+\emph{post-policy} (dedup già applicato), in modo che un'inversione del flag
+cambi il contenuto memorizzato e il checksum, invalidando a cascata i livelli
+a valle.
+
+Dal data set il livello ottiene le due array che lo caratterizzano e le
+pubblica sul contesto: \texttt{vld\_positions}, l'array delle posizioni
+(strutture \texttt{[mover, opponent]} di due bitboard \texttt{uint64}), e
+\texttt{vld\_game\_values}, il valore di gioco reale di ciascuna posizione
+(scala ordinale $[-64, +64]$ a passi di 2). Insieme al checksum del data set
+(\texttt{vld\_rds\_checksum}) pubblica anche le \emph{statistiche di
+popolazione} del set di validazione (\texttt{vld\_pop\_stats}): conteggio,
+media, deviazione standard e varianza dei valori di gioco, loggate a livello
+\texttt{INFO}.
+
+Un ultimo controllo, caratteristico di questo livello, è il \emph{tracciato
+di indipendenza}: \texttt{regab\_count\_position\_overlap} conta quante
+posizioni di validazione sono \emph{anche} presenti nel set di addestramento,
+e il livello logga il conteggio e la percentuale. È la misura del rischio di
+\emph{leakage}: se una frazione significativa delle posizioni di validazione
+fosse già stata vista in addestramento, le metriche di \texttt{VALIDATE}
+sotto-stimerebbero l'errore di generalizzazione, perché il modello le
+ri-conoscerebbe a memoria. È un tracciato \emph{solo a log}: per scelta di
+progetto la famiglia di parametri di qualità (soglia massima di sovrapposizione,
+dimensione minima del set di validazione, ecc.) è esplicitamente fuori scope,
+quindi il livello segnala ma non agisce. L'azione, se serve, è della run che
+ispeziona il log.
+
+Il \texttt{down} del livello è la solita recovery di fallimento: azzera i
+quattro attributi \texttt{vld\_positions}, \texttt{vld\_game\_values},
+\texttt{vld\_rds\_checksum} e \texttt{vld\_pop\_stats}.
+
+\section{\texttt{VALIDATE}: il modello sul set di validazione}
+
+Il livello \texttt{VALIDATE} esegue il \emph{forward pass} del modello sulle
+posizioni di validazione e calcola le metriche che misurano la qualità della
+stima. Tutto il calcolo vive nell'helper \texttt{hlp\_validate\_model},
+indipendente dalla pipeline; il worker si occupa del logging e della
+pubblicazione degli artefatti.
+
+\subsection{Il forward pass}
+
+Il forward pass avviene in \emph{due spazi}, come durante l'addestramento.
+Primo, gli indici: il \emph{feature set} — lo stesso risolto al livello
+\texttt{FEATURES} e usato in training — calcola per ogni posizione di
+validazione gli indici categorici delle configurazioni attive,
+
+\begin{equation}
+  \mathit{vld\_indexes} \;=\; \mathit{feature\_set.compute\_indexes}
+  (\mathit{vld\_positions}),
+\end{equation}
+
+una matrice con una colonna per istanza di feature. Secondo, la mappa
+\emph{densa}: ogni colonna di indice viene spostata nell'offset di feature
+corrispondente nel vettore di pesi denso,
+
+\begin{equation}
+  \mathit{dense\_indices} \;=\; \mathit{vld\_indexes} +
+  \mathit{col\_offsets},
+\end{equation}
+
+dove \texttt{col\_offsets} è il vettore costruito ripettendo
+\texttt{iwmap\_feature\_offset} (l'array di confine che associa a ogni
+feature il suo start nel vettore denso) una volta per ogni istanza. Il
+predittore lineare è quindi la somma, per ogni posizione, dei pesi denso
+indiciati, e la funzione logistica lo mappa in $[0, 1]$:
+
+\begin{equation}
+  \eta_i = \sum_{c} w_{\mathrm{dense},\, k_c(i)},
+  \qquad
+  \hat{z}_i = \sigma(\eta_i) = \frac{1}{1 + e^{-\eta_i}},
+\end{equation}
+
+con $\sigma$ la sigmoide e $k_c(i)$ l'indice denso della configurazione
+attiva, per l'istanza $c$ della posizione $i$. Un dettaglio importante: il
+forward pass di validazione usa \texttt{w\_dense} — i pesi \emph{densi}, le
+regole di inference che il modello salvato userà realmente al volo — e non il
+vettore compresso $w$ sulla matrice di disegno $X$. La validazione misura
+quindi \emph{ciò che il modello spedito calcolerà}, non ciò che L-BFGS ha
+fittato in astratto.
+
+I valori di gioco discreti $y_i$ (la scala ordinale a passi di 2) vengono
+mappati affinarmente nel target continuo $z_i \in [0, 1]$ con la stessa
+trasformazione \texttt{y2z} dell'addestramento (il logit clipping del
+capitolo 4), e le metriche sono indicatori di distanza geometrica pura:
+quanto bene la curva logistica continua si allinea ai target discreti.
+
+\subsection{I residui e le metriche}
+
+Definiti i residui, le metriche sono gli standard indici di bontà di adattamento.
+Nello spazio $Z$:
+
+\begin{align}
+  r_{z,i} &= \hat{z}_i - z_i, \\
+  \mathrm{MSE}_{Z} &= \frac{1}{N} \sum_{i=1}^{N} r_{z,i}^{2},
+  &
+  \mathrm{MAE}_{Z} &= \frac{1}{N} \sum_{i=1}^{N} \left| r_{z,i} \right|, \\
+  L_{\mathrm{vld}} &= \tfrac{1}{2}\, \mathrm{MSE}_{Z},
+\end{align}
+
+dove $N$ è il numero di posizioni di validazione e $L_{\mathrm{vld}}$ è la
+\emph{loss} (MSE/2), la stessa forma funzionale della funzione di costo
+addestrata. Nello spazio $Y$, la scala originale dei punti di gioco, i valori
+fitted vengono ri-mappati con \texttt{z2y} ($\hat{y}_i = \mathit{z2y}
+(\hat{z}_i)$) e i residui sono $r_{y,i} = \hat{y}_i - y_i$; le metriche sono:
+
+\begin{align}
+  \mathrm{MAE}_{Y} &= \frac{1}{N} \sum_{i=1}^{N} \left| r_{y,i} \right|,
+  &
+  \mathrm{MSE}_{Y} &= \frac{1}{N} \sum_{i=1}^{N} r_{y,i}^{2}, \\
+  \mathrm{RMSE}_{Y} &= \sqrt{\mathrm{MSE}_{Y}}.
+\end{align}
+
+L'RMSE nello spazio $Y$ è la metrica più leggibile: è l'errore tipico di
+stima, espresso in \emph{punti di gioco}. Un'indicatore di forma della
+distribuzione dei residui è il rapporto RMSE/MAE: per una popolazione di
+residui normalmente distribuita il rapporto tende a
+
+\begin{equation}
+  \frac{\mathrm{RMSE}}{\mathrm{MAE}} \;\longrightarrow\;
+  \sqrt{\frac{\pi}{2}} \approx 1.253,
+\end{equation}
+
+quindi un rapporto sensibilmente superiore segna una coda pesante: pochi
+residui grandi dominano la metrica quadratica. Il codice lo logga esplicitamente,
+con il caso limite $\mathrm{MAE}_{Y} = 0$ (adattamento perfetto nello spazio
+$Y$) trattato a parte.
+
+Queste metriche sono, in un certo senso, le controparti \emph{assolute}
+della misura di bontà di adattamento \emph{relativa} che si usa in
+regressione, il coefficiente di determinazione $R^{2} = 1 -
+\mathrm{Var}(\text{residui})/\mathrm{Var}(\text{target})$, che esprime
+quanta varianza del target il modello riesce a spiegare. Qui la scala dei
+target è già fissata e stretta ($[-64, +64]$ discretizzata) e l'interesse
+è l'\emph{entità} dell'errore di stima più che la frazione di varianza
+spiegata: per questo il sistema adotta indicatori di distanza geometrica
+pura (MAE, MSE, RMSE) e il rapporto RMSE/MAE come indice di forma, e non
+$R^{2}$. Il confronto con il baseline di popolazione (la riga
+\emph{Population} del report) gioca poi, di fatto, il ruolo che $R^{2}$
+sarebbe chiamato a svolgere: mostra quanto il modello batte la previsione
+banale della media.
+
+Il livello pubblica un dizionario di \textbf{sette metriche}
+(\texttt{vld\_metrics}), il contratto del file modello v2:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Chiave & Spazio & Definizione \\
+\midrule
+\texttt{vld\_loss}     & $Z$ & $\tfrac{1}{2}\,\mathrm{MSE}_{Z}$ (la loss) \\
+\texttt{vld\_mse\_z}   & $Z$ & $\mathrm{MSE}_{Z}$ \\
+\texttt{vld\_mae\_z}   & $Z$ & $\mathrm{MAE}_{Z}$ \\
+\texttt{vld\_mae\_y}   & $Y$ & $\mathrm{MAE}_{Y}$ \\
+\texttt{vld\_mse\_y}   & $Y$ & $\mathrm{MSE}_{Y}$ \\
+\texttt{vld\_rmse\_y}  & $Y$ & $\mathrm{RMSE}_{Y} = \sqrt{\mathrm{MSE}_{Y}}$ \\
+\texttt{vld\_samples}  & —   & $N$ (numero di posizioni di validazione) \\
+\bottomrule
+\end{tabular}
+\caption{Le sette metriche di validazione pubblicate dal livello VALIDATE.}
+\label{tab:vld-metrics}
+\end{table}
+
+Accanto alle metriche, il livello pubblica le \emph{serie per-posizione}
+\texttt{vld\_y\_pred} e \texttt{vld\_rn}: i valori fitted e i residui per
+ciascuna posizione di validazione, come viste \texttt{f64}. La vista a
+doppia precisione è un contratto: le serie devono restare bit-identiche a
+quelle che \texttt{PLOT} disegnerà e che \texttt{CLIENT\_CHECK} confronterà
+contro il modello salvato, quindi l'upcast esatto (nessun rumore di
+arrotondamento) è intenzionale.
+
+\subsection{La rilevazione degli outlier}
+
+L'ultimo prodotto del livello è il \emph{report degli outlier}. La regola è
+semplice e dichiarativa: gli outlier sono le $k$ posizioni a maggiore
+residuo assoluto, ordinate in modo decrescente, con $k = 20$ di default. La
+selezione è un \texttt{argsort} \emph{stabile} del residuo assoluto
+crescente in verso inverso:
+
+\begin{lstlisting}[language=python, caption={La selezione deterministica dei k outlier.}]
+def hlp_validate_top_outliers(rn: np.ndarray, k: int = 20) -> np.ndarray:
+    return np.argsort(-np.abs(rn), kind='stable')[:k]
+\end{lstlisting}
+
+La stabilità rende la selezione \emph{deterministica}: a parità di modulo di
+residuo, vince l'indice più basso, quindi la stessa serie produce sempre
+lo stesso elenco. Per ciascuno dei 20 indici, il worker compone il record
+dell'outlier con i dati grezzi della posizione: l'indice nel set di
+validazione, i due bitboard della posizione (\texttt{mover} e
+\texttt{opponent}, come interi), il valore di gioco reale, il valore fitted e
+il residuo. I 20 record sono pubblicati in \texttt{vld\_outliers} e loggati
+a livello \texttt{DEBUG} come elenco graduato — chi vuole ispezionare i
+casi peggio stimati ha qui l'identificativo completo della posizione,
+riproducibile in qualsiasi engine.
+
+Come per gli altri livelli, il \texttt{down} azzera i quattro attributi
+pubblicati (\texttt{vld\_metrics}, \texttt{vld\_y\_pred}, \texttt{vld\_rn},
+\texttt{vld\_outliers}).
+
+\section{\texttt{ANALYTICS}: le statistiche sul set di addestramento}
+
+Il terzo livello della fase non tocca il set di validazione: ri-esegue il
+modello \emph{sul set di addestramento} e produce il \emph{report
+analitico} del modello. La sua domanda è complementare a quella di
+\texttt{VALIDATE}: non ``quanto generalizza'', ma ``quanto ha appreso, e
+\emph{come} l'ha appreso, feature per feature''.
+
+\subsection{Le due passate di addestramento}
+
+Il livello calcola le metriche di addestramento in \emph{due passate},
+corrispondenti ai due volti del modello. La \emph{passata compressa}
+(\texttt{hlp\_analytics\_compute\_training\_metrics}) è ciò che L-BFGS ha
+fittato: il predittore lineare è la somma, su ogni riga della matrice di
+disegno $X$, dei pesi compressi $w$ indiciati,
+
+\begin{equation}
+  \hat{z}_i = \sigma\!\left( \sum_{j} w_{x_{i,j}} \right),
+\end{equation}
+
+e da qui, con la ri-mappatura \texttt{z2y}, i residui $r_{y,i} =
+\hat{y}_i - y_i$ su cui corrono $\mathrm{MAE}_{Y}$ e $\mathrm{RMSE}_{Y}$.
+La \emph{loss} di questa colonna non viene ricalcolata: è il valore finale
+dell'obiettivo riportato dal solutore (\texttt{opt\_info}), quindi la
+tabella mostra esattamente ciò che l'ottimizzazione ha raggiunto. La
+passata \emph{densa}
+(\texttt{hlp\_analytics\_compute\_training\_dense\_metrics}) replica il
+forward pass di \texttt{VALIDATE} — gli offset denso, $\texttt{w\_dense}$,
+la sigmoide — ma sul set di addestramento: è \emph{l'esatta regola di
+inference del modello salvato}. Le due colonne differiscono \emph{solo} per
+le posizioni che toccano configurazioni sotto soglia (stato \texttt{IC}),
+dove gli slot densi contengono i valori di sostituzione invece dei pesi di
+fallback addestrati.
+
+La passata compressa calcola anche le \emph{metriche di popolazione}, il
+baseline di confronto: il modello banale che predice per ogni posizione la
+media del set. I suoi $\mathrm{MAE}_{Y}$, $\mathrm{RMSE}_{Y}$ e loss
+(zona $Z$, residui dal target medio) sono il riferimento contro cui
+misurare il guadagno del modello appreso.
+
+\subsection{L'header del report}
+
+L'header del report è una tabella a \emph{tre colonne di metriche}:
+\texttt{TRAINING} (la passata compressa), \texttt{TRAINING-DENSE} (la
+passata densa) e \texttt{VALIDATION} (la passata densa sul set di
+validazione, già calcolata da \texttt{VALIDATE}), con le righe
+$\mathrm{RMSE}(y)$, $\mathrm{MAE}(y)$ e $\mathrm{Loss}$ (MSE/2), più la
+riga del baseline di popolazione. Estratto illustrativo:
+
+\begin{lstlisting}[language=, caption={L'header del report analitico (estratto illustrativo).}]
+===========================================================================
+MODEL ANALYTICS REPORT: Il mio modello logistico
+===========================================================================
+  Total Parameters (W)        : 1,234,567
+  Dense Parameters (K)        : 8,765,432
+  Optimization Status         : Converged (214 iters)
+  Config SHA3-256             : 9f2c...
+  METRIC          | TRAINING       | TRAINING-DENSE | VALIDATION
+  RMSE (y)        | 12.41          | 12.58          | 14.02
+  MAE (y)         | 9.87           | 10.01          | 11.35
+  Loss (MSE/2)    | 7.81e+01       | 7.94e+01       | 9.83e+01
+  Population (baseline)  : RMSE 25.10  MAE 20.33  Loss 3.16e+02
+  Generalization Gap (RMSE)   : 1.44
+  Substitution Delta (RMSE)   : 0.17
+\end{lstlisting}
+
+Dall'header derivano due grandezze sintetiche, entrambe differenze di RMSE:
+
+\begin{align}
+  \Delta_{\mathrm{gen}} &= \mathrm{RMSE}_{\mathrm{vld}}
+                         - \mathrm{RMSE}_{\mathrm{train\text{-}dense}}, \\
+  \Delta_{\mathrm{sub}} &= \mathrm{RMSE}_{\mathrm{train\text{-}dense}}
+                         - \mathrm{RMSE}_{\mathrm{train}}.
+\end{align}
+
+Il \emph{Generalization Gap} è una misura \emph{pura} di generalizzazione:
+confronta densa contro densa, cioè le stesse regole di inference su due set
+diversi, e non contamina la misura con l'effetto della sostituzione; un
+gap positivo significativo è il segnale classico di overfitting. Lo
+\emph{Substitution Delta} isola l'effetto della sostituzione delle
+configurazioni sotto soglia: quantifica quanto le regole spedithe
+(dense) divergono da ciò che il solutore ha fittato (compressa) \emph{sul
+medesimo} set di addestramento. L'header riporta anche i metadati della
+run: nome del modello, data di creazione (nel solo report di file), i
+conteggi di record di addestramento e validazione, i parametri statistici
+(cut-off di frequenza, logit clipping, regolarizzazione di ridge), i
+contaggi di parametri ($|w|$ compresso e $|w_{\mathrm{dense}}|$ denso), lo
+stato dell'ottimizzazione con le iterazioni e l'impronta SHA3-256 della
+configurazione.
+
+\subsection{Il dettaglio per feature}
+
+Il report di file (\texttt{hlp\_analytics\_format\_file\_report}) estende
+l'header con il dettaglio per feature, in quattro sezioni: il \emph{Feature
+Set Summary} (la stampata del feature set), la sezione \emph{INTERCEPT}
+(il singolo peso di bias addestrato, presente solo se il feature set
+include l'intercetto — altrimenti il suo valore non comparirebbe da
+null'altra parte nel report), e le due sezioni di dettaglio
+\emph{MOBILITY FEATURES} e \emph{PATTERN FEATURES}.
+
+Ogni feature ha una tabella formata da un \emph{header} e da una \emph{riga
+per configurazione}. L'header riporta: la media pesata per frequenza dei
+pesi addestrati della feature, i pesi massimo e minimo (con la
+configurazione che li realizza, per i pattern), le istanze e le colonne
+corrispondenti, i conteggi di configurazioni per stato, e gli indici di
+\emph{discriminazione} $\eta^{2}$ e $\omega^{2}$ (il kernel ANOVA
+condiviso, che misura quanta varianza del valore di gioco è spiegata
+dall'appartenenza a una configurazione). La riga per configurazione
+riporta: l'indice denso, lo \emph{stato} della configurazione, l'indice
+compreso $w$, l'indice di configurazione (e, per i pattern, l'indice
+principale che condensa le simmetrie D8), la \emph{frequenza} nel corpus,
+il valore medio e l'RMSE dei valori di gioco delle posizioni di
+addestramento che la toccano, e il \emph{peso} del modello associato.
+
+Gli stati dipendono dalla categoria: \texttt{C}/\texttt{IA}/\texttt{IC} per
+le mobility, \texttt{C}/\texttt{AB}/\texttt{CL} per i pattern. La tabella
+riassume il significato di ciascuno:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Stato & Categoria & Significato \\
+\midrule
+\texttt{C}  & mobility / pattern & osservata nel corpus, col suo peso addestrato $w$ \\
+\texttt{IA} & mobility & assente dalla mappa di peso, servita dallo slot denso \\
+\texttt{AB} & pattern  & assente dalla mappa di peso, servita dallo slot denso \\
+\texttt{IC} & mobility & sotto soglia, collassata sul fallback (valore di sostituzione) \\
+\texttt{CL} & pattern  & sotto soglia, collassata sul fallback (valore di sostituzione) \\
+\bottomrule
+\end{tabular}
+\caption{Gli stati di configurazione nel report analitico, per categoria di
+feature.}
+\label{tab:conf-status}
+\end{table}
+
+La distinzione tra lo stato \emph{assente} (\texttt{IA}/\texttt{AB}) e quello
+\emph{sotto soglia} (\texttt{IC}/\texttt{CL}) è quella che fa divergere le
+due passate di addestramento: solo le configurazioni sotto soglia hanno uno
+slot denso che contiene un \emph{valore di sostituzione} diverso dal peso di
+fallback addestrato, e sono quindi l'unico contributo al Substitution Delta.
+
+Quando il livello \texttt{SU\_ANALYSIS} è stato eseguito con un corpus di
+almeno il doppio del set di addestramento, ogni tabella guadagna due
+colonne — \texttt{PROBABILITY} (la quota della configurazione nel set di
+addestramento) e \texttt{SU\_PROBABILITY} (la quota nel corpus) — e una riga
+\emph{SU Sample Consistency} nell'header: l'\emph{adherence} della
+distribuzione aggregata di addestramento rispetto a quella del corpus,
+misurata con il kernel condiviso di ANOVA (test chi-quadrato di bontà di
+adattamento, distanza di Total Variation e divergenza di Kullback-Leibler,
+con fusione delle code a bassa frequenza). La TV dà il \emph{verdetto}:
+$TV \le 0.01$ è \texttt{CONSISTENT}, $TV \le 0.05$ è \texttt{MARGINAL},
+oltre è \texttt{DEVIATING} — cioè, la feature vede nel set di addestramento
+la stessa distribuzione di configurazioni che ha nel corpus. Con corpus
+troppo piccolo (o livello disabilitato) le colonne vengono sostituite da
+una nota \texttt{N/A}.
+
+Il dimensionamento del report è governato dalla configurazione: la lista
+\texttt{analytics.detailed\_report} (nomi di feature) seleziona quali
+feature hanno le \emph{righe} complete tabella per tabella; le altre
+mantengono l'header ma le righe vengono omesse, con una nota esplicita
+(\emph{``Table rows omitted: feature not in config
+'analytics.detailed\_report''}). È così che si documenta in dettaglio una
+manciata di pattern con decine di migliaia di configurazioni senza far
+esplodere il file.
+
+Letta insieme, la tabella risponde a domande concrete. La \emph{frequenza}
+dice quante volte la configurazione si presenta nel corpus: una
+configurazione rara ha pochi dati a supporto, e il suo peso è quindi
+stimato con più incertezza. L'\emph{AVERAGE\_GV} e l'\emph{RMSE\_GV}
+descrivono la distribuzione dei valori di gioco reali delle posizioni che la
+toccano: una configurazione con \texttt{AVERAGE\_GV} marcatamente positiva
+e \texttt{RMSE\_GV} contenuto è un segnale coerente (e il peso addestrato
+dovrebbe rifletterlo); un \texttt{RMSE\_GV} alto segnala invece una
+configurazione il cui esito è intrinsecamente incerto. La coppia
+$\eta^{2}$/$\omega^{2}$ dell'header sintetizza, a livello di feature, quanto
+il fatto di ``essere in questa configurazione'' spiega la varianza del
+valore di gioco: è la misura di \emph{discriminazione} con cui si giudica se
+una feature merita i suoi pesi. In pratica il report è lo strumento con cui
+si verifica \emph{dopo} l'addestramento che le feature che il modello ha
+appreso sono quelle che il dominio prevede — e con cui si insegue una
+feature la cui tabella non torna come ci si aspetterebbe.
+
+\subsection{Gli output del livello}
+
+Il report ha due destinazioni. La versione \emph{console} (l'header in forma
+breve, senza data né parametri statistici) viene loggata riga per riga a
+livello \texttt{DEBUG}: la casa canonica del corpo del report è il file, e
+la riga \texttt{INFO} \emph{``Analytics report saved to \ldots''} ci
+punta. La versione \emph{file} (completa) è scritta in UTF-8 al percorso
+\texttt{base\_dir}/\texttt{analytics.report\_file\_name} (default
+\texttt{model\_analytics\_report.txt}). Sul contesto il livello pubblica
+quattro attributi: \texttt{analytics\_report} (il report console, per i
+livelli a valle), \texttt{train\_metrics} e
+\texttt{train\_dense\_metrics} (i dizionari delle due passate) e
+\texttt{train\_dense\_rn} — la serie dei residui di addestramento della
+passata densa, la \emph{stessa} serie che \texttt{PLOT} disegnerà: una
+derivazione unica, pubblicata da chi l'ha calcolata.
+
+\section{La consegna alla fase di persistenza e output}
+
+La fase di Validazione e analisi non produce output durevoli: il suo
+prodotto è la \emph{conoscenza} sulla qualità del modello, pubblicata sul
+contesto per la fase successiva. Il quadro della consegna è:
+
+\begin{itemize}
+  \item le \emph{sette metriche di validazione} (\texttt{vld\_metrics}):
+    verranno incorporate nel file del modello da \texttt{SAVE} (il
+    contratto v2);
+  \item le \emph{serie per-posizione} di validazione (\texttt{vld\_y\_pred},
+    \texttt{vld\_rn}) e di addestramento densa (\texttt{train\_dense\_rn}):
+    \texttt{CLIENT\_CHECK} ri-eseguirà il modello salvato e confronterà le
+    serie bit per bit, \texttt{PLOT} le disegnerà;
+  \item i \emph{record degli outlier} (\texttt{vld\_outliers}) e il
+    \emph{report analitico} (\texttt{analytics\_report}): il tracciato
+    diagnostico della run, che confluirà nel log consolidato di
+    \texttt{FINAL\_LOG\_PRINT}.
+\end{itemize}
+
+La tabella riassume, per ogni artefatto, il livello della fase successiva che
+lo consumerà:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Artefatto (sul contesto) & Livello che lo consuma & Uso \\
+\midrule
+\texttt{vld\_metrics}        & \texttt{SAVE}         & incorporate nel file del modello (contratto v2) \\
+\texttt{vld\_y\_pred}, \texttt{vld\_rn} & \texttt{CLIENT\_CHECK}, \texttt{PLOT} & confronto bit-per-bit; grafico dei residui \\
+\texttt{train\_dense\_rn}    & \texttt{PLOT}         & grafico dei residui di addestramento \\
+\texttt{vld\_outliers}       & \texttt{FINAL\_LOG\_PRINT} & tracciato diagnostico nel log \\
+\texttt{analytics\_report}   & \texttt{FINAL\_LOG\_PRINT} & corpo del report nel log \\
+\bottomrule
+\end{tabular}
+\caption{La consegna: da ogni artefatto della fase al livello che lo
+consuma.}
+\label{tab:handoff}
+\end{table}
+
+Con questi artefatti la run è pronta per l'ultima fase, \emph{Persistenza e
+output}: i quattro livelli che la compongono non ricalcoleranno nulla, ma
+trasformeranno esattamente questi prodotti in output durevoli — il file del
+modello, la prova del round-trip, i grafici e il log finale.

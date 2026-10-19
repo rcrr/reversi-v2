@@ -1,0 +1,215 @@
+%
+% reversi_220_persistenza_output.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 2, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: Persistenza e output.
+%
+% Il dettaglio della fase finale della pipeline (i livelli SAVE,
+% CLIENT_CHECK, PLOT e FINAL_LOG_PRINT): il file del modello, la verifica
+% del round-trip attraverso il client, i grafici di diagnostica e il log
+% consolidato della run.
+%-----------------------------------------------------------------------------
+
+\chapter{Persistenza e output}
+
+Questa è l'ultima delle cinque fasi in cui si raggruppano i 19 livelli della
+pipeline (tabella~\ref{tab:pipeline-levels} del capitolo 5): la fase
+\emph{Persistenza e output}. I suoi quattro livelli — \texttt{SAVE},
+\texttt{CLIENT\_CHECK}, \texttt{PLOT} e \texttt{FINAL\_LOG\_PRINT} — non
+ricalcolano nulla: prendono ciò che la run ha già prodotto (il vettore di
+pesi $w$, le serie di validazione, il registro degli eventi) e lo
+trasformano negli output durevoli: il file del modello, la prova che il
+modello è usabile da un client, i grafici di diagnostica e il log
+consolidato.
+
+\section{\texttt{SAVE}: il file del modello}
+
+Il livello scrive un \emph{unico} file, sul percorso configurato
+\texttt{base\_dir}/\texttt{output}. Il file è binario, a record
+\emph{framed} (ogni valore è delimitato da due marcatori MAGIC
+identici), little-endian e quindi leggibile invariabilmente da codice
+C/Rust, e viene compresso con lz4-frame: la compressione è deterministica,
+lo stesso contenuto produce sempre gli stessi byte. L'header è
+\texttt{RGLM\_BINARY\_WEIGHTS} con versione 2: la v2 è
+\emph{auto-descrivente}, perché incorpora la \emph{provenienza della
+configurazione} — il record di configurazione normalizzato (lo stesso
+stringa che il vecchio record laterale portava) più la sua impronta
+sha3-256 — come prima sezione del corpo. Il file del modello è così
+l'\emph{unica} fonte della configurazione della run: il record laterale
+(\texttt{<output>.config.json}) è ritirato e non viene più generato.
+
+Dopo la provenienza, il corpo porta, in ordine: i metadati (nome,
+\texttt{empty\_count}, clipping del logit), le statistiche della
+popolazione di addestramento (conto, media, deviazione standard,
+varianza), l'informazione di ottimizzazione (motivo di stop, iterazioni,
+valore finale, norma del gradiente), le metriche di validazione (campioni,
+RMSE, MAE, loss), la definizione completa del feature set (intercetto,
+mobility, pattern) e infine i dati dell'inferenza: la mappa degli offset di
+feature \texttt{iwmap\_feature\_offset} e il vettore di pesi denso
+\texttt{w\_dense}.
+
+\begin{lstlisting}[language=python,
+caption={L'ordine di scrittura del file (estratto di \texttt{model\_weights\_write\_file}).}]
+with BinaryWriter(path, compressed=True) as w:
+    w.write_header("RGLM_BINARY_WEIGHTS", version=2)
+    # 1. provenienza della configurazione (sezione guida del corpo):
+    w.write_string(ctx.config_checksum)
+    w.write_string(ctx.cfg.model_dump_json(indent=4))
+    # 2. metadati, 3. statistiche di addestramento,
+    # 4. info di ottimizzazione, 5. metriche di validazione,
+    # 6-8. feature set (intercetto, mobility, pattern),
+    # 9. dati dell'inferenza:
+    w.write_string(ctx.cfg.name)
+    w.write_u32(ctx.cfg.empty_count)
+    ...
+    w.write_array(ctx.iwmap_feature_offset)
+    w.write_array(ctx.w_dense)
+\end{lstlisting}
+
+Alla chiusura, il writer produce anche il sidecar \texttt{.SHA3-256}
+(servizio di checksum attivo per default, nel formato standard
+\texttt{sha3\_256sum}); il worker ne registra a livello \texttt{DEBUG} le
+dimensioni e l'impronta — l'eco di integrità: ogni altro artefatto della
+run ha già la propria riga di checksum nel log, il file finale è l'unico a
+riceverla qui. Il passo \texttt{down} è un no-op: il worker è stateless.
+
+\section{\texttt{CLIENT\_CHECK}: la verifica del round-trip}
+
+Il modello salvato non è utile finché non è provato \emph{usabile} da un
+client: questo è il lavoro di \texttt{CLIENT\_CHECK}. Il livello rilegge il
+file appena scritto con \texttt{model\_weights\_read\_file} (il lettore v2
+ri-verifica per strada l'impronta della configurazione incorporata) e
+ottiene il dataclass \texttt{ModelWeights}: i pesi, la mappa degli offset,
+il feature set — tutto ciò che a un client serve.
+
+Costruisce poi la \emph{Evaluation Function} vettorizzata del client,
+\texttt{make\_evaluation\_function\_array}: la funzione è chiusa su due
+artefatti precalcolati — gli offset di avvio di \texttt{w\_dense} per
+istanza (l'array dei confini di feature espanso alla granularità delle
+istanze) e la mappa affine $\mathrm{z}\to\mathrm{y}$ — e valuta l'intero
+set di validazione in una chiamata: indici principali, raccolta dei pesi
+densi, somma nel predittore lineare, sigmoid, ritorno nello spazio Y.
+
+Il cuore del controllo è un confronto di residui: i residui di validazione
+ricalcolati dai pesi del \emph{file}, in spazio Y (vista f64 senza perdita
+per arrotondamento), e la serie di riferimento \texttt{vld\_rn} pubblicata
+dal livello \texttt{VALIDATE} — nessun artefatto di validazione muta tra i
+livelli 14 e 17, dunque l'array in memoria \emph{è} il riferimento. La
+massima differenza deve restare sotto la tolleranza
+\texttt{client\_check\_tol}; un superamento fa fallire la run con un
+\texttt{RuntimeError}, loggato a livello \texttt{ERROR} con l'entità della
+divergenza e la prima posizione in cui compare.
+
+\begin{lstlisting}[language=python,
+caption={Il confronto del round-trip (estratto di \texttt{wrk\_client\_check}).}]
+mw = model_weights_read_file(output_path, compressed=True)
+ef = make_evaluation_function_array(mw)
+y_pred_file = ef(ctx.vld_positions)
+rn_file = (y_pred_file.astype(np.float64)
+           - ctx.vld_game_values.astype(np.float64))
+rn_ref = ctx.vld_rn
+max_diff = float(np.abs(rn_file - rn_ref).max())
+if max_diff >= ctx.cfg.client_check_tol:
+    raise RuntimeError("CLIENT_CHECK failed")
+\end{lstlisting}
+
+In sintesi: modello in memoria $\to$ file $\to$ client $\to$ gli stessi
+numeri. Se il round-trip torna identico entro la tolleranza, il file è
+dichiarato affidabile.
+
+\section{\texttt{PLOT}: i grafici di diagnostica}
+
+Il livello produce le figure \emph{matplotlib} della run. Un \emph{pilot} a
+due stadi li governa: l'interruttore \texttt{plot.enable} (se false, il
+livello è un no-op pulito anche con nomi in lista) e la \emph{whitelist}
+\texttt{plot.plots}, che sceglie quali dei sette nomi canonici generare: un
+nome in lista è scritto, uno assente è saltato, una lista vuota rende il
+livello inerte.
+
+I grafici non rimisurano nulla: \texttt{hlp\_plot\_collect\_data} assembla
+le cinque serie f64 che la pipeline ha già calcolato — i valori di gioco e
+i residui di addestramento (il passo forward denso di
+\texttt{ANALYTICS}) e i valori, le stime e i residui di validazione (di
+\texttt{VALIDATE}) — tutte in vista f64 senza perdita, così che nessun
+rumore di arrotondamento f32 entri nelle figure. La directory di
+destinazione è \texttt{plot.dir\_name}: usata come sta se assoluta (può
+vivere fuori da \texttt{base\_dir}), risolta su \texttt{base\_dir} se
+relativa (default: \texttt{plots}). Ciascun grafico è salvato in ogni
+formato della lista \texttt{plot.format} (la coppia \texttt{"pdf,png"}
+scrive entrambi: il pdf vettoriale e il png alla risoluzione
+\texttt{plot.dpi}).
+
+L'aspetto e la \emph{determinismo} sono guidati da tredici manopole (il
+dataclass \texttt{HlpPlotStyle}, che la sezione \texttt{plot} della
+configurazione porta con sé): i semi per il jitter e il
+sotto-campionamento del KDE, le grandezze del jitter, i domini degli assi
+(gli assi di valore di gioco sono sempre il dominio completo $[-64,
++64]$), il passo dei tick e il posizionamento delle etichette delle serie.
+Ogni casualità è guidata da generatori con seme fisso, quindi le figure
+sono riproducibili di run in run.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+Nome & Contenuto \\
+\midrule
+\texttt{residual\_density} & Densità (KDE) di tre serie di residui di valore di gioco: di riferimento (i valori di addestramento centrati sulla media), di addestramento e di validazione; la riga tratteggiata segna la media dei residui di addestramento. \\
+\texttt{resid\_vs\_fitted} & Nuvola dei residui di validazione contro i valori stimati, con jitter a seme fisso su entrambi gli assi. \\
+\texttt{resid\_vs\_gv} & Nuvola dei residui di validazione contro i valori di gioco effettivi. \\
+\texttt{gv\_by\_egv\_box} & Box plot dei valori di gioco di validazione, raggruppati per valore stimato arrotondato alla griglia a passo 2. \\
+\texttt{resid\_mean\_by\_egv} & Media del residuo con barre $\pm$ deviazione standard per valore stimato, contro la linea a zero: la vista dei bias sistematici per livello. \\
+\texttt{parity} & Parità: valori di gioco di validazione contro valori stimati, con la retta a 45$^\circ$; la qualità del fit globale a colpo d'occhio. \\
+\texttt{resid\_qq} & QQ plot normale dei residui di validazione: quantili campionario contro quantili teorici standard-normali, con la riga di scala $y=\mathrm{sd}\,x$. \\
+\bottomrule
+\end{tabularx}
+\caption{I sette grafici canonici della sezione \texttt{plot}.}
+\label{tab:plot-names}
+\end{table}
+
+\section{\texttt{FINAL\_LOG\_PRINT}: il log consolidato}
+
+Ultimo livello, ultimo output: il log della run. Se
+\texttt{log\_file\_name} è assente nella configurazione, il livello è un
+no-op pulito (il file non viene generato); altrimenti
+\texttt{hlp\_final\_log\_print\_write\_log} renderizza il \emph{registro
+eventi della macchina} — la lista di \texttt{LogEntry} che la
+\texttt{StateMachine} riempie a ogni \texttt{log\_event},
+indipendentemente dalla gate di verbosità della console — a partire da
+\texttt{DEBUG} (il dettaglio delle hot loop a livello \texttt{TRACE} resta
+fuori dal file) e lo scrive in UTF-8 su \texttt{base\_dir}/\texttt{log\_file\_name},
+creando la directory di destinazione se serve. Il file è il log completo
+fino al momento della scrittura: contiene la riga ``Starting worker
+\texttt{FINAL\_LOG\_PRINT}'', ma non la ``Completed UP step'' (loggata
+dopo il ritorno). Il passo \texttt{down} è un no-op: il file non viene
+rimosso.
+
+Con i quattro livelli la fase — e la pipeline — si chiude: la run è
+completa, dal file di configurazione al modello salvato, verificato,
+tracciato in grafici e registrato nel log, pronto a essere caricato e
+usato.

@@ -1,0 +1,869 @@
+%
+% reversi_140_corpus_analisi.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo 7: Corpus e analisi delle feature.
+%
+% La fase della pipeline che trasforma il corpus grezzo di partite in dati di
+% feature indicizzati e analizzati: i livelli SU_ANALYSIS, POSITIONS, INDEXES,
+% ANOVA e WMAPS.
+%-----------------------------------------------------------------------------
+
+\chapter{Corpus e analisi delle feature}
+\label{ch:corpus-analisi}
+
+Questo capitolo copre la \emph{seconda} delle cinque fasi della pipeline —
+\textbf{Corpus e analisi delle feature} — così come il capitolo sulla pipeline
+la raggruppa (tabella~\ref{tab:pipeline-levels}). La fase è formata da cinque
+livelli, eseguiti in quest'ordine: \texttt{SU\_ANALYSIS}, \texttt{POSITIONS},
+\texttt{INDEXES}, \texttt{ANOVA} e \texttt{WMAPS}. Il suo compito è
+\emph{trasformare il corpus grezzo di partite nei dati di feature
+indicizzati e analizzati} che il costruttore del modello (la fase successiva,
+\emph{Costruzione del modello}) ha bisogno.
+
+Il punto di partenza della fase è il \texttt{feature\_set} già risolto dalla
+fase Setup: l'insieme ordinato delle feature (l'intercetto, le mobility, i
+pattern) con, per ognuna, il numero di istanze e lo spazio delle
+configurazioni. Il punto di arrivo è un pacchetto compatto di artefatti: le
+posizioni di addestramento e i loro valori di gioco, la matrice degli indici
+categorici, le mappe che collegano ogni configurazione di feature a un indice
+del vettore di pesi. Tutto il resto che la fase produce — le tabelle di
+frequenza, le misure di varianza, i report di rarità — è \emph{diagnostica}:
+informa il progettista sul \emph{perché} un certo feature set è buono o
+cattivo, ma non entra nel modello.
+
+C'è una distinzione di peso che conviene fissare subito. Dei cinque livelli,
+tre sono \emph{obbligatori} e formano la spina dorsale della fase:
+\texttt{POSITIONS}, \texttt{INDEXES} e \texttt{WMAPS}. Senza di essi non c'è
+nessun modello. Gli altri due — \texttt{SU\_ANALYSIS} e \texttt{ANOVA} — sono
+\emph{opzionali}: la loro flag \texttt{enable} è \texttt{false} di default,
+quindi una run standard non li esegue. Quando sono attivi, però, producono
+l'analisi più profonda che lo strumento offre sulla qualità delle feature. E
+c'è un accorgimento di \emph{degradazione elegante}: l'\texttt{ANOVA}, se
+trova l'\texttt{SU\_ANALYSIS} spento (quindi nessun corpus nel contesto), non
+fallisce — salta semplicemente la parte che del corpus avrebbe bisogno e
+prosegue con il resto.
+
+La tabella riassume i cinque livelli: da cosa legge e cosa pubblica sul
+contesto.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}llXX@{}}
+\toprule
+Livello & Worker & Legge dal contesto & Pubblica sul contesto \\
+\midrule
+\texttt{SU\_ANALYSIS} & \texttt{wrk\_su\_analysis} & \texttt{cfg.su\_analysis}, \texttt{feature\_set}, \texttt{empty\_count} & \texttt{su\_analysis\_tables} \\
+\texttt{POSITIONS}    & \texttt{wrk\_positions}     & \texttt{cfg.regab\_data\_set}, \texttt{empty\_count} & \texttt{positions}, \texttt{game\_values}, \texttt{rds\_checksum}, \texttt{training\_pop\_stats} \\
+\texttt{INDEXES}      & \texttt{wrk\_indexes}       & \texttt{positions}, \texttt{feature\_set}, \texttt{rds\_checksum} & \texttt{hlp\_indexes}, \texttt{hlp\_indexes\_checksum} \\
+\texttt{ANOVA}        & \texttt{wrk\_anova}         & \texttt{hlp\_indexes}, \texttt{game\_values}, \texttt{su\_analysis\_tables}, \texttt{cfg.anova} & (solo i file di report) \\
+\texttt{WMAPS}        & \texttt{wrk\_wmaps}         & \texttt{hlp\_indexes}, \texttt{feature\_set}, \texttt{cfg.stat\_model} & \texttt{feature\_w\_ranges}, \texttt{iwmap\_feature\_offset}, \texttt{iwmap}, \texttt{wmap}, \texttt{wmap\_fallback}, \texttt{w}, \texttt{wmaps\_obj\_checksum} \\
+\bottomrule
+\end{tabularx}
+\caption{I cinque livelli della fase: la lettura e la pubblicazione sul contesto condiviso.}
+\label{tab:corpus-levels}
+\end{table}
+
+Prima di entrare nei singoli livelli, una nota sul meccanismo che quattro di
+loro condividono. \texttt{SU\_ANALYSIS} (la sola parte corpus),
+\texttt{POSITIONS}, \texttt{INDEXES} e \texttt{WMAPS} usano tutti lo stesso
+\emph{flusso di cache a quattro passi}, già introdotto nel capitolo sulla
+pipeline: a ogni run il worker affida al gestore della cache l'artefatto del
+livello, che (1) \emph{cerca} il file cacheato, (2) ne \emph{valida} la firma
+contro la configurazione live, (3) in caso di file assente o firma
+inconsistente lo \emph{ricalcola} e lo \emph{riporta} su file, (4) in caso
+contrario lo \emph{restituisce} come già pronto. La validazione è sempre un
+\emph{test puro} — nessun database, nessun ricalcolo: un confronto tra pochi
+campi, e il dettaglio di \emph{quali} campi è l'oggetto delle singole
+sezioni che seguono. Due eccezioni da tenere a mente: l'\texttt{ANOVA} non ha
+artefatto cacheabile (scrive solo report, e li riscrive a ogni run), e
+l'\texttt{SU\_ANALYSIS} applica il flusso alla sola metà \emph{costosa} del
+suo lavoro — la generazione del corpus — mentre le statistiche, economiche,
+sono ricalcolate sempre.
+
+\section{Il livello \texttt{SU\_ANALYSIS}}
+\label{sec:corpus-su}
+
+\texttt{SU\_ANALYSIS} è il livello più ricco della fase e, nella run, il
+più costoso: è quello che \emph{genera} un corpus di posizioni per studiarne
+le feature. Prima di entrare nel meccanismo, va chiarito cosa si intende per
+\emph{analisi SU}.
+
+\subsection{Cos'è l'analisi SU}
+
+La sigla \texttt{SU} sta per \emph{Symmetrical Uncertainty},
+\emph{incertezza simmetrica}. È una misura della \emph{dipendenza} tra due
+variabili categoriche, costruita a partire dall'informazione mutua e
+\emph{normalizzata} per compensare il bias matematico intrinseco
+dell'informazione mutua grezza (che tende a sovrastimare variabili con molte
+categorie). Se $u$ e $v$ sono due variabili categoriche, con entropie
+marginali $H(u)$ e $H(v)$ e informazione mutua $I(u;v)$, l'incertezza
+simmetrica è
+
+\begin{equation}
+  \mathrm{SU}(u,v) \;=\; \frac{2\,I(u;v)}{H(u) + H(v)} \;\in\; [0,1].
+  \label{eq:su}
+\end{equation}
+
+Il valore è \emph{simmetrico} (invariare $u$ e $v$ non lo cambia) e
+\emph{normalizzato}: $0$ significa ortogonalità perfetta (le due variabili
+portano informazioni indipendenti), $1$ significa che le due variabili sono
+la \emph{stessa} informazione. Il report allega una legenda fissa per
+interpretare i valori:
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+Intervallo di \texttt{SU} & Interpretazione \\
+\midrule
+$0.0$            & ortogonalità perfetta \\
+$0.0 - 0.1$      & eccellente indipendenza \\
+$0.1 - 0.3$      & correlazione moderata \\
+$0.3 - 0.5$      & correlazione forte \\
+$> 0.5$          & correlazione molto forte \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Perché questa misura interessa un costruttore di modelli? Perché le feature di
+un buon set di valutazione dovrebbero essere, a coppie, \emph{quasi
+ortogonali}: se due feature sono fortemente correlate, una delle due è
+redundante e aggiunge parametri al modello senza aggiungere informazione
+predittiva. L'analisi SU risponde alla domanda ``quale feature duplica
+quale?''.
+
+L'unità di analisi non è la feature intera, ma la \emph{sotto-variabile}:
+la coppia (feature, istanza), che corrisponde a \emph{una colonna} della
+matrice degli indici. Ogni istanza di un pattern è una sua variabile
+categorica a sé; una mobility è una singola colonna. È la stessa unità su cui
+vivono i pesi del modello, e su cui l'\texttt{ANOVA} (più avanti) misurerà la
+varianza spiegata.
+
+\subsection{La generazione del corpus}
+
+A differenza dei livelli a valle, che leggono le posizioni dal database,
+\texttt{SU\_ANALYSIS} \emph{genera} le proprie posizioni da zero, giocando
+partite casuali. La ragione è metodologica: per studiare la \emph{frequenza
+naturale} con cui le configurazioni di feature si presentano nel gioco, serve
+un campione \emph{neutro}, non condizionato dalla selezione che il database
+ha già applicato. Il corpus è quindi una popolazione di posizioni casuali,
+tutte \emph{arrestate} alla stessa fase di gioco.
+
+Lo spec del generatore vive nella sezione \texttt{su\_analysis.corpus} della
+configurazione: il \texttt{seed} (default 42) del generatore di numeri
+casuali MT19937, e il \texttt{total\_positions} (default 10\,000\,000) di
+posizioni da raccogliere. La regola di arresto — fino a quale numero di
+caselle vuote portare ogni partita — è l'\texttt{empty\_count} \emph{di primo
+livello}, in modo che il corpus si fermi alla \emph{stessa} fase di gioco
+usata dall'estrazione dal database per l'addestramento.
+
+La generazione è \emph{a onde} (\emph{wave}) e \emph{in streaming}. Si parte
+dalla posizione iniziale canonica del gioco; a ogni onda si lanciano
+$n$ \emph{lane} in parallelo (tutte copie della posizione iniziale), dove
+$n$ è il minimo tra una costante di onde (3\,000\,000) e la quota ancora
+mancante; ogni lane gioca mosse casuali legali finché non raggiunge
+l'\texttt{ec} target oppure la partita termina. Al ritorno, si \emph{raccoglie}
+solo le lane che si sono fermate \emph{esattamente} al target: le lane la cui
+partita è finita prima (con più caselle vuote del target) sono scartate, e
+la quota viene integrata con l'onda successiva. Il tratto decisivo per la
+memoria è che \emph{il corpus non viene mai materializzato} in RAM: a ogni
+onda si calcola la matrice degli indici \emph{solo} delle lane raccolte e si
+passa quella matrice agli accumulatori, che aggiornano i propri contatori.
+L'onda si scarta e si passa alla successiva.
+
+\begin{lstlisting}[language=python, caption={Il cuore di \texttt{hlp\_su\_analysis\_compute}: la generazione a onde del corpus, in streaming.}]
+prng  = MT19937(corpus.seed)
+igp   = initial_game_position()
+marg  = _MarginalAccumulator(fset)
+joint = _JointAccumulator(fset, su_pairs) if su_pairs else None
+
+harvested = 0
+while harvested < total:
+    n     = min(WAVE_SIZE, total - harvested)
+    batch = np.full(n, igp)                        # n copie della posizione iniziale
+    final, ec_arr = random_game_play_path(batch, ec, prng)
+    keep  = ec_arr == ec                           # solo le lane ferme a ec esatto
+    idx   = fset.compute_indexes(final[keep])      # matrice degli indici dell'onda
+    marg.add(idx)
+    if joint is not None:
+        joint.add(idx)
+    harvested += int(keep.sum())
+\end{lstlisting}
+
+Il corpus così generato è \emph{deterministico} dato il seed: la stessa
+configurazione riproduce lo stesso campione, posizione per posizione.
+
+\subsection{Le tabelle marginali}
+
+Il primo accumulatore, \texttt{\_MarginalAccumulator}, produce la
+\emph{tabella marginale}: per ogni sotto-variabile (feature, istanza),
+l'istogramma delle frequenze con cui ogni sua configurazione si è presentata
+nel corpus. Lo schema di ogni riga è
+$(\text{name}, \text{instance}, n_{\text{conf}}, \text{codes},
+\text{counts})$: il nome della feature, l'indice dell'istanza, la dimensione
+teorica dello spazio delle configurazioni, e — per il \emph{supporto
+osservato} — i codici visti e i relativi conteggi.
+
+C'è qui una scelta di memoria degna di nota. Lo spazio delle configurazioni di
+una sotto-variabile può essere piccolo (una mobility a maschera piena ha
+$65$ valori, da $0$ a $64$ mosse) o enorme (un pattern a $16$ caselle ne ha
+$3^{16} \approx 43$ milioni). L'accumulatore usa una \emph{soglia}: se la dimensione teorica
+è sotto un milione di codici, tiene un istogramma \emph{denso} (un vettore di
+contatori, aggiornato con un \texttt{bincount} vettorizzato); oltre, passa a
+un dizionario \emph{sparse} che registra solo i codici effettivamente visti,
+fusi a ogni onda. Nel caso attuale tutte le sotto-variabili cadono nel ramo
+denso (il massimo in gioco è $59\,049$), ma la via sparse è lì per i spazi di
+codice più ampi.
+
+\subsection{Le tabelle congiunte}
+
+Il secondo accumulatore, \texttt{\_JointAccumulator}, è costruito \emph{solo}
+se la configurazione dichiara delle coppie da analizzare
+(\texttt{su\_pairs}, una lista di coppie ordinate di nomi di feature). Per
+ogni coppia $(F_i, F_j)$ richiesta, e per ogni cella
+$(\text{istanza}_i, \text{istanza}_j)$ del reticolo di istanze, l'accumulatore
+tiene la \emph{tabella congiunta sparsa}: quante volte la configurazione $c_i$
+della prima è apparsa \emph{insieme} alla configurazione $c_j$ della seconda.
+Lo spazio $c_i \times c_j$ è troppo grande per essere denso, quindi si tiene
+solo il supporto osservato, con la chiave dei due codici \emph{impaccata} in
+un singolo intero a 64 bit ($\text{key} = c_i \cdot n_{\text{conf},j} + c_j$)
+che viene poi disimpaccata in lettura.
+
+Un accorgimento di correttezza: la cella \emph{diagonale} di una coppia
+formata dalla \emph{stessa} feature (lo stesso nome, la stessa istanza,
+$\text{istanza}_i = \text{istanza}_j$) \emph{non viene costruita}. La
+congiunta di una variabile con se stessa \emph{è} la sua marginale —
+calcolarla sarebbe ridondante, e la sua \texttt{SU} sarebbe bloccata a $1$
+per costruzione, non una misura. Si analizzano invece le celle
+\emph{fuori diagonale}, che per una stessa feature sono le sue \emph{varie
+orientazioni D8} tra loro: è la misura dell'\emph{anisotropia} di un pattern
+(su quante delle sue istanze il gioco si concentra).
+
+\subsection{Le statistiche: dispersione, rarità e incertezza simmetrica}
+
+A differenza della generazione del corpus (costosa, cacheata), le
+\emph{statistiche} sono economiche e vengono \emph{ricalcolate a ogni run},
+anche quando le tabelle vengono lette dalla cache. Producono il report TXT
+(più un CSV opzionale) in tre sezioni.
+
+\emph{Sezione A — dispersione per sotto-variabile.} Per ogni sotto-variabile
+il report calcola e tabula cinque grandezze:
+
+\begin{itemize}
+  \item $K_{\text{obs}}$: il numero di configurazioni \emph{distinte
+        osservate} nel corpus;
+  \item $H$: l'entropia di Shannon della distribuzione osservata, in bit,
+        $H = -\sum_c p(c)\,\log_2 p(c)$;
+  \item $H_{\text{norm}} = H / \log_2 K_{\text{obs}} \in [0,1]$: vale $1$ se
+        l'osservato è uniforme sul supporto visto;
+  \item \emph{coverage} $= K_{\text{obs}} / N_{\text{conf}}$: la frazione
+        dello spazio teorico effettivamente coperta dal gioco casuale (parte
+        delle configurazioni teoriche non è raggiungibile per le regole del
+        gioco);
+  \item \emph{never-obs} $= N_{\text{conf}} - K_{\text{obs}}$: le
+        configurazioni teoriche \emph{mai} viste nel corpus.
+\end{itemize}
+
+Qui compare una distinzione sottile e importante tra i due tipi di feature.
+Per una \emph{mobility}, i codici osservati sono i valori grezzi del conteggio
+(nessuna riduzione per simmetria), quindi lo spazio teorico in gioco è
+$N_{\text{conf}} = k+1$ (con $k$ il numero di caselle della maschera). Per un
+\emph{pattern}, i codici osservati sono gli \emph{indici principali} — i
+rappresentanti delle orbite D8 — quindi lo spazio teorico non è il $3^{S}$
+grezzo ma il numero $n_{\text{unique}}$ di \emph{classi di equivalenza}
+(sotto le simmetrie indotte sulla maschera), dato dalla media di Burnside.
+È questo il denominatore corretto per la coverage e per l'audit
+never-observed di un pattern.
+
+\emph{Sezione B — rarità (opzionale).} Se la configurazione dichiara
+\texttt{rarity\_thresholds} (una lista strettamente crescente di soglie di
+frequenza), il report aggiunge, per ogni sotto-variabile, un istogramma a
+\emph{bin} delle frequenze delle singole configurazioni: bin semi-aperti
+$[0, t_1)$, $[t_1, t_2)$, \ldots, $[t_k, +\infty)$. Il \emph{primo} bin
+raccolge i codici a frequenza zero, cioè le configurazioni che il gioco
+casuale \emph{quasi mai} raggiunge — e che, di conseguenza,
+\emph{non potranno mai avere un peso appreso}. È la sezione che quantifica,
+feature per feature, quanta parte del suo spazio di configurazioni è, ai
+fatti, inerte.
+
+\emph{Sezione C — incertezza simmetrica.} Per ogni coppia richiesta e ogni
+cella fuori diagonale, il report calcola la \eqref{eq:su} a partire dalla
+congiunta e dalle due marginali. Le formule intermedie sono
+l'informazione mutua, calcolata per identità a partire dalle tre entropie,
+\begin{equation}
+  I(u;v) \;=\; H(u) + H(v) - H(u,v),
+  \label{eq:mutual-info}
+\end{equation}
+dove $H(u,v)$ è l'entropia della congiunta (troncata a $\ge 0$ per
+arrotondamento in virgola mobile), e poi la normalizzazione
+\eqref{eq:su}. Essendo la misura simmetrica, le due direzioni $(i,j)$ e
+$(j,i)$ della \emph{stessa} coppia sono la \emph{stessa} misura: il report le
+\emph{deduplica} in un ordine canonico dei due estremi e le raggruppa per
+coppia di feature, ordinando dentro ogni gruppo per ordine lessicografico
+(feature, istanza).
+
+Il report così composto ha una forma fissa; un estratto (con valori fittizi,
+ma nel formato reale) ne mostra l'aspetto:
+
+\begin{lstlisting}[caption={Estratto illustrativo del report \texttt{su\_analysis} (formato reale, valori fittizi).}]
+Symmetrical Uncertainty Analysis Report
+========================================
+
+Corpus: 2,000,000 positions
+Features: LMC, ALMC, EDGE, COR
+SU pairs: EDGE - COR
+
+Section A: Properties of features selected by the logistic model
+K_obs    : distinct configurations observed (of the theoretical space)
+H        : Shannon entropy of the observed distribution (bits)
+H_norm   : H / log2(K_obs) in [0,1] - 1.0 = uniform over the observed
+coverage : observed / theoretical - the ratio of observed to total
+           theoretical configurations (some are unreachable by the game's rules)
+never-obs: theoretical - observed (theoretical configurations never seen)
+  LMC   inst 0: K_obs 65/65,    H 3.90,  H_norm 0.686, coverage 1.000, never-obs 0
+  EDGE  inst 0: K_obs 4,211/4,366, H 8.71, H_norm 0.724, coverage 0.965, never-obs 155
+  COR   inst 0: K_obs 3/3,      H 1.55,  H_norm 0.978, coverage 1.000, never-obs 0
+
+Section B: Rarity report
+The per-bin frequencies of the codes: the half-open bins [0, t1), [t1, t2), ..., [tk, inf)
+The first bin the zero-frequency codes, the configurations random play
+almost never reaches: the weights that can never be learned.
+  LMC   inst 0: [0,1) 0 | [1,10) 2 | [10,100) 4 | [100,inf) 59
+  EDGE  inst 0: [0,1) 155 | [1,10) 1,412 | [10,100) 1,180 | [100,inf) 1,619
+
+Section C: Symmetrical uncertainty
+It evaluates the normalized relationship, dependency, or shared variance
+between variables, compensating for the inherent mathematical bias found in
+raw information gain.
+SU        : Meaning
+0.0       : Perfect orthogonality
+0.0 - 0.1 : Excellent independence
+0.1 - 0.3 : Moderate correlation
+0.3 - 0.5 : Strong correlation
+over 0.5  : Very strong correlation
+EDGE - COR
+  SU EDGE[0] - COR[0] = 0.3127
+  SU EDGE[1] - COR[0] = 0.2418
+  SU EDGE[2] - COR[0] = 0.1975
+\end{lstlisting}
+
+\subsection{Cache e pubblicazione}
+
+La parte costosa (il corpus) è cacheata con la firma di consistenza
+\emph{più} ricca della fase: lo hash di dominio del \texttt{feature\_set}, il
+\texttt{seed}, il \texttt{total\_positions}, l'\texttt{ec}, la versione del
+generatore di corpus e la versione del PRNG, e la lista \texttt{su\_pairs}.
+Il punto di questa firma è che \emph{ogni} cambio di comportamento del
+generatore (ad esempio un aumento della dimensione di onda, che sposta il
+flusso MT19937 e produce corpus \emph{diversi}) invalidi ogni corpus cacheato:
+la firma esiste proprio perché un cambiamento di generatore \emph{non possa
+mai} essere riusato in silenzio. A run conclusa, il livello pubblica
+\texttt{ctx.su\_analysis\_tables} (il dizionario con firma, marginali e
+congiunte) — che è proprio ciò di cui l'\texttt{ANOVA} si servirà come
+\emph{distribuzione ideale} del corpus — e, in caso di disabilitazione, lo
+porta a \texttt{None}.
+
+\section{Il livello \texttt{POSITIONS}}
+\label{sec:corpus-positions}
+
+\texttt{POSITIONS} è il primo dei tre livelli obbligatori: carica le
+\emph{posizioni di addestramento} e i loro \emph{valori di gioco veri}. A
+differenza del corpus sintetico di \texttt{SU\_ANALYSIS}, qui i dati sono
+\emph{reali}: provengono dal database REGAB, il deposito delle posizioni
+giocate casualmente e poi \emph{risolte} (ciascuna taggata con il suo valore
+vero di partita, il differenziale finale di dischi in $[-64, +64]$).
+
+\subsection{La fonte: il database REGAB}
+
+La sezione \texttt{regab\_data\_set} della configurazione descrive la
+connessione al database (\texttt{dbname}, \texttt{user}, \texttt{host},
+\texttt{port}, \texttt{password}) e i \emph{criteri di filtro} dell'estrazione:
+la lista di \texttt{bid} (identificatori di torneo) e la lista di
+\texttt{status} (codici di partita a tre lettere). L'estrazione SQL seleziona
+dalla tabella delle posizioni le righe che appartengono a quei tornei, con
+quello \texttt{empty\_count} e quegli status, ordinate per sequenza:
+
+\begin{lstlisting}[language=sql, caption={La forma dell'estrazione dal database (l'istruzione costruita da \texttt{regab\_gp\_as\_df}).}]
+SELECT mover, opponent, game_value
+FROM   regab_prng_gp
+WHERE  batch_id  IN (<bid>)
+  AND  empty_count = <ec>
+  AND  status    IN (<status>)
+ORDER  BY seq;
+\end{lstlisting}
+
+Il risultato è un \texttt{RegabDataSet}: un oggetto che porta, oltre al
+dataframe \texttt{df\_mogv} con le tre colonne \texttt{mover}, \texttt{opponent}
+e \texttt{game\_value}, i metadati della query (\texttt{bid}, \texttt{status},
+\texttt{ec}) e il riferimento alla connessione. Le colonne
+\texttt{mover}/\texttt{opponent} sono interi a 64 bit, cioè \texttt{Bitboard};
+\texttt{game\_value} è un intero a 8 bit (\texttt{int8}), il che riflette
+proprio il suo range $[-64, +64]$.
+
+\subsection{La politica sulle duplicazioni}
+
+Nello stesso \emph{flusso di calcolo} (quello che popola la cache), subito
+dopo l'estrazione, il livello applica la politica sulle
+\emph{duplicazioni} governata dalla flag
+\texttt{regab\_allow\_duplicate} di primo livello. Una posizione può essere
+registrata nel database più di una volta (ad esempio sotto status diversi),
+e la query di estrazione restituisce \emph{tutte} le occorrenze. La chiave di
+deduplicazione è la coppia $(\text{mover}, \text{opponent})$: se
+\texttt{regab\_allow\_duplicate} è \texttt{false}, le righe in eccesso sono
+rimosse, tenendo la \emph{prima} occorrenza in ordine di estrazione (che,
+essendo la query ordinata per \texttt{seq}, è quella di \texttt{seq} minimo).
+Se è \texttt{true} (il default), ogni riga è conservata. In entrambi i casi il
+conteggio delle duplicazioni è \emph{loggato}.
+
+La ragione per cui la deduplicazione vive \emph{dentro} il flusso di calcolo
+(non a valle) è la cache: il file cacheato contiene il data set
+\emph{post}-politica, quindi cambiare la flag cambia il contenuto salvato e il
+\texttt{rds\_checksum}, che invalida di conseguenza i livelli a valle lungo la
+catena di checksum già esistente — senza alcun cambio di formato file.
+
+\subsection{Le posizioni e i valori di gioco}
+
+Fatto il carico (dalla cache o dal calcolo), il livello applica il
+\emph{post-processing} e pubblica gli artefatti. Il metodo
+\texttt{generate\_positions\_and\_game\_values()} del data set converte il
+dataframe nelle due rappresentazioni che il resto della pipeline consuma:
+
+\begin{itemize}
+  \item \texttt{positions}: un array strutturato di \texttt{Position} —
+        ogni record è la coppia $(\text{mover}, \text{opponent})$, ciascun
+        campo un \texttt{Bitboard} (\texttt{uint64}, bit 0 = casella A1);
+  \item \texttt{game\_values}: un array \texttt{int8} dei valori di gioco veri,
+        allineato posizione per posizione.
+\end{itemize}
+
+Accanto a questi, il livello pubblica \texttt{rds\_checksum} (l'impronta
+SHA3-256 dei byte grezzi del data set, che farà da chiave ai cache a valle) e
+\texttt{training\_pop\_stats}, un dizionario con le statistiche
+\emph{di popolazione} del set di addestramento: \texttt{count}, \texttt{mean},
+\texttt{std\_dev} e \texttt{variance} dei valori di gioco. Queste ultime sono
+il riferimento contro cui, più avanti, si misurerà la qualità predittiva del
+modello: se la varianza della popolazione è $V$, una feature che ne spiega una
+frazione significativa è, per definizione, una feature utile.
+
+La consistenza della cache confronta i parametri di connessione
+(\texttt{dbname}, \texttt{user}, \texttt{host}, \texttt{port}) \emph{e} i
+parametri di query (\texttt{bid}, \texttt{status}, \texttt{ec}): se
+\emph{qualcuno} è diverso tra la configurazione live e quella cacheata, la
+cache è scartata e il data set è riestratto.
+
+\section{Il livello \texttt{INDEXES}}
+\label{sec:corpus-indexes}
+
+\texttt{INDEXES} è il livello che \emph{riduce ogni feature a un indice
+categorico}. In uscita ha un oggetto unico, \texttt{LMIndexes}, il cui carico
+portante è la \emph{matrice degli indici}: un array di \texttt{uint32} di
+forma $(M, I)$, dove $M$ è il numero di posizioni di addestramento e $I$ il
+numero totale di istanze di tutte le feature. Ogni \emph{riga} è una
+posizione; ogni \emph{colonna} è una sotto-variabile (una istanza di una
+feature); ogni \emph{cella} è l'indice categorico assunto da quella
+sotto-variabile in quella posizione. È la matrice che, con la giusta
+espansione, diventa la matrice di disegno del modello.
+
+\subsection{La matrice degli indici}
+
+La matrice è prodotta da
+\texttt{feature\_set.compute\_indexes(positions)}, che impila lungo l'ultimo
+asse i blocchi delle feature, in un \emph{layout a colonne} fisso e
+documentato:
+
+\begin{itemize}
+  \item \textbf{colonna 0} (se presente): l'intercetto, costante \texttt{0};
+  \item poi una \emph{colonna per mobility}, nell'ordine del
+        \texttt{MobilitySet}: l'indice è il \emph{conteggio} del numero di
+        mosse disponibili sul lato scelto, per cui con $k$ caselle nella
+        maschera l'indice gira su $0 \ldots k$ (ogni valore raggiungibile);
+  \item poi, per ogni pattern dell'ordine per maschera del
+        \texttt{PatternSet}, \emph{$n_{\text{inst}}$ colonne}: l'\emph{indice
+        principale} di ogni istanza dell'orbita D8, nell'ordine delle istanze
+        del pattern.
+\end{itemize}
+
+Con un feature set di esempio — intercetto, la mobility \texttt{LMC}, il
+pattern \texttt{EDGE} a $8$ istanze e il pattern \texttt{COR} a $4$ istanze —
+la matrice ha $I = 1 + 1 + 8 + 4 = 14$ colonne, così disposte:
+
+\begin{center}
+\small
+\begin{tabular}{l|c|c|c|c}
+\toprule
+Colonna & 0 & 1 & $2 \ldots 9$ & $10 \ldots 13$ \\
+\midrule
+Feature & INTERCEPT & LMC & EDGE (ist.\ 0--7) & COR (ist.\ 0--3) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Ricordando le definizioni dei capitoli sulla scacchiera e sui pattern: una
+\emph{configurazione} di un pattern è l'assegnazione in base 3 delle sue $S$
+caselle (0 = vuota, 1 = mover, 2 = avversario), e l'\emph{indice principale}
+è il minimo, tra gli $8$ immagini D8 della configurazione, secondo
+l'ordinamento che il stabilizzatore della maschera induce sulle caselle.
+Il \emph{guadagno} di questa riduzione è che due configurazioni
+\emph{equivalenti per simmetria} — anche se su istanze \emph{diverse} del
+pattern — condividono lo \emph{stesso} indice principale: è ciò che condensa
+al massimo il numero di pesi del modello, come già notato nel capitolo sulla
+funzione di valutazione.
+
+\subsection{Lo spazio degli indici}
+
+I due tipi di feature abitano spazi di indice di natura diversa, e la
+distinzione sarà cruciale per le mappe di peso.
+
+\emph{Mobility.} Lo spazio è $0 \ldots k$ ($k+1$ valori): il conteggio grezzo,
+senza alcuna riduzione per simmetria. La dimensione teorica è
+$N_{\text{conf}} = k + 1$.
+
+\emph{Pattern.} Lo spazio in base 3 grezzo ha $3^{S}$ codici, ma gli indici
+\emph{principali} occupano solo i primi $n_{\text{unique}}$ di essi (le classi
+di equivalenza sotto le simmetrie, $n_{\text{unique}} \le 3^{S}$). L'indice è
+un \texttt{Index} (\texttt{uint32}), che resta al sicuro finché $S \le 18$
+($3^{18} \approx 3.9 \times 10^{8} < 2^{32}$). I codici in
+$[n_{\text{unique}}, 3^{S})$ non vengono \emph{mai} prodotti da un indice
+principale: sono, di fatto, irraggiungibili.
+
+Questa è la differenza esatta tra le due grandezze che i livelli analitici
+maneggiano: $n_{\text{conf}} = 3^{S}$ (lo spazio in base 3 \emph{grezzo},
+usato per \emph{dimensionare} le mappe) e $n_{\text{unique}}$ (le classi di
+\emph{equivalenza}, usate per \emph{misurare} la coverage e la rarità di un
+pattern).
+
+\subsection{L'oggetto \texttt{LMIndexes} e la cache}
+
+L'oggetto \texttt{LMIndexes} impacchetta la matrice insieme a due \emph{firme}:
+il \texttt{rds\_checksum} (ereditato da \texttt{POSITIONS}) e lo
+\texttt{feature\_set\_hash} (ereditato dalla fase Setup). La checksum dei dati
+è lo SHA3-256 dei \emph{byte grezzi} della matrice. La consistenza della cache
+è la congiunzione delle due firme: se \emph{entrambe} la checksum del data set
+e lo hash del feature set coincidono con quelle live, la cache è valida. È la
+stessa forma di ``chiave composita'' che si è vista per il data set:
+garantisce che la matrice cacheata corrisponda \emph{sia} alle stesse
+posizioni \emph{sia} allo stesso feature set.
+
+\section{Il livello \texttt{ANOVA}}
+\label{sec:corpus-anova}
+
+\texttt{ANOVA} (Analisi della Varianza) è il secondo livello opzionale della
+fase. Risponde a una domanda complementare a quella dell'\texttt{SU\_ANALYSIS}:
+non ``quale feature duplica quale'', ma \emph{quale feature spiega quanta
+varianza del valore di gioco}. È un livello \emph{diagnostico}: non pubblica
+nulla sul contesto, scrive solo i propri file di report. Come
+l'\texttt{SU\_ANALYSIS}, è opt-in (\texttt{enable} \texttt{false} di default).
+
+L'analisi ha \emph{due passate}, che il worker esegue in sequenza.
+
+\subsection{Le misure di effetto: eta quadrato e omega quadrato}
+
+La \emph{prima} passata è una ANOVA a un fattore \emph{per ogni
+sotto-variabile}. Per ogni (feature, istanza) — escluso l'intercetto, che non
+è un blocco della matrice — si prende la colonna di indici della matrice come
+\emph{assegnazione ai gruppi} e il vettore dei valori di gioco come \emph{target}
+continuo. Si partiziona quindi la varianza totale del target in una parte
+\emph{spiegata} dall'appartenenza al gruppo (alla configurazione) e una parte
+di \emph{residuo}:
+
+\begin{align}
+  SS_{\text{tot}} &= \sum_{i} (y_i - \overline{y})^2, \\
+  SS_{\text{eff}} &= \sum_{g} n_g\,(\overline{y}_g - \overline{y})^2, \\
+  SS_{\text{err}} &= SS_{\text{tot}} - SS_{\text{eff}},
+\end{align}
+
+dove la somma efficace è sulle $K$ configurazioni osservate, $n_g$ è il numero
+di posizioni nel gruppo $g$ e $\overline{y}_g$ la media del gruppo. Da queste si
+ricavano le due \emph{misure di effetto} riportate per ogni sotto-variabile.
+L'\emph{eta quadrato}, la frazione della varianza totale spiegata dal fattore
+(una stima \emph{con bias}, perché campionaria):
+
+\begin{equation}
+  \eta^2 \;=\; \frac{SS_{\text{eff}}}{SS_{\text{tot}}},
+  \label{eq:eta2}
+\end{equation}
+
+e l'\emph{omega quadrato}, la sua stima \emph{non distorta} (corretta per il
+numero di gruppi $K$ e per il residuo medio per grado di libertà
+$MS_{\text{err}} = SS_{\text{err}}/(N-K)$):
+
+\begin{equation}
+  \omega^2 \;=\; \frac{SS_{\text{eff}} - (K-1)\,MS_{\text{err}}}{SS_{\text{tot}} + MS_{\text{err}}}.
+  \label{eq:omega2}
+\end{equation}
+
+L'eta quadrato \emph{cresce} al crescere di $K$ anche a parità di informazione
+reale (più gruppi = più varianza spiegata per puro caso); l'omega quadrato
+paga quel prezzo e può scendere leggermente sotto zero per un effetto nullo —
+il valore grezzo è riportato così com'è. Due casi degeneri sono trattati per
+convenzione: un solo gruppo osservato ($K = 1$) e una varianza totale nulla
+restituiscono $0$ per entrambe le misure. La coppia $(\eta^2, \omega^2)$ per
+sotto-variabile è la \emph{metrica di discriminazione} dell'assegnazione di
+gruppi: una feature con $\omega^2$ alto è una feature che, da sola, ordina il
+valore di gioco. Questa passata \emph{non} ha bisogno del corpus.
+
+\subsection{L'aderenza: DB contro corpus}
+
+La \emph{seconda} passata — l'\emph{aderenza} — è quella che si nutre del
+corpus dell'\texttt{SU\_ANALYSIS}. Per ogni sotto-variabile confronta due
+distribuzioni categoriche: la \emph{distribuzione osservata} nel set di
+addestramento (le frequenze dei codici della colonna, misurate sul data set)
+e la \emph{distribuzione ideale} del corpus (le frequenze marginali che
+l'\texttt{SU\_ANALYSIS} ha misurato sul campione casuale neutro). Le due sono
+allineate sull'\emph{unione} delle loro categorie, e vengono confrontate con
+un trio fisso di distanze e test:
+
+\begin{itemize}
+  \item la \emph{distanza di variazione totale}, robusta e normalizzata in
+        $[0,1]$ (nessun log, nessun termine degenere $0/0$):
+        $\mathrm{TV}(p,q) = \tfrac{1}{2}\sum_i |p_i - q_i|$;
+  \item la \emph{divergenza di Kullback-Leibler}
+        $\mathrm{KL}(p\,\|\,q) = \sum_{i:\,p_i>0} p_i \ln \frac{p_i}{q_i}$,
+        in nats, con la convenzione $0\log 0 = 0$ e valore $+\infty$ quando il
+        data set mostra un codice che l'ideale non mostra mai;
+  \item il \emph{test del chi-quadrato} di bontà di adattamento,
+        $\chi^2 = \sum_i (O_i - E_i)^2 / E_i$ con $E_i = p^{\text{ideal}}_i
+        \cdot N_{\text{db}}$; le celle la cui frequenza attesa scende sotto una
+        soglia minima (default $5$) sono \emph{fuse} in un unico bin ``altro''
+        prima del test (la tecnica standard per le celle a bassa attesa), e il
+        valore-$p$ è valutato con $k-1$ gradi di libertà.
+\end{itemize}
+
+Le sotto-variabili sono poi \emph{ordinate per TV decrescente} e il report
+riporta le prime \texttt{top\_k\_adherence} (default 20): sono le feature la
+cui distribuzione nel set di addestramento \emph{si discosta} di più dalla
+distribuzione naturale del gioco. Una feature in cima a questa classifica è un
+segnale d'allarme: il set di addestramento la sta campionando in modo
+\emph{non} rappresentativo (per eccesso o per difetto) rispetto al gioco
+casuale, e i pesi che il modello imparerà da quelle configurazioni saranno
+condizionati da quella selezione.
+
+\subsection{Degradazione elegante e report}
+
+Qui vive l'accorgimento di \emph{degradazione elegante} preannunciato
+all'inizio. Se l'\texttt{SU\_ANALYSIS} era \emph{spento} (quindi
+\texttt{ctx.su\_analysis\_tables} è \texttt{None} e non c'è corpus nel
+contesto), la passata di aderenza è \emph{saltata} con una nota nel log, e
+l'ANOVA \emph{prosegue} con la sola passata eta/omega — che, come visto, non
+del corpus si serve. Il report TXT (più un CSV opzionale) contiene la sezione
+eta/omega per tutte le sotto-variabili e, quando presente, la classifica di
+aderenza; quando assente, la riga esplicita
+``Adherence: SKIPPED''. In nessun caso il livello fallisce per la mancanza del
+corpus.
+
+\section{Il livello \texttt{WMAPS}}
+\label{sec:corpus-wmaps}
+
+\texttt{WMAPS} (Weight Maps) è l'ultimo dei tre livelli obbligatori, e il
+ponte \emph{esatto} verso la fase di costruzione del modello. Il suo compito è
+\emph{costruire le mappe che collegano ogni configurazione di feature a un
+indice del vettore di pesi} $\bm{w}$. Ricordando il modello a pattern del
+capitolo sulla funzione di valutazione: il predittore lineare somma, per ogni
+feature attiva, il peso della sua configurazione corrente. Le mappe di peso
+sono il \emph{dizionario} che, data una configurazione, restituisce
+\emph{dove} andare a leggere quel peso nel vettore $\bm{w}$.
+
+\subsection{A cosa servono le mappe di peso}
+
+Il problema che le mappe risolvono è uno di \emph{indirizzamento} sparso.
+Le colonne della matrice degli indici contengono codici che vivono in spazi
+\emph{disgiunti} e di dimensioni diverse (l'intercetto in $\{0\}$, una mobility
+in $0\ldots k$, un pattern in $0\ldots 3^{S}-1$), ma il vettore di pesi
+$\bm{w}$ è un \emph{unico} array lineare. Serve quindi un \emph{offset} per
+feature che sposti lo spazio dei codici di ogni feature nella sua \emph{fascia}
+privata del vettore, e una \emph{mappa} che, dentro la fascia, colleghi ogni
+configurazione all'effettiva posizione del peso — con la possibilità di
+\emph{fare saltare} le configurazioni rare (affidandole a un peso di
+\emph{fallback} condiviso) per non allocare un peso proprio a codici che il
+data set mostra pochissimo o per nulla.
+
+\subsection{I sei array}
+
+L'oggetto \texttt{LMWMaps} porta \emph{sei} array (più due scalari di
+metadati: la checksum degli indici e il \texttt{cut\_off} usato). Con
+$F$ il numero di feature, $K = \sum_f n_{\text{conf},f}$ il totale delle
+configurazioni e $W$ il totale dei pesi allocati:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+Array & Forma & Contenuto \\
+\midrule
+\texttt{feature\_w\_ranges} & $(F, 3)$ & per feature, in ordine di \texttt{fid}: $[\text{fallback}, w_{\min}, w_{\max}]$, gli indici di peso della fascia. \\
+\texttt{iwmap\_feature\_offset} & $(F+1,)$ & la posizione, nell'array \texttt{iwmap}, della configurazione zero della feature \texttt{fid} (somme cumulative delle dimensioni). \\
+\texttt{iwmap} & $(K,)$ & per ogni configurazione, l'indice di peso; $-1$ se la configurazione non è presente nel data set. \\
+\texttt{wmap} & $(W, 3)$ & per ogni indice di peso: $[\text{fid}, \text{config\_id} \text{ (o } -1 \text{)}, \text{frequenza}]$. \\
+\texttt{wmap\_fallback} & $(F_{\text{cut}}, 3)$ & le configurazioni \emph{escluse} dal cut-off, una riga per ciascuna: $[\text{fid}, \text{config\_id}, \text{frequenza}]$. \\
+\texttt{w} & $(W,)$ & il vettore dei pesi del modello, \emph{inizializzato a zero}. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Il percorso di lettura è in due passi. Dato un \texttt{fid} e un codice di
+configurazione $c$ di quella feature, l'indice di peso si ottiene da
+
+\begin{equation}
+  w \;=\; \texttt{iwmap}\big[\, \texttt{iwmap\_feature\_offset}[\text{fid}] + c \,\big].
+  \label{eq:iwmap-lookup}
+\end{equation}
+
+L'array \texttt{iwmap} è dimensionato su $K$, il totale \emph{grezzo} delle
+configurazioni ($\sum_f n_{\text{conf},f}$): per un pattern occupa quindi
+l'intero spazio in base 3 $3^{S}$, anche se gli indici principali
+\emph{vissuti} stanno solo nei primi $n_{\text{unique}}$ slot. La scelta è
+deliberata: dimensionare la fascia sullo spazio grezzo rende la
+\eqref{eq:iwmap-lookup} un \emph{accesso diretto} $O(1)$ (una sola somma),
+senza tabelle di ricerca; gli slot irraggiungibili
+($c \ge n_{\text{unique}}$) restano semplicemente alla sentinella $-1$, che
+indica ``configurazione non vista''.
+
+I valori \emph{negativi} che compaiono in \texttt{iwmap} e
+\texttt{feature\_w\_ranges} sono \texttt{ExtendedIndex} (\texttt{int64}): qui
+$-1$ è la \emph{sentinella logica} ``configurazione non presente nel data
+set'', \emph{non} un dato. È l'unico posto della pipeline in cui lo spazio
+esteso degli indici (con i negativi) viene effettivamente popolato: la matrice
+degli indici in ingresso è \emph{densa} per contratto (ogni cella è un codice
+valido in $0 \ldots n_{\text{conf}}-1$), quindi la sentinella può comparire
+\emph{solo} in uscita, nelle mappe.
+
+\subsection{Il cut-off di frequenza e il fallback}
+
+Il motore di allocazione è governato dalla soglia
+\texttt{stat\_model.frequency\_cut\_off} (default $1$). Per ogni feature,
+l'algoritmo \emph{poola} le colonne di \emph{tutte} le sue istanze (le
+schiaccia in un unico vettore e conta le frequenze dei codici): è corretto
+proprio \emph{perché} le istanze di una feature condividono lo \emph{stesso}
+spazio di indici principali, come si è visto al livello
+\texttt{INDEXES} — una configurazione che appare sull'istanza 2 e una
+configurazione D8-equivalente sull'istanza 5 sono lo \emph{stesso} codice e
+concorrono alla \emph{stessa} frequenza.
+
+Sulla base delle frequenze, le configurazioni si dividono in due classi:
+
+\begin{itemize}
+  \item le configurazioni con frequenza $< \text{cut\_off}$ (le \emph{rare}):
+        \emph{condividono} l'\emph{unico} peso di \emph{fallback} della
+        feature. Quel peso è allocato \emph{per primo} nella fascia, la sua
+        riga in \texttt{wmap} porta $\text{config\_id} = -1$ e la
+        \emph{somma} delle frequenze di tutte le configurazioni rare, e
+        ognuna di loro è inoltre elencata in \texttt{wmap\_fallback}. Il
+        campo \texttt{fallback} di \texttt{feature\_w\_ranges} ne memorizza
+        l'indice (e vale $-1$ se la feature non ha configurazioni rare);
+  \item le configurazioni con frequenza $\ge \text{cut\_off}$ (le
+        \emph{comuni}): ognuna riceve un indice di peso \emph{contiguo}
+        proprio, allocato in blocco subito dopo il (eventuale) fallback.
+\end{itemize}
+
+L'effetto complessivo è una \emph{compressione sparsa} del vettore di pesi:
+i pesi totali $W$ sono \emph{minori} o uguali al totale grezzo $K$ di
+configurazioni, perché ogni feature con configurazioni rare le
+\emph{collassa} in un singolo peso di fallback. Al momento dell'\emph{inference},
+quando il modello incontra una configurazione non vista in addestramento
+($\texttt{iwmap} = -1$), la lettura \eqref{eq:iwmap-lookup} fallisce e si
+riporta al \texttt{fallback} memorizzato in
+\texttt{feature\_w\_ranges}: la configurazione rara o inedita eredita il peso
+appreso sull'\emph{insieme} delle configurazioni rare della sua feature,
+invece di contribuire con un peso nullo e non appreso. È il meccanismo che
+mantiene il modello \emph{definito} su ogni configurazione, anche fuori
+dal supporto del data set.
+
+Per fissare le idee, un esempio in piccolo. Prendiamo un feature set di tre
+feature: l'intercetto, la mobility \texttt{LMC} a maschera piena ($65$
+valori, da $0$ a $64$) e il pattern \texttt{COR} a una casella d'angolo
+($3$ configurazioni, $4$ istanze — i quattro angoli). Il totale delle
+configurazioni è $K = 1 + 65 + 3 = 69$, e gli offset sono
+\texttt{iwmap\_feature\_offset} $= [0, 1, 66, 69]$. Con il
+\texttt{cut\_off} di default ($1$) ogni configurazione osservata si prende un
+peso proprio: $W = 69$, nessuna riga di fallback, e \texttt{iwmap} è la
+mappa identità dentro ogni fascia.
+
+Alzi ora la soglia a $200$ occorrenze. Nel set di addestramento supponiamo
+che i valori estremi della \texttt{LMC} — $0$, $1$, $63$ e $64$ mosse —
+siano quelli rari (frequenza $< 200$), mentre gli altri $61$ valori
+superino la soglia; le tre configurazioni del \texttt{COR} superino tutte la
+soglia. L'allocazione diventa:
+
+\begin{itemize}
+  \item \texttt{feature\_w\_ranges}: l'intercetto $[-1, 0, 0]$; la
+        \texttt{LMC} $[1, 1, 62]$ — il fallback sta a $1$, la prima
+        posizione della fascia; il \texttt{COR} $[-1, 63, 65]$;
+  \item \texttt{iwmap}: nella fascia \texttt{LMC} (offset $1$) i quattro
+        codici rari puntano tutti al fallback,
+        $\texttt{iwmap}[1] = \texttt{iwmap}[2] = \texttt{iwmap}[64] =
+        \texttt{iwmap}[65] = 1$, mentre i codici $2 \ldots 62$ puntano a
+        $2 \ldots 62$;
+  \item \texttt{wmap}: la riga del fallback è
+        $[\text{LMC}, -1, f_0 + f_1 + f_{63} + f_{64}]$, con la \emph{somma}
+        delle frequenze rare;
+  \item \texttt{wmap\_fallback}: le quattro righe
+        $[\text{LMC}, 0, f_0]$, $[\text{LMC}, 1, f_1]$,
+        $[\text{LMC}, 63, f_{63}]$, $[\text{LMC}, 64, f_{64}]$ — il registro
+        di chi ha ereditato il fallback.
+\end{itemize}
+
+Il vettore di pesi scende da $69$ a $W = 1 + 62 + 3 = 66$: tre pesi in
+meno, scambiati con l'unica riga di fallback. A \emph{inference}, se il
+modello incontra uno di quei valori rari della \texttt{LMC} — o una
+configurazione del \texttt{COR} mai vista in addestramento — la lettura
+\eqref{eq:iwmap-lookup} restituisce la sentinella $-1$ e si ripiega sul
+\texttt{fallback} di fascia: il contributo al predittore lineare c'è
+sempre, e porta con sé l'esperienza \emph{media} delle configurazioni rare
+della feature.
+
+Il vettore \texttt{w} esce da questo livello \emph{tutto a zero}:
+\texttt{WMAPS} ne fissa solo la \emph{dimensione} $W$ e la
+\emph{topologia} (chi sta dove), lasciando il \emph{valore} dei pesi alla
+fase di costruzione del modello, che li ottimizzerà. La checksum dell'oggetto
+è lo SHA3-256 dei sei array in ordine di dichiarazione (i due scalari di
+metadati non sono hashati); la consistenza della cache è la congiunzione della
+checksum degli indici in ingresso e del \texttt{cut\_off}.
+
+\section{Il passaggio alla fase di costruzione del modello}
+
+A fase conclusa, il contesto porta il pacchetto completo di dati
+\emph{pronti} per la costruzione del modello. Le tre leve
+\emph{obbligatorie} ci sono tutte: \texttt{positions} e
+\texttt{game\_values} (il \emph{cosa} addestrare e il \emph{target}),
+\texttt{hlp\_indexes} (le feature ridotte a indici categorici) e le sei mappe
+di \texttt{WMAPS} (la topologia del vettore di pesi, con $\texttt{w}$ a
+zero). Le due leve \emph{opzionali} — le tabelle di
+\texttt{SU\_ANALYSIS} e i report di \texttt{ANOVA} — sono a disposizione
+come \emph{diagnostica} per giudicare la scelta del feature set, ma non
+entrano nel modello.
+
+Il livello immediatamente successivo, \texttt{DESIGN\_MATRIX} (il primo della
+fase \emph{Costruzione del modello}), consumerà esattamente
+\texttt{hlp\_indexes} e le mappe di peso per \emph{espandere} la matrice
+compatta degli indici nella matrice di disegno binaria a $W$ colonne, e
+\texttt{game\_values} per costruire il target. In altre parole: questa fase ha
+\emph{preparato il terreno e i mattoni}; la fase successiva li impilerà. La
+\eqref{eq:iwmap-lookup} che qui è stata introdotta come \emph{lettura} delle
+mappe diventerà, nel costruttore del modello, la regola con cui ogni riga
+della matrice di disegno sa \emph{quale} colonna di peso attivare.

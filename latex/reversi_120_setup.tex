@@ -1,0 +1,366 @@
+%
+% reversi_120_setup.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo 6: Setup.
+%
+% La fase Setup della pipeline: il livello CONFIG (lettura e validazione del
+% file di configurazione, con il tour completo di tutte le opzioni) e il
+% livello FEATURES (risoluzione del feature set in oggetti di dominio).
+%-----------------------------------------------------------------------------
+
+\chapter{Setup}
+
+Questo capitolo copre la fase \textbf{Setup} della pipeline — la prima delle
+cinque fasi in cui il capitolo precedente raggruppa i 19 livelli. La Setup è
+formata dai due primi livelli, \texttt{CONFIG} e \texttt{FEATURES}, e ha un
+compito semplice in apparenza, decisivo nella sostanza: \emph{fissare, prima
+di qualsiasi calcolo, i presupposti della run}. Cosa è il modello (nome,
+descrizione, fase di gioco), da dove arrivano i dati (il database e i suoi
+filtri), quali feature usare, come ottimizzare, come rapportare. Tutto ciò
+deriva da una \emph{sola fonte}: il file di configurazione in JSON5. A parte
+il percorso del file e la verbosity, nulla viene passato a riga di comando:
+è ciò che rende la run riproducibile e il log autosufficiente.
+
+\section{Il livello \texttt{CONFIG}}
+
+Il livello \texttt{CONFIG} è il primo che la macchina esegue (il passo 1 dei
+19), e la ragione per cui va prima di ogni altro è che è proprio la
+configurazione a poter nominare il \texttt{target\_level} di arresto della
+run. Il worker \texttt{wrk\_config} ha le due azioni usuali. L'azione
+\texttt{up} procede in tre tempi:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lettura} (\texttt{\_load}): il file indicato da
+        \texttt{ctx.config\_file\_path} viene aperto in UTF-8 e analizzato
+        con \texttt{json5}, un formato che ammette commenti e virgole finali.
+        Se chi lancia la run ha fornito un \emph{override} della directory di
+        base (\texttt{ctx.base\_dir\_override}), viene applicato al dizionario
+        grezzo \emph{prima} del parsing: il valore di \texttt{base\_dir}
+        presente nel file viene sostituito e la sostituzione viene loggata.
+        Il dizionario grezzo è poi passato al costruttore
+        \texttt{LMConfig(\textbf{**}\ldots)}: è \emph{qui} che avviene la
+        validazione pydantic — un campo obbligatorio mancante, un errore di
+        tipo, un valore fuori intervallo, una maschera malformata alzano
+        subito, al primo livello della pipeline. È la promessa
+        \emph{fail-fast} dell'architettura: un file di configurazione
+        sbagliato non può mai penetrare oltre questo punto.
+  \item \textbf{Validazione semantica} (\texttt{\_validate}): una serie di
+        porte su \texttt{base\_dir}, ciascuna loggata a livello
+        \texttt{ERROR} prima di alzare l'eccezione OS \emph{precisa} — la
+        directory non esiste (\texttt{FileNotFoundError}), non è una
+        directory (\texttt{NotADirectoryError}), non è scrivibile
+        (\texttt{PermissionError}, verificata con \texttt{os.access} e
+        \texttt{W\_OK}).
+  \item \textbf{Echi e pubblicazione}: le sezioni operative vengono
+        \emph{echeggiate} nel log a livello \texttt{DEBUG} — l'echo della
+        connessione riporta \texttt{dbname}, \texttt{user} e \texttt{host},
+        \emph{mai} la password — così che il log sia autosufficiente sul
+        \emph{cosa} la run ha usato. Poi il livello pubblica i propri
+        artefatti sul contesto.
+\end{enumerate}
+
+Gli artefatti pubblicati sono tre:
+\begin{itemize}
+  \item \texttt{ctx.cfg}: il modello di dominio validato (\texttt{LMConfig}),
+        da cui tutti i livelli a valle leggeranno i propri parametri;
+  \item \texttt{ctx.use\_cache}: la flag che abilita o disabilita la cache di
+        livello;
+  \item \texttt{ctx.config\_checksum}: l'impronta della configurazione, lo
+        \texttt{sha3\_256} dell' \emph{dump normalizzato}
+        (\texttt{model\_dump\_json(indent=4)}). L'impronta copre la
+        configurazione \emph{effettiva} della run, override incluso, ed è la
+        \emph{single source of truth} per il record di configurazione del
+        livello \texttt{SAVE} e per il report analitico.
+\end{itemize}
+
+L'azione \texttt{down} è lo speculare: riporta i tre attributi a
+\texttt{None}.
+
+\section{Il file di configurazione: tutte le opzioni}
+
+Lo schema \texttt{hlp\_config\_schemas.py} è organizzato in classi pydantic,
+una per sezione; tutte derivano da \texttt{LMBaseConfig}, che porta un
+dizionario \texttt{properties} \emph{libero} (metadati non validati: utile
+per timbrare la configurazione, ad esempio con il numero della run). La
+classe radice \texttt{LMConfig} raccoglie le sezioni e aggiunge un
+validatore \emph{trasversale}: ogni nome presente in
+\texttt{su\_analysis.su\_pairs} deve essere una feature effettiva del
+\texttt{feature\_set}, sempre con fallimento immediato. Il tour che segue
+copre tutte le sezioni, in ordine.
+
+\subsection{I parametri di run}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+Campo & Default & Significato \\
+\midrule
+\texttt{name}              & obbligatorio & Nome del modello; loggato e riportato nei titoli dei grafici. \\
+\texttt{description}      & obbligatorio & Descrizione libera del modello. \\
+\texttt{empty\_count}     & obbligatorio & L'EC, la \emph{finestra di fase di gioco}: il numero di caselle vuote, da 0 a 60. Fonte unica per la generazione del corpus SU, per l'estrazione dal DB (addestramento \emph{e} validazione) e per il modello salvato. \\
+\texttt{base\_dir}        & obbligatorio & Directory di base di tutti gli artefatti della run; soggetta alle tre porte di validazione. \\
+\texttt{output}           & obbligatorio & Nome del file binario in cui vengono salvati i pesi del modello. \\
+\texttt{use\_cache}       & \texttt{true}  & Abilita o disabilita la cache di livello. \\
+\texttt{cache\_files\_prefix} & \texttt{rlmwf\_} & Prefisso dei file di cache specifici di ogni livello. \\
+\texttt{regab\_allow\_duplicate} & \texttt{true} & Politica sulle posizioni duplicate in DB: \texttt{true} conserva ogni riga; \texttt{false} deduplica tenendo la prima occorrenza (il \texttt{seq} minimo). In entrambi i casi il conteggio è solo loggato (nei livelli \texttt{POSITIONS} e \texttt{VLD\_POSITIONS}). \\
+\texttt{client\_check\_tol} & \texttt{1e-8}, $>0$ & Tolleranza del livello \texttt{CLIENT\_CHECK}: la massima differenza assoluta ammissibile, nello \emph{spazio Y}, tra i residui ricompensati dal modello \emph{salvato} e quelli in memoria della validazione. \\
+\texttt{target\_level}    & \texttt{last} & Il \emph{punto di arresto} della pipeline: il nome di un livello (case-insensitive, fail-fast), oppure \texttt{last} o un valore bianco per la pipeline completa. \\
+\texttt{log\_file\_name}  & \texttt{None} & Nome del file di output del livello \texttt{FINAL\_LOG\_PRINT} (relativo a \texttt{base\_dir}); \texttt{None} rende il livello un no-op. \\
+\texttt{properties}       & \texttt{\{\}} & Metadati liberi, non validati. \\
+\bottomrule
+\end{tabularx}
+\caption{Le opzioni di primo livello della configurazione (le ``parametri di run'' e il contesto della run).}
+\label{tab:setup-run}
+\end{table}
+
+\subsection{I set di dati}
+
+L'estrazione dei dati è descritta da due sezioni. La sezione
+\texttt{regab\_data\_set} definisce il set di \emph{addestramento}: porta la
+connessione al database REGAB (\texttt{regab\_db\_connection}:
+\texttt{dbname}, \texttt{user} e \texttt{host} obbligatori,
+\texttt{port} con default \texttt{5432}, \texttt{password} facoltativa) e i
+criteri di filtro — \texttt{bid}, la lista di identificatori di torneo
+(inter interi non negativi), e \texttt{status}, la lista degli status di
+partita, ognuno esattamente \emph{tre maiuscole} (lo schema lo impone con lo
+pattern \texttt{\textasciicircum[A-Z]\{3\}\$}; tipicamente \texttt{CMS} e \texttt{CMR}). La
+sezione \texttt{validation\_data\_set} ha la \emph{stessa} coppia di filtri
+(\texttt{bid}, \texttt{status}) ma nessuna connessione propria: il set di
+validazione legge dal \emph{medesimo} database del set di addestramento.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+Sezione & Campo & Significato \\
+\midrule
+\texttt{regab\_data\_set}   & \texttt{regab\_db\_connection} & La connessione al DB: \texttt{dbname}, \texttt{user}, \texttt{host} (obbligatori), \texttt{port} (default 5432), \texttt{password} (facoltativa). \\
+\texttt{regab\_data\_set}   & \texttt{bid}   & Lista di identificatori di torneo (numeri interi $\ge 0$): da quali tornei estrarre le posizioni. \\
+\texttt{regab\_data\_set}   & \texttt{status} & Lista degli status di partita ammissibili (esattamente tre lettere maiuscole per elemento). \\
+\texttt{validation\_data\_set} & \texttt{bid} & Il filtro di torneo del set di validazione (stessa forma del training). \\
+\texttt{validation\_data\_set} & \texttt{status} & Il filtro di status del set di validazione. \\
+\bottomrule
+\end{tabularx}
+\caption{I due set di dati: la sezione di addestramento porta la connessione al database; quella di validazione riutilizza la stessa.}
+\label{tab:setup-datasets}
+\end{table}
+
+\subsection{Il feature set}
+
+La sezione \texttt{feature\_set} è il \emph{progetto} delle feature del
+modello, che il livello \texttt{FEATURES} risolverà in oggetti concreti
+(§\ref{sec:setup-featureset-level}):
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+Campo & Default & Significato \\
+\midrule
+\texttt{name}        & \texttt{NoNameFeatureSet} & Il nome del feature set. \\
+\texttt{intercept}   & \texttt{false} & Se includere la feature di intercetto. \\
+\texttt{pattern\_set} & \texttt{None} & Il set di pattern: un \texttt{name} e la lista \texttt{patterns}, ognuno con un \texttt{name} e una \texttt{mask}. \\
+\texttt{mobility\_set} & \texttt{None} & Il set di mobility: un \texttt{name} e la lista \texttt{mobility\_features}, ognuna con \texttt{name}, \texttt{mask} e \texttt{side}. \\
+\bottomrule
+\end{tabularx}
+\caption{La sezione \texttt{feature\_set}.}
+\label{tab:setup-featureset}
+\end{table}
+
+Le \texttt{mask} sono scritte come stringa esadecimale di \emph{16 cifre},
+senza prefisso \texttt{0x}, insensibile al case: uno schema validator le
+converte in \texttt{Bitboard} (il \texttt{uint64} di 64 bit con cui la
+scacchiera è rappresentata, bit 0 = casella A1) e il serializer le riporta
+in 16 cifre maiuscole al dump. Il campo \texttt{side} di una mobility
+sceglie \emph{chi} viene contato sulla maschera: \texttt{mover} (le mosse
+legali del giocatore in partita, la LMC) oppure \texttt{opponent} (le
+mosse anti-legali dell'avversario, l'ALMC).
+
+\subsection{Il modello statistico}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+Campo & Default & Significato \\
+\midrule
+\texttt{frequency\_cut\_off} & \texttt{1}, $>0$ & La soglia di frequenza: il numero minimo di occorrenze che una configurazione di feature deve avere per essere trattenuta. \\
+\texttt{logit\_clipping} & \texttt{0.05}, $0<x<0.5$ & Il margine di clipping della trasformazione logit del target (lo spazio lineare ZED). \\
+\texttt{ridge\_regularization} & \texttt{0.0}, $\ge 0$ & La forza della regolarizzazione ridge nella funzione di perdita. \\
+\bottomrule
+\end{tabularx}
+\caption{La sezione \texttt{stat\_model}.}
+\label{tab:setup-statmodel}
+\end{table}
+
+\subsection{L'ottimizzazione}
+
+La sezione \texttt{optimization} configura il solutore L-BFGS. Un
+validatore trasversale alla sezione impone \texttt{c2 > c1}, la coppia di
+costanti delle condizioni di Wolfe forti:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+Campo & Default & Significato \\
+\midrule
+\texttt{max\_iters} & \texttt{500}, $\ge 1$ & Il massimo di iterazioni del solutore. \\
+\texttt{m}         & \texttt{50}, $\ge 1$ & La dimensione della memoria L-BFGS (il numero di coppie di vettori conservate). \\
+\texttt{c1}        & \texttt{1e-4}, $0<c1<1$ & La costante della condizione di Armijo. \\
+\texttt{c2}        & \texttt{0.9}, $0<c2<1$ & La costante della condizione di Wolfe; deve essere $>$ di \texttt{c1}. \\
+\texttt{min\_grad} & \texttt{(1e-5, 3)} & La tolleranza di stop: norma del gradiente sotto soglia per il numero indicato di iterazioni consecutive. \\
+\texttt{min\_p\_fun\_decrease} & \texttt{(1e-14, 7)} & Lo stesso criterio applicato al calo relativo della funzione di perdita. \\
+\texttt{log\_every\_n} & \texttt{0} & La cadenza del logging delle iterazioni: 0 = nessun log, 1 = a ogni iterazione. \\
+\texttt{save\_every\_n} & \texttt{0} & La cadenza dei checkpoint di ottimizzazione: 0 = nessun salvataggio. \\
+\texttt{checkpoint\_file} & obbligatorio & Il nome del file in cui viene salvato lo stato dell'ottimizzazione. \\
+\texttt{high\_performance\_fg} & \texttt{false} & Se costruire la closure \texttt{fg} ad alta performance (kernello numba) al livello \texttt{GRADIENT}; \texttt{false} mantiene la closure classica vettorizzata numpy. \\
+\texttt{hi\_perf\_blocks} & \texttt{8}, $>0$ & Il numero di blocchi di righe (T) del kernello ad alta performance, usati solo quando \texttt{high\_performance\_fg} è \texttt{true}: i T blocchi corrono in parallelo, ciascuno con un proprio buffer di gradiente f64. \\
+\bottomrule
+\end{tabularx}
+\caption{La sezione \texttt{optimization} (il solutore L-BFGS).}
+\label{tab:setup-optimization}
+\end{table}
+
+\subsection{Le analisi opzionali e il report}
+
+Quattro sezioni governano gli \emph{output diagnostici} della run; le prime
+due sono \emph{opt-in} (\texttt{enable} \texttt{false} di default, cioè la
+run standard non le esegue):
+
+\begin{itemize}
+  \item \texttt{analytics}: \texttt{report\_file\_name} (default
+        \texttt{model\_analytics\_report.txt}) e \texttt{detailed\_report},
+        la lista di nomi di feature per cui il report TXT include tabelle
+        dettagliate riga per riga (default: vuota).
+  \item \texttt{su\_analysis}: \texttt{enable} (default
+        \texttt{false}); \texttt{corpus}, lo spec del generatore di corpus —
+        \texttt{seed} (default 42, il seed MT19937) e
+        \texttt{total\_positions} (default 10\,000\,000) — la cui regola di
+        \emph{arresto} in base all'EC è proprio l' \texttt{empty\_count} di
+        primo livello, in modo che il corpus si fermi alla stessa fase di
+        gioco usata dall'estrazione dal DB; \texttt{su\_pairs}, le coppie
+        esplicite (feature, feature) per l'analisi congiunta (canoniche,
+        ordinate e deduplicate, e validate contro il feature set);
+        \texttt{rarity\_thresholds}, le soglie di frequenza per l'opzionale
+        ``Section B'' del report di rarità (bin semi-aperti
+        $[0,t_1)$, $[t_1,t_2)$, \ldots; \texttt{None} o lista vuota =
+        sezione spenta, altrimenti interi positivi strettamente crescenti);
+        \texttt{dir\_name} (default \texttt{su\_analysis}; un path assoluto
+        è usato com'è, un path relativo si risolve sotto
+        \texttt{base\_dir}); \texttt{report\_file\_name} (default
+        \texttt{su\_analysis\_report.txt}); \texttt{export\_csv} (default
+        \texttt{false}; la console e il TXT sono sempre scritti).
+  \item \texttt{anova}: \texttt{enable} (default \texttt{false});
+        \texttt{top\_k\_adherence} (default 20), il numero di feature più
+        devianti riportate in console in ordine di TV decrescente;
+        \texttt{dir\_name} (default \texttt{anova});
+        \texttt{report\_file\_name} (default \texttt{anova\_report.txt});
+        \texttt{export\_csv} (default \texttt{false}).
+  \item \texttt{plot}: governa i grafici diagnostici del livello
+        \texttt{PLOT}. \texttt{enable} (default \texttt{true}) è l'interruttore
+        principale e domina su tutto; \texttt{format} (default \texttt{png},
+        o una coppia separata da virgola come \texttt{pdf,png} — il validator
+        ammette solo \texttt{png}/\texttt{pdf}, senza duplicati);
+        \texttt{dpi} (default 150, tra 50 e 1200); \texttt{dir\_name}
+        (default \texttt{plots}); \texttt{plots}, la \emph{whitelist} dei
+        grafici da generare — vuoto = livello no-op, nome sconosciuto =
+        fallimento immediato al livello \texttt{CONFIG} — su un vocabolario
+        di 7 nomi canonici: \texttt{residual\_density},
+        \texttt{resid\_vs\_fitted}, \texttt{resid\_vs\_gv},
+        \texttt{gv\_by\_egv\_box}, \texttt{resid\_mean\_by\_egv},
+        \texttt{parity}, \texttt{resid\_qq}. A questi si aggiungono i
+        parametri puramente estetici: \texttt{binned\_note} (la nota tra
+        parentesi degli assi binned), i seed \texttt{jitter\_seed} e
+        \texttt{kde\_seed}, \texttt{kde\_max\_points}, le jitter
+        \texttt{jitter\_fitted\_x}, \texttt{jitter\_y},
+        \texttt{jitter\_gv\_x}, la griglia \texttt{kde\_grid}, i domini fissi
+        degli assi \texttt{axis\_gv} e \texttt{axis\_density}, il passo delle
+        tacche \texttt{tick\_step} e le diciture \texttt{series\_label\_x} /
+        \texttt{series\_label\_y} delle tre serie del primo grafico.
+\end{itemize}
+
+\section{Il livello \texttt{FEATURES}}
+\label{sec:setup-featureset-level}
+
+Con la configurazione in mano, la macchina esegue il secondo livello della
+Setup: il worker \texttt{wrk\_features} \emph{risolve} la sezione
+\texttt{feature\_set} in oggetti di dominio concreti, pezzo per pezzo:
+
+\begin{itemize}
+  \item \textbf{l'intercetto}: se la flag \texttt{intercept} è vera,
+        \texttt{Feature.new\_intercept()} crea la feature di intercetto
+        (categoria \texttt{INTERCEPT}, 1 istanza e 1 configurazione);
+        altrimenti il posto resta \texttt{None};
+  \item \textbf{i pattern}: ogni elemento di \texttt{pattern\_set.patterns}
+        diventa un \texttt{Pattern} (nome, maschera), e l'insieme viene
+        assemblato in un \texttt{PatternSet}. Ricordando la definizione del
+        capitolo sulla scacchiera, un Pattern è l'\emph{orbita D8} di una
+        maschera: le sue configurazioni sono tutte le posizioni che la maschera
+        può occupare sotto le simmetrie diedrali della scacchiera;
+  \item \textbf{le mobility}: ogni elemento di
+        \texttt{mobility\_set.mobility\_features} diventa una
+        \texttt{Mobility} (nome, maschera, lato): il conteggio delle mosse
+        legali del mover (LMC) o delle mosse anti-legali dell'avversario
+        (ALMC) sulle caselle della maschera.
+\end{itemize}
+
+I tre pezzi (più il nome dello schema) vengono assemblati in un
+\texttt{FeatureSet}: la lista ordinata delle feature — l'intercetto per
+primo, poi le mobility, poi i pattern — con il numero totale di istanze
+(\texttt{n\_instances}) e un hash \texttt{sha3\_256} sul contenuto, che
+farà da chiave ai cache dei livelli a valle. Una guardia finale chiude il
+livello: un feature set con \emph{zero} feature non può generare alcun
+modello, e il livello alza un \texttt{ValueError}.
+
+Il livello logga il riepilogo (nome, hash, quali sotto-insiemi sono
+presenti, ognuno con il proprio hash) e la tabella per-feature — indice,
+categoria, nome, numero di istanze, posizione della prima istanza, numero di
+configurazioni, posizione della prima configurazione — e pubblica
+\texttt{ctx.feature\_set}; \texttt{down} lo riporta a \texttt{None}.
+
+\section{Il passaggio alla fase successiva}
+
+Quando i due livelli della Setup sono \emph{up}, il contesto porta i quattro
+artefatti della fase: \texttt{cfg}, \texttt{use\_cache},
+\texttt{config\_checksum} e \texttt{feature\_set}. Con essi la macchina è in
+condizione di muoversi nella fase successiva — \emph{Corpus e analisi delle
+feature} — il cui primo livello, \texttt{SU\_ANALYSIS}, è opzionale (la flag
+\texttt{enable} della sezione \texttt{su\_analysis}) e la cui generazione del
+corpus è governata dalla sezione \texttt{corpus} e dall'
+\texttt{empty\_count} di primo livello. Tutto ciò che seguirà — l'estrazione
+dal database, gli indici, la matrice di disegno, l'ottimizzazione — leggerà i
+propri parametri da \texttt{ctx.cfg} e le proprie feature da
+\texttt{ctx.feature\_set}. La fase Setup, in sintesi, ha posato il
+\emph{terreno} su cui l'intera pipeline costruirà.

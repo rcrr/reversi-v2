@@ -2213,3 +2213,19 @@ D-582 | 2026-10-19 | Added the new main-body chapter 100, "La pipeline" (reversi
          evaluation-function chapter (080) and before \appendix, so it is the new chapter 5. The accented Italian vowels
          use the proper Unicode characters (not the ASCII-apostrophe convention); one listings block avoids a multi-byte
          character (listings reads verbatim). Build green: 64 pages, 0 hard errors, 0 undefined references.
+
+D-583 | 2026-10-19 | Added the six per-level pipeline chapters (one per §5.2 phase), the detailed follow-up to the
+         pipeline-overview chapter (D-582): chapter 6 "Setup" (reversi\_120\_setup.tex, the CONFIG level and every
+         config option in per-section tables, then FEATURES), chapter 7 "Corpus e analisi delle feature"
+         (reversi\_140\_corpus\_analisi.tex, SU\_ANALYSIS/POSITIONS/INDEXES/ANOVA/WMAPS), chapter 8 "Costruzione del
+         modello" (reversi\_160\_costruzione\_modello.tex, DESIGN\_MATRIX/ZED/GRADIENT/a brief OPTIMIZE/GENERATE),
+         chapter 9 "L'algoritmo L-BFGS" (reversi\_180\_lbfgs.tex, the full solver: the implicit BFGS form, the two-loop
+         recursion, the strong-Wolfe line search with the exact cubic-Hermite interpolation, the FIFO (s,y) window, the
+         restart and stopping criteria, and the implementation choices, read line-by-line from tools/opt\_lbfgs.py),
+         chapter 10 "Validazione e analisi" (reversi\_200\_validazione\_analisi.tex, VLD\_POSITIONS/VALIDATE/ANALYTICS),
+         and chapter 11 "Persistenza e output" (reversi\_220\_persistenza\_output.tex,
+         SAVE/CLIENT\_CHECK/PLOT/FINAL\_LOG\_PRINT). Wired into main.tex after chapter 100 and before \appendix (the new
+         chapters 6-11). Drafted by six parallel subagents (one per chapter, each reading its levels' sources), then
+         reviewed and fixed. One typesetting fix: the book's sans-serif math (sfmath) mis-positions a \bar accent when a
+         subscript follows, so the ANOVA y-bar means use \overline{y} (verified to center correctly). Build green: 112
+         pages, 0 hard errors, 0 undefined references.

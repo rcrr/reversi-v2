@@ -1,0 +1,673 @@
+%
+% reversi_160_costruzione_modello.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo 8: Costruzione del modello.
+%
+% Il dettaglio della terza fase della pipeline: i livelli DESIGN_MATRIX, ZED,
+% GRADIENT, OPTIMIZE, GENERATE. L'ottimizzazione viene introdotta solo per
+% nome (il solutore L-BFGS): il suo trattamento matematico completo è
+% rimandato al capitolo 9, "L'algoritmo L-BFGS".
+%-----------------------------------------------------------------------------
+
+\chapter{Costruzione del modello}
+
+Apre qui il dettaglio della terza fase della pipeline — \emph{Costruzione del
+modello} — quella annunciata nella tabella dei 19 livelli del capitolo 5,
+dove occupa le righe centrali della sequenza (i livelli 8–12:
+\texttt{DESIGN\_MATRIX}, \texttt{ZED}, \texttt{GRADIENT}, \texttt{OPTIMIZE},
+\texttt{GENERATE}). Le fasi precedenti
+(Setup e Corpus e analisi delle feature) hanno preparato tutto ciò che questa
+fase consuma: il feature set risolto, le posizioni di addestramento con i loro
+valori di gioco, gli indici categorici di ogni feature e le mappe di peso
+che associano a ogni configurazione di feature l'indice del suo peso nel
+vettore $\bm{w}$.
+
+Questa fase \emph{assembla} il problema di regressione e lo \emph{risolve}.
+Nei cinque passi, in ordine:
+\begin{itemize}
+  \item \texttt{DESIGN\_MATRIX} costruisce la matrice di disegno $\bm{X}$: per
+    ogni posizione, l'elenco degli indici dei pesi attivi;
+  \item \texttt{ZED} trasforma i valori di gioco $\bm{y}$ nello spazio del
+    predetto lineare, con la trasformazione logit (e le sue inverse);
+  \item \texttt{GRADIENT} definisce la funzione di perdita $f(\bm{w})$ e il
+    suo gradiente, confezionati nella closure \texttt{fg} che il solutore
+    richiama a ogni iterazione;
+  \item \texttt{OPTIMIZE} minimizza $f$ e produce il vettore di pesi
+    ottimizzato $\bm{w}$;
+  \item \texttt{GENERATE} assembla il vettore di pesi denso \texttt{w\_dense},
+    che è il modello finale.
+\end{itemize}
+Il filo conduttore è semplice: i primi tre livelli descrivono \emph{il
+problema} (dove stanno i pesi, verso quale target, e quale superficie di
+errore scendere), il quarto lo \emph{risolve}, il quinto \emph{confeziona} la
+soluzione nella forma che l'inferenza richiede. Ogni livello segue la divisione
+di responsabilità già vista nel capitolo 5 — il worker
+(\texttt{wrk\_*}, che gestisce cache, logging e pubblicazione sul contesto) e
+l'helper (\texttt{hlp\_*}, che fa il calcolo di dominio) — e il suo contratto
+di input/output è riassunto in tabella~\ref{tab:costruzione-contracti}:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Livello & Consuma (dal contesto) & Pubblica (sul contesto) \\
+\midrule
+\texttt{DESIGN\_MATRIX} & indici principali, \texttt{iwmap} & \texttt{design\_matrix} ($M \times P$), il suo checksum \\
+\texttt{ZED}           & valori di gioco $\bm{y}$, logit clipping & \texttt{z}, le closure \texttt{y2z}/\texttt{z2y}, il suo checksum \\
+\texttt{GRADIENT}      & \texttt{design\_matrix}, \texttt{z}, $\bm{w}$, ridge & la closure \texttt{fg} \\
+\texttt{OPTIMIZE}      & \texttt{fg}, $\bm{w}$ iniziale & $\bm{w}$ ottimizzato, \texttt{w\_checksum}, \texttt{opt\_info} \\
+\texttt{GENERATE}      & $\bm{w}$, \texttt{wmap}, \texttt{iwmap} & \texttt{w\_dense}, \texttt{dense\_w\_checksum} \\
+\bottomrule
+\end{tabular}
+\caption{I contratti dei cinque livelli della fase di costruzione del modello.}
+\label{tab:costruzione-contracti}
+\end{table}
+
+Visto in blocco, ciò che questa fase assembla è un problema di
+\emph{minimizzazione non lineare} di una funzione scalare
+$f: \mathbb{R}^{N} \to \mathbb{R}$ — la perdita — il cui minimo fornisce il
+vettore di pesi $\bm{w}^{*}$. Il problema è grande (centinaia di migliaia di
+variabili) e strutturalmente sparso (ogni posizione del corpus tocca solo una
+piccola frazione dei pesi), e queste due proprietà determinano le scelte dei
+cinque livelli: rappresentare i dati in modo compatto, lavorare solo con la
+funzione e il suo gradiente (mai con la hessiana), e sfruttare la sparsità a
+ogni valutazione.
+
+C'è infine un vincolo di \emph{qualità numerica} che lega
+\texttt{GRADIENT} e \texttt{OPTIMIZE}: i metodi quasi-Newton, L-BFGS
+compreso, presuppongono che la funzione e il gradiente forniti dal closure
+\texttt{fg} siano \emph{consistenti} — cioè che il gradiente sia la
+derivata esatta (a meno di arrotondamenti) della funzione che il solutore
+sta minimizzando. Per questo le due quantità vengono calcolate nella stessa
+valutazione, con la stessa precisione e sugli stessi indici: un gradiente
+approssimato o incoerente farebbe deragare la ricerca lineare e
+l'approssimazione della hessiana.
+
+Una seconda trama attraversa i cinque livelli: la \emph{politica di cache},
+che varia da livello a livello in funzione del costo di ricalcolo.
+\texttt{DESIGN\_MATRIX} e \texttt{GENERATE} scaricano il proprio artefatto su
+file binario e lo rilettono a una nuova run se il checksum di coerenza
+coincede: la matrice di disegno e il vettore denso sono gli artefatti più
+costosi della fase. \texttt{ZED} e \texttt{GRADIENT} non usano la cache a
+disco, perché il loro calcolo (aritmetica vettorizzata e generazione di una
+closure) è trascurabile rispetto al resto. \texttt{OPTIMIZE} ha un
+meccanismo a sé, i \emph{checkpoint} periodici, che non è una cache ma una
+assicurazione: l'ottimizzazione è il passo più lungo della run e non può
+permettersi di ricominciare da zero a ogni avvio.
+
+Il flusso di dati della fase è lineare, e a ogni giunzione sta un checksum:
+$\bm{X}$ e $\bm{z}$ entrano nel closure \texttt{fg}, \texttt{fg} entra nel
+solutore, il vettore $\bm{w}$ ottimizzato esce dal solutore e entra
+nell'espansione di \texttt{w\_dense}. La catena di checksum
+(\texttt{design\_matrix\_checksum} $\to$ \texttt{zed\_checksum} $\to$
+\texttt{w\_checksum} $\to$ \texttt{dense\_w\_checksum}) è ciò che rende la
+fase insieme \emph{riproducibile} (stesso input, stesso output, verificabile
+a posteriori) e \emph{riprendibile} (una run interrotta riparte dal primo
+artefatto il cui checksum non torna).
+
+\section{La matrice di disegno (\texttt{DESIGN\_MATRIX})}
+
+Il livello \texttt{DESIGN\_MATRIX} costruisce la matrice di disegno $\bm{X}$,
+l'ingrediente di input del problema di regressione. Essa non contiene valori
+continui: è una matrice intera di \emph{indici}. Se $M$ è il numero di
+posizioni nel corpus di addestramento e $P$ è il numero di istanze di feature
+attive in ciascuna posizione, la forma di $\bm{X}$ è $(M, P)$ e ogni entry
+$X_{ij}$ è l'indice, nel vettore di pesi $\bm{w}$, della configurazione di
+feature attiva in $i$-esima posizione sulla $j$-esima colonna. Il predetto
+lineare di una riga è allora un semplice \emph{gather}:
+
+\begin{equation}
+  \eta_i \;=\; \sum_{j=1}^{P} w_{\,X_{ij}} .
+  \label{eq:design-predictor}
+\end{equation}
+
+Questa formulazione è la chiave di tutta l'efficienza del sistema: $\bm{X}$
+riferisce solo \emph{dove} andare a prendere ogni contributo, e la somma
+\eqref{eq:design-predictor} è l'unica operazione che li unisce. Non viene mai
+materializzata una matrice float $M \times P$: ogni entry occupa 4 byte
+(\texttt{uint32}) e il lavoro di memoria è tutto nel sommatorio indicizzato.
+
+Il senso delle colonne si legge dal feature set risolto dal livello
+\texttt{FEATURES}: ogni colonna di $\bm{X}$ è legata a un'istanza di feature
+del set — la $j$-esima colonna raccoglie, per ogni posizione, l'indice del
+peso dell'istanza $j$-esima (l'intercetto, le istanze dei pattern, le
+istanze delle mobility, nell'ordine fissato dal set). Il numero di colonne
+$P$ è quindi la somma degli \texttt{n\_instances} di tutte le feature, e
+cambia da un feature set all'altro. Gli indici che la matrice contiene sono
+gli indici \emph{principali}: quelli che, come visto nel capitolo della
+funzione di valutazione, condensano in un solo representative le
+configurazioni simmetriche, e sono proprio quelli per cui il vettore $\bm{w}$
+ha un peso addestrato. Un ultimo dettaglio di tipo è rilevante: la mappa
+\texttt{iwmap} è \texttt{int64} perché deve poter rappresentare la sentinella
+$-1$ (configurazione non vista), mentre $\bm{X}$ è \texttt{uint32}, senza
+sentinelle: la conversione è esplicita e avviene dopo la verifica che nessun
+indice vi punti.
+
+Merita un ricordo rapido di ciò che \texttt{iwmap} contiene, perché la
+matrice di disegno è il suo consumatore diretto. Il livello \texttt{WMAPS}
+partiziona l'intervallo $[0, N)$ degli indici di peso in una porzione per
+feature (i confini sono \texttt{iwmap\_feature\_offset}) e, dentro ogni
+porzione, assegna a ogni configurazione \emph{osservata} sopra la soglia di
+frequenza un slot proprio; tutte le altre configurazioni di quella feature —
+le rare, le mai viste — sono puntate a un unico slot di \emph{fallback}
+della feature. È questa compressione a tenere $N$ sotto controllo: il
+vettore di pesi addestrati è tanto lungo quanto le configurazioni che il
+corpus ha effettivamente supportato, più un rappresentante per feature.
+
+Per fissare le idee, un feature set con l'intercetto, un pattern a 4 istanze
+(es. \texttt{EDGE}, i quattro bordi) e una mobility a 1 istanza produce
+matrici con $P = 1 + 4 + 1 = 6$ colonne. Una riga — i numeri sono puramente
+illustrativi — potrebbe essere:
+
+\begin{center}
+\small
+\begin{tabular}{cccccc}
+\toprule
+intercetto & bordo 1 & bordo 2 & bordo 3 & bordo 4 & mobility \\
+\midrule
+0          & 7         & 1         & 12        & 3         & 42        \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+dove ogni numero è l'indice, in $\bm{w}$, del peso da sommare per quella
+colonna: il predetto lineare della posizione è
+$w_0 + w_7 + w_1 + w_{12} + w_3 + w_{42}$. In un modello reale $P$ è
+dell'ordine di una decina e $M$ di decine di migliaia, ma la struttura — e il
+costo, $O(M \cdot P)$ — resta la stessa.
+
+Va sottolineato il contrasto con la matrice di disegno \emph{classica} della
+regressione lineare, che avrebbe $M$ righe e una colonna \emph{per ogni peso}
+($N$ colonne, con $N$ dell'ordine di diverse centinaia di migliaia),
+quasi tutta piena di zeri. Quella rappresentazione richiederebbe
+$M \times N$ float, ovvero decine di gigaByte per un corpus di dimensioni
+normali, e un prodotto matrice-vettore denso a ogni valutazione. La forma
+adottata qui — una colonna per \emph{istanza di feature}, con entry che sono
+\emph{indici} e non coefficienti — comprime la stessa informazione in
+$M \times P$ interi a 4 byte, e sposta il costo dal prodotto denso al
+sommatorio indicizzato \eqref{eq:design-predictor}, che tocca solo i pesi
+attivi. È la stessa idea, in forma matriciale, per cui il gradiente che
+vedremo al livello \texttt{GRADIENT} è non nullo solo sulle configurazioni
+effettivamente presenti sulla scacchiera.
+
+La costruzione riprende l'artefatto del livello \texttt{WMAPS}. Gli indici
+principali delle feature (\texttt{pindexes}, prodotti dal livello
+\texttt{INDEXES}) sono un array \texttt{uint32} di forma $(M, P)$ — per ogni
+posizione e per ogni istanza di feature, l'indice della configurazione
+attiva, ridotto alla sua classe di simmetria — e sono ancora
+\emph{locali} a ogni feature; per convertirli
+in indici globali nel vettore $\bm{w}$, a ogni riga si somma l'offset della
+feature di appartenenza (\texttt{iwmap\_feature\_offset}) e si risolve
+l'indice con la mappa inversa \texttt{iwmap} (configurazione $\to$ indice di
+peso, con la sentinella $-1$ per le configurazioni non viste):
+
+\begin{lstlisting}[language=python, caption={Il cuore di \texttt{hlp\_design\_matrix\_compute}
+(estratto).}]
+pindexes = ctx.hlp_indexes.indexes
+n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
+col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)
+pindexes_with_offsets = pindexes + col_offsets
+
+X = np.empty(pindexes.shape, dtype=np.uint32)
+np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)
+\end{lstlisting}
+
+Se anche un solo indice risolvesse sulla sentinella $-1$, il calcolo fallirebbe
+immediatamente: è una garanzia di coerenza tra la mappa di peso e gli indici
+del corpus. Il risultato è incapsulato nell'oggetto \texttt{LMDesignMatrix},
+che accoglie la matrice $\bm{X}$ insieme al checksum delle mappe di peso che
+l'hanno generata (\texttt{wmaps\_obj\_checksum}): quell'impronta è la chiave
+di coerenza della cache, e la matrice stessa viene firmata con un suo
+checksum SHA3-256 calcolato sui byte. La persistenza a disco usa il formato
+binario comune (header con descrizione e versione, campi serializzati,
+compressione LZ4 dell'intero file, file sidecar con il checksum): lo stesso
+meccanismo che tutti i livelli a cache della pipeline condividono.
+
+Il worker pubblica sul contesto la matrice nuda
+(\texttt{ctx.design\_matrix}) e il suo checksum (SHA3-256), e sfrutta la
+ricetta \emph{load-or-compute} della cache: una matrice già in cache viene
+riletta da disco solo se la sua impronta di coerenza (il checksum delle mappe
+di peso che l'hanno generata) coincide con quella della run corrente. Il
+meccanismo ha una conseguenza pratica importante: se tra una run e l'altra
+cambia qualunque cosa che modifichi le mappe di peso — il feature set, la
+soglia di frequenza, il corpus — il checksum non coincide più e la matrice
+viene silenziosamente ricalcolata, senza che l'utente debba cancellare nulla
+a mano.
+
+\section{Il target trasformato (\texttt{ZED})}
+
+Il target della regressione non è il valore di gioco grezzo: il modello
+logistico predice con la sigmoide, il cui rango è $(0, 1)$, mentre i valori di
+gioco $y_i$ (il differenziale di dischi finale di ogni partita risolta) sono
+interi nell'intervallo $[-64, 64]$. Prima di poterli regredire, vanno portati
+nello spazio del predetto lineare — quello che il codice chiama lo spazio
+\emph{affine} $z$ — con la trasformazione logit, nella sua forma
+\emph{linearizzata} attorno al punto medio.
+
+I valori \texttt{y} arrivano dal corpus come interi \texttt{int8} (il
+differenziale di dischi finale di una partita su 64 caselle non può
+eccederli); il vettore \texttt{z} che ne deriva è \texttt{float32}, lo stesso
+tipo di precisione di tutto il modello. Con $c$ il parametro di \emph{logit
+clipping} (dalla sezione \texttt{stat\_model} della configurazione), la
+trasformazione e la sua inversa sono:
+
+\begin{align}
+  z_i &= \frac{1}{2} + y_i\;\frac{1 - 2c}{128} ,
+  \label{eq:y2z}\\[4pt]
+  y_i &= \frac{128}{1 - 2c}\left(z_i - \frac{1}{2}\right) .
+  \label{eq:z2y}
+\end{align}
+
+La \eqref{eq:y2z} mappa l'intervallo intero $[-64, 64]$ suriettivamente
+nell'intervallo $[c, 1-c] \subset (0, 1)$; la \eqref{eq:z2y} è la sua inversa
+esatta, e verrà usata più avanti dalla fase di validazione per riportare le
+predizioni del modello nello spazio dei valori di gioco. Il denominatore
+$128$ non è arbitrario: è l'estensione completa del range dei valori di
+gioco, da $-64$ a $+64$, e fa sì che la pendenza della mappa sia
+$\frac{1-2c}{128}$ per unità di dischi — con $c$ piccolo, il target si
+muove di meno di un centesimo per ogni disco di vantaggio, e il
+punto di parità $y = 0$ cade esattamente al centro dell'intervallo, $1/2$.
+
+In codice, le due
+mappature sono due closure generate da una stessa fabbrica di funzioni,
+parametrata su $c$:
+
+\begin{lstlisting}[language=python, caption={Il cuore di \texttt{hlp\_zed\_fun\_factory}
+(estratto).}]
+a  = np.float32(0.5)
+b  = np.float32((1.0 - 2.0 * logit_clipping) / 128.0)
+def y_to_z(y):
+    return a + np.float32(y) * b
+
+a1 = np.float32(-64.0 / (1.0 - 2.0 * logit_clipping))
+b1 = np.float32(128.0 / (1.0 - 2.0 * logit_clipping))
+def z_to_y(z):
+    return a1 + z * b1
+\end{lstlisting}
+
+Perché la forma affine? La trasformazione logit generale,
+$z = \sigma^{-1}(p) = \log\bigl(p/(1-p)\bigr)$, non ha un'immagine a
+intervallo finito: i valori estremi del gioco la farebbero esplodere, e la
+sigmoide inversa introduce instabilità numerica proprio dove i residui
+sarebbero più grandi. La forma affine \eqref{eq:y2z} è la sua versione
+\emph{linearizzata}: conserva la geometria del problema (target dentro il
+rango della sigmoide, monotono rispetto a $y$) con una mappa lineare,
+invertibile in modo esatto e stabile a ogni passo.
+
+Il parametro di clipping $c$ è il margine di sicurezza: i target
+non si avvicinano mai ai bordi $0$ e $1$, dove la derivata della sigmoide —
+e con essa il gradiente del prossimo livello — collasserebbe. Con $c$ piccolo
+(ad esempio $0.01$), la mappa è pressoché lineare su tutto il suo dominio:
+$y = +64$ va in $z = 0{.}99$, $y = 0$ resta esattamente in $z = 1/2$
+(punto di perfetta simmetria: posizione equa), $y = -64$ va in $z = 0{.}01$.
+Il guadagno numerico è concreto: tenendo i target lontani dai bordi, il
+modello non è mai costretto a predire valori arbitrariamente vicini a $0$ o a
+$1$ — cosa che richiederebbe un predetto lineare $|\eta|$ enorme e, con
+esso, pesi di grandi dimensioni. Il training resta così in un regime in cui
+la sigmoide è ben condizionata e il gradiente non si azzera né esplode.
+
+La tabella riassume la corrispondenza per $c = 0.01$:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{rrrrrr}
+\toprule
+$y$ & $+64$ & $+32$ & $0$ & $-32$ & $-64$ \\
+\midrule
+$z$ & $0.99$ & $0.745$ & $0.5$ & $0.255$ & $0.01$ \\
+\bottomrule
+\end{tabular}
+\caption{Il target trasformato $z$ in funzione del valore di gioco $y$, per
+\texttt{logit\_clipping} $c = 0.01$.}
+\label{tab:zed-esempio}
+\end{table}
+
+Il vettore \texttt{z} di forma $(M,)$ e le due closure \texttt{y2z}/\texttt{z2y}
+vengono pubblicati sul contesto (con il checksum di \texttt{z}): il calcolo è
+vettorizzato e istantaneo, quindi qui non interviene la cache a disco, a
+differenza del livello precedente. Il worker logga a scopo di verifica
+l'intervallo effettivo del vettore prodotto (minimo e massimo di
+\texttt{z}): deve coincidere con $[c, 1-c]$ a meno di arrotondamenti, e una
+scostazione sarebbe il sintomo che il clipping configurato non è quello che
+si credeva. Le closure non sono un dettaglio
+implementativo: sono l'unico canale con cui il resto della pipeline traduce
+tra i due spazi. Il livello di ottimizzazione lavora interamente nello spazio
+$z$ (il target è $\bm{z}$, il predetto è la sigmoide, che vive in $(0,1)$);
+la fase di validazione userà \texttt{z2y} per riportare le predizioni del
+modello nel linguaggio dei valori di gioco, dove le metriche di errore hanno
+senso per chi legge il report. Il checksum del vettore \texttt{z} non è solo
+diagnosi: è uno dei campi con cui il livello \texttt{OPTIMIZE} verificherà
+la coerenza del proprio checkpoint, così che una run ripresa da disco sia
+certa di stare ottimizzando verso lo stesso target con lo stesso
+\emph{design} di quando si era interrotta.
+
+\section{La funzione di perdita e il suo gradiente (\texttt{GRADIENT})}
+
+Con $\bm{X}$ e $\bm{z}$ a posto, il livello \texttt{GRADIENT} definisce il
+problema da ottimizzare. Il modello logistico, per la $i$-esima posizione, è:
+
+\begin{align}
+  \eta_i &= \sum_{j=1}^{P} w_{\,X_{ij}} ,
+  \label{eq:linear-predictor}\\
+  \hat z_i &= \sigma(\eta_i) = \frac{1}{1 + e^{-\eta_i}} ,
+  \label{eq:sigmoid-predict}
+\end{align}
+dove la sigmoide è calcolata in forma numericamente stabile
+(\texttt{expit} di SciPy), per non sovraccaricare sugli $\eta$ estremi.
+
+La funzione di perdita è l'errore quadratico medio sui residui tra predizione
+e target, normalizzato sul numero di posizioni $M$, più il termine di
+regolarizzazione di ridge (norma $L_2$ dei pesi), con coefficiente
+$\lambda$ (il \texttt{ridge\_regularization} della configurazione):
+
+\begin{equation}
+  f(\bm{w}) \;=\;
+  \frac{1}{2M}\sum_{i=1}^{M}\bigl(\hat z_i - z_i\bigr)^{2}
+  \;+\; \frac{\lambda}{2M}\,\lVert\bm{w}\rVert^{2} .
+  \label{eq:loss}
+\end{equation}
+
+La normalizzazione per $M$ fa sì che la scala di $f$ e dei suoi incrementi
+sia indipendente dalla dimensione del corpus: gli stessi criteri di
+convergenza valgono per un dataset piccolo e per uno grande. Il termine di
+ridge tiene i pesi di dimensioni contenute (la motivazione è nel capitolo
+della funzione di valutazione) e rende la superficie di errore più regolare.
+
+Un punto va detto con franchezza: la composizione della sigmoide con
+l'errore quadratico \emph{non} produce una funzione convessa, a differenza
+della cross-entropy, e il minimo di \eqref{eq:loss} non è quindi garantito
+convesso in modo formale. Ciò che rende il problema trattabile è che la
+superficie è liscia, il suo gradiente è sempre disponibile e a buon mercato,
+e la regolarizzazione di ridge tiene i pesi in un regime in cui la discesa
+converge stabilmente a un ottimo locale di qualità — il ragionamento
+completo, con lo sviluppo dell'hessiano, è nel capitolo della funzione di
+valutazione. Per il solutore la conseguenza pratica è una sola: ciò che gli
+serve, a ogni passo, sono esattamente il valore di \eqref{eq:loss} e il
+gradiente che segue, e non nessuna informazione di curvatura esatta.
+
+Il gradiente si ottiene con la regola della catena, applicata lungo la catena
+$\bm{w} \to \eta_i \to \hat z_i \to f$. Poiché
+$\frac{\partial \hat z_i}{\partial \eta_i} = \hat z_i(1-\hat z_i)$ e
+$\frac{\partial \eta_i}{\partial w_k}$ conta quante volte l'indice $k$
+compare nella riga $i$, si ha:
+
+\begin{align}
+  \frac{\partial f}{\partial w_k}
+  &= \frac{1}{M}\sum_{i=1}^{M}
+     \bigl(\hat z_i - z_i\bigr)\,\hat z_i\bigl(1-\hat z_i\bigr)\,
+     \frac{\partial \eta_i}{\partial w_k}
+  \;+\; \frac{\lambda}{M}\,w_k .
+  \label{eq:grad-chain}
+\end{align}
+
+Il residuo della $i$-esima riga è $r_i = \hat z_i - z_i$; poiché la riga $i$
+tocca i pesi solo in corrispondenza degli indici $X_{ij}$,
+l'equazione \eqref{eq:grad-chain} diventa:
+
+\begin{equation}
+  \nabla f(\bm{w}) \;=\;
+  \frac{1}{M}\sum_{i=1}^{M}
+  r_i\,\hat z_i\bigl(1-\hat z_i\bigr)\,\mathbf{1}_i
+  \;+\; \frac{\lambda}{M}\,\bm{w} ,
+  \label{eq:gradient}
+\end{equation}
+dove $\mathbf{1}_i$ è il vettore indicatore della riga: ha $1$ nelle $P$
+posizioni $X_{ij}$ e $0$ altrove. In forma compatta, con
+$\bm{r} = \sigma(\bm{Xw}) - \bm{z}$ e $\bm{d} = \hat z \circ (1 - \hat z)$
+(prodotto element-wise):
+
+\begin{equation}
+  \nabla f(\bm{w}) \;=\;
+  \frac{1}{M}\,\bm{X}^{T}\bigl(\bm{d} \circ \bm{r}\bigr)
+  \;+\; \frac{\lambda}{M}\,\bm{w} .
+  \label{eq:gradient-compact}
+\end{equation}
+
+L'equazione \eqref{eq:gradient} è anche una dichiarazione di efficienza: per
+ogni posizione, il gradiente è non nullo \emph{solo} sui pesi delle
+configurazioni effettivamente attive. Il codice sfrutta questa sparsità
+strutturale: anziché costruire la matrice $\bm{X}^{T}$, scatterizza i
+contributi per riga direttamente negli indici, con \texttt{np.bincount}.
+Ciascuna riga $i$ contribuisce al gradiente con lo stesso peso
+$r_i\,\hat z_i(1-\hat z_i)$ in tutte le sue $P$ componenti, e il
+\texttt{bincount} somma i contributi di tutte le righe che condividono lo
+stesso indice di peso: il costo del gradiente è $O(M \cdot P)$, lo stesso del
+predetto, e non dipende da $N$.
+
+Il risultato del livello è la closure \texttt{fg} (\texttt{ctx.fg}): una
+funzione che accetta il vettore di pesi corrente, come array \texttt{float32}
+di $N$ componenti, e restituisce la coppia $(f, g)$ — il valore della perdita
+come scalare \texttt{float32} e il gradiente come vettore \texttt{float32} di
+$N$ componenti — pronta a essere richiamata a ogni iterazione del solutore. La closure cattura $\bm{X}$, $\bm{z}$ e il
+coefficiente normalizzato $\alpha = \lambda/M$ una sola volta, e pre-alloca i
+buffer di lavoro. La variante classica, vettorizzata in NumPy, è:
+
+\begin{lstlisting}[language=python, caption={La closure \texttt{fg} della variante
+classica (estratto di \texttt{hlp\_gradient\_compute}).}]
+def fg(w):
+    linear_predictor = np.sum(w[X], axis=1)
+    zh  = sigmoid(linear_predictor)
+    dzh = zh * (1.0 - zh)
+    rn  = zh - z
+
+    # Normalized loss (Mean Squared Error + Ridge regularization)
+    f = 0.5 * (np.dot(rn, rn) / M + alpha * np.dot(w, w))
+
+    # Normalized gradient
+    g0 = np.bincount(X.ravel(),
+                     weights=(dzh * rn)[:, None].ravel(),
+                     minlength=N) / M
+    g  = g0 + alpha * w
+    return np.float32(f), g
+\end{lstlisting}
+
+Un dettaglio di ingegneria merita attenzione: la closure è richiamata dal
+solutore a ogni iterazione, e ogni iterazione può valutarla più volte (la
+ricerca lineare richiama la funzione nei punti di prova del passo). Perciò
+ogni allocazione che non sia indispensabile va fatta \emph{una volta sola},
+alla costruzione della closure: la variante classica pre-alloca fuori dal
+closure il buffer di dimensioni $M \times P$ di float32 che il
+\texttt{bincount} usa come pesi, e lo riutilizza a ogni chiamata
+(azzerandolo via vista). All'interno del closure non resta che aritmetica
+vettorizzata su buffer già in memoria.
+
+Esiste una seconda variante, abilitata dalla configurazione
+(\texttt{high\_performance\_fg}): un unico kernel Numba
+(\texttt{\_hp\_fg\_kernel}) che percorre le righe di $\bm{X}$ in un solo
+passaggio in streaming, partiziona le righe in $T$ blocchi contigui
+(\texttt{hi\_perf\_blocks}, default $8$) e fa accumulare ogni blocco nel
+proprio buffer privato di gradiente a 64 bit — senza condizioni di race
+(Numba non ha atomic su CPU) e con risultato deterministico a prescindere dal
+numero di thread, perché la partizione delle righe e l'ordine in cui i buffer
+parziali vengono infine sommati non dipendono dalla parallelizzazione. Il
+punto di progetto del kernel è il traffico di memoria: la variante classica
+materializza a ogni valutazione l'array intermedio $M \times P$ del predetto
+lineare (e la sua vista per il \texttt{bincount}), mentre il kernel in
+streaming legge $\bm{X}$ una sola volta, in ordine di righe, e tiene tutto
+lo stato di lavoro — il vettore $\bm{w}$, i buffer dei blocchi — residente
+in cache L2. Le due varianti sono matematicamente identiche: differiscono
+solo nell'ordine di arrotondamento a 32 bit (qualche ulp su $f$ e $g$), per
+cui una run con l'una o con l'altra segue una traiettoria di ottimizzazione
+lateralmente equivalente.
+
+\section{L'ottimizzazione (\texttt{OPTIMIZE})}
+
+Il livello \texttt{OPTIMIZE} risolve il problema
+
+\begin{equation}
+  \bm{w}^{*} \;=\; \operatorname*{arg\,min}_{\bm{w}} f(\bm{w}) ,
+  \label{eq:optimize}
+\end{equation}
+con il solutore quasi-Newton \textbf{L-BFGS} (\emph{Limited-memory BFGS}),
+implementato in \texttt{reversi.tools.opt\_lbfgs}. È la scelta naturale per
+questo problema: il vettore di pesi conta centinaia di migliaia di
+componenti, per cui un metodo di Newton pieno — che richiederebbe di
+costruire e fattorizzare la matrice hessiana $N \times N$ — è inimmaginabile
+in memoria; L-BFGS approssima l'inversa della hessiana con una piccola
+storia di iterazioni e lavora solo con prodotti vettore, il che lo rende
+adatto ai problemi grandi e strutturalmente sparsi come questo.
+
+Il worker avvia il solutore passando la closure \texttt{fg} prodotta dal
+livello precedente, il vettore di pesi iniziale — quello inizializzato a
+zero dal livello \texttt{WMAPS}, salvo diverso riavvio da checkpoint — e i
+comandi di convergenza
+dalla sezione \texttt{optimization} della configurazione: il numero massimo di
+iterazioni (\texttt{max\_iters}), la soglia di norma del gradiente
+(\texttt{min\_grad}), i coefficienti delle condizioni di accettazione del
+passo (\texttt{c1}, \texttt{c2}), il decremento minimo della funzione
+(\texttt{min\_p\_fun\_decrease}) e la lunghezza $m$ della storia. Durante la
+run il worker esegue checkpoint periodici su disco (\texttt{save\_every\_n}),
+così che una interruzione — o una run successiva — possa riprendere
+dall'ultima iterazione completata invece che da capo, e logging periodico
+(\texttt{log\_every\_n}). Ciascun checkpoint salva, oltre ai pesi correnti,
+l'intera memoria del solutore (la storia dei passi e dei gradienti che
+approssimano la hessiana) e il contatore delle iterazioni completate, insieme
+ai campi di coerenza che permettono alla run successiva di capire se quel
+checkpoint è ancora valido: i checksum della matrice di disegno e del
+target, il coefficiente di ridge e i parametri del solutore stessi. Una
+run successiva può quindi riprendere \emph{esattamente} dal punto in cui la
+precedente si era interrotta, e se il checkpoint risulta già convergente — o
+ha esaurito \texttt{max\_iters} — l'ottimizzazione viene saltata
+interamente e si riparte direttamente dai pesi finali; se la coerenza non
+torna (la run è cambiata), il checkpoint viene scartato e si riparte da
+capo. Al termine, il worker
+pubblica sul contesto il vettore ottimizzato \texttt{ctx.w}, il suo checksum
+e le informazioni di esito (numero di iterazioni, perdita finale, motivo di
+arresto).
+
+Il trattamento completo dell'algoritmo — come la storia delle iterazioni
+approssima l'inversa della hessiana, la ricorsione a due cicli che calcola
+la direzione di ricerca e la ricerca lineare che ne valida il passo — è
+oggetto del prossimo capitolo, \emph{L'algoritmo L-BFGS}. Qui ci si limita a
+stabilire che l'ottimizzazione \eqref{eq:optimize} è affidata a quel solutore
+e che le quantità che gli occorrono a ogni passo sono esattamente le due
+fornite dalla closure \texttt{fg}: il valore della perdita e il suo gradiente.
+
+\section{La generazione del modello (\texttt{GENERATE})}
+
+Il vettore $\bm{w}$ ottimizzato è il prodotto dell'apprendimento, ma non è
+ancora il modello: contiene un slot per ogni configurazione
+\emph{osservata} (sopra la soglia di frequenza) più i slot di fallback, e la
+sua lunghezza $N$ non copre lo spazio completo delle configurazioni. Lo
+schema sparso di $\bm{w}$ è un'esigenza del \emph{training}: le
+configurazioni rare vengono delegate a un unico slot di fallback, e il
+solutore deve poterle raggiungere attraverso la mappa \texttt{iwmap}.
+L'\emph{inferenza} non ha questa macchina: l'engine che userà il modello deve
+poter leggere il peso di una configurazione con un semplice indice diretto,
+per ogni configurazione possibile, anche se rara o mai vista. Il livello
+\texttt{GENERATE} risponde a questa esigenza: espande $\bm{w}$ nel vettore
+\texttt{w\_dense} di lunghezza $K$ — il totale delle configurazioni
+\emph{teoriche} di tutte le feature (l'ultimo offset di
+\texttt{iwmap\_feature\_offset}, quindi $K \geq N$) — nel quale ogni
+configurazione ha il suo peso, e che è la forma in cui il modello viene
+distribuito e usato in inferenza. Lo scalamento è concreto: un pattern con
+centinaia di migliaia di configurazioni teoriche ne avrà addestrate — con
+sopra la soglia di frequenza — solo una frazione, e sarà l'espansione a
+popolare il resto.
+
+Il punto di partenza è la mappa \texttt{wmap} del livello \texttt{WMAPS},
+che per ogni feature elenca le triple
+\texttt{[feature\_id, config\_id, frequency]}: le righe con
+\texttt{config\_id} $\geq 0$ identificano le configurazioni \emph{vere}
+(osservate sopra la soglia di frequenza, con lo slot di peso proprio), le
+altre sono configurazioni delegate al fallback. Da qui si ricava, per ogni
+feature, l'elenco delle configurazioni con peso addestrato, e da lì la regola
+di espansione, che dipende dal tipo di feature:
+
+\begin{itemize}
+  \item \textbf{Intercept}: la feature ha un solo peso; \texttt{w\_dense} lo
+    replica diretto sulla sua intera porzione.
+  \item \textbf{Mobility} (feature ordinale): le configurazioni osservate
+    hanno pesi addestrati, le altre no; i pesi di \texttt{w\_dense} sono
+    l'\emph{interpolazione lineare} dei pesi osservati sull'intero range delle
+    configurazioni, con gli esterni valori clamped sul confine più vicino
+    (l'interpolazione di \texttt{np.interp}, applicata su configurazioni
+    garantite in ordine ascendente). Ad esempio, se del range di valori
+    possibili ne sono stati osservati solo alcuni, un valore intermedio riceve
+    la media lineare dei pesi dei due osservati più vicini, e un valore oltre
+    l'osservato più estremo riceve il peso di quell'estremo: la scala
+    ordinale della feature giustifica l'ipotesi che il peso vari
+    \emph{regolarmente} da una configurazione all'altra.
+  \item \textbf{Pattern} (feature categorica): le configurazioni
+    \emph{simmetriche} ereditano il peso della loro configurazione
+    \emph{principale} (il representative della classe di simmetria) — la
+    stessa condivisione per cui, durante l'addestramento, tutte le
+    configurazioni di una classe puntano a un unico slot di \texttt{w}, ora
+    estesa a \emph{tutte} le configurazioni della classe; le configurazioni
+    non viste e quelle di fallback, invece, ereditano la \emph{media pesata
+    per frequenza} dei pesi delle configurazioni osservate di quel pattern.
+    La media pesata è la stima plug-in del contributo atteso del pattern
+    sotto la distribuzione di addestramento; il peso del fallback addestrato
+    resta nel vettore $\bm{w}$ (dove tiene la perdita ben definita e
+    ridimensiona le configurazioni rare), ma non è quello usato in
+    inferenza, e viene solo registrato a log per trasparenza.
+\end{itemize}
+
+Il vettore denso è un array \texttt{float32} di $K$ componenti, e sarà
+l'unico artefatto numerico del modello a uscire dalla pipeline: è quello che
+il livello \texttt{SAVE} persisterà nel file di modello e che il livello
+\texttt{CLIENT\_CHECK} verificherà essere di nuovo caricabile. La
+conseguenza sul piano della coerenza è che la validità della cache di
+\texttt{w\_dense} è agganciata al checksum di $\bm{w}$: qualsiasi
+cambiamento che si ripercuota sull'ottimizzazione — anche solo un
+divergere della traiettoria del solutore — invalida il vettore denso
+cacheato e ne forza la rigenerazione, così che il modello distribuito sia
+sempre la conseguenza esatta dei pesi ottimizzati della run corrente. Anche qui il
+worker segue la ricetta \emph{load-or-compute}: \texttt{w\_dense} viene
+scaricato su file binario (con compressione) e a una nuova run riletto se il
+checksum del vettore di pesi ottimizzato da cui deriva coincide con quello
+della run corrente. Sul contesto vengono pubblicati \texttt{ctx.w\_dense} e il
+suo checksum.
+
+\section{Consegna alla fase di validazione}
+
+Un'ultima osservazione sul significato di ciò che questa fase produce. Il
+vettore $\bm{w}$ ottimizzato è l'oggetto \emph{statistico}: la risposta,
+sotto il vincolo della perdita \eqref{eq:loss}, alla domanda «quanto vale, in
+media, una configurazione di feature?». Il vettore \texttt{w\_dense} è lo
+stesso oggetto \emph{operativo}: la risposta resa consultabile in $O(1)$ per
+ogni configurazione, incluse quelle che il corpus non ha mai fornito. La
+qualità di entrambi si misurerà solo sulla fase successiva.
+
+La fase è completa: il contesto porta \texttt{ctx.w} (i pesi ottimizzati) e
+\texttt{ctx.w\_dense} (il modello denso), ciascuno con la propria impronta
+di integrità. Il bilancio dei cinque livelli è il problema di regressione
+integro e risolto: la matrice di disegno dice \emph{dove} stanno i pesi, il
+target trasformato dice \emph{cosa} devono spiegare, la closure
+\texttt{fg} dice \emph{come} misurare quanto ne sono lontani,
+l'ottimizzazione ha trovato il punto in cui sono più vicini possibile, e la
+generazione ha confezionato il risultato nella forma che l'engine consumerà.
+
+Il livello successivo della pipeline, \texttt{VLD\_POSITIONS}, carica il set
+di validazione e la fase di \emph{Validazione e analisi}
+(\texttt{VALIDATE}, \texttt{ANALYTICS}) eseguirà il modello su posizioni mai
+viste durante l'apprendimento: è là che si misurerà se i pesi prodotti da
+questa fase generalizzano, e dove la closure \texttt{z2y} tornerà in scena
+per riportare le predizioni dello spazio $z$ nello spazio dei valori di gioco.
