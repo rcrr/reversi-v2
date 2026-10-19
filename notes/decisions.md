@@ -2254,3 +2254,15 @@ D-585 | 2026-10-19 | Added the \enverbatim{...} foreign-verbatim tag for the boo
          This removed the quote's words from the spellcheck flags. Build green (112 pages, 0 hard errors, 0 undefined
          references). (The broader book-wide spellcheck load — 3394 flagged words, a 14-entry dict.txt — is a separate,
          pre-existing condition, surfaced to Roberto and not addressed here.)
+
+D-586 | 2026-10-19 | Brought the Italian spellcheck gate to GREEN (0 misspellings) book-wide, and made it a hard checkin
+         gate in the rules. Two parts, per Roberto's call: (1) the domain dictionary (dict.txt) is now populated with
+         the 621 legitimate technical/domain terms the book uses (English loanwords — feature, cache, BFGS — the 29
+         pattern names, the D8 symmetry codes, the position codes, the L-BFGS authors' names, the software names, the
+         Italian elisions like dell'Hessiana); (2) tex2txt.py is smarter about what is NOT prose — it now drops the
+         CONTENT of verbatim/lstlisting blocks (not just the \begin/\end markers), the LaTeX quote delimiters ``/''
+         (which had been attaching to words, e.g. "mediano'"), and the column-spec argument of table environments
+         (\begin{tabular}{…}). Along the way 11 real typos were fixed in the .tex (collocare, analogamente, orizzontale,
+         ripetendo, affinamente, calcolo, "Non è", generalmente, restringente, ricostruisce, concede). Result: make
+         spell is green (0), the build is green (112 pages, 0 hard errors, 0 undefined refs), and the .tex linter is
+         green (0). The spellcheck is now a HARD gate: latex\_rules.md G8 states it must be green before every checkin.

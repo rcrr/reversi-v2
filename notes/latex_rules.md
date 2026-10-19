@@ -54,10 +54,10 @@ milestone), notes/naming.md (the domain vocabulary the book explains).
 ## 5. The authoring tools (G8)
 
 The "sensors" for a long writing campaign (the first two are Makefile targets; the linter is a direct script):
-- `make spell` — Italian spellcheck, run **before every checkin** (a gate). tex2txt.py strips the LaTeX markup
-  (comments, environments, structural commands, [options]; keeps the prose and the {arg} of text commands) →
-  `aspell list -d it` → the flagged words are filtered against dict.txt (the personal domain dictionary) with
-  `grep -vFx`. Exits non-zero if any word survives. A foreign (e.g. English) verbatim passage is marked with the
+- `make spell` — Italian spellcheck, **MUST be green (0 misspellings) before every checkin** (a hard gate). tex2txt.py
+  strips the LaTeX markup (comments, environments, structural commands, [options]; keeps the prose and the {arg} of text
+  commands) → `aspell list -d it` → the flagged words are filtered against dict.txt (the personal domain dictionary)
+  with `grep -vFx`. Exits non-zero if any word survives. A foreign (e.g. English) verbatim passage is marked with the
   \enverbatim{…} identity macro, which tex2txt.py skips (D-585). Domain terms (board, pattern, bitboard, …) go in
   dict.txt, not in the filter.
 - `make pdf2png` — renders the built PDF to per-page PNGs (pdftoppm) under build/pages/, which Nia inspects VISUALLY

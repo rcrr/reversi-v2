@@ -498,3 +498,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    has in fact been flagging 3394 words book-wide all along (a 14-entry dict.txt, code/SQL identifiers leaking through
    tex2txt.py) — the earlier "spellcheck clean" notes did not reflect that. It is a separate, pre-existing cleanup,
    surfaced to Roberto for his call. Build green (112 pages). One checkin: D-585.
+ - At Roberto's call, brought the spellcheck gate to zero: populated dict.txt with the 621 legitimate technical/domain
+   terms, made tex2txt.py drop the verbatim/listing CONTENT (not just the markers), the LaTeX quote delimiters, and the
+   table column-specs, and fixed 11 real typos in the chapters (collocare, analogamente, orizzontale, ripetendo,
+   affinamente, calcolo, "Non è", generalmente, restringente, ricostruisce, concede). make spell is now green (0
+   misspellings book-wide) and is a hard checkin gate (latex\_rules.md G8). Build green (112 pp), linter green (0). One
+   checkin: D-586.

@@ -55,8 +55,14 @@ NON_PROSE = {
 }
 
 s = sys.stdin.read()
+# 1a. verbatim / listing blocks: the content is CODE, not prose — drop the whole
+#     block (the old pass kept the \begin/\end markers and let the code through)
+s = re.sub(r'\\begin\{(lstlisting|verbatim|verbatim\*)\}.*?\\end\{\1\}', ' ',
+           s, flags=re.DOTALL)
 s = re.sub(r'(?<!\\)%.*', '', s)                          # 1. comments
-s = re.sub(r'\\(?:begin|end)\s*\{[^}]*\}', ' ', s)        # 1b. environments
+s = re.sub(r'\\(?:begin|end)\s*\{[^}]*\}\s*\{[^}]*\}', ' ', s)  # 1b. env (+ a column-spec arg, e.g. tabular)
+s = re.sub(r'\\(?:begin|end)\s*\{[^}]*\}', ' ', s)                  # 1b. environments
+s = re.sub(r"``|''", ' ', s)                               # 1c. LaTeX quote delimiters (keep them off the words)
 s = re.sub(r'\[[^\]]*\]', ' ', s)                          # 2. [options]
 for c in sorted(NON_PROSE, key=len, reverse=True):         # 3. structural commands + {arg}
     s = re.sub(r'\\%s\*?\s*\{[^{}]*\}' % c, ' ', s)

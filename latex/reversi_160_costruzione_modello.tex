@@ -113,7 +113,7 @@ Una seconda trama attraversa i cinque livelli: la \emph{politica di cache},
 che varia da livello a livello in funzione del costo di ricalcolo.
 \texttt{DESIGN\_MATRIX} e \texttt{GENERATE} scaricano il proprio artefatto su
 file binario e lo rilettono a una nuova run se il checksum di coerenza
-coincede: la matrice di disegno e il vettore denso sono gli artefatti più
+concede: la matrice di disegno e il vettore denso sono gli artefatti più
 costosi della fase. \texttt{ZED} e \texttt{GRADIENT} non usano la cache a
 disco, perché il loro calcolo (aritmetica vettorizzata e generazione di una
 closure) è trascurabile rispetto al resto. \texttt{OPTIMIZE} ha un

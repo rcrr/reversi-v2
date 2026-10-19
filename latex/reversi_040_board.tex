@@ -279,7 +279,7 @@ Le posizioni sono generate eseguendo delle mosse legali scelte a random a partir
 
 Sia gli square set che le board sono passibili di otto differenti trasformazioni, che ruotano rigidamente, oppure specchiano la bitboard rispetto gli assi di simmetria
 naturali. Le trasformazioni sono poi usate per calcolare gli indici delle istanze dei diversi pattern.
-La board può essere ruotata di zero, 90, 180, 270 gradi in senso orario, e può essere specchiata secondo gli assi verticale, orizontale, diagonale NW-SE e diagonale NE-SW.
+La board può essere ruotata di zero, 90, 180, 270 gradi in senso orario, e può essere specchiata secondo gli assi verticale, orizzontale, diagonale NW-SE e diagonale NE-SW.
 Sono poi definite le operazioni delle otto antitrasformazioni che riportano la bitboard nella condizione originale.
 
 A titolo di esempio la board:
@@ -330,7 +330,7 @@ un array di otto posizioni contenente le bitboard trasformate o anti-trasformate
 3 & Rotazione 270 gradi oraria   & \texttt{ro270} & \texttt{ro090} \\ \hline
 4 & Specchiatura asse verticale  & \texttt{fvert} & \texttt{fvert} \\ \hline
 5 & Specchiatura diagonale H1-A8 & \texttt{fh1a8} & \texttt{fh1a8} \\ \hline
-6 & Specchiatura asse orizontale & \texttt{fhori} & \texttt{fhori} \\ \hline
+6 & Specchiatura asse orizzontale & \texttt{fhori} & \texttt{fhori} \\ \hline
 7 & Specchiatura diagonale A1-H8 & \texttt{fa1h8} & \texttt{fa1h8} \\ \hline
 \end{tabular}
 \end{table}
@@ -504,7 +504,7 @@ Gli elementi di ordine 2, detti involuzioni, sono auto-inversi (\(T=T^{-1}\)), s
 
 \subsection{Degenerazione del Sottogruppo $V_{4(d)}$ su Pattern Diagonali}
 Abbiamo due differenze da considerare nella similitudine che intercorre la board di reversi e il gruppo $D_4$, una sostanziale ed una più incidentale.
-La seconda, che generalemnte trascureremo si basa sulla osservazione che la configurazione iniziale (Asimmetria di colore) i quattro dischi centrali sono disposti a "X": due bianchi e due neri incrociati.
+La seconda, che generalmente trascureremo si basa sulla osservazione che la configurazione iniziale (Asimmetria di colore) i quattro dischi centrali sono disposti a "X": due bianchi e due neri incrociati.
 Questa disposizione rompe alcune simmetrie di $D_4$, ad esempio, una rotazione di 90 gradi o una riflessione assiale (orizzontale/verticale) scambia i colori dei dischi centrali.
 
 La prima, invece è basata sulla osservazione che il quadrato è una entità continua, mentre la board è discreta.

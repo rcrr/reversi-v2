@@ -246,7 +246,7 @@ memoria.
 Fissa la direzione $\bm{p}_k$ (che deve essere \emph{di discesa},
 $\bm{p}_k^{\!\top}\bm{g}_k < 0$; il caso contrario è gestito dal riavvio,
 \/\S\ref{sec:lbfgs-restart}), il problema della ricerca del passo è
-unidimensionale: minimizzare la funzione restrittà
+unidimensionale: minimizzare la funzione restringente
 \begin{equation}
 \label{eq:phi}
 \varphi(\alpha) = f(\bm{x}_k + \alpha\,\bm{p}_k),
@@ -420,7 +420,7 @@ La procedura di selezione è:
   $t = \dfrac{-b \pm \sqrt{b^2 - 4ac}}{2a}$, si mappano in
   $x = x_0 + t\,h$ e si \emph{verificano}: solo una radice con
   $h''(x) > 0$ è un minimo locale. Il codice testa la prima e poi la
-  seconda; se nessuna ha curvatura positiva, ritorna `Nonè.
+  seconda; se nessuna ha curvatura positiva, ritorna `Non è.
 \end{itemize}
 Nota che la verifica `curvatura positiva è essenziale: l'interpolante
 cubica può avere un massimo e un minimo in intervallo, e usare il massimo
@@ -520,7 +520,7 @@ l'approssimazione $\bm{H}_k$ non è più definita positiva (ad esempio per
 una sequenza di coppie scartate dalla condizione di curvatura, o per
 accumulo di errore in float32 lontano dall'ottimo) e proseguire con una
 $\bm{H}_k$ malcondizionata sarebbe controproducente; ripartire dalla
-discesa del gradiente ricostuisce progressivamente una finestra sana.
+discesa del gradiente ricostruisce progressivamente una finestra sana.
 
 \subsection{I due criteri di convergenza}
 
@@ -560,7 +560,7 @@ gradiente (sul punto corrente, \emph{prima} di calcolare la direzione),
 poi il test sul calo relativo (che confronta il punto corrente con il
 precedente, tramite la variabile \texttt{fgv\_fun\_prev} aggiornata a
 fine passo), infine — solo se nessuno dei due ha fermato la run — la
-calcolazione della direzione, la ricerca del passo e l'aggiornamento.
+calcolo della direzione, la ricerca del passo e l'aggiornamento.
 
 \section{Scelte di implementazione}
 \label{sec:lbfgs-impl}
