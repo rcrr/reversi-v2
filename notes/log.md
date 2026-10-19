@@ -436,23 +436,33 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   errors. Two checkins: D-577 (the license governance) + D-578 (the content milestone).
 
 ## 2026-10-18 — session 123 (LATEX — new Appendix B "Regole del gioco", D-580)
- - Added Appendix B "Regole del gioco" to the book: the official Othello rules, translated into Italian from the
-   World Othello Federation's official-rules page (the source cited explicitly, title + URL, for copyright clarity).
+ - Added Appendix B "Regole del gioco" to the book: the official Othello rules, translated into Italian from the World
+   Othello Federation's official-rules page (the source cited explicitly, title + URL, for copyright clarity).
  - All 12 board diagrams reconstructed with the othelloboard package (not copied images): the setup, the outflanking
-   example, the rule-2/4/5 illustrations (with the move/flip arrows in red so they read on black discs), and the
-   sample game (the first two move pairs, grouped as one 2x2 figure).
+   example, the rule-2/4/5 illustrations (with the move/flip arrows in red so they read on black discs), and the sample
+   game (the first two move pairs, grouped as one 2x2 figure).
  - A terminology note defines "aggiramento" (the Italian for "outflank", verb "aggirare") with the common players'
-   expressions; a final section covers the WOF early-termination scoring rule (empty squares count for the winner,
-   total always 64), quoting the WOC Rules Section IV.8 with the source PDF link.
+   expressions; a final section covers the WOF early-termination scoring rule (empty squares count for the winner, total
+   always 64), quoting the WOC Rules Section IV.8 with the source PDF link.
  - Iterated with Roberto (surgical tweaks): removed the "reconstructed with othelloboard" sentence, translated
    everything to Italian, grouped the outflanking + sample-game figures as figure/subfigure, made the arrows red.
- - Gates green: the license audit passes on the new .tex; the build is 60 pages, 0 hard errors, 0 undefined
-   references; notes\_lint green. One checkin: D-580.
+ - Gates green: the license audit passes on the new .tex; the build is 60 pages, 0 hard errors, 0 undefined references;
+   notes\_lint green. One checkin: D-580.
 
 ## 2026-10-19 — session 124 (LATEX — the appendix files move to the 8xx band, D-581)
- - Renamed the two appendix chapter files to the 8xx numbering band (git mv, history preserved): the pattern
-   catalog appendix to reversi\_800\_appendix\_catalogo.tex and the rules appendix to
-   reversi\_820\_appendix\_regole.tex, freeing the 1xx band for the main chapters.
- - Updated the main.tex include lines and the two files' self-referencing header comments to the new names; the
-   Makefile CH fast-compile is glob-based and needs no change.
+ - Renamed the two appendix chapter files to the 8xx numbering band (git mv, history preserved): the pattern catalog
+   appendix to reversi\_800\_appendix\_catalogo.tex and the rules appendix to reversi\_820\_appendix\_regole.tex,
+   freeing the 1xx band for the main chapters.
+ - Updated the main.tex include lines and the two files' self-referencing header comments to the new names; the Makefile
+   CH fast-compile is glob-based and needs no change.
  - Gates green: build 60 pages, 0 hard errors, 0 undefined references; notes\_lint green. One checkin: D-581.
+
+## 2026-10-19 — session 125 (LATEX — the pipeline introduction chapter, D-582)
+ - Wrote the new main-body chapter 100, "La pipeline" (reversi\_100\_pipeline.tex): an overview of the Machine-Learning
+   pipeline — the architecture (facade / state machine / context / workers + the wrk\_/hlp\_split), the three design
+   principles, the 19 levels in five phases (with a table), the JSON5 config, the data flow, and the command-line
+   execution. No per-module detail (reserved for the per-level chapters to come).
+ - Wired it into main.tex after the evaluation-function chapter (080), before \appendix (the new chapter 5). Used the
+   proper Unicode accented vowels (not the ASCII-apostrophe convention); kept one listings block free of multi-byte
+   characters (listings reads verbatim and chokes on them).
+ - Gates green: build 64 pages, 0 hard errors, 0 undefined references; notes\_lint green. One checkin: D-582.

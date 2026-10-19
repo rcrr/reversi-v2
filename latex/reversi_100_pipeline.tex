@@ -1,0 +1,259 @@
+%
+% reversi_100_pipeline.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: La pipeline.
+%
+% Introduce la pipeline di Machine Learning: l'organizzazione generale, i 19
+% livelli e la configurazione. Non entra nel dettaglio dei singoli moduli —
+% quello sarà oggetto dei capitoli che seguiranno, un capitolo (o gruppo di
+% capitoli) per ogni livello della pipeline.
+%-----------------------------------------------------------------------------
+
+\chapter{La pipeline}
+
+Questo capitolo introduce la \emph{pipeline} di Machine Learning: la catena di
+elaborazione che, a partire da un set di posizioni di gioco risolte, costruisce
+la funzione di valutazione. La pipeline è il cuore dello strumento: è ciò
+che trasforma i dati grezzi (le posizioni e i loro valori) nel modello numerico
+(i pesi) che, combinato con il feature set scelto, \emph{definisce} la funzione
+di valutazione trattata nel capitolo precedente.
+
+Qui se ne presenta l'organizzazione generale — i livelli, il modo in cui sono
+collegati e la configurazione che li guida — senza entrare nel dettaglio dei
+singoli moduli. Il dettaglio sarà oggetto dei capitoli che seguiranno: un
+capitolo, o un gruppo di capitoli, per ogni livello della pipeline.
+
+\section{L'architettura}
+
+La pipeline è costruita attorno a quattro concetti, che insieme formano un
+motore di esecuzione \emph{generico} e riutilizzabile:
+
+\begin{itemize}
+  \item \textbf{La facade} (\texttt{LogisticModel}). Il punto d'ingresso unico.
+    Si costruisce passando un file di configurazione; la facade assembla la
+    pipeline (tutti i suoi livelli) e ne avvia l'esecuzione, nascondendo al
+    chiamante la complessità interna. È il pattern di progettazione
+    \emph{facade} (GoF).
+
+  \item \textbf{La macchina a stati} (\texttt{StateMachine}). Il motore che
+    orchestra la sequenza di livelli. È completamente \emph{agnostica} rispetto
+    al dominio: conosce solo una lista ordinata di livelli e si occupa di guidare
+    l'esecuzione, del logging, dello storico delle mosse e dei movimenti
+    avanti/indietro. La pipeline del modello logistico è un'istanza di questa
+    macchina generica, popolata con i livelli specifici del modello.
+
+  \item \textbf{Il contesto} (\texttt{LMContext}). Un unico oggetto
+    \emph{condiviso} passato a ogni livello: la ``lavagna'' (\emph{blackboard})
+    su cui i livelli scambiano i dati. Vi risiedono la configurazione e tutti gli
+    \emph{artefatti} prodotti lungo la catena. Un livello legge da qui ciò che
+    gli serve e ci scrive il proprio risultato: i livelli non si chiamano a
+    vicenda direttamente, il che mantiene il coupling basso e rende ogni livello
+    testabile in isolamento.
+
+  \item \textbf{I livelli} (\texttt{Worker}). Ogni livello è un \emph{worker}
+    con due azioni: \texttt{up} (il passo in avanti, che produce l'artefatto del
+    livello) e \texttt{down} (il passo di rollback, che lo annulla). Questa
+    simmetria consente alla macchina di muoversi sia in avanti sia all'indietro
+    lungo la catena, ad esempio per ricalcolare a partire da un punto intermedio.
+\end{itemize}
+
+All'interno di ogni livello la responsabilità è divisa in due parti:
+\begin{itemize}
+  \item il \emph{worker} (\texttt{wrk\_*}): la ``guarnitura'' del livello nella
+    pipeline — si occupa della cache, del logging, dell'I/O e del coordinamento;
+  \item l'\emph{helper} (\texttt{hlp\_*}): il calcolo di dominio riutilizzabile,
+    indipendente dalla pipeline.
+\end{itemize}
+Questa separazione tiene distinti il \emph{plumbing} dell'orchestrazione e la
+\emph{logica} di calcolo.
+
+\subsection{I principi di progetto}
+
+Tre principi trasversali vincolano l'intero codice della pipeline:
+\begin{itemize}
+  \item \textbf{API scalare/array duale} (DP-010): le funzioni pubbliche che
+    operano su input vettorizzabile accettano sia uno scalare sia un array e
+    restituiscono la stessa specie dell'input — in linea con il design di NumPy,
+    su cui si fondano le performance della soluzione;
+  \item \textbf{validazione Pydantic} (DP-020): i confini pubblici delle funzioni
+    sono validati con \texttt{@validate\_call}, per un fallimento immediato sui
+    tipi;
+  \item \textbf{kernelli Numba} (DP-030): i calcoli caldi (le ``hot loop'')
+    corrono come kernelli \texttt{njit(cache=True)}, a caccia della massima
+    performance.
+\end{itemize}
+
+\section{I livelli della pipeline}
+
+La pipeline è formata da \textbf{19 livelli}, eseguiti in sequenza. Il livello
+0 (\texttt{CREATED}) è una \emph{sentinella}: marca lo stato iniziale e non
+viene mai eseguito dal motore. I 19 livelli veri corrono da \texttt{CONFIG}
+(il primo) fino a \texttt{FINAL\_LOG\_PRINT} (l'ultimo).
+
+Si raggruppano naturalmente in cinque fasi:
+\begin{enumerate}
+  \item \textbf{Setup} — si legge e valida la configurazione e si risolve il
+    feature set (\texttt{CONFIG}, \texttt{FEATURES}).
+  \item \textbf{Corpus e analisi delle feature} — si caricano le posizioni di
+    addestramento e si analizzano le feature: frequenze nel corpus, indici
+    categorici, varianza spiegata, mappe di peso (\texttt{SU\_ANALYSIS},
+    \texttt{POSITIONS}, \texttt{INDEXES}, \texttt{ANOVA}, \texttt{WMAPS}).
+  \item \textbf{Costruzione del modello} — si assembla la matrice di disegno e
+    il target trasformato, si definisce la funzione di perdita e il suo
+    gradiente, si ottimizzano i pesi e si genera il modello
+    (\texttt{DESIGN\_MATRIX}, \texttt{ZED}, \texttt{GRADIENT},
+    \texttt{OPTIMIZE}, \texttt{GENERATE}).
+  \item \textbf{Validazione e analisi} — si carica il set di validazione, si
+    esegue il modello su di esso e si calcolano le statistiche di addestramento
+    (\texttt{VLD\_POSITIONS}, \texttt{VALIDATE}, \texttt{ANALYTICS}).
+  \item \textbf{Persistenza e output} — si salvano gli artefatti, si verifica la
+    caricabilità del modello, si generano i grafici e il log finale
+    (\texttt{SAVE}, \texttt{CLIENT\_CHECK}, \texttt{PLOT},
+    \texttt{FINAL\_LOG\_PRINT}).
+\end{enumerate}
+
+La tabella riassume i 19 livelli, in ordine, con lo scopo di ciascuno (una riga
+per livello; il dettaglio sarà nei capitoli dedicati):
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{rll}
+\toprule
+\# & Livello & Scopo \\
+\midrule
+1  & CONFIG          & Carica e valida la configurazione; fissa i parametri della run. \\
+2  & FEATURES        & Risolve la definizione del feature set (intercetto, pattern, mobility). \\
+3  & SU\_ANALYSIS    & Analizza frequenza e rarità delle feature nel corpus. \\
+4  & POSITIONS       & Carica le posizioni di addestramento e i loro valori di gioco. \\
+5  & INDEXES         & Calcola gli indici categorici di ogni feature. \\
+6  & ANOVA           & Analisi della varianza: le feature che spiegano il valore di gioco. \\
+7  & WMAPS           & Costruisce le mappe di peso (configurazione $\to$ indice del vettore di pesi). \\
+8  & DESIGN\_MATRIX  & Costruisce la matrice di disegno degli indici di feature. \\
+9  & ZED             & Trasforma il target nello spazio lineare (la trasformazione logit). \\
+10 & GRADIENT        & Definisce la funzione di perdita e il suo gradiente. \\
+11 & OPTIMIZE        & Esegue l'ottimizzazione (L-BFGS) dei pesi. \\
+12 & GENERATE        & Genera il modello (il vettore di pesi). \\
+13 & VLD\_POSITIONS  & Carica le posizioni di validazione e i loro valori. \\
+14 & VALIDATE        & Esegue il modello sul set di validazione (metriche, outlier). \\
+15 & ANALYTICS       & Calcola le statistiche sul set di addestramento (report). \\
+16 & SAVE            & Salva gli artefatti del modello (pesi, record di configurazione). \\
+17 & CLIENT\_CHECK   & Verifica che il modello salvato sia caricabile e usabile. \\
+18 & PLOT            & Genera i grafici (residui, serie di validazione). \\
+19 & FINAL\_LOG\_PRINT & Scrive il log consolidato finale della run. \\
+\bottomrule
+\end{tabular}
+\caption{I 19 livelli della pipeline, in ordine di esecuzione.}
+\label{tab:pipeline-levels}
+\end{table}
+
+\section{La configurazione}
+
+Tutto ciò che la pipeline fa è guidato da un \emph{file di configurazione}
+(JSON5, quindi ammette commenti e virgole finali). Il livello \texttt{CONFIG} lo
+carica e lo valida contro uno schema \emph{pydantic}: un errore di
+configurazione fa fallire la run subito, al primo livello.
+
+La configurazione è organizzata in sezioni:
+\begin{itemize}
+  \item i \textbf{dati}: i set di addestramento e di validazione (da dove
+    prenderli: il database REGAB, i ``bid'', i ``status'');
+  \item il \textbf{modello}: i parametri statistici (taglio di frequenza,
+    clipping del logit, regolarizzazione di ridge);
+  \item l'\textbf{ottimizzazione}: i parametri del solutore (massimo di
+    iterazioni, i coefficienti di L-BFGS, la cadenza di logging e di
+    checkpoint);
+  \item il \textbf{feature set}: la definizione delle feature (intercetto, i
+    pattern, le mobility);
+  \item le \textbf{analisi}: le opzioni dell'analisi di rarità e del report
+    analitico;
+  \item i \textbf{parametri di run}: il nome, il numero di caselle vuote
+    (\texttt{empty\_count}, l'EC), la directory di base, il file di output,
+    l'uso della cache e, soprattutto, il \texttt{target\_level}.
+\end{itemize}
+
+Il \texttt{target\_level} è il \emph{punto di arresto} della pipeline: con il
+valore di default (\texttt{last}) la run corre tutti e 19 i livelli; indicando un
+livello, la run si ferma lì. Un estratto di configurazione:
+
+\begin{lstlisting}[caption={Un file di configurazione (estratto illustrativo).}]
+{
+    "name":         "Il mio modello logistico",
+    "empty_count":  20,              // l'EC: 20 caselle vuote
+    "base_dir":     "./out",
+    "output":       "modello.dat",
+    "use_cache":    true,
+    "feature_set": {
+        "intercept": true,
+        "pattern_set": { "patterns": [ { "name": "EDGE", "mask": "00000000000000FF" } ] }
+    },
+    "stat_model":   { "ridge_regularization": 0.1 },
+    "target_level": "last"           // oppure, es., "VALIDATE" per fermarsi qui
+}
+\end{lstlisting}
+
+\section{Il flusso dei dati}
+
+Gli artefatti viaggiano lungo la catena sul contesto condiviso. Ogni livello
+pubblica il proprio risultato sulla ``lavagna'' e il livello successivo lo
+consuma; a ogni artefatto è associato un \emph{checksum} (l'impronta del suo
+contenuto), che serve sia alla cache sia al controllo di integrità. Il flusso
+principale è:
+
+\[
+\begin{aligned}
+\text{config} &\;\to\; \text{feature set} \;\to\; \text{posizioni + valori}
+               \;\to\; \text{indici} \\
+               &\;\to\; \text{matrice di disegno} \;\to\; \text{pesi}
+               \;\to\; \text{modello} \;\to\; \text{metriche} \\
+               &\;\to\; \text{artefatti / grafici / log}\;.
+\end{aligned}
+\]
+
+La \emph{cache} è un aspetto centrale: ogni livello può scaricare il proprio
+artefatto su file (il prefisso è nella configurazione). A una nuova run, un
+livello il cui artefatto è già in cache (e con lo stesso checksum) viene
+saltato: si riparte da dove ci si era fermati, senza ricalcolare ciò che è
+già stato fatto.
+
+\section{Esecuzione}
+
+La pipeline si avvia da riga di comando, dal root dello workspace:
+
+\begin{lstlisting}[language=bash, caption={Avvio della pipeline.}]
+python -m reversi.lm.logistic_model <config.json> \
+    [--verbosity {high,moderate,standard,low,very_low,none}]
+\end{lstlisting}
+
+L'argomento \texttt{--verbosity} (default \texttt{standard}) regola quanta
+diagnostica stampare in console; il log completo è comunque disponibile a fine
+run (il livello \texttt{FINAL\_LOG\_PRINT}). L'esecuzione è \emph{a target}: la
+run va prima al livello \texttt{CONFIG} (per poter leggere la configurazione) e
+poi si arresta al livello richiesto — l'eventuale argomento di target, in
+mancanza il \texttt{target\_level} della configurazione, in mancanza l'ultimo
+livello.

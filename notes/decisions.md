@@ -2202,3 +2202,14 @@ D-581 | 2026-10-19 | The two appendix chapter files move to the 8xx numbering ba
          self-referencing header comments are updated to the new names; the Makefile CH fast-compile is glob-based, so
          it needs no change (it now resolves CH=800 / CH=820). Build green: 60 pages, 0 hard errors, 0 undefined
          references.
+
+D-582 | 2026-10-19 | Added the new main-body chapter 100, "La pipeline" (reversi\_100\_pipeline.tex): an introduction to
+         the Machine-Learning pipeline at the overview level — the architecture (the LogisticModel facade, the generic
+         domain-agnostic StateMachine, the shared LMContext blackboard, the up/down Worker levels, and the
+         wrk\_/hlp\_ split), the three cross-cutting design principles (DP-010/020/030), the 19 levels grouped into five
+         phases (with a summary table), the JSON5 config (its sections + the target\_level stop), the data flow, and the
+         command-line execution. It deliberately does NOT go into the individual modules — the per-level detail is
+         reserved for the chapters that will follow (one, or a group, per level). Wired into main.tex after the
+         evaluation-function chapter (080) and before \appendix, so it is the new chapter 5. The accented Italian vowels
+         use the proper Unicode characters (not the ASCII-apostrophe convention); one listings block avoids a multi-byte
+         character (listings reads verbatim). Build green: 64 pages, 0 hard errors, 0 undefined references.

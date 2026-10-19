@@ -59,10 +59,12 @@ define the evaluation function.
   more competitive set can be found; develop the examples for the LaTeX document.
 - The LATEX campaign (the artifact document): the book zone is governed (D-576) and the legacy draft's content is ported
   (D-578) — chapter 2 (the board: domain representation, game positions, the D4 group), chapter 3 (the pattern theory +
-  index calculation), chapter 4 (the evaluation function), Appendix A (the 29-pattern catalog) and Appendix B (the game
-  rules, in Italian, diagrams reconstructed via othelloboard + the WOF scoring note, D-580); the build is green at 60
-  pages. Next: phase 3 (writing/refining the chapters), the results section (fills in as FEATURE-SET lands), and a fresh
-  Introduction (the legacy one is obsolete).
+  index calculation), chapter 4 (the evaluation function), chapter 5 (the pipeline: the ML-chain overview —
+  architecture, the 19 levels, the config; no per-module detail, D-582), Appendix A (the 29-pattern catalog) and
+  Appendix B (the game rules, in Italian, diagrams reconstructed via othelloboard + the WOF scoring note, D-580); the
+  build is green at 64 pages. Next: the per-level pipeline chapters (one, or a group, per level), then phase 3
+  (writing/refining the chapters), the results section (fills in as FEATURE-SET lands), and a fresh Introduction (the
+  legacy one is obsolete).
 - The MULTI-PLY campaign: the current EF is zero-ply; develop the N-ply game expansion (the alpha-beta search over the
   EF) delivering an evaluation based on a game tree search; evaluate the statistical properties of the resulting
   function.
