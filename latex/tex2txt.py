@@ -51,6 +51,7 @@ NON_PROSE = {
     'bibliographystyle', 'addcontentsline', 'setcounter', 'pagestyle', 'thispagestyle',
     'chaptermark', 'sectionmark', 'subsectionmark', 'verb', 'verbatim', 'url', 'href',
     'texttt', 'ttfamily', 'geometry',        # technical content / layout options (NOT bold/italic prose)
+    'enverbatim',                            # a foreign verbatim quote: identity in the PDF, skipped here
 }
 
 s = sys.stdin.read()

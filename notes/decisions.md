@@ -2242,3 +2242,15 @@ D-584 | 2026-10-19 | Added wsutils/latex\_lint.py, a context-aware linter (and s
          listings language. --write applies only the four safe fixes (1,2,3,4); the structural checks (5,6,7,8) are
          report-only. First run over the finished book is clean (0 violations); it already surfaced one real leftover
          (an empty language= in a chapter-10 lstlisting, now removed).
+
+D-585 | 2026-10-19 | Added the \enverbatim{...} foreign-verbatim tag for the book: an identity macro
+         (\newcommand{\enverbatim}[1]{#1} in the main.tex preamble) that typesets its argument unchanged, whose only
+         other job is to mark a foreign (e.g. English) verbatim passage so the Italian spellcheck (tex2txt.py) skips it.
+         The name is \enverbatim, NOT \en\_verbatim: a LaTeX control sequence is a backslash followed by LETTERS only,
+         so an underscore would split the name (\en\_verbatim parses as \en + the \_verbatim subscript, breaking the
+         preamble with "Missing $ inserted"). tex2txt.py drops \enverbatim{...} (it is in the NON\_PROSE set). First
+         use: the English "World Othello Championships Rules" scoring quote in the game-rules appendix (ch 820) — a
+         deliberate verbatim from the official (English) rules, which already carries an Italian translation beneath it.
+         This removed the quote's words from the spellcheck flags. Build green (112 pages, 0 hard errors, 0 undefined
+         references). (The broader book-wide spellcheck load — 3394 flagged words, a 14-entry dict.txt — is a separate,
+         pre-existing condition, surfaced to Roberto and not addressed here.)

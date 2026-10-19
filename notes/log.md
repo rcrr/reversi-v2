@@ -489,3 +489,12 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    math primes and the code quotes alone. Eight checks; --write applies the four safe fixes (accent, code-ascii, texttt,
    bar→overline). Validated on a synthetic file (every fix lands, the re-scan is clean) and on the finished book (0
    violations; it caught one real leftover, an empty language= in chapter 10, now removed). One checkin: D-584.
+ - At Roberto's suggestion, added the \enverbatim{...} foreign-verbatim tag: an identity macro in the main.tex preamble
+   and a NON\_PROSE entry in tex2txt.py, so a deliberate English verbatim is shielded from the Italian spellcheck
+   without polluting dict.txt. The name had to drop the underscore — \en\_verbatim is not a legal control sequence (the
+   \_ would start a subscript, "Missing $ inserted"): it is \enverbatim. Applied it to the English "World Othello
+   Championships Rules" scoring quote in the game-rules appendix (ch 820), which already has an Italian translation
+   below it; that removed the quote's words from the spell flags. Building the full book to confirm, I found make spell
+   has in fact been flagging 3394 words book-wide all along (a 14-entry dict.txt, code/SQL identifiers leaking through
+   tex2txt.py) — the earlier "spellcheck clean" notes did not reflect that. It is a separate, pre-existing cleanup,
+   surfaced to Roberto for his call. Build green (112 pages). One checkin: D-585.
