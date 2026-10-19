@@ -165,7 +165,7 @@ the persistent data is a DB/campaign artifact, decided explicitly.
 
 **R-400 — Reversi (othello), NOT chess**
 
-The column (A-H)/row (1-8) vocabulary; A1 = top-left = bit 0, H8 = bottom-right = bit 63; the D8 symmetries are
+The column (A-H)/row (1-8) vocabulary; A1 = top-left = bit 0, H8 = bottom-right = bit 63; the D4 symmetries are
 canonized in notes/naming.md — the order is arbitrary but fixed.
 
 

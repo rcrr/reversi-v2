@@ -522,3 +522,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     prendiamo) surfaced by the spellcheck that D-587 had skipped, and added 21 terms to dict.txt (621 -> 642). Deferred
     to Roberto: D1 (the book says D4, the code says D8 - I recommend renaming the book to D8 for full consistency). Left
     untouched per Roberto: F2. Build green (116 pp), linter green (0), spellcheck green (0). One checkin: D-588.
+  - Resolved D1 at Roberto's call: renamed the code and the vocabulary from D8 to D4 (comment/docstring-only in the
+    code, no behaviour change), so the book, the code, and naming now all agree on D4. Changed 21 group-name D8 in the
+    four .py (board 6, pattern 8, feature 2, `hlp_su_analysis` 1) via a quote-aware word-boundary substitution that
+    leaves the D8 board-square name and the hex constants untouched, plus naming (5), rules (1), `latex_rules` (1),
+    overview (1 + the D1 clause reworded as resolved). Verified behaviour-neutral: the 8 probes that report a numeric
+    mismatch fail identically on the stashed original D8 code. Checks per Roberto: lint green (`py_compile`,
+    `notes_lint` 0, `latex_lint` 0), probe sweep 16/24 (the 8 red are pre-existing), VVLONG green (exit 0, full 19-level
+    pipeline on the live regab DB). One checkin: D-589.

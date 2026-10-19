@@ -67,11 +67,11 @@ define the evaluation function.
   Persistence and output, D-583), Appendix A (the 29-pattern catalog) and Appendix B (the game rules, in Italian,
   diagrams reconstructed via othelloboard + the WOF scoring note, D-580); the build is green at 116 pages. A
   notation-consistency pass over chapters 2-3 is done (D-588: the D4 element notation unified to the word form, the
-  code/math/Cayley congruence fixed, the pattern symbol collisions resolved, and a conventions table added). Open for
-  Roberto: the D1 call (the book says D4, the code says D8 — I recommend the book follow the code to D8), his review of
-  the notation pass and of the feature chapter, and the 10-subgroups topic (deferred, F2). Next: wording/word-choice
-  refinements (in review), the results section (fills in as FEATURE-SET lands), and a fresh Introduction (the legacy one
-  is obsolete).
+  code/math/Cayley congruence fixed, the pattern symbol collisions resolved, and a conventions table added). D1 is
+  resolved (D-589: at Roberto's call the code and naming were renamed to D4, so book, code, and naming now all agree on
+  D4). Open for Roberto: his review of the notation pass and of the feature chapter, and the 10-subgroups topic
+  (deferred, F2). Next: wording/word-choice refinements (in review), the results section (fills in as FEATURE-SET
+  lands), and a fresh Introduction (the legacy one is obsolete).
 - The MULTI-PLY campaign: the current EF is zero-ply; develop the N-ply game expansion (the alpha-beta search over the
   EF) delivering an evaluation based on a game tree search; evaluate the statistical properties of the resulting
   function.
@@ -216,7 +216,7 @@ Test data (test/reversi/data/):
 
 ## Index
 
-- notes/naming.md — canonical domain naming convention (board vocabulary, D8, feature types)
+- notes/naming.md — canonical domain naming convention (board vocabulary, D4, feature types)
 - notes/design\_principles.md — the house design policy of the pipeline (dual scalar/array API, pydantic, numba kernels)
 - notes/rules.md — active legislation: the register of the rules in force.
 - notes/decisions.md — open historical decision log (append-only)

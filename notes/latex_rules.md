@@ -15,7 +15,7 @@ milestone), notes/naming.md (the domain vocabulary the book explains).
   wsutils/license\_header\_audit.py checks them at the pre-commit gate. Third-party .sty packages (e.g.
   othelloboard.sty, LPPL) are exempt and keep their own header.
 - It is a BOOK (~200 pages), not a paper. A 10-page paper may be distilled from it later, only if the results warrant.
-  Content scope: the pattern theory, the board, the D8, the logistic model's mathematical structure, the pipeline
+  Content scope: the pattern theory, the board, the D4, the logistic model's mathematical structure, the pipeline
   structure, the software user guide, the pipeline-step explanations, a set of examples, and the results.
 
 ## 2. The build pipeline (G2)

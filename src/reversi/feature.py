@@ -255,7 +255,7 @@ class FeatureSet:
         features, in the fset.features order — the documented column layout: the intercept (column
         0, if present), then the mobilities in the MobilitySet's sorted (mask, side) order, then
         the patterns in the PatternSet's sorted mask order. Each feature occupies n_instances
-        columns (its D8 instance columns), so the blocks are instance-aware. The intercept is not a
+        columns (its D4 instance columns), so the blocks are instance-aware. The intercept is not a
         block: it is fset.intercept, at column 0 when present.
         """
         blocks = []
@@ -281,7 +281,7 @@ class FeatureSet:
           (mask, side) order (its compute_indexes block);
         - then, for each pattern in the PatternSet's sorted mask order,
           n_instances(pattern) columns: the principal index of each orbit
-          instance, in the pattern's unique-mask first-seen (D8 instance)
+          instance, in the pattern's unique-mask first-seen (D4 instance)
           order (its compute_principal_indexes block).
 
         The columns therefore follow the child sets' sorted storage order, not the caller's

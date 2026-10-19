@@ -2312,3 +2312,19 @@ D-588 | 2026-10-19 | Notation-consistency pass over the board (ch 2) and pattern
          math-standard name and renaming the code. Awaiting his call. F2 (10 subgroups -> 8 equivalence classes)
          deliberately left untouched per Roberto ("non fare nulla, e' delicata"). Result: build green (116 pages, 0 hard
          errors, 0 undefined refs), .tex linter green (0), spellcheck green (0).
+
+D-589 | 2026-10-19 | Resolved D1 at Roberto's call: the code and the vocabulary are renamed D8 -> D4, so the book, the
+         code, and naming.md now all agree on D4 (the math-standard name; the code was the outlier). The rename is
+         comment/docstring-only in the code - no behaviour change. Concretely: 21 group-name D8 -> D4 across
+         src/reversi/board.py (6), pattern.py (8), feature.py (2), and `lm/hlp_su_analysis.py` (1); the D8 board-square
+         name (board.py line 124, 'D8') and the hex constants that happen to contain the byte pair are deliberately left
+         untouched (a quote-aware word-boundary substitution, (?<!')\bD8\b, skips both). In the vocabulary and rules:
+         naming.md (5), rules.md (1), `latex_rules.md` (1), and overview.md (1, plus the now-resolved D1 clause
+         reworded). In the book, eight stray text-mode group references in the later chapters (setup, corpus,
+         validation) plus the conventions-table code name were also brought to D4, so the whole book now agrees on D4
+         (the three D8 board-square names are left as-is). Verified behaviour-neutral: the 8 probe checks that report a
+         numeric mismatch fail IDENTICALLY on the stashed original (D8) code (e.g. `verify_zed` 6=6, `verify_anova` 3=3,
+         `verify_gradient` 3=3), so they are pre-existing and independent of this rename. Checks, per Roberto: lint
+         green (`py_compile` on all four .py, `notes_lint` 0, `latex_lint` 0); the full probe sweep is 16/24 with those
+         8 pre-existing red; VVLONG green (exit 0, the full 19-level pipeline runs to completion on the live regab DB,
+         no failures).

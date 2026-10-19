@@ -262,7 +262,7 @@ congiunta di una variabile con se stessa \emph{è} la sua marginale —
 calcolarla sarebbe ridondante, e la sua \texttt{SU} sarebbe bloccata a $1$
 per costruzione, non una misura. Si analizzano invece le celle
 \emph{fuori diagonale}, che per una stessa feature sono le sue \emph{varie
-orientazioni D8} tra loro: è la misura dell'\emph{anisotropia} di un pattern
+orientazioni $D_4$} tra loro: è la misura dell'\emph{anisotropia} di un pattern
 (su quante delle sue istanze il gioco si concentra).
 
 \subsection{Le statistiche: dispersione, rarità e incertezza simmetrica}
@@ -295,7 +295,7 @@ Per una \emph{mobility}, i codici osservati sono i valori grezzi del conteggio
 (nessuna riduzione per simmetria), quindi lo spazio teorico in gioco è
 $N_{\text{conf}} = k+1$ (con $k$ il numero di caselle della maschera). Per un
 \emph{pattern}, i codici osservati sono gli \emph{indici principali} — i
-rappresentanti delle orbite D8 — quindi lo spazio teorico non è il $3^{S}$
+rappresentanti delle orbite $D_4$ — quindi lo spazio teorico non è il $3^{S}$
 grezzo ma il numero $n_{\text{unique}}$ di \emph{classi di equivalenza}
 (sotto le simmetrie indotte sulla maschera), dato dalla media di Burnside.
 È questo il denominatore corretto per la coverage e per l'audit
@@ -505,7 +505,7 @@ documentato:
         maschera l'indice gira su $0 \ldots k$ (ogni valore raggiungibile);
   \item poi, per ogni pattern dell'ordine per maschera del
         \texttt{PatternSet}, \emph{$n_{\text{inst}}$ colonne}: l'\emph{indice
-        principale} di ogni istanza dell'orbita D8, nell'ordine delle istanze
+        principale} di ogni istanza dell'orbita $D_4$, nell'ordine delle istanze
         del pattern.
 \end{itemize}
 
@@ -527,7 +527,7 @@ Feature & INTERCEPT & LMC & EDGE (ist.\ 0--7) & COR (ist.\ 0--3) \\
 Ricordando le definizioni dei capitoli sulla scacchiera e sui pattern: una
 \emph{configurazione} di un pattern è l'assegnazione in base 3 delle sue $S$
 caselle (0 = vuota, 1 = mover, 2 = avversario), e l'\emph{indice principale}
-è il minimo, tra gli $8$ immagini D8 della configurazione, secondo
+è il minimo, tra gli $8$ immagini $D_4$ della configurazione, secondo
 l'ordinamento che il stabilizzatore della maschera induce sulle caselle.
 Il \emph{guadagno} di questa riduzione è che due configurazioni
 \emph{equivalenti per simmetria} — anche se su istanze \emph{diverse} del
@@ -762,7 +762,7 @@ schiaccia in un unico vettore e conta le frequenze dei codici): è corretto
 proprio \emph{perché} le istanze di una feature condividono lo \emph{stesso}
 spazio di indici principali, come si è visto al livello
 \texttt{INDEXES} — una configurazione che appare sull'istanza 2 e una
-configurazione D8-equivalente sull'istanza 5 sono lo \emph{stesso} codice e
+configurazione $D_4$-equivalente sull'istanza 5 sono lo \emph{stesso} codice e
 concorrono alla \emph{stessa} frequenza.
 
 Sulla base delle frequenze, le configurazioni si dividono in due classi:

@@ -297,7 +297,7 @@ class _JointAccumulator:
 
     The same-feature pair (F, F) is allowed: the diagonal cell (the variable with itself) is NOT
     BUILT — it is the marginal itself (the redundant (u, u) joint); the registry holds the
-    off-diagonal only (the D8 orientations of the same mask, the anisotropy measure).
+    off-diagonal only (the D4 orientations of the same mask, the anisotropy measure).
 
     The per-cell merges are independent (each touches only its own registry entry) and the add runs
     them on a thread pool; a cell's result is a pure function of its own (K, C) history + the

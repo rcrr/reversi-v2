@@ -29,7 +29,7 @@
 board - the Reversi board domain model.
 
 The bottom layer of the engine: squares, moves, bitboards and game positions, and everything that
-operates on them — the D8 symmetry group, legal-move and flip-set computation, move execution,
+operates on them — the D4 symmetry group, legal-move and flip-set computation, move execution,
 end-of-game (WOFC) scoring, the legacy-compatible Zobrist position hash.
 
 Design choices --------------
@@ -510,7 +510,7 @@ def bitboard_print(bb: Bitboard, output: Union[IO, io.StringIO] = sys.stdout) ->
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     """
-    Apply the eight D8 transformations on the input bitboards.
+    Apply the eight D4 transformations on the input bitboards.
 
     The fixed slot order (notes/naming.md): 0 ro000, 1 ro090, 2 ro180, 3 ro270, 4 fvert, 5 fh1a8, 6
     fhori, 7 fa1h8.
@@ -562,7 +562,7 @@ def _numba_bitboard_transformations(bb_arr: BitboardArray) -> BitboardArray:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     """
-    Apply the eight D8 anti-transformations (the inverses) on the input bitboards.
+    Apply the eight D4 anti-transformations (the inverses) on the input bitboards.
 
     The slot order of bitboard_transformations with slots 1 and 3 swapped (the 90-degree rotations
     undone): 0 ro000, 1 ro270, 2 ro180, 3 ro090, 4 fvert, 5 fh1a8, 6 fhori, 7 fa1h8.
@@ -870,7 +870,7 @@ def bitboard_ro000(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Return the bitboard, or the array of bitboards, unchanged (the identity).
 
-    Like the other seven D8 functions, the result is a fresh copy of the input (no aliasing), so the
+    Like the other seven D4 functions, the result is a fresh copy of the input (no aliasing), so the
     identity contract is the same at the bitboard and the position layers (position_ro000).
 
     .    ---- input ----    ---- output ---
@@ -2008,7 +2008,7 @@ def position_ro270(p: PositionField) -> PositionField:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_transformations(p: PositionField | PositionArray) -> PositionArray:
     """
-    Apply the eight D8 transformations on the input game positions.
+    Apply the eight D4 transformations on the input game positions.
 
     The fixed slot order (notes/naming.md): 0 ro000, 1 ro090, 2 ro180, 3 ro270, 4 fvert, 5 fh1a8, 6
     fhori, 7 fa1h8.
@@ -2026,7 +2026,7 @@ def position_transformations(p: PositionField | PositionArray) -> PositionArray:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_anti_transformations(p: PositionField | PositionArray) -> PositionArray:
     """
-    Apply the eight D8 anti-transformations (the inverses) on the input game positions.
+    Apply the eight D4 anti-transformations (the inverses) on the input game positions.
 
     The slot order of position_transformations with slots 1 and 3 swapped (the 90-degree rotations
     undone): 0 ro000, 1 ro270, 2 ro180, 3 ro090, 4 fvert, 5 fh1a8, 6 fhori, 7 fa1h8.

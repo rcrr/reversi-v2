@@ -28,7 +28,7 @@
 """
 pattern - pattern definition, categorization, naming and indexing.
 
-A pattern is a set of board squares given by its principal mask. The module computes the D8 orbit
+A pattern is a set of board squares given by its principal mask. The module computes the D4 orbit
 (instances, stabilizer, the permutations the stabilizer induces on the squares), packs the 64-bit
 board into S contiguous bits (the PEXT-style plan), encodes every configuration in base 3 (3^S
 states, uint32), and reduces each configuration to its principal index under the induced symmetries
@@ -37,7 +37,7 @@ PatternType is the closed table of the 12 supported shapes.
 
 Design choices --------------
 
-* **Principal mask rule**: a mask is principal iff it is the numerically lowest of its 8 D8
+* **Principal mask rule**: a mask is principal iff it is the numerically lowest of its 8 D4
   transforms; the constructor rejects the rest and names the offending slot.
 * **PEXT-style packing**: the S squares compress to S contiguous bits; the plan's "planes" are runs
   of consecutive set bits (single-run patterns take a fast path).
@@ -155,16 +155,16 @@ class Pattern:
     """
     A Reversi pattern: a set of board squares given by its principal mask.
 
-    The construction computes the D8 orbit structure (instances, stabilizer, the induced
+    The construction computes the D4 orbit structure (instances, stabilizer, the induced
     permutations on the pattern squares), the PEXT-style pack plan, and the base-3 configuration
     bookkeeping; the principal-index structures are computed lazily by compute_principal_index_dict().
 
     Attributes:
         name: the human-readable pattern label.
-        mask: the principal mask (the numerically lowest of the 8 D8 transforms).
+        mask: the principal mask (the numerically lowest of the 8 D4 transforms).
         n_squares: the number of set bits in the mask.
         n_configurations: 3 ** n_squares.
-        tmasks: the 8 D8 transforms in canonical slot order.
+        tmasks: the 8 D4 transforms in canonical slot order.
         squares: the pattern square indices in ascending board order (A1 first).
         snames: the pattern square names.
         unique_masks: the distinct tmasks in first-seen order.
@@ -190,10 +190,10 @@ class Pattern:
         fingerprint: the 8-slot I/S/T fingerprint (e.g. "I0", "T1", "S3").
         type_info: the table entry matching the fingerprint. powers_3 (np.ndarray(n_squares,
             Index)): 3**k for k in 0..n_squares-1. bit_shifts (np.ndarray(n_squares, Index)):
-            0..n_squares-1. trans_fs_labels (np.ndarray(n_instances, str)): the D8 labels of the
+            0..n_squares-1. trans_fs_labels (np.ndarray(n_instances, str)): the D4 labels of the
             instance transform functions. anti_trans_fs_labels (np.ndarray(n_instances, str)): the
-            D8 labels of the instance inverse transform functions. symmetry_fs_labels
-            (np.ndarray(len(symmetry_fs), str)): the D8 labels of the symmetry functions.
+            D4 labels of the instance inverse transform functions. symmetry_fs_labels
+            (np.ndarray(len(symmetry_fs), str)): the D4 labels of the symmetry functions.
         principal_index_dict: configuration index -> principal index (lazy).
         principal_indexes: the unique principal indexes (lazy).
         principal_index_count: len(principal_indexes) (lazy).

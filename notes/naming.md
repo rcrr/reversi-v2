@@ -28,9 +28,9 @@ follow it.
 - `ExtendedIndex` = a numpy int64 alias — the same index space as `Index`, plus the negative values (-1, -2, ...), which
   denote logical states of a feature configuration (the unseen-config sentinel, the no-config placeholder), not data.
 
-## D8 — the eight board symmetries
+## D4 — the eight board symmetries
 
-The eight D8 symmetries are a geometric/algebraic property of the board itself. The order below is arbitrary but fixed —
+The eight D4 symmetries are a geometric/algebraic property of the board itself. The order below is arbitrary but fixed —
 do not reorder, rename, or alter it.
 
 Corner tracking uses the four corners in fixed order [A1, H1, A8, H8] = [N-W, N-E, S-W, S-E]:
@@ -95,12 +95,12 @@ were the opponent's turn to move (the would-be moves).
 
 ## Pattern
 
-A Pattern is the D8 orbit of a mask of S squares (S ≤ 18), addressed by its principal representative.
+A Pattern is the D4 orbit of a mask of S squares (S ≤ 18), addressed by its principal representative.
 
-- A mask is `Bitboard`; the principal mask is the numerically LOWEST of its 8 D8 transforms — the unique representative
+- A mask is `Bitboard`; the principal mask is the numerically LOWEST of its 8 D4 transforms — the unique representative
   of the orbit; a non-principal mask is rejected at construction.
 - The orbit members are the instances: n\_instances = |Orb|, with n\_stabilizers = 8 / |Orb|; instance 0 is always the
-  ro000 image — the principal mask itself (the instance order is first-seen over the D8 slots, above).
+  ro000 image — the principal mask itself (the instance order is first-seen over the D4 slots, above).
 - A configuration is a base-3 assignment of the S squares (0 empty, 1 mover, 2 opponent): 3^S of them, packed into S
   contiguous bits (packed bit k ↔ the k-th square in board order) and indexed base-3 into a uint32 (safe while S ≤ 18).
 - The principal index is the min of a configuration's orbit under the permutations the stabilizer induces on the pattern
