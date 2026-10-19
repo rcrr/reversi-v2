@@ -448,3 +448,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    everything to Italian, grouped the outflanking + sample-game figures as figure/subfigure, made the arrows red.
  - Gates green: the license audit passes on the new .tex; the build is 60 pages, 0 hard errors, 0 undefined
    references; notes\_lint green. One checkin: D-580.
+
+## 2026-10-19 — session 124 (LATEX — the appendix files move to the 8xx band, D-581)
+ - Renamed the two appendix chapter files to the 8xx numbering band (git mv, history preserved): the pattern
+   catalog appendix to reversi\_800\_appendix\_catalogo.tex and the rules appendix to
+   reversi\_820\_appendix\_regole.tex, freeing the 1xx band for the main chapters.
+ - Updated the main.tex include lines and the two files' self-referencing header comments to the new names; the
+   Makefile CH fast-compile is glob-based and needs no change.
+ - Gates green: build 60 pages, 0 hard errors, 0 undefined references; notes\_lint green. One checkin: D-581.

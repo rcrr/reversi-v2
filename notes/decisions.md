@@ -2194,3 +2194,11 @@ D-580 | 2026-10-18 | New Appendix B "Regole del gioco" (the game rules) added to
          always 64), quoting the World Othello Championships Rules (Section IV.8 "Scoring") with the source PDF link.
          The chapter is wired into main.tex after Appendix A. Build green: 60 pages, 0 hard errors, 0 undefined
          references.
+
+D-581 | 2026-10-19 | The two appendix chapter files move to the 8xx numbering band: the pattern-catalog appendix
+         (reversi\_100\_appendix\_catalogo.tex) is renamed to reversi\_800\_appendix\_catalogo.tex and the rules
+         appendix (reversi\_120\_appendix\_regole.tex) to reversi\_820\_appendix\_regole.tex (git mv, history
+         preserved), freeing the 1xx band for the main chapters. The main.tex include lines and the two files'
+         self-referencing header comments are updated to the new names; the Makefile CH fast-compile is glob-based, so
+         it needs no change (it now resolves CH=800 / CH=820). Build green: 60 pages, 0 hard errors, 0 undefined
+         references.
