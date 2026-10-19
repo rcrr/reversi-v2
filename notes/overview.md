@@ -57,16 +57,21 @@ define the evaluation function.
   values; establish whether a single model definition stays valid across the resolved EC range [26..0] or distinct
   per-phase optima exist; verify whether Buro's LOGISTELLO set is the best compromise for the logistic model, or if a
   more competitive set can be found; develop the examples for the LaTeX document.
-- The LATEX campaign (the artifact document): the book zone is governed (D-576) and linted (D-584, the context-aware
-  .tex linter / safe auto-fixer) and the legacy draft's content is ported (D-578) — chapter 2 (the board: domain
-  representation, game positions, the D4 group), chapter 3 (the pattern theory + index calculation), chapter 4 (the
-  evaluation function), chapter 5 (the pipeline: the ML-chain overview — architecture, the 19 levels, the config; no
-  per-module detail, D-582), then the six per-level pipeline chapters 6-11 (one per phase: Setup; Corpus and feature
-  analysis; Model construction; the L-BFGS algorithm; Validation and analysis; Persistence and output, D-583), Appendix
-  A (the 29-pattern catalog) and Appendix B (the game rules, in Italian, diagrams reconstructed via othelloboard + the
-  WOF scoring note, D-580); the build is green at 112 pages. Next: wording/word-choice refinements across the new
-  chapters (in review), the results section (fills in as FEATURE-SET lands), and a fresh Introduction (the legacy one is
-  obsolete).
+- The LATEX campaign (the artifact document): the book zone is governed (D-576), linted (D-584) and spellchecked (D-586,
+  a hard gate); the legacy draft's content is ported (D-578) — chapter 2 (the board: domain representation, game
+  positions, the D4 group), chapter 3 (the pattern theory + index calculation), chapter 4 (the features: the general
+  feature notion, its three sources pattern/mobility/intercept, and the FeatureSet; the mobility section is a first
+  draft in review, D-587), chapter 5 (the evaluation function), chapter 6 (the pipeline: the ML-chain overview —
+  architecture, the 19 levels, the config; no per-module detail, D-582), then the six per-level pipeline chapters 7-12
+  (one per phase: Setup; Corpus and feature analysis; Model construction; the L-BFGS algorithm; Validation and analysis;
+  Persistence and output, D-583), Appendix A (the 29-pattern catalog) and Appendix B (the game rules, in Italian,
+  diagrams reconstructed via othelloboard + the WOF scoring note, D-580); the build is green at 116 pages. A
+  notation-consistency pass over chapters 2-3 is done (D-588: the D4 element notation unified to the word form, the
+  code/math/Cayley congruence fixed, the pattern symbol collisions resolved, and a conventions table added). Open for
+  Roberto: the D1 call (the book says D4, the code says D8 — I recommend the book follow the code to D8), his review of
+  the notation pass and of the feature chapter, and the 10-subgroups topic (deferred, F2). Next: wording/word-choice
+  refinements (in review), the results section (fills in as FEATURE-SET lands), and a fresh Introduction (the legacy one
+  is obsolete).
 - The MULTI-PLY campaign: the current EF is zero-ply; develop the N-ply game expansion (the alpha-beta search over the
   EF) delivering an evaluation based on a game tree search; evaluate the statistical properties of the resulting
   function.

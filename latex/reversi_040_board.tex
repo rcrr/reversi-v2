@@ -31,15 +31,19 @@
 La BOARD Reversi è composta da 64 celle, otto righe ed otto colonne, numerate da 0, in alto a sinistra (North-West, NW),
 a 63, in basso a destra (South-East, SE).
 
-La configurazione della BOARD è rappresentata con due interi a 64 bit (indifferentemente senza segno \texttt{uint64} o con segno \texttt{int64}).
+La configurazione della BOARD è rappresentata con due interi a 64 bit senza segno \texttt{uint64}, il tipo canonico della bitboard (nel database PostgreSQL il campo è conservato come \texttt{int64} con segno, perché PostgreSQL non definisce un tipo unsigned a 64 bit: è solo un dettaglio di archiviazione, non la rappresentazione).
 Ognuno dei 64 bit è associato ad una cella. Il bit meno significativo è associato ad \texttt{a1}, quello più significativo ad \texttt{h8},
 procedendo da sinistra verso destra per righe.
 
+Una nota sulla notazione: non è quella degli scacchi. Qui la riga 1 è in alto e la colonna a a sinistra,
+per cui \texttt{a1} indica l'angolo in alto a sinistra (North-West) e \texttt{h8} quello in basso a destra (South-East);
+è la convenzione fissata nel vocabolario di notazione del progetto.
+
 Il primo intero rappresenta le celle del \texttt{GIOCATORE (PLAYER)} che deve effettuare la mossa, il secondo le celle dell'\texttt{AVVERSARIO (OPPONENT)}.
 
-Con due valori \texttt{int64} viene quindi rappresentata la \texttt{POSIZIONE (GAME\_POSITION)}, come mostrato in figura~\ref{fig:reversi-bitboard-patterns}.
+Con due valori \texttt{uint64} viene quindi rappresentata la \texttt{POSIZIONE (GAME\_POSITION)}, come mostrato in figura~\ref{fig:reversi-bitboard-patterns}.
 
-Unico vincolo, o invariante, della rappresentazione è la formula: \texttt{PLAYER \&\& OPPONENT == 0},
+Unico vincolo, o invariante, della rappresentazione è la formula: \texttt{PLAYER \& OPPONENT == 0},
 che formalizza il divieto di avere sia un disco del giocatore che uno dell'avversario contemporaneamente nella stessa cella.
 
 Quando una cella ha zero sia per il giocatore che per l'avversario è vuota.
@@ -263,7 +267,7 @@ Ai fini del machine learning (ML) un record posizione di esempio con header è r
 Dove:
 
 \begin{description}[leftmargin=*,widest=GAME\_VALUE,labelsep=1em]
-\item[PLAYER] è la configurazione della board dei dischi occupati dal giocatore che deve muovere, in formato \texttt{int64} con segno.
+\item[PLAYER] è la configurazione della board dei dischi occupati dal giocatore che deve muovere, in formato \texttt{uint64}.
   Il bit meno significativo è la casella \texttt{a1}, si procede per righe, come specificato sopra.
 \item[OPPONENT] è la configurazione della board dei dischi occupati dall'avversario, stesso formato usato per \texttt{PLAYER}.
 \item[GAME\_VALUE] è il valore esatto del game
@@ -348,17 +352,17 @@ Il gruppo $D_4$ (gruppo delle simmetrie del quadrato) ha ordine $|D_4| = 8$. In 
     \item \textbf{Ordine 1:} L'identità $\{e\}$.
     \item \textbf{Ordine 2:}
     \begin{itemize}
-        \item Sottogruppo generato dalla rotazione di $180^\circ$: $\langle R_{180} \rangle = \{e, R_{180}\}$.
-        \item 2 sottogruppi dalle riflessioni mediane: $\{e, S_h\}$ e $\{e, S_v\}$.
-        \item 2 sottogruppi dalle riflessioni diagonali: $\{e, S_{d1}\}$ e $\{e, S_{d2}\}$.
+        \item Sottogruppo generato dalla rotazione di $180^\circ$: $\langle r^2 \rangle = \{e, r^2\}$.
+        \item 2 sottogruppi dalle riflessioni mediane: $\{e, s\}$ e $\{e, sr^2\}$.
+        \item 2 sottogruppi dalle riflessioni diagonali: $\{e, sr\}$ e $\{e, sr^3\}$.
     \end{itemize}
     \item \textbf{Ordine 4:}
     \begin{itemize}
-        \item Sottogruppo ciclico delle rotazioni: $C_4 = \{e, R_{90}, R_{180}, R_{270}\}$.
+        \item Sottogruppo ciclico delle rotazioni: $C_4 = \{e, r, r^2, r^3\}$.
         \item 2 sottogruppi isomorfi al gruppo di Klein $V_4$:
         \begin{itemize}
-            \item $V_{4(m)} = \{e, R_{180}, S_h, S_v\}$ (mediane).
-            \item $V_{4(d)} = \{e, R_{180}, S_{d1}, S_{d2}\}$ (diagonali).
+            \item $V_{4(m)} = \{e, r^2, s, sr^2\}$ (mediane).
+            \item $V_{4(d)} = \{e, r^2, sr, sr^3\}$ (diagonali).
         \end{itemize}
     \end{itemize}
     \item \textbf{Ordine 8:} Il gruppo stesso $D_4$.
@@ -399,12 +403,12 @@ Il grafo è strutturato verticalmente in base all'\textbf{ordine} (numero di ele
   \item \textbf{Livello 1 (Base):} Il sottogruppo banale $\{e\}$.
 \end{enumerate}
 
-Osservando il grafo, si nota che il sottogruppo $\langle R_{180} \rangle$ è l'unico del livello 2 ad essere collegato a \textbf{tutti} i sottogruppi di ordine 4.
+Osservando il grafo, si nota che il sottogruppo $\langle r^2 \rangle$ è l'unico del livello 2 ad essere collegato a \textbf{tutti} i sottogruppi di ordine 4.
 \[
-\{e, R_{180}\} = C_4 \cap V_{4(m)} \cap V_{4(d)}
+\{e, r^2\} = C_4 \cap V_{4(m)} \cap V_{4(d)}
 \]
 Logicamente, questo accade perché la rotazione di $180^\circ$ commuta con tutti gli elementi del gruppo e fa parte del \textbf{centro} di $D_4$,
-indicando che è una simmetria comune sia alle rotazioni che alle riflessioni assiali/diagonali, questo è il Ruolo Centrale di $R_{180}$.
+indicando che è una simmetria comune sia alle rotazioni che alle riflessioni assiali/diagonali, questo è il Ruolo Centrale di $r^2$.
 
 \subsection{Proprietà Algebriche Visibili}
 \begin{itemize}
@@ -421,16 +425,16 @@ indicando che è una simmetria comune sia alle rotazioni che alle riflessioni as
         \node (D4) at (0,6) {$D_4$};
 
         % --- LIVELLO 3: Ordine 4 ---
-        \node (C4) at (-4.5,4) {$C_4 = \{e, R_{90}, R_{180}, R_{270}\}$};
-        \node (V4m) at (0,4) {$V_{4(m)} = \{e, R_{180}, S_h, S_v\}$};
-        \node (V4d) at (4.5,4) {$V_{4(d)} = \{e, R_{180}, S_{d1}, S_{d2}\}$};
+        \node (C4) at (-4.5,4) {$C_4 = \{e, r, r^2, r^3\}$};
+        \node (V4m) at (0,4) {$V_{4(m)} = \{e, r^2, s, sr^2\}$};
+        \node (V4d) at (4.5,4) {$V_{4(d)} = \{e, r^2, sr, sr^3\}$};
 
         % --- LIVELLO 2: Ordine 2 ---
-        \node (S180) at (0,2) {$\{e, R_{180}\}$};
-        \node (Sh) at (-6,2) {$\{e, S_h\}$};
-        \node (Sv) at (-3,2) {$\{e, S_v\}$};
-        \node (Sd1) at (3,2) {$\{e, S_{d1}\}$};
-        \node (Sd2) at (6,2) {$\{e, S_{d2}\}$};
+        \node (S180) at (0,2) {$\{e, r^2\}$};
+        \node (Sh) at (-6,2) {$\{e, s\}$};
+        \node (Sv) at (-3,2) {$\{e, sr^2\}$};
+        \node (Sd1) at (3,2) {$\{e, sr\}$};
+        \node (Sd2) at (6,2) {$\{e, sr^3\}$};
 
         % --- LIVELLO 1: Ordine 1 ---
         \node (e) at (0,0) {$\{e\}$};
@@ -451,8 +455,8 @@ indicando che è una simmetria comune sia alle rotazioni che alle riflessioni as
 \subsection{Tabella di Cayley del Gruppo Diedrale $D_4$}
 Come si può osservare nella Tabella \ref{tab:cayley_d4}, il gruppo non è commutativo.
 La tabella seguente mostra il prodotto $G \cdot H$, dove $G$ è l'elemento della riga e $H$ l'elemento della colonna.
-In questa rappresentazione, il prodotto segue l'ordine operativo da sinistra a destra: si applica prima la
-trasformazione $G$ e successivamente la trasformazione $H$ al risultato, ovvero $y = H(G(x))$.
+Il prodotto è la composizione di funzioni nel senso standard: $G \cdot H = G \circ H$ significa applicare prima $H$ e poi $G$,
+cioè $y = G(H(x))$; è la stessa convenzione usata dal codice per le composizioni di trasformazioni.
 Si noti che la tabella \textbf{non è simmetrica} rispetto alla diagonale principale, a conferma che $D_4$ non è abeliano.
 
 \begin{table}[h]
@@ -460,22 +464,22 @@ Si noti che la tabella \textbf{non è simmetrica} rispetto alla diagonale princi
 \renewcommand{\arraystretch}{1.8}
 \setlength{\tabcolsep}{10pt}
 \begin{tabular}{c|cccc|cccc}
-$\cdot$ & $e$ & $r$ & $r^2$ & $r^3$ & $s_v$ & $s_h$ & $d_1$ & $d_2$ \\ \hline
-$e$     & $e$ & $r$ & $r^2$ & $r^3$ & $s_v$ & $s_h$ & $d_1$ & $d_2$ \\
-$r$     & $r$ & $r^2$ & $r^3$ & $e$   & $d_1$ & $d_2$ & $s_h$ & $s_v$ \\
-$r^2$   & $r^2$ & $r^3$ & $e$   & $r$   & $s_h$ & $s_v$ & $d_2$ & $d_1$ \\
-$r^3$   & $r^3$ & $e$   & $r$   & $r^2$ & $d_2$ & $d_1$ & $s_v$ & $s_h$ \\ \hline
-$s_v$   & $s_v$ & $d_2$ & $s_h$ & $d_1$ & $e$   & $r^2$ & $r^3$ & $r$   \\
-$s_h$   & $s_h$ & $d_1$ & $s_v$ & $d_2$ & $r^2$ & $e$   & $r$   & $r^3$ \\
-$d_1$   & $d_1$ & $s_v$ & $d_2$ & $s_h$ & $r$   & $r^3$ & $e$   & $r^2$ \\
-$d_2$   & $d_2$ & $s_h$ & $d_1$ & $s_v$ & $r^3$ & $r$   & $r^2$ & $e$   \\
+$\cdot$ & $e$ & $r$ & $r^2$ & $r^3$ & $sr^2$ & $s$ & $sr$ & $sr^3$ \\ \hline
+$e$     & $e$ & $r$ & $r^2$ & $r^3$ & $sr^2$ & $s$ & $sr$ & $sr^3$ \\
+$r$     & $r$ & $r^2$ & $r^3$ & $e$   & $sr$ & $sr^3$ & $s$ & $sr^2$ \\
+$r^2$   & $r^2$ & $r^3$ & $e$   & $r$   & $s$ & $sr^2$ & $sr^3$ & $sr$ \\
+$r^3$   & $r^3$ & $e$   & $r$   & $r^2$ & $sr^3$ & $sr$ & $sr^2$ & $s$ \\ \hline
+$sr^2$   & $sr^2$ & $sr^3$ & $s$ & $sr$ & $e$   & $r^2$ & $r^3$ & $r$   \\
+$s$   & $s$ & $sr$ & $sr^2$ & $sr^3$ & $r^2$ & $e$   & $r$   & $r^3$ \\
+$sr$   & $sr$ & $sr^2$ & $sr^3$ & $s$ & $r$   & $r^3$ & $e$   & $r^2$ \\
+$sr^3$   & $sr^3$ & $s$ & $sr$ & $sr^2$ & $r^3$ & $r$   & $r^2$ & $e$   \\
 \end{tabular}
   \caption{Tabella di Cayley del gruppo $D_4$ con evidenza delle classi di equivalenza.}
   \label{tab:cayley_d4}
 \end{table}
 
 \subsection{Composizione del Gruppo}
-Il gruppo $G = \{T_0, T_1, \dots, T_7\}$ è composto da 8 elementi fondamentali:
+Il gruppo $G = D_4 = \{T_0, T_1, \dots, T_7\}$ è composto da 8 elementi fondamentali (scriveremo $G$ e $D_4$ in modo interscambiabile per indicare lo stesso gruppo):
 \begin{itemize}
   \item \textbf{4 Rotazioni:} $0^\circ$ (l'elemento \textit{Identità} $e$), $90^\circ$, $180^\circ$ e $270^\circ$.
   \item \textbf{4 Riflessioni:} Orizzontale, Verticale e le due Diagonali.
@@ -493,9 +497,9 @@ Il gruppo $G = \{T_0, T_1, \dots, T_7\}$ è composto da 8 elementi fondamentali:
 2 & $r^2$    & Rotazione $180^\circ$         & $T_2$ & 2 \\
 3 & $r^3$    & Rotazione $270^\circ$ (CW)    & $T_1$ & 4 \\
 4 & $s$      & Riflessione Orizzontale       & $T_4$ & 2 \\
-5 & $sr$     & Riflessione Diagonale (P)     & $T_5$ & 2 \\
+5 & $sr$     & Riflessione Diagonale (A)     & $T_5$ & 2 \\
 6 & $sr^2$   & Riflessione Verticale         & $T_6$ & 2 \\
-7 & $sr^3$   & Riflessione Diagonale (A)     & $T_7$ & 2 \\ \hline
+7 & $sr^3$   & Riflessione Diagonale (P)     & $T_7$ & 2 \\ \hline
 \end{tabular}
 \end{table}
 
@@ -516,8 +520,8 @@ In un modello geometrico continuo, tutte le riflessioni e le rotazioni ammettono
 
 \begin{itemize}
     \item \textbf{Rotazioni ($C_4$):} Non ammettono celle fisse. Poiché la dimensione $n=8$ è pari, il centro di rotazione cade esattamente nell'intersezione tra quattro celle, mai sopra una di esse.
-    \item \textbf{Riflessioni Mediane ($S_h, S_v$):} Non ammettono celle fisse. Gli assi di riflessione passano \textit{tra} le righe o \textit{tra} le colonne, spostando ogni cella della scacchiera.
-    \item \textbf{L'Eccezione Diagonale:} Le riflessioni diagonali ($S_{d1}, S_{d2}$), appartenenti al sottogruppo di Klein $V_{4(d)}$, rappresentano l'unica eccezione logica. Esse sono le sole a possedere \textbf{punti fissi discreti}: ogni diagonale interseca esattamente $8$ celle che rimangono invarianti sotto l'azione di riflessione.
+    \item \textbf{Riflessioni Mediane ($s, sr^2$):} Non ammettono celle fisse. Gli assi di riflessione passano \textit{tra} le righe o \textit{tra} le colonne, spostando ogni cella della scacchiera.
+    \item \textbf{L'Eccezione Diagonale:} Le riflessioni diagonali ($sr, sr^3$), appartenenti al sottogruppo di Klein $V_{4(d)}$, rappresentano l'unica eccezione logica. Esse sono le sole a possedere \textbf{punti fissi discreti}: ogni diagonale interseca esattamente $8$ celle che rimangono invarianti sotto l'azione di riflessione.
 \end{itemize}
 
 Questo fenomeno rompe l'\textbf{omogeneità dell'azione} del gruppo sulla scacchiera: le diagonali agiscono come "ancore" geometriche, creando un'asimmetria fondamentale tra il comportamento dei pattern assiali e quelli diagonali.
@@ -525,10 +529,10 @@ Questo fenomeno rompe l'\textbf{omogeneità dell'azione} del gruppo sulla scacch
 
 Sia $\mathcal{P}$ un pattern di dischi sulla board di Reversi. Definiamo il sottogruppo di simmetria del pattern come $G_{\mathcal{P}} = \{ \sigma \in D_4 \mid \sigma(\mathcal{P}) = \mathcal{P} \}$.
 
-Se il pattern $\mathcal{P}$ giace interamente sulla diagonale principale $d_1$ (ovvero tutte le celle occupate appartengono all'insieme dei punti fissi di $S_{d1}$), si verifica una \textbf{degenerazione dell'azione del gruppo}:
+Se il pattern $\mathcal{P}$ giace interamente sulla diagonale anti-principale $sr$ (ovvero tutte le celle occupate appartengono all'insieme dei punti fissi di $sr$), si verifica una \textbf{degenerazione dell'azione del gruppo}:
 
 \begin{equation}
-    S_{d1}(\mathcal{P}) \equiv e(\mathcal{P}) = \mathcal{P}
+    sr(\mathcal{P}) \equiv e(\mathcal{P}) = \mathcal{P}
 \end{equation}
 
 Mentre $D_4$ ammette formalmente 10 sottogruppi, l'interazione con la griglia discreta $8 \times 8$ crea una distinzione fenomenologica:
@@ -536,7 +540,7 @@ Mentre $D_4$ ammette formalmente 10 sottogruppi, l'interazione con la griglia di
     \item \textbf{V4d Standard:} Agisce su pattern fuori diagonale (genera 4 istanze).
     \item \textbf{V4d Degenerato:} Agisce su pattern diagonali, dove le riflessioni collassano nell'identità o nella rotazione di $180^\circ$.
 \end{itemize}
-In questo sottocaso, l'insieme delle trasformazioni efficaci si riduce a $\{e, R_{180}\}$, ma con la proprietà unica che $S_{d1}$ agisce come operatore neutro \textit{sul contenuto} delle celle.
+In questo sottocaso, l'insieme delle trasformazioni efficaci si riduce a $\{e, r^2\}$, ma con la proprietà unica che $sr$ agisce come operatore neutro \textit{sul contenuto} delle celle.
 
 
 \subsection{Struttura Algebrica e Generatori}
@@ -577,9 +581,9 @@ Grazie ai generatori $r$ e $s$, l'insieme degli otto elementi di $D_4$ può esse
 La notazione $sr^k$ spiega la natura delle simmetrie speculari:
 \begin{itemize}
     \item $s$: Riflessione Orizzontale.
-    \item $sr$: Riflessione rispetto alla Diagonale Principale.
+    \item $sr$: Riflessione rispetto alla Diagonale Anti-principale.
     \item $sr^2$: Riflessione Verticale.
-    \item $sr^3$: Riflessione rispetto alla Diagonale Anti-principale.
+    \item $sr^3$: Riflessione rispetto alla Diagonale Principale.
 \end{itemize}
 Questa classificazione è di fondamentale importanza per il software: permette di mappare ogni possibile simmetria della scacchiera utilizzando solo due funzioni atomiche (\textit{rotate} e \textit{reflection}) e le loro composizioni.
 
@@ -601,9 +605,9 @@ $e$ (Identità) & \texttt{ro000} & - \\
 $s$ (Riflessione Orizzontale) & \texttt{fhori} & Primitive \\
 $sr^2$ (Riflessione Verticale) & \texttt{fvert} & Primitive \\
 $sr$ (Riflessione Diagonale) & \texttt{fh1a8} & Primitive \\
-$r$ (Rotazione $90^\circ$ CW) & \texttt{ro090} & \texttt{fh1a8} $\circ$ \texttt{fhori} \\
-$r^2$ (Rotazione $180^\circ$) & \texttt{ro180} & \texttt{fhori} $\circ$ \texttt{fvert} \\
-$r^3$ (Rotazione $90^\circ$ ACW) & \texttt{ro270} & \texttt{fhori} $\circ$ \texttt{fh1a8} \\ \hline
+$r$ (Rotazione $90^\circ$ CW) & \texttt{ro090} & \texttt{fa1h8} $\circ$ \texttt{fhori} \\
+$r^2$ (Rotazione $180^\circ$) & \texttt{ro180} & \texttt{fvert} $\circ$ \texttt{fhori} \\
+$r^3$ (Rotazione $90^\circ$ ACW) & \texttt{ro270} & \texttt{fh1a8} $\circ$ \texttt{fhori} \\ \hline
 \end{tabular}
 \end{table}
 

@@ -2278,3 +2278,37 @@ D-587 | 2026-10-19 | Added a new chapter, "Le feature" (reversi\_070\_feature.te
          in the per-file header comments) were shifted by one to stay correct. Build green (116 pages, 0 hard errors, 0
          undefined refs), .tex linter green. Submitted to Roberto as a first draft for review; the mobility section runs
          about two pages, slightly under the requested 3-4, to be judged at review.
+
+D-588 | 2026-10-19 | Notation-consistency pass over the board (ch 2) and pattern (ch 3) chapters, per Roberto's review
+         request ("controlla che le notazioni dei simboli siano coerenti"), applying the approved subset of the A-F
+         findings. The code (src/reversi/board.py) is the ground truth; no .py was modified. Concretely: (C) the D4
+         element notation is unified to the word form r, r^2, r^3, s, sr, sr^2, sr^3 across the subgroup/Hasse section,
+         the Cayley table, and the degenerazione section (the four competing element-notation schemes are gone); (E2,
+         the priority item - code / math / Cayley congruence) the composition convention is now the STANDARD one (G.H =
+         G o H = "apply H then G", y = G(H(x)), explicitly stated to be the same convention the code uses), the
+         `code_mapping` table's rotation compositions are corrected to match board.py exactly (ro090 = fa1h8 o fhori,
+         ro180 = fvert o fhori, ro270 = fh1a8 o fhori - previously ro090 and ro270 were swapped), and the diagonal
+         labels are corrected so that sr = fh1a8 = anti-principale (h1-a8) and sr^3 = fa1h8 = principale (a1-h8) in the
+         inverses table, the geometric-interpretation list, and the degenerazione prose (these were P/A-swapped against
+         the code); all triple-checked (code read + docstring + a pure-Python bit reproduction of the four primitive
+         reflections); (E1) PLAYER && OPPONENT -> PLAYER & OPPONENT; (F1) the bitboard type is stated strictly as
+         uint64, with an aside that PostgreSQL stores it in an int64 column because Postgres has no uint64; (F3) an
+         orientation note that Reversi's algebraic notation is not chess's (row 1 on top, column a on the left, a1 = NW,
+         h8 = SE, as in naming.md); (F4) G = D4 is stated explicitly at first use in both chapters. In the pattern
+         chapter: (B1) Orb/Stab now take the MASK M (they previously took P, colliding with the pattern symbol, while
+         line 128 defined the pattern as Orb(M)); (B2) the index formula's per-cell value is `c_p` (was c, a free
+         variable inside the sum); (A1/D2) the mask's square count is S (was k, which in the board chapter denotes the
+         orbit size / number of instances - the collision is now resolved in favour of the naming.md S); (A2) the cell
+         state is sigma in {0,1,2} (was s, colliding with the board chapter's s = horizontal reflection); (A3) the
+         stabilizer order is written |Stab(M)| (was a bare S, which is now the square count). A new "Convenzioni di
+         notazione" section opens the pattern chapter: a table fixing every base symbol (bitboards, M, S, `x_i`, sigma,
+         G = D4, the rotation/reflection elements with their code names, Orb/Stab, pattern, C, S-set, i) together with
+         its correspondence to the code. Also fixed, surfaced by re-running the spellcheck that D-587 (the
+         feature-chapter insertion) had skipped: one real typo in the feature chapter (presiamo -> prendiamo) and 21
+         legitimate terms added to dict.txt (621 -> 642) - the feature-chapter loanwords (popcount, lms, alms,
+         FeatureSet, ...) and a few from this pass (unsigned, diag, digit, rifless). Deferred to Roberto, NOT changed
+         here: D1 - the group is called D4 in the book but D8 in the code and in naming.md; full book / code /
+         vocabulary consistency would mean renaming the book to D8 (my recommendation), versus keeping the D4
+         math-standard name and renaming the code. Awaiting his call. F2 (10 subgroups -> 8 equivalence classes)
+         deliberately left untouched per Roberto ("non fare nulla, e' delicata"). Result: build green (116 pages, 0 hard
+         errors, 0 undefined refs), .tex linter green (0), spellcheck green (0).

@@ -510,3 +510,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    FeatureSet, a short intercept section, and a developed mobility section (formal definition, LMC/ALMC, a worked
    example, the config/instance structure, a comparison table, the strategic reading). Build green (116 pp), linter
    green. Sent to Roberto as a first draft for review. One checkin: D-587.
+  - Did the notation-consistency review Roberto asked for over the board (ch 2) and pattern (ch 3) chapters and applied
+    the approved fixes (A, B, C, D2, E1, E2, F1, F3, F4), using the code (board.py) as the ground truth. The headline
+    item (E2) makes the code, the math notation, and the Cayley-table interpretation congruent: the composition
+    convention is now the standard one (matching the code), the `code_mapping` rotation compositions are corrected to
+    board.py (ro090/ro270 were swapped), and the diagonal labels are corrected (sr = anti-principale h1-a8, sr^3 =
+    principale a1-h8), all triple-checked against the code. The D4 element notation is unified to the word form (r, s,
+    sr^k) across the Hasse/Cayley/degenerazione sections; the pattern chapter's symbol collisions are resolved (Orb/Stab
+    take the mask M, the square count is S, the cell state is sigma, the stabilizer order is |Stab(M)|); and a new
+    'Convenzioni di notazione' table opens the pattern chapter. Also fixed a feature-chapter typo (presiamo ->
+    prendiamo) surfaced by the spellcheck that D-587 had skipped, and added 21 terms to dict.txt (621 -> 642). Deferred
+    to Roberto: D1 (the book says D4, the code says D8 - I recommend renaming the book to D8 for full consistency). Left
+    untouched per Roberto: F2. Build green (116 pp), linter green (0), spellcheck green (0). One checkin: D-588.

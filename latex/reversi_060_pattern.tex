@@ -26,6 +26,47 @@
 %
 \chapter{I pattern}
 
+\section{Convenzioni di notazione}
+
+Prima di sviluppare la teoria, fissiamo le notazioni comuni a questo capitolo e al precedente (la board),
+in modo che ogni simbolo abbia un solo significato in tutto il libro.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Convenzioni di notazione (board, pattern, gruppo di simmetrie) e corrispondenza col codice.}
+\label{tab:notation_conventions}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Simbolo} & \textbf{Significato} & \textbf{nel codice} \\
+\midrule
+\texttt{PLAYER}, \texttt{OPPONENT} & bitboard dei due colori & \texttt{mover}, \texttt{opponent} \\
+$\mathcal{M}$ & maschera (insieme di celle) & \texttt{SquareSet} \\
+$S = |\mathcal{M}|$ & numero di quadrati della maschera & \texttt{n\_squares} \\
+$x_1, \dots, x_S$ & le celle della maschera & --- \\
+$\sigma \in \{0,1,2\}$ & stato di una cella & digit 0/1/2 \\
+\midrule
+$G = D_4$ & gruppo di simmetrie (ordine 8) & \texttt{D8} \\
+$r$ & rotazione $90^\circ$ oraria & \texttt{ro090} \\
+$s$ & riflessione orizzontale & \texttt{fhori} \\
+$sr^2$ & riflessione verticale & \texttt{fvert} \\
+$sr$ & rifless.\ diag.\ anti (\texttt{h1}--\texttt{a8}) & \texttt{fh1a8} \\
+$sr^3$ & rifless.\ diag.\ principale (\texttt{a1}--\texttt{h8}) & \texttt{fa1h8} \\
+\midrule
+$\text{Orb}(\mathcal{M})$ & orbita (istanze della maschera) & \texttt{n\_instances} \\
+$\text{Stab}(\mathcal{M})$ & stabilizzatore & \texttt{n\_stabilizers} \\
+pattern & classe di equivalenza (l'orbita) & \texttt{Pattern} \\
+$\mathcal{C}$ & configurazione (stati delle celle) & --- \\
+$\mathcal{S}$ & insieme di tutte le configurazioni & $3^S$ \\
+$i$ & indice (encoding in base 3) & \texttt{indexes} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La tabella risolve i conflitti di notazione emersi nei due capitoli: i quadrati di una maschera sono ora
+$S$ (e non più $k$, che nel capitolo board denota il numero di istanze), e lo stato di una cella è $\sigma$
+(e non più $s$, che nel capitolo board è la riflessione orizzontale).
+
 \section{Teoria dei Pattern e Canonizzazione}
 
 \subsection{Proprietà Algebriche e Simmetrie del Pattern}
@@ -43,15 +84,15 @@ Per la corretta catalogazione dei pattern e la riduzione dei parametri nel model
 \subsection{Il Teorema Orbita-Stabilizzatore}
 La relazione tra il numero di istanze di un pattern e le sue simmetrie è governata dal \textbf{Teorema Orbita-Stabilizzatore}:
 \begin{equation}
-    |G| = |\text{Orb}(\mathcal{P})| \times |\text{Stab}(\mathcal{P})|
+    |G| = |\text{Orb}(\mathcal{M})| \times |\text{Stab}(\mathcal{M})|
 \end{equation}
-Poiché l'ordine del gruppo $|G|$ è esattamente 8, la cardinalità dell'orbita (ovvero il numero di istanze uniche) deve essere necessariamente un divisore di 8. Di conseguenza, un pattern può possedere solo \textbf{1, 2, 4 o 8 istanze} sulla scacchiera.
+Poiché l'ordine del gruppo $G = D_4$ è esattamente 8, la cardinalità dell'orbita (ovvero il numero di istanze uniche) deve essere necessariamente un divisore di 8. Di conseguenza, un pattern può possedere solo \textbf{1, 2, 4 o 8 istanze} sulla scacchiera.
 
 \subsection{Classificazione Geometrica e Molteplicità dei Pattern}
 
 Il Teorema Orbita-Stabilizzatore non definisce solo il numero di istanze, ma permette di classificare ogni pattern in categorie di simmetria basate sui sottogruppi di $D_4$. Poiché l'ordine del gruppo è $|G|=8$, la cardinalità dell'orbita (le istanze fisiche) è vincolata dalla relazione:
 \begin{equation}
-    |\text{Orb}(\mathcal{P})| = \frac{8}{|\text{Stab}(\mathcal{P})|}
+    |\text{Orb}(\mathcal{M})| = \frac{8}{|\text{Stab}(\mathcal{M})|}
 \end{equation}
 
 In base alla geometria della maschera $\mathcal{M}$, i pattern possono essere raggruppati in quattro classi fondamentali di molteplicità:
@@ -67,9 +108,9 @@ In base alla geometria della maschera $\mathcal{M}$, i pattern possono essere ra
 \end{enumerate}
 
 \subsection{Lo Spazio degli Stati e Riduzione Parametrica}
-Se consideriamo un pattern di ordine $k$ con uno stabilizzatore di ordine $S$, il numero totale di configurazioni teoriche $3^k$ può essere ridotto drasticamente. Il numero di configurazioni \textit{effettive} da memorizzare nel PDB è approssimativamente:
+Se consideriamo un pattern di ordine $S$ con uno stabilizzatore di ordine $|\text{Stab}(\mathcal{M})|$, il numero totale di configurazioni teoriche $3^S$ può essere ridotto drasticamente. Il numero di configurazioni \textit{effettive} da memorizzare nel PDB è approssimativamente:
 \begin{equation}
-    N_{eff} \approx \frac{3^k}{|\text{Stab}(\mathcal{P})|}
+    N_{eff} \approx \frac{3^S}{|\text{Stab}(\mathcal{M})|}
 \end{equation}
 Questa scomposizione in classi di equivalenza non solo ottimizza l'occupazione di memoria (riducendo le cache misses), ma accelera la convergenza durante la fase di apprendimento dei pesi, poiché la simmetria geometrica agisce come un regolarizzatore naturale del modello.
 
@@ -114,9 +155,9 @@ Per formalizzare il concetto di pattern nel gioco del Reversi, dobbiamo distingu
 \subsection{Lo Spazio della Scacchiera}
 Sia $X = \{0, 1, \dots, 63\}$ l'insieme degli indici delle celle di una scacchiera $8 \times 8$. Definiamo una \textbf{Maschera} $\mathcal{M}$ come un sottoinsieme di $X$ (o equivalentemente come un elemento dello spazio dei bit $\mathbb{B}^{64}$):
 \begin{equation}
-    \mathcal{M} = \{s_1, s_2, \dots, s_k\} \subseteq X
+    \mathcal{M} = \{x_1, x_2, \dots, x_S\} \subseteq X
 \end{equation}
-dove $k$ è il numero di quadrati (celle) che compongono il pattern.
+dove $S$ è il numero di quadrati (celle) che compongono il pattern.
 
 \subsection{Azione del Gruppo e Orbita}
 Il Gruppo Diedrale $D_4$ agisce sullo spazio $X$ attraverso le trasformazioni $T \in G$. L'azione del gruppo sulla maschera $\mathcal{M}$ genera un insieme di nuove maschere, definito come \textbf{Orbita}:
@@ -141,11 +182,11 @@ Per ogni maschera $\mathcal{M}$, esiste un sottogruppo di $D_4$ che non ne muta 
 Gli elementi dello stabilizzatore (esclusa l'identità) sono gli \textbf{Automorfismi} del pattern. Essi indicano che il pattern possiede simmetrie intrinseche (ad esempio, una riflessione speculare che lo lascia invariato). Tali simmetrie permettono una ulteriore riduzione dei parametri del modello attraverso vincoli di uguaglianza sui pesi delle celle simmetriche.
 
 \subsection{Spazio delle Configurazioni}
-Data una maschera $\mathcal{M}$ di ordine $k = |\mathcal{M}|$, definiamo \textbf{Configurazione} $\mathcal{C}$ una funzione che associa ogni cella della maschera a uno stato $s \in \{0, 1, 2\}$ (rappresentanti rispettivamente cella vuota, disco nero o disco bianco).
+Data una maschera $\mathcal{M}$ di ordine $S = |\mathcal{M}|$, definiamo \textbf{Configurazione} $\mathcal{C}$ una funzione che associa ogni cella della maschera a uno stato $\sigma \in \{0, 1, 2\}$ (rappresentanti rispettivamente cella vuota, disco nero o disco bianco).
 
 L'insieme di tutte le possibili configurazioni $\mathcal{S}$ ha cardinalità:
 \begin{equation}
-    |\mathcal{S}| = 3^k
+    |\mathcal{S}| = 3^S
 \end{equation}
 
 \subsection{Symmetries of Geometry vs. Symmetries of State}
@@ -210,7 +251,7 @@ Dobbiamo definire un encoding di queste configurazioni, in maniera da assegnargl
 Questo nome lo chiamiamo \texttt{INDEX}.
 
 Per calcolare il valore dell'indice $i$ nell'equazione~\ref{eq:calcolo_indice}, quindi procediamo come segue.
-Ognuno dei tre colori che può assumere una cella ha un valore $c$ assegnato.
+Ognuno dei tre colori che può assumere una cella ha un valore $c$ assegnato; per la cella in posizione $p$ indico questo valore con $c_p$.
 Assegniamo il valore zero alla cella vuota, il valore uno alla cella occupata dal nero, ed il valore due a quella occupata dal bianco.
 Assegniamo un ordine univoco alle celle di un pattern, dalla meno significativa alla più significativa, e chiamiamo $p$ l'ordinale di questa posizione.
 Quindi per l'\texttt{EDGE} la casella \texttt{A1} è la zero, \texttt{B1} è la uno, e la \texttt{H1} è la sette, che è l'ultima e quindi la $n$-esima.
@@ -220,7 +261,7 @@ moltiplicato per tre elevato all'esponente ottenuto dalla posizione ordinale $p$
 
 
 \begin{equation}
-  i = \sum_{p=0}^{n} c \cdot 3^p
+  i = \sum_{p=0}^{n} c_p \cdot 3^p
   \label{eq:calcolo_indice}
 \end{equation}
 
