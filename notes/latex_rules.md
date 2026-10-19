@@ -53,7 +53,7 @@ milestone), notes/naming.md (the domain vocabulary the book explains).
 
 ## 5. The authoring tools (G8)
 
-Two "sensors" for a long writing campaign, both Makefile targets:
+The "sensors" for a long writing campaign (the first two are Makefile targets; the linter is a direct script):
 - `make spell` — Italian spellcheck, run **before every checkin** (a gate). tex2txt.py strips the LaTeX markup
   (comments, environments, structural commands, [options]; keeps the prose and the {arg} of text commands) →
   `aspell list -d it` → the flagged words are filtered against dict.txt (the personal domain dictionary) with
@@ -62,6 +62,14 @@ Two "sensors" for a long writing campaign, both Makefile targets:
 - `make pdf2png` — renders the built PDF to per-page PNGs (pdftoppm) under build/pages/, which Nia inspects VISUALLY
   (the same path as the pipeline PLOTs). It catches what a green build hides — layout / pagination / localization
   defects. It already earned its keep in the spike (it exposed the English "CONTENTS / Chapter" headings).
+- `wsutils/latex_lint.py` — a context-aware linter and SAFE auto-fixer for the .tex sources, run over
+  `latex/reversi_*.tex`. It catches the recurring, mostly SILENT pitfalls the build does not stop on: an
+  ASCII-apostrophe accent in prose (where the Unicode vowel belongs), a non-ASCII byte in a lstlisting, an unescaped
+  special (\_ ^ $ …) in \texttt, a \bar with a following subscript (the sfmath mis-position), a dangling
+  cross-reference, a stray \usepackage in a chapter, an unterminated \[ … \], and an undefined listings language. Its
+  core is a context scanner (prose / math / code / comment / inlinecode) — that context awareness is what makes the
+  accent check robust (it leaves the math primes and the code quotes alone). `--write` applies only the four safe fixes
+  (accent, code-ascii, texttt, bar→overline); the structural checks are report-only.
 
 ## 6. Localization (G6 + a G8 consequence)
 

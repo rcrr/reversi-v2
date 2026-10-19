@@ -2229,3 +2229,16 @@ D-583 | 2026-10-19 | Added the six per-level pipeline chapters (one per §5.2 ph
          reviewed and fixed. One typesetting fix: the book's sans-serif math (sfmath) mis-positions a \bar accent when a
          subscript follows, so the ANOVA y-bar means use \overline{y} (verified to center correctly). Build green: 112
          pages, 0 hard errors, 0 undefined references.
+
+D-584 | 2026-10-19 | Added wsutils/latex\_lint.py, a context-aware linter (and safe auto-fixer) for the .tex sources of
+         the book, to catch the recurring, mostly SILENT pitfalls the build does not stop on. Its core is a context
+         scanner that tiles each file into prose / math / code / comment / inlinecode spans (honouring \$ escapes, \[ \]
+         and \( \) and the math environments, the verbatim lstlisting blocks read raw, and % comments) — that context
+         awareness is what makes the accent check robust where a global regex is not (it leaves the math primes \varphi'
+         and the code quotes kind='stable' alone, and skips the \texttt{'O'} char literals). Eight checks: (1) an
+         ASCII-apostrophe accent in prose → the Unicode vowel; (2) a non-ASCII byte in a lstlisting; (3) an unescaped
+         special in \texttt; (4) a \bar with a following sub/superscript (the sfmath mis-position, → \overline); (5) a
+         dangling cross-reference; (6) a stray \usepackage in a chapter; (7) an unterminated \[ … \]; (8) an undefined
+         listings language. --write applies only the four safe fixes (1,2,3,4); the structural checks (5,6,7,8) are
+         report-only. First run over the finished book is clean (0 violations); it already surfaced one real leftover
+         (an empty language= in a chapter-10 lstlisting, now removed).

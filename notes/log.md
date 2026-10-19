@@ -469,17 +469,23 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 
 ## 2026-10-19 — session 126 (LATEX — the six per-level pipeline chapters, D-583)
  - Wrote the six per-level pipeline chapters (one per §5.2 phase), the detailed follow-up to the pipeline-overview
-   chapter (D-582): 6 Setup (the CONFIG level + every config option in tables, then FEATURES), 7 Corpus e analisi
-   delle feature (SU\_ANALYSIS/POSITIONS/INDEXES/ANOVA/WMAPS), 8 Costruzione del modello (DESIGN\_MATRIX/ZED/
-   GRADIENT/a brief OPTIMIZE/GENERATE), 9 L'algoritmo L-BFGS (the full solver: implicit BFGS, two-loop recursion,
-   strong-Wolfe line search with the exact cubic-Hermite interpolation, the (s,y) window, restart + stopping, the
-   implementation choices), 10 Validazione e analisi (VLD\_POSITIONS/VALIDATE/ANALYTICS), 11 Persistenza e output
+   chapter (D-582): 6 Setup (the CONFIG level + every config option in tables, then FEATURES), 7 Corpus e analisi delle
+   feature (SU\_ANALYSIS/POSITIONS/INDEXES/ANOVA/WMAPS), 8 Costruzione del modello (DESIGN\_MATRIX/ZED/GRADIENT/a brief
+   OPTIMIZE/GENERATE), 9 L'algoritmo L-BFGS (the full solver: implicit BFGS, two-loop recursion, strong-Wolfe line
+   search with the exact cubic-Hermite interpolation, the (s,y) window, restart + stopping, the implementation choices),
+   10 Validazione e analisi (VLD\_POSITIONS/VALIDATE/ANALYTICS), 11 Persistenza e output
    (SAVE/CLIENT\_CHECK/PLOT/FINAL\_LOG\_PRINT).
  - Drafted by six parallel subagents (one per chapter, each reading its levels' sources), wired into main.tex after
    chapter 100 and before \appendix (the new chapters 6-11), and reviewed the drafts.
- - Fixes from the review: the accented-vowel conversion also ate the math primes (\varphi') and two Python string
-   quotes in listings (restored); escaped a \texttt caret and a bare underscore; corrected a section cross-reference;
-   fixed a typo. One typesetting fix: the sans-serif math (sfmath) mis-positions a \bar accent when a subscript
-   follows, so the ANOVA y-bar means use \overline{y} (verified on a mini-doc to center correctly).
+ - Fixes from the review: the accented-vowel conversion also ate the math primes (\varphi') and two Python string quotes
+   in listings (restored); escaped a \texttt caret and a bare underscore; corrected a section cross-reference; fixed a
+   typo. One typesetting fix: the sans-serif math (sfmath) mis-positions a \bar accent when a subscript follows, so the
+   ANOVA y-bar means use \overline{y} (verified on a mini-doc to center correctly).
  - Gates green: build 112 pages, 0 hard errors, 0 undefined references; spellcheck clean; notes\_lint green. One
    checkin: D-583.
+ - Then, at Roberto's request, built wsutils/latex\_lint.py — a context-aware linter and safe auto-fixer for the .tex
+   sources — to robustly verify the accented vowels and every other recurring, mostly silent pitfall the build does not
+   stop on. The core is a prose / math / code / comment / inlinecode context scanner, so the accent check leaves the
+   math primes and the code quotes alone. Eight checks; --write applies the four safe fixes (accent, code-ascii, texttt,
+   bar→overline). Validated on a synthetic file (every fix lands, the re-scan is clean) and on the finished book (0
+   violations; it caught one real leftover, an empty language= in chapter 10, now removed). One checkin: D-584.
