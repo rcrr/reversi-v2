@@ -1,0 +1,285 @@
+%
+% reversi_070_feature.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+\chapter{Le feature}
+\label{ch:feature}
+
+Fino a questo capitolo abbiamo descritto una posizione di gioco con due strumenti: la
+board, i 64 quadrati e la loro occupazione, e i pattern, le configurazioni locali
+canonizzate per simmetria. Il modello che costruiremo però non si alimenta di pattern
+da soli: ha bisogno di un concetto più generale, quello di \textit{feature}.
+
+Una \textbf{feature} è una caratteristica osservabile di una posizione di gioco: è la
+variabile che, letta sulla board, viene offerta in input al modello e ne guida
+l'inferenza. I pattern sono la fonte di feature più ricca e sono stati trattati nel
+capitolo che li precede; ma non sono l'unica. A essi si affiancano due feature di
+natura diversa, che completano il quadro: la \textit{mobility}, una misura delle
+opzioni di movimento dei due giocatori, e l'\textit{intercetto}, il termine costante
+del predittore. Il \textit{FeatureSet} di una partita è la raccolta nominata di
+feature scelte a piacere tra queste tre fonti, ed è ciò che determina, nella fase di
+setup, le colonne della matrice di disegno che il modello impara a pesare.
+
+\section{Le tre categorie di feature}
+
+Ogni feature avvolge una delle tre \textit{fonti di feature}, individuate da una
+categoria:
+
+\begin{itemize}
+    \item \textbf{PATTERN} --- una selezione di $S$ quadrati sulla board, canonizzata
+          per simmetria $D_4$ e indirizzata dal proprio rappresentante principale. È la
+          fonte più espressiva: un pattern può presentare molte configurazioni (le
+          assegnazioni base-3 dei suoi quadrati) e apparire in più istanze sulla board.
+    \item \textbf{MOBILITY} --- una misura scalare delle mosse disponibili per un
+          giocatore, prese su un insieme di quadrati (la maschera) e lette dal punto di
+          vista di uno dei due colori.
+    \item \textbf{INTERCEPT} --- il termine costante: una feature che non osserva
+          nulla sulla board e vale uguale in ogni posizione.
+\end{itemize}
+
+La differenza strutturale tra le tre fonti è il modo in cui una feature si scompone in
+\textit{istanze} e \textit{configurazioni}. Un pattern ha molte istanze (una per ogni
+occorrenza sulla board) e molte configurazioni (una per ogni assegnazione base-3). Una
+mobility ha un'unica istanza ma molte configurazioni (una per ogni possibile valore del
+conteggio). L'intercetto ha un'unica istanza e un'unica configurazione. È questa
+decomposizione in istanze $\times$ configurazioni a definire il numero di colonne che
+ogni feature contribuisce al modello.
+
+Un \textbf{FeatureSet} è una raccolta nominata e ordinata di feature, scelte a piacere
+tra intercetto, mobility e pattern. L'ordine è significativo: le colonne della matrice
+di disegno sono disposte nel gruppo per feature, e all'interno di ogni feature nel
+gruppo per istanza e per configurazione. Cambiare il FeatureSet cambia la forma del
+modello senza cambiarne la natura: è lo strumento con cui si esplora il compromesso tra
+ricchezza descrittiva e numero di parametri da stimare.
+
+\section{L'intercetto}
+
+L'intercetto è la feature costante del predittore: il termine $b$ che accompagna la
+somma dei contributi di pattern e mobility. È una feature di una sola istanza e una
+sola configurazione --- non osserva alcunché sulla board, ma fornisce al modello il
+\textit{bias}, il livello di partenza da cui i contributi osservati prendono le mosse.
+Nel software si crea con \texttt{Feature.new\_intercept()} (categoria
+\texttt{INTERCEPT}); nel FeatureSet è opzionale, ed è controllato dalla flag
+\texttt{intercept} della configurazione. In termini di matrice di disegno,
+l'intercetto è la colonna di tutti uni: contribuisce con un unico peso, uguale per
+ogni riga (ogni posizione osservata), e assorbe la componente media della variabile
+target che le altre feature, centrate, non sono in grado di rappresentare.
+
+\section{La mobility}
+
+La mobility è la feature che misura le opzioni di movimento: quante mosse legali un
+giocatore ha a disposizione, sull'intera board o su una sua sotto-regione. È il
+segnale strategico più immediato di un gioco a rincorsa come il Reversi. In una
+posizione dimostra, in un colpo d'occhio, chi dei due colori è in grado di agire e chi
+è costretto a reagire: un giocatore le cui mosse si assottigliano è un giocatore che
+sta perdendo il controllo della board, e lo squilibrio tra le mobility dei due colori
+è uno dei predittori più forti --- e più parsimoniosi in parametri --- dell'esito
+della partita.
+
+A differenza di un pattern, che è una \textit{forma} geometrica cercata sulla board,
+la mobility è un \textit{numero}: il conteggio di quante mosse sono possibili. È un
+osservabile globale della posizione, definito da due soli ingredienti --- una
+\textit{maschera}, che stabilisce \textit{dove} contare, e una \textit{bandiera di
+lato}, che stabilisce \textit{dal punto di vista di chi} contare. È da questi due
+ingredienti che derivano sia la forma formale della feature sia il suo significato
+strategico, e li presiamo in ordine.
+
+\subsection{Definizione formale}
+
+Formalmente, la mobility è una feature a \textit{table-lookup} scalare. Data una
+posizione, il motore di gioco calcola due insiemi di mosse: le mosse legali del
+giocatore di turno, $lms$ (\textit{legal moves}), e le mosse che l'avversario avrebbe
+se fosse il suo turno, $alms$ (\textit{anti-legal moves}, le cosiddette
+\textit{would-be moves}). La maschera $\mathcal{M}$ è un \texttt{Bitboard} che
+seleziona i quadrati su cui il conteggio viene preso; l'indice della feature è il
+numero di quadrati nell'intersezione dell'insieme di mosse con la maschera:
+
+\begin{equation}
+\text{indice} \;=\;
+\begin{cases}
+\operatorname{popcount}\!\left(lms \,\&\, \mathcal{M}\right) & \text{se } \texttt{side} = \text{mover} \\[4pt]
+\operatorname{popcount}\!\left(alms \,\&\, \mathcal{M}\right) & \text{se } \texttt{side} = \text{opponent}
+\end{cases}
+\end{equation}
+
+La maschera gioca qui un ruolo affine a quello che ha per i pattern, ma con una
+differenza essenziale: per la mobility non viene canonizzata. La maschera è un
+selettore di quadrati --- l'insieme dei quadrati su cui si vuole misurare
+l'attività --- e due maschere che sono l'una l'immagine dell'altra per una simmetria
+$D_4$ restano due feature distinte, perché la mobility non ha un'idea di
+``rappresentante principale''. È la maschera a dare alla mobility la sua
+\textit{granularità}: con la maschera piena, tutti e 64 i quadrati, la mobility conta
+le mosse sull'intera board ed è un indicatore \textit{globale}; con una maschera
+ridotta --- solo i quadrati centrali, solo i bordi, solo i quadrati adiacenti a un
+angolo --- la mobility diventa un indicatore \textit{localizzato} dell'attività in una
+regione. Una singola posizione può così alimentare non una ma diverse mobility, una per
+ogni maschera di interesse: la famiglia delle mobility è indicizzata sulle maschere,
+esattamente come la famiglia dei pattern è indicizzata sulle forme.
+
+La bandiera \texttt{side} sceglie il punto di vista dal quale il conteggio è letto. Le
+regole del Reversi definiscono le mosse disponibili solo per il giocatore di turno: per
+\texttt{side} = \texttt{mover} la mobility conta le mosse che il giocatore attuale può
+giocare. Il \texttt{side} = \texttt{opponent} è invece una definizione a livello di
+feature, non di gioco: conta le mosse che l'avversario \textit{avrebbe} se fosse il suo
+turno. È proprio questa lettura ``dall'altro lato'' a rendere la mobility una feature
+così informativa: non misura solo quante mosse ho io, ma quante ne sto concedendo
+all'avversario.
+
+\subsection{Le due mobility standard: LMC e ALMC}
+
+I due casi standard usano la maschera piena e differiscono solo per la bandiera di
+lato:
+
+\begin{itemize}
+    \item \textbf{LMC} --- \textit{Legal Move Count}: $\operatorname{popcount}(lms)$,
+          il numero di mosse legali del giocatore di turno;
+    \item \textbf{ALMC} --- \textit{Anti Legal Move Count}:
+          $\operatorname{popcount}(alms)$, il numero di mosse che l'avversario avrebbe
+          al suo turno.
+\end{itemize}
+
+La coppia LMC/ALMC è la mobility di riferimento del modello, e va letta come una
+coppia, non come due feature scollegate. Presa da sola, la LMC dice quanto è
+``aperta'' la posizione per chi deve muovere; presa con la ALMC, dice anche quanto la
+mossa scelta sta restringendo --- o allargando --- lo spazio di manovra
+dell'avversario. C'è qui una lettura che va oltre il semplice conteggio: la ALMC è la
+misura delle mosse che la mia mossa \textit{lascia} all'avversario, e un valore alto
+di ALMC è il segno di una mossa ``generosa'', che allarga il gioco. Molte delle mosse
+che un giocatore esperto giudica ``forti'' nel centro partita sono mosse che
+massimizzano la propria LMC mentre minimizzano la ALMC: la mobility fa esplicito, in
+due numeri, quello che l'istinto del giocatore esprime in termini di ``controllo'' e
+``respiro''.
+
+\subsection{Un esempio a mano}
+
+Fissiamo una posizione di centro partita e calcoliamo a mano i valori, per rendere
+concreti i simboli. Supponiamo che il giocatore di turno, nero, abbia 12 mosse legali
+e che l'avversario, bianco, ne avrebbe 9 se fosse il suo turno. Con la maschera piena,
+l'indice della LMC è $\operatorname{popcount}(lms) = 12$ e quello della ALMC è
+$\operatorname{popcount}(alms) = 9$: il FeatureSet osserva, per questa posizione, la
+coppia di valori $(12, 9)$, che andranno a indizzare la rispettiva tabella di pesi.
+Se lo stesso stato di board fosse ruotato di 90 gradi, i due conteggi resterebbero
+identici --- 12 e 9 --- perché il \texttt{popcount} non cambia per rotazione: è questa
+invarianza, a cui torneremo parlando di istanze, a fare della mobility una feature a
+istanza singola.
+
+Ora immaginiamo di restringere la maschera ai sedici quadrati centrali della board,
+quelli che nel gergo del gioco formano il ``centro''. La stessa posizione produce
+allora una \textit{mobility di centro}: l'indice è $\operatorname{popcount}(lms \,\&\,
+\mathcal{M}_{\text{centro}})$, e vale, diciamo, 5 per il nero e 4 per il bianco. I due
+numeri $(5, 4)$ dicono quante delle mosse disponibili cadono nel centro --- un
+indicatore localizzato che la LMC/ALMC globale, aggregando su tutti e 64 i quadrati,
+non può dare. È così che, a partire dalla stessa definizione, si ottiene una famiglia
+di mobility con risoluzioni diverse: globale, di centro, di bordo, di angolo.
+
+\subsection{Configurazioni, istanze e tabella dei pesi}
+
+Come per i pattern, la mobility è una feature a \textit{table-lookup}: l'indice
+calcolato sopra indizza una tabella di pesi. Se la maschera copre $k =
+\operatorname{popcount}(\mathcal{M})$ quadrati, l'indice varia in $0, 1, \ldots, k$ e
+ogni valore di questo intervallo è raggiungibile da qualche posizione, dunque il numero
+di configurazioni della feature è $n_{\text{config}} = k + 1$, che è anche la
+dimensione della sua tabella di pesi. Con la maschera piena ($k = 64$) la tabella ha 65
+entrate, una per ogni possibile conteggio di mosse da 0 a 64; con la maschera di centro
+($k = 16$) ne ha 17. Ogni entrata è un parametro del modello: il training impara, per
+ogni possibile valore della mobility, quanto quel valore contribuisce alla valutazione
+della posizione.
+
+Qui sta la differenza strutturale più importante rispetto ai pattern, ed è il contrario
+di quella che si potrebbe intuire. Un pattern ha \textit{molte istanze} e
+\textit{molte configurazioni}; una mobility ha \textit{una sola istanza} e
+\textit{molte configurazioni}. La mobility non ha istanze multiple:
+$n_{\text{istanze}} = 1$. La coppia (maschera, lato) definisce la feature
+direttamente, e non esiste un'orbita di simmetrie da canonizzare. La ragione è che il
+conteggio di \texttt{popcount} è di per sé invariante per simmetria: ruotare o
+riflettere la board non cambia \textit{quante} mosse ci sono, cambia solo
+\textit{dove} sono. Poiché la mobility non guarda al ``dove'' ma al ``quante'', la
+simmetria non le crea istanze distinte. Una stessa maschera letta con i due valori di
+\texttt{side} è invece una coppia di feature distinte --- la LMC e la ALMC sono due
+feature, non due istanze di una stessa feature --- e questa è l'unica
+``moltiplicazione'' che la mobility conosce.
+
+A differenza delle configurazioni di un pattern --- che codificano \textit{chi} sta su
+ogni quadrato del pattern, con la loro combinatoria base-3 --- le configurazioni della
+mobility codificano \textit{quante} mosse ci sono: è una feature ordinale, il cui
+ordine naturale è quello numerico del conteggio. Il modello non impara un peso
+separato per ogni ``forma'' di mobility (le forme, per la mobility, non esistono), ma
+un peso per ogni possibile \textit{valore} del conteggio: una scala di pesi, dal caso
+``nessuna mossa'' al caso ``mossa su ogni quadrato della maschera''.
+
+\subsection{La mobility in confronto alle altre feature}
+
+La tabella riassume, in una vista d'insieme, come le tre fonti di feature si
+distribuiscono sulla griglia istanze $\times$ configurazioni, e cosa ciascuna osserva
+sulla board:
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lccc}
+\toprule
+ & \textbf{PATTERN} & \textbf{MOBILITY} & \textbf{INTERCEPT} \\
+\midrule
+osserva        & una forma locale & un conteggio & nulla \\
+istanze        & molte & una & una \\
+configurazioni & molte & molte & una \\
+canonizzazione & sì & no & --- \\
+\bottomrule
+\end{tabular}
+\caption{Le tre fonti di feature sulla griglia istanze $\times$ configurazioni.}
+\label{tab:feature-sources}
+\end{table}
+
+Leggendo la tabella per righe si misura il ``peso descrittivo'' di ciascuna fonte: il
+pattern è la feature più ricca (molte istanze e molte configurazioni, compattate dalla
+canonizzazione), la mobility è una feature intermedia (una sola istanza, ma una scala
+ampia e ordinata di configurazioni), e l'intercetto è la feature minima (una riga e
+una colonna). È la \textit{combinazione} delle tre, nel FeatureSet, a dare al modello
+la sua piena capacità descrittiva.
+
+\subsection{La mobility come segnale strategico}
+
+Perché una feature così semplice --- un conteggio di mosse --- merita uno spazio
+proprio? Perché in un gioco a rincorsa la mobilità \textit{è} la dinamica del gioco.
+Nella fase centrale le mobility dei due colori oscillano: una mossa che ``stringe''
+l'avversario (una chiusura, un \textit{block} su una zona della board) abbassa la ALMC
+e inasprisce, di rimando, la pressione sulle mosse successive. Il modello, osservando
+la sequenza di valori di LMC e ALMC lungo la partita, impara a leggere queste
+oscillazioni come indicatori di chi sta prendendo il controllo.
+
+In prossimità della fine partita la mobility diventa il segnale dominante. Quando le
+mosse di un giocatore su una regione scendono a zero, quella regione è di fatto
+chiusa: non ci sarà più gioco lì, e il suo destino è già scritto. Lo squilibrio di
+mobility anticipa così il \textit{freeze} finale --- quel momento in cui la board si
+``gela'' e le mosse rimanenti sono forzate --- con diverse mosse di anticipo. Per
+questo il modello tratta la mobility come una feature ordinale a tutti gli effetti: il
+valore del conteggio è l'osservabile, e il peso che il training associa a ogni valore
+è la stima imparata di quanto quel valore conti, in termini di esito, in quel punto
+della partita.
+
+Insieme, i pattern (le feature locali, ``chi è dove''), la mobility (la feature
+globale ordinale, ``quante mosse'') e l'intercetto (il bias costante) formano il
+FeatureSet che il predittore additivo del capitolo successivo impara a pesare. La
+mobility ci porta così dalla descrizione geometrica della board alla sua lettura in
+termini di gioco: è il ponte tra la teoria dei pattern e la funzione di valutazione.

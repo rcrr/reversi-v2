@@ -2266,3 +2266,15 @@ D-586 | 2026-10-19 | Brought the Italian spellcheck gate to GREEN (0 misspelling
          ripetendo, affinamente, calcolo, "Non è", generalmente, restringente, ricostruisce, concede). Result: make
          spell is green (0), the build is green (112 pages, 0 hard errors, 0 undefined refs), and the .tex linter is
          green (0). The spellcheck is now a HARD gate: latex\_rules.md G8 states it must be green before every checkin.
+
+D-587 | 2026-10-19 | Added a new chapter, "Le feature" (reversi\_070\_feature.tex), inserted after the pattern chapter:
+         it is now chapter 4 and every later chapter shifted by one (evaluation function 4->5, ... , persistence
+         11->12). The chapter introduces the general notion of a feature — an observable characteristic of a position
+         and the variable that drives the model's inference — and its three sources (PATTERN, MOBILITY, INTERCEPT) and
+         the FeatureSet. It has a short section on the intercept (the constant term) and a developed section on the
+         mobility (formal definition via the mask and the side flag, the standard LMC/ALMC pair, a worked example with a
+         full-board and a center mask, the n\_config = k+1 / n\_instances = 1 structure, a comparison table against
+         patterns, and the strategic reading). Along the insertion, 13 hardcoded chapter-number references (in prose and
+         in the per-file header comments) were shifted by one to stay correct. Build green (116 pages, 0 hard errors, 0
+         undefined refs), .tex linter green. Submitted to Roberto as a first draft for review; the mobility section runs
+         about two pages, slightly under the requested 3-4, to be judged at review.

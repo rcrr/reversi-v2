@@ -26,18 +26,18 @@
 %
 
 %-----------------------------------------------------------------------------
-% Capitolo 8: Costruzione del modello.
+% Capitolo 9: Costruzione del modello.
 %
 % Il dettaglio della terza fase della pipeline: i livelli DESIGN_MATRIX, ZED,
 % GRADIENT, OPTIMIZE, GENERATE. L'ottimizzazione viene introdotta solo per
 % nome (il solutore L-BFGS): il suo trattamento matematico completo è
-% rimandato al capitolo 9, "L'algoritmo L-BFGS".
+% rimandato al capitolo 10, "L'algoritmo L-BFGS".
 %-----------------------------------------------------------------------------
 
 \chapter{Costruzione del modello}
 
 Apre qui il dettaglio della terza fase della pipeline — \emph{Costruzione del
-modello} — quella annunciata nella tabella dei 19 livelli del capitolo 5,
+modello} — quella annunciata nella tabella dei 19 livelli del capitolo 6,
 dove occupa le righe centrali della sequenza (i livelli 8–12:
 \texttt{DESIGN\_MATRIX}, \texttt{ZED}, \texttt{GRADIENT}, \texttt{OPTIMIZE},
 \texttt{GENERATE}). Le fasi precedenti
@@ -66,7 +66,7 @@ Il filo conduttore è semplice: i primi tre livelli descrivono \emph{il
 problema} (dove stanno i pesi, verso quale target, e quale superficie di
 errore scendere), il quarto lo \emph{risolve}, il quinto \emph{confeziona} la
 soluzione nella forma che l'inferenza richiede. Ogni livello segue la divisione
-di responsabilità già vista nel capitolo 5 — il worker
+di responsabilità già vista nel capitolo 6 — il worker
 (\texttt{wrk\_*}, che gestisce cache, logging e pubblicazione sul contesto) e
 l'helper (\texttt{hlp\_*}, che fa il calcolo di dominio) — e il suo contratto
 di input/output è riassunto in tabella~\ref{tab:costruzione-contracti}:

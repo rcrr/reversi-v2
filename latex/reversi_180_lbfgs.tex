@@ -25,7 +25,7 @@
 % or visit the site <http://www.gnu.org/licenses/>.
 %
 %
-% Capitolo 9 — L'algoritmo L-BFGS: il solutore numerico del livello OPTIMIZE,
+% Capitolo 10 — L'algoritmo L-BFGS: il solutore numerico del livello OPTIMIZE,
 % trattato in pieno: approssimazione inversa dell'Hessiano a memoria limitata,
 % ricorsione a doppio ciclo, ricerca del passo con condizioni di Wolfe forti
 % e interpolazione di Hermite cubica.
@@ -35,12 +35,12 @@
 
 \label{ch:lbfgs}
 
-Il capitolo 8 ha definito la funzione di perdita $J(\bm{w})$ — l'errore
+Il capitolo 9 ha definito la funzione di perdita $J(\bm{w})$ — l'errore
 quadratico medio con regolarizzazione di ridge — e il suo gradiente, e ha
 spiegato \emph{perché} la minimizzazione non può essere affidata al metodo di
 Newton: l'Hessiana di $J$ avrebbe dimensioni incompatibili con la memoria
 disponibile (centinaia di migliaia di pesi per i pattern più ricchi), mentre
-il gradiente si calcola a ogni iterazione senza problemi. Il capitolo 5 ha
+il gradiente si calcola a ogni iterazione senza problemi. Il capitolo 6 ha
 quindi introdotto il livello \texttt{OPTIMIZE} della pipeline, che esegue
 l'ottimizzazione dei pesi con un algoritmo a \emph{memoria limitata} della
 famiglia BFGS — in sigla L-BFGS — senza però svilupparne la trattazione
@@ -751,7 +751,7 @@ rilevanti per il contesto (\texttt{hlp\_optimize\_info\_dict}:
 checksum SHA3-256, e salva il checkpoint finale. Il livello
 \texttt{GENERATE} che segue consuma $\bm{x}^{\star}$ come vettore di
 pesi del modello: è il ponte numerico tra l'ottimizzazione trattata in
-questo capitolo e la funzione di valutazione del capitolo 8.
+questo capitolo e la funzione di valutazione del capitolo 5.
 
 \section{Riepilogo}
 

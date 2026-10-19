@@ -37,7 +37,7 @@
 \chapter{Validazione e analisi}
 
 Questa è la quarta delle cinque fasi in cui si raggruppano i 19 livelli della
-pipeline (tabella~\ref{tab:pipeline-levels} del capitolo 5): la fase
+pipeline (tabella~\ref{tab:pipeline-levels} del capitolo 6): la fase
 \emph{Validazione e analisi}. I suoi tre livelli — \texttt{VLD\_POSITIONS},
 \texttt{VALIDATE} e \texttt{ANALYTICS} — verificano il modello che il livello
 \texttt{GENERATE} ha appena addestrato, e lo verificano in due direzioni
@@ -212,7 +212,7 @@ fittato in astratto.
 I valori di gioco discreti $y_i$ (la scala ordinale a passi di 2) vengono
 mappati affinamente nel target continuo $z_i \in [0, 1]$ con la stessa
 trasformazione \texttt{y2z} dell'addestramento (il logit clipping del
-capitolo 4), e le metriche sono indicatori di distanza geometrica pura:
+capitolo 5), e le metriche sono indicatori di distanza geometrica pura:
 quanto bene la curva logistica continua si allinea ai target discreti.
 
 \subsection{I residui e le metriche}

@@ -504,3 +504,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    affinamente, calcolo, "Non è", generalmente, restringente, ricostruisce, concede). make spell is now green (0
    misspellings book-wide) and is a hard checkin gate (latex\_rules.md G8). Build green (112 pp), linter green (0). One
    checkin: D-586.
+ - Wrote the new "Le feature" chapter (reversi\_070\_feature.tex) at Roberto's request and inserted it as chapter 4,
+   after the pattern chapter: all later chapters shift by one and I updated the 13 hardcoded chapter-number references
+   (prose and header comments) to match. The chapter has the three feature sources (pattern/mobility/intercept) and the
+   FeatureSet, a short intercept section, and a developed mobility section (formal definition, LMC/ALMC, a worked
+   example, the config/instance structure, a comparison table, the strategic reading). Build green (116 pp), linter
+   green. Sent to Roberto as a first draft for review. One checkin: D-587.
