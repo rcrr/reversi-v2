@@ -2457,3 +2457,17 @@ D-601 | 2026-11-09 | The third model of the models/ zone is created and run (R-3
          experiment (model 0003, the standard LMC + ALMC pair) will settle whether the ALMC adds MARGINAL value on top
          of the LMC or is redundant. Every output under `build/lm/ec20/0002/` (gitignored). The registry carries its
          third row.
+
+D-602 | 2026-11-09 | The fourth model of the models/ zone is created and run (R-360):
+         `models/lm/ec20/0003/lm_ec20_0003.json` — INTERCEPT + the standard full-board mobility pair (the LMC + the
+         ALMC, no patterns), the fully-explicit config, identical to 0001/0002 except the identity fields and the second
+         mobility: the feature set `InterceptLMCALMC` = the intercept + `FullBoardLMCALMC` (the LMC the side `mover` +
+         the ALMC the side `opponent`, the same full-board mask). The run: 19/19 levels green (exit 0); 43 parameters
+         (W) / 131 dense; L-BFGS converged in 60 iterations (`CONVERGED_MIN_GRAD`); the validation RMSE(y) 20.13 / the
+         MAE(y) 16.47 / the loss 1.0020e-02 — the best of the four; the generalization gap (RMSE) -0.20 (still no
+         overfitting at 43 parameters); the CLIENT\_CHECK max difference 0.0e+00. The triangle's question is answered:
+         the ALMC is NOT redundant — on top of the LMC it carries a net marginal contribution of -1.68 RMSE
+         (21.81 -> 20.13, -7.7% over the LMC-only model) for +21 parameters; the two mobilities are complementary (the
+         marginal gain is smaller than the ALMC's stand-alone gain of -3.81 over the baseline — the overlapping part —
+         but substantially non-zero). Cumulative: -23.6% RMSE over the 0000 baseline with the mobility pair alone. Every
+         output under `build/lm/ec20/0003/` (gitignored). The registry carries its fourth row.

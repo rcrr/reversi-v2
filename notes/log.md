@@ -604,3 +604,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     CLIENT\_CHECK 0.0e+00. The triangle is now readable: the ALMC alone beats the baseline by 14.4% RMSE but
     is ~3% weaker than the LMC (22.47 vs 21.81) at the identical parameter budget. Committed the config + the
     registry row.
+  - Model 0003 (D-602): INTERCEPT + the standard mobility pair (the LMC + the ALMC, the same full-board
+    mask), identical to 0001/0002 except the identity fields and the second mobility. Run 19/19 green: 43
+    parameters (W) / 131 dense, 60 iterations, the validation RMSE(y) 20.13 / the MAE 16.47 — the best of
+    the four, the generalization gap still -0.20 (no overfitting), the CLIENT\_CHECK 0.0e+00. The triangle
+    answered: the ALMC is NOT redundant — a net marginal -1.68 RMSE on top of the LMC (-7.7% over the
+    LMC-only model) for +21 parameters; the pair is cumulative -23.6% RMSE over the baseline. Committed the
+    config + the registry row.
