@@ -592,3 +592,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     training / 20,000 validation (0% overlap), the convergence in 5 iterations, the validation RMSE(y) 26.28 = the
     population std (the baseline is exactly what it should be), the CLIENT\_CHECK 0.0e+00. Every output under
     `build/lm/ec20/0000/` (gitignored). Committed the config + the first registry row.
+  - Model 0001 (D-600): INTERCEPT + the full-board LMC, the fully-explicit config — a diff against 0000 proved
+    only the identity fields and the feature set differ. Run 19/19 green: 22 parameters (W) (the dense table
+    66), 40 iterations, the validation RMSE(y) 21.81 / the MAE 17.90 — against the 0000 baseline's 26.28 / 21.63:
+    the RMSE down 17.0%, the MAE down 17.2%, the generalization gap -0.20 (no overfitting), the
+    CLIENT\_CHECK 0.0e+00. The campaign's first real comparison: the full-board LMC alone, with 22 parameters,
+    is worth a 17% RMSE. Committed the config + the registry row.

@@ -2432,3 +2432,15 @@ D-599 | 2026-11-09 | The first real model of the models/ zone is created and run
          std (26.28) — the intercept-only model predicts the mean, the intended zero-capacity baseline; the
          CLIENT\_CHECK passed with max difference 0.0e+00. Every output landed under `build/lm/ec20/0000/` (gitignored,
          the R-360 1:1 mirror). The registry `index.md` carries its first row.
+
+D-600 | 2026-11-09 | The second model of the models/ zone is created and run (R-360):
+         `models/lm/ec20/0001/lm_ec20_0001.json` — INTERCEPT + the full-board LMC (no patterns), the fully-explicit
+         config, identical to model 0000 except the identity fields and the feature set (a diff proved it): the feature
+         set `InterceptLMC` = the intercept + `FullBoardLMC` (the mask FFFFFFFFFFFFFFFF, the side `mover`). The run:
+         19/19 levels green (exit 0); 199,932 training / 20,000 validation (0% overlap); L-BFGS converged in 40
+         iterations (`CONVERGED_MIN_GRAD`); 22 parameters (W) — the intercept + the 21 LMC configurations kept by the
+         frequency cut-off 1 (the dense table is 66 = 1 + 65). The campaign's first real comparison: the validation
+         RMSE(y) 21.81 / the MAE(y) 17.90 / the loss 1.1762e-02, against the 0000 baseline's 26.28 / 21.63 / 1.7070e-02
+         — the RMSE down 17.0%, the MAE down 17.2%; the generalization gap (RMSE) is -0.20 (the validation slightly
+         BEATS the training — no overfitting); the CLIENT\_CHECK max difference 0.0e+00. Every output under
+         `build/lm/ec20/0001/` (gitignored). The registry carries its second row.
