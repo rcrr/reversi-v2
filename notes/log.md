@@ -542,3 +542,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     cella/celle (16, with the feminine gender agreement on the articles), and bandiera -> flag (3, the side flag,
     article fem->masc). Checked each change in context; the build caught and I fixed a brace imbalance the "flag" edit
     had introduced. Build green (116 pp), linter green (0), spell green (0). One checkin: D-592.
+  - Roberto flagged Italian comments in listing 12.1 (the "Persistence and output" chapter). Checked the code: it is
+    already English (a src/-wide scan found no Italian comments), so no code change or test run was needed - the Italian
+    was only in the book's hand-written listing excerpt. Translated the five listing-12.1 comments to English (aligned
+    to the code's section names); a scan of all lstlisting blocks confirms it was the only one. Build green (116 pp),
+    linter green (0), spell green (0). One checkin: D-593.

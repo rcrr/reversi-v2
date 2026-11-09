@@ -76,13 +76,13 @@ feature \texttt{iwmap\_feature\_offset} e il vettore di pesi denso
 caption={L'ordine di scrittura del file (estratto di \texttt{model\_weights\_write\_file}).}]
 with BinaryWriter(path, compressed=True) as w:
     w.write_header("RGLM_BINARY_WEIGHTS", version=2)
-    # 1. provenienza della configurazione (sezione guida del corpo):
+    # 1. configuration provenance (the section that leads the body):
     w.write_string(ctx.config_checksum)
     w.write_string(ctx.cfg.model_dump_json(indent=4))
-    # 2. metadati, 3. statistiche di addestramento,
-    # 4. info di ottimizzazione, 5. metriche di validazione,
-    # 6-8. feature set (intercetto, mobility, pattern),
-    # 9. dati dell'inferenza:
+    # 2. metadata, 3. training statistics,
+    # 4. optimization info, 5. validation metrics,
+    # 6-8. feature set (intercept, mobility, pattern),
+    # 9. inference data:
     w.write_string(ctx.cfg.name)
     w.write_u32(ctx.cfg.empty_count)
     ...

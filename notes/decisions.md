@@ -2356,3 +2356,12 @@ D-592 | 2026-11-09 | At Roberto's call, three terms in the "Le feature" chapter 
          bandiera" -> "Il flag"). Each change was checked in context. One brace imbalance the "flag" edit introduced (a
          premature } closing the \textit) was caught by the build and fixed. Build green (116 pages, 0/0), whole-book
          linter green (0), spell green (0) - the new terms need no dict.txt additions.
+
+D-593 | 2026-11-09 | Roberto flagged Italian comments in listing 12.1 (page 79, the "Persistence and output" chapter, an
+         excerpt of `model_weights_write_file`). Investigation: the actual Python code is ALREADY English -
+         `model_weights.py` carries English section comments ("1. Configuration provenance", "2. Metadata", ...), and a
+         broad scan of all of src/ found no Italian comments anywhere in the code. So the code needed no change (and no
+         test run). The Italian lived only in the book's listing 12.1, a hand-written compressed excerpt that had
+         diverged from the code. Fix: the five Italian comments in that listing are translated to English, aligned to
+         the code's real section names. A scan of every lstlisting block in the book confirms 12.1 was the only one with
+         Italian comments (now 0). Build green (116 pages, 0/0), whole-book linter green (0), spell green (0).
