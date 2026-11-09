@@ -534,3 +534,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     is now grep -vFxi and dict.txt is normalised to one lowercase entry per term (642 -> 578 words; the 64
     case-duplicates collapse). Verified with a micro-test (a dict term is suppressed in any casing, a genuine unknown is
     still flagged) and a green full-book make spell (0). Documented in the G8 rule (LaTeX rules). One checkin: D-590.
+  - At Roberto's call, changed the single page-11 position-field reference from uint64 to int64 (board.tex, the
+    `GAME_POSITION` PLAYER field): the bitboard type stays uint64 (the canonical form), and the int64 is only the REGAB
+    database storage form. Exactly one reference changes; all other uint64 in the book are left as-is. Build green (116
+    pp), linter green (0), spell green (0). One checkin: D-591.

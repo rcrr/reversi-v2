@@ -2339,3 +2339,10 @@ D-590 | 2026-10-19 | At Roberto's call, the spellcheck dictionary (dict.txt) is 
          FeatureX kept); the full-book make spell is green (0) on the lowercased dict. The only trade-off is cosmetic:
          the dict no longer records a term's canonical casing (FeatureSet -> featureset), which is fine because the
          point is to accept the term in any casing.
+
+D-591 | 2026-11-09 | At Roberto's call, the single page-11 reference to the position field's format is changed from
+         uint64 to int64 (board.tex, the `GAME_POSITION` PLAYER-field description). Rationale: the bitboard type is
+         uint64 and stays so (the canonical domain representation, as board.tex line 34 states); the only int64 is the
+         REGAB database storage form (PostgreSQL has no unsigned 64-bit type), and the page-11 position-field reference
+         reflects that stored form. So exactly one reference changes; every other uint64 in the book (the bitboard type
+         proper) is left as uint64. Build green (116 pages, 0/0), whole-book linter green (0), spell green (0).
