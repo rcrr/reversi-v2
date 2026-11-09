@@ -156,7 +156,7 @@ quindi \emph{complementari}, non ridondanti: entrambe restano nel
 feature set.
 
 Due controlli di sanità, validi per tutti e quattro i modelli. Il gap
-di generalizzazione (RMSE di training meno RMSE di validazione) resta
+di generalizzazione (RMSE di validazione meno RMSE di training) resta
 \emph{negativo}: la validazione batte sempre l'addestramento, e non c'è
 alcun segnale di overfitting fino a 43 parametri. E il controllo di
 client — il round-trip tra il file dei pesi e le predizioni in
@@ -193,15 +193,15 @@ validazione.
 \toprule
 classe & LMC & ALMC & coppia & coppia $-$ baseline \\
 \midrule
-$A_1$ & 24.09 & 25.21 & \textbf{22.95} & $-12.0\%$ \\
-$B_1$ & 25.56 & 25.54 & \textbf{24.54} & $-6.7\%$ \\
-$C_1$ & 25.21 & 25.30 & \textbf{23.83} & $-9.3\%$ \\
-$D_1$ & 25.67 & 25.82 & \textbf{24.93} & $-5.1\%$ \\
-$B_2$ & 26.24 & 26.22 & \textbf{25.97} & $-1.2\%$ \\
-$C_2$ & 26.24 & 26.19 & \textbf{25.84} & $-1.7\%$ \\
-$D_2$ & 26.30 & 26.29 & \textbf{26.03} & $-1.0\%$ \\
-$C_3$ & 26.34 & 26.35 & \textbf{26.08} & $-1.0\%$ \\
-$D_3$ & 26.39 & 26.39 & \textbf{26.31} & $-0.3\%$ \\
+$A_1$ & 23.99 & 25.10 & \textbf{22.88} & $-12.9\%$ \\
+$B_1$ & 25.39 & 25.39 & \textbf{24.35} & $-7.3\%$ \\
+$C_1$ & 25.07 & 25.26 & \textbf{23.76} & $-9.6\%$ \\
+$D_1$ & 25.46 & 25.67 & \textbf{24.69} & $-6.1\%$ \\
+$B_2$ & 26.14 & 26.12 & \textbf{25.91} & $-1.4\%$ \\
+$C_2$ & 26.10 & 26.04 & \textbf{25.68} & $-2.3\%$ \\
+$D_2$ & 26.17 & 26.18 & \textbf{25.92} & $-1.4\%$ \\
+$C_3$ & 26.24 & 26.20 & \textbf{25.97} & $-1.2\%$ \\
+$D_3$ & 26.26 & 26.27 & \textbf{26.20} & $-0.3\%$ \\
 \midrule
 mask piena & --- & --- & \textbf{20.13} & $-23.6\%$ \\
 \bottomrule
@@ -217,17 +217,17 @@ Quattro letture. In \emph{tutte e nove} le classi la coppia batte le
 due mobility singole: la complementarità di LMC e ALMC, scoperta a mask
 piena, non è un artefatto della scala — vale anche su 4 celle. Il
 gradiente è netto: la classe degli angoli $A_1$ da sola porta l'errore
-al $-12.0\%$ del baseline, e si scende via via che ci si sposta verso
+al $-12.9\%$ del baseline, e si scende via via che ci si sposta verso
 il centro, finché le due classi più interne ($C_3$, $D_3$) sono
-praticamente silenziose ($-1.0\%$, $-0.3\%$): l'informazione di
+praticamente silenziose ($-1.2\%$, $-0.3\%$): l'informazione di
 mobility che conta vive ai bordi. Un particolare da tenere come dato,
-non come legge: $C_1$ batte $B_1$ (23.83 contro 24.54) — l'anello più
+non come legge: $C_1$ batte $B_1$ (23.76 contro 24.35) — l'anello più
 interno dei due anelli adiacenti agli angoli vale di più di quello
 immediatamente adiacente, e la prossimità all'angolo non è quindi
 l'unico fattore in gioco.
 
 Infine, nessuna mask selettiva eguaglia la mask piena (il migliore è
-22.95 contro 20.13): le mask selettive sono strumenti di
+22.88 contro 20.13): le mask selettive sono strumenti di
 \emph{analisi} del contributo per zona, non sostituti della mobility
 completa. L'igiene numerica è uniforme su tutta la campagna: i 27
 modelli convergono tutti, e tutti i gap di generalizzazione restano
@@ -239,9 +239,9 @@ La domanda che chiude la campagna selettiva è la più pratica di tutte:
 a mobilità a mask piena già acquisita, una delle nove classi di cella
 è in grado di \emph{aggiungere} informazione? La risposta è netta. Sopra la coppia a mask
 piena (20.13), la coppia selettiva degli angoli $A_1$ abbassa la RMSE
-a \textbf{18.93} — un contributo additivo di $-1.20$, sei volte il
-secondo classificato; le altre otto classi sono nulle o leggermente
-negative ($-0.03$ al meglio, $+0.20$ nel peggiore dei casi): la loro
+a \textbf{18.82} — un contributo additivo di $-1.31$, oltre otto volte
+il secondo classificato; le altre otto classi sono nulle o leggermente
+negative ($-0.16$ al meglio, $+0.01$ nel peggiore dei casi): la loro
 informazione è già contenuta nel conteggio pieno, e i quattro pesi in
 più non comprano nulla.
 

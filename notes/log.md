@@ -631,3 +631,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     the full-board pair's 20.13 (additive -1.20); the other eight null/negative. The four-feature mobility
     is named OptMob (Optimized Mobility) — the best model's mobility component. The book gains section
     13.5. The index becomes 3-column (description mirror) on Roberto's approval; R-360 updated.
+  - The 12 standalone classic patterns (D-606): 0040-0051, the intercept + one pattern. 2X5COR is the
+    clear winner (validation 10.63, -59.6%), then CORNER 12.38 and XEDGE 13.64 — a single corner pattern
+    beats the whole OptMob (18.82). Roberto caught my column mix-up (the training-dense reported as
+    validation): the book's tables 13.3/13.5 are repaired to the true validation values, the gap formula
+    corrected. Code: the OPTIMIZE finish line now says "executed N iters" (thousands separator); the
+    suite is green. The 12 configs run with `log_every_n: 10`; the first re-run was swallowed by the
+    checkpoint cache — cleared, re-run fresh, deterministic.

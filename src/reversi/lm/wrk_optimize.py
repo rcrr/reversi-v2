@@ -156,7 +156,7 @@ def _up(ctx: "LMContext") -> None:
     # 4. Update context and save final checkpoint
     ctx.w = w_opt
     ctx.opt_info = hlp_optimize_info_dict(info)
-    ctx.log_event(Relevance.INFO, f"Optimization finished. Reason: {info['reason']}. Final Loss: {info['f']:.8e}")
+    ctx.log_event(Relevance.INFO, f"Optimization finished, executed {info['iters']:,} iters. Reason: {info['reason']}. Final Loss: {info['f']:.8e}")
     w_checksum = hlp_optimize_weights_compute_hash(w_opt)
     ctx.w_checksum = w_checksum
     ctx.log_event(Relevance.INFO, f"Weight vector checksum (w_checksum): {w_checksum}.")

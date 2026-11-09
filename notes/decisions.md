@@ -2523,3 +2523,22 @@ D-605 | 2026-11-09 | Campaign phase 3 and the OptMob definition: the nine "full-
          3-column (ID + config link + a mirror of the config's one-line description) on Roberto's approval — R-360
          updated accordingly, and the index was regenerated programmatically from the 40 configs (an exact mirror, no
          manual transcription). All nine runs `CONVERGED_MIN_GRAD` (60-73 iters), all gaps negative.
+
+D-606 | 2026-11-09 | The 12 standalone classic-pattern models 0040-0051 (intercept + ONE pattern, no mobility): EDGE,
+         R2, R3, R4, DIAG8-DIAG4, CORNER, XEDGE, 2X5COR — the masks IMPORTED from the authoritative catalog
+         (`reversi.pattern.pattern_sample_data`) by the generator, never transcribed. Results (the true VALIDATION
+         column): 2X5COR 10.63 (-59.6% over the 26.28 baseline) is the clear winner, then CORNER 12.38 (-52.9%) and
+         XEDGE 13.64 (-48.1%); a single corner pattern BEATS the whole OptMob (18.82). Correction disclosed: Roberto
+         caught that my earlier "val RMSE" extractions had taken the report's TRAINING-DENSE column (the columns are
+         TRAINING | TRAINING-DENSE | VALIDATION); the book is repaired forward — table 13.3 now carries the 27 true
+         validation values, section 13.5 the true OptMob figures (18.82, the additive contribution -1.31, "over eight
+         times the runner-up"), and section 13.3 the gap definition (VALIDATION minus TRAINING); table 13.2 (0000-0003)
+         was already true validation and is untouched. Code (Roberto's request): the OPTIMIZE finish line now reports
+         the iteration count with the thousands separator — "Optimization finished, executed N iters. Reason: ... Final
+         Loss: ..." (`wrk_optimize.py`); the full suite is green (the single `test_state_machine` failure is the known
+         order artifact — 51/51 in isolation). The 12 pattern configs carry `log_every_n: 10` (a per-iteration trace
+         every 10 iters); the first re-run was swallowed by the checkpoint cache (the optimizer did not restart) — the
+         12 `_checkpoint_optimize.dat` were removed and the runs re-executed fresh, deterministically (the weight
+         checksums are unchanged). The top-3 pattern models show POSITIVE generalization gaps (mild memorization at the
+         high parameter count — 2X5COR carries 32,761 weights) while every mobility model stays negative: the honest
+         contrast is "rich patterns, partly memorized" vs "poor mobility, fully honest".

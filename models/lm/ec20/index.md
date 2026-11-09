@@ -47,3 +47,15 @@ without opening each file. The model's name lives in the config file itself.
 | 0037 | [lm_ec20_0037.json](0037/lm_ec20_0037.json) | Full-board LMS + ALMS plus the D2 selective LMS + ALMS pair (8 cells). |
 | 0038 | [lm_ec20_0038.json](0038/lm_ec20_0038.json) | Full-board LMS + ALMS plus the C3 selective LMS + ALMS pair (4 cells). |
 | 0039 | [lm_ec20_0039.json](0039/lm_ec20_0039.json) | Full-board LMS + ALMS plus the D3 selective LMS + ALMS pair (8 cells). |
+| 0040 | [lm_ec20_0040.json](0040/lm_ec20_0040.json) | The intercept plus the single EDGE pattern - no mobility. |
+| 0041 | [lm_ec20_0041.json](0041/lm_ec20_0041.json) | The intercept plus the single R2 pattern - no mobility. |
+| 0042 | [lm_ec20_0042.json](0042/lm_ec20_0042.json) | The intercept plus the single R3 pattern - no mobility. |
+| 0043 | [lm_ec20_0043.json](0043/lm_ec20_0043.json) | The intercept plus the single R4 pattern - no mobility. |
+| 0044 | [lm_ec20_0044.json](0044/lm_ec20_0044.json) | The intercept plus the single DIAG8 pattern - no mobility. |
+| 0045 | [lm_ec20_0045.json](0045/lm_ec20_0045.json) | The intercept plus the single DIAG7 pattern - no mobility. |
+| 0046 | [lm_ec20_0046.json](0046/lm_ec20_0046.json) | The intercept plus the single DIAG6 pattern - no mobility. |
+| 0047 | [lm_ec20_0047.json](0047/lm_ec20_0047.json) | The intercept plus the single DIAG5 pattern - no mobility. |
+| 0048 | [lm_ec20_0048.json](0048/lm_ec20_0048.json) | The intercept plus the single DIAG4 pattern - no mobility. |
+| 0049 | [lm_ec20_0049.json](0049/lm_ec20_0049.json) | The intercept plus the single CORNER pattern - no mobility. |
+| 0050 | [lm_ec20_0050.json](0050/lm_ec20_0050.json) | The intercept plus the single XEDGE pattern - no mobility. |
+| 0051 | [lm_ec20_0051.json](0051/lm_ec20_0051.json) | The intercept plus the single 2X5COR pattern - no mobility. |
