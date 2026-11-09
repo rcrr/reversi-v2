@@ -32,7 +32,10 @@
 % minimali (l'intercetta; l'intercetta + LMC; l'intercetta + ALMC; la
 % coppia completa), addestrati e validati sullo stesso corpus ec20, e
 % la prima lettura comparata dei risultati (il contributo marginale
-% dell'ALMC, l'assenza di overfitting).
+% dell'ALMC, l'assenza di overfitting). Seconda fase: le 27 mobility
+% selettive sulle nove orbite D4 di celle (il blocco centrale 2x2 e'
+% escluso: non e' mai vuoto in una posizione legale) — la tabella per
+% classe e la lettura del gradiente verso il centro.
 %-----------------------------------------------------------------------------
 
 \part{Esperienze con il modello logistico}
@@ -157,3 +160,73 @@ alcun segnale di overfitting fino a 43 parametri. E il controllo di
 client — il round-trip tra il file dei pesi e le predizioni in
 memoria — è esatto in tutti e quattro i run (differenza massima
 $0.0\times10^{0}$).
+
+\section{Le mobility selettive: nove classi di cella}
+
+La mobility a mask piena ci ha detto \emph{quanto} vale
+l'informazione di mobility nel suo complesso; la domanda naturale è
+\emph{dove} vive, sulla board. Lo strumento è la mask selettiva: la
+stessa mobility, ma calcolata su un insieme di celle scelto a priori.
+
+La partizione naturale della board è data dal gruppo di simmetrie
+$D_4$: le 64 celle si raggruppano in orbite, e le orbite che
+contengono celle non centrali sono nove — $A_1$, $B_1$, $C_1$, $D_1$,
+$B_2$, $C_2$, $D_2$, $C_3$, $D_3$ — di cui tre a 4 celle e sei a 8.
+La decima orbita è il blocco centrale $2\times2$ ($D_4$, $E_4$,
+$D_5$, $E_5$): quattro celle che in una posizione legale non sono
+\emph{mai} tutte e quattro vuote, e che quindi non possono mai
+contribuire a un conteggio di mobility: resta fuori dalla campagna per
+costruzione.
+
+Ogni orbita diventa una mask, e su ogni mask si ripetono le tre
+configurazioni della sezione precedente (LMC, ALMC, la coppia): 9
+orbite $\times$ 3 configurazioni = 27 modelli (0004--0030), addestrati
+e validati sullo stesso corpus ec20, con gli stessi iparametri. La
+tabella~\ref{tab:feature-base-classi} raccoglie la RMSE di
+validazione.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+classe & LMC & ALMC & coppia & coppia $-$ baseline \\
+\midrule
+$A_1$ & 24.09 & 25.21 & \textbf{22.95} & $-12.0\%$ \\
+$B_1$ & 25.56 & 25.54 & \textbf{24.54} & $-6.7\%$ \\
+$C_1$ & 25.21 & 25.30 & \textbf{23.83} & $-9.3\%$ \\
+$D_1$ & 25.67 & 25.82 & \textbf{24.93} & $-5.1\%$ \\
+$B_2$ & 26.24 & 26.22 & \textbf{25.97} & $-1.2\%$ \\
+$C_2$ & 26.24 & 26.19 & \textbf{25.84} & $-1.7\%$ \\
+$D_2$ & 26.30 & 26.29 & \textbf{26.03} & $-1.0\%$ \\
+$C_3$ & 26.34 & 26.35 & \textbf{26.08} & $-1.0\%$ \\
+$D_3$ & 26.39 & 26.39 & \textbf{26.31} & $-0.3\%$ \\
+\midrule
+mask piena & --- & --- & \textbf{20.13} & $-23.6\%$ \\
+\bottomrule
+\end{tabular}
+\caption{Le 9 classi di cella impiegate come mask selettive: la RMSE di
+validazione per configurazione (corpus ec20, 20\,000 posizioni).
+L'ultima riga riprende il riferimento a mask piena della
+tabella~\ref{tab:feature-base-risultati}.}
+\label{tab:feature-base-classi}
+\end{table}
+
+Quattro letture. In \emph{tutte e nove} le classi la coppia batte le
+due mobility singole: la complementarità di LMC e ALMC, scoperta a mask
+piena, non è un artefatto della scala — vale anche su 4 celle. Il
+gradiente è netto: la classe degli angoli $A_1$ da sola porta l'errore
+al $-12.0\%$ del baseline, e si scende via via che ci si sposta verso
+il centro, finché le due classi più interne ($C_3$, $D_3$) sono
+praticamente silenziose ($-1.0\%$, $-0.3\%$): l'informazione di
+mobility che conta vive ai bordi. Un particolare da tenere come dato,
+non come legge: $C_1$ batte $B_1$ (23.83 contro 24.54) — l'anello più
+interno dei due anelli adiacenti agli angoli vale di più di quello
+immediatamente adiacente, e la prossimità all'angolo non è quindi
+l'unico fattore in gioco.
+
+Infine, nessuna mask selettiva eguaglia la mask piena (il migliore è
+22.95 contro 20.13): le mask selettive sono strumenti di
+\emph{analisi} del contributo per zona, non sostituti della mobility
+completa. L'igiene numerica è uniforme su tutta la campagna: i 27
+modelli convergono tutti, e tutti i gap di generalizzazione restano
+negativi.

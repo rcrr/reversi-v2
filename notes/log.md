@@ -619,3 +619,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     (the book class makes `\appendix` inherit the active part — the reason the viewer nested them); the closing
     campaign-forecast paragraph removed; the opening sentence rewritten in his words. dict.txt +4 label
     fragments. Gates: the build 124 pages 0/0, the spell 0, the linter 0, the visual pass OK.
+  - Campaign phase 2 (D-604): the 27 selective-mobility models 0004-0030 — the nine D4 cell orbits x
+    {LMC, ALMC, pair} on the same ec20 corpus. The masks verified as true D4 orbits (disjoint, tiling the
+    60 outer cells; the center 2x2 is the 10th orbit, excluded by Roberto's ruling: never empty in a legal
+    position). The pair wins in all nine classes; the A1 corners are the strongest (-12.0%); a gradient
+    toward a silent center; C1 > B1 is non-monotonic; nothing approaches the full-board pair (20.13). The
+    book gains section 13.4 with the results table. Batch note: the 0007-0009 "failures" were my 3-digit
+    build-dir naming slip (a shell artifact) — fixed, re-run clean.
