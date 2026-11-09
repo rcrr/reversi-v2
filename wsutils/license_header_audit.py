@@ -29,7 +29,8 @@
 """license_header_audit.py — the license-header guard (a CHECK tool).
 
 WHAT IT IS: a read-only CHECK over the tracked SOURCE files (every .py, the .sh scripts, the
-book .tex sources, the data .json fixtures — the R-595 scope): each must carry the standard GPL
+book .tex sources, the data .json fixtures, the models' .json configs — the R-595 scope): each
+must carry the standard GPL
 header as its first lines (after the shebang, when there is one), with the marker lines in order
 — the FILE_NAME line (the basename), the "part of the reversi program" line, the project URL line,
 the Author line, the Copyright line (a 4-digit year) — inside the first 12 lines. The .json
@@ -102,7 +103,8 @@ TEX_MARKERS = [
 
 def tracked_sources():
     out = subprocess.run(
-        ['git', '-C', ROOT, 'ls-files', '*.py', '*.sh', '*.tex', 'wsutils/hooks/*', 'test/reversi/data/*.json'],
+        ['git', '-C', ROOT, 'ls-files', '*.py', '*.sh', '*.tex', 'wsutils/hooks/*', 'test/reversi/data/*.json',
+         'models/*.json'],
         capture_output=True, text=True).stdout.split()
     return [f for f in out if os.path.isfile(os.path.join(ROOT, f))]
 

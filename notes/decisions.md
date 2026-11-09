@@ -2396,3 +2396,12 @@ D-596 | 2026-11-09 | The USO campaign opens with the models/ zone (Roberto's des
          `models/...` example. The zone opens EMPTY (no fake 0000): the config template lives in the user guide (D-598),
          and the first real model opens the registry. Artifacts: `models/lm/ec20/index.md` (the format preamble + the
          empty table), the new register rule R-360, the overview Environment bullet, the README Layout row.
+
+D-597 | 2026-11-09 | The R-595 license-header scope is extended to the models' .json configs (a consequence of D-596's
+         zone): every tracked `models/**/*.json` must carry the standard 26-line GPL header in the C-style `/* ... */`
+         variant (the same form the `rlm_*.json` data fixtures already use). Two surfaces change: the full-mode
+         `git ls-files` glob of wsutils/license\_header\_audit.py gains `models/*.json` (the pre-commit path needed no
+         change — the hook already feeds every staged `.json` to the audit, and the per-file check selects the C-style
+         markers by the .json suffix); the R-595 register text and the wsutils.md inventory row name the new class.
+         Verified: the audit's full mode is green over the 165 tracked source files (the models/ zone is still empty, so
+         the new glob matches nothing yet — the first real model config will be its first exercise).

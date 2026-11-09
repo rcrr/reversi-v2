@@ -574,3 +574,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   - Item 1 (D-596): created `models/lm/ec20/index.md` (the format preamble + the empty 2-column table), promoted
     R-360 (the models/ zone) into the register's Layout & tree band, added the overview Environment bullet and the
     README Layout row. notes\_lint green; suite wrapper measurement fresh; checkin green.
+  - Item 2 (D-597): extended the R-595 license-header scope to the models' .json configs: the audit's full-mode
+    `git ls-files` glob gains `models/*.json` (the pre-commit path already fed every staged .json — no hook change),
+    plus the R-595 register text and the wsutils.md inventory row. Full-mode audit green (165 files; the zone is
+    empty, so the new glob is unexercised until the first real model).
