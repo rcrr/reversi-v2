@@ -2346,3 +2346,13 @@ D-591 | 2026-11-09 | At Roberto's call, the single page-11 reference to the posi
          REGAB database storage form (PostgreSQL has no unsigned 64-bit type), and the page-11 position-field reference
          reflects that stored form. So exactly one reference changes; every other uint64 in the book (the bitboard type
          proper) is left as uint64. Build green (116 pages, 0/0), whole-book linter green (0), spell green (0).
+
+D-592 | 2026-11-09 | At Roberto's call, three terms in the "Le feature" chapter (`reversi_070_feature.tex`) are
+         corrected: "intercetto" -> "intercetta" (8 occurrences, all the intercept feature term);
+         "quadrato"/"quadrati" -> "cella"/"celle" (16 occurrences, all the board-square sense - the feminine gender
+         agreement on the surrounding articles/possessives is fixed too, e.g. "i quadrati" -> "le celle", "dei suoi
+         quadrati" -> "delle sue celle", "tutti e 64 i quadrati" -> "tutte e 64 le celle"); and "bandiera" -> "flag" (3
+         occurrences, the side flag, with the article going feminine-to-masculine: "una bandiera" -> "un flag", "La
+         bandiera" -> "Il flag"). Each change was checked in context. One brace imbalance the "flag" edit introduced (a
+         premature } closing the \textit) was caught by the build and fixed. Build green (116 pages, 0/0), whole-book
+         linter green (0), spell green (0) - the new terms need no dict.txt additions.

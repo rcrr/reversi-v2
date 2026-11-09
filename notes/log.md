@@ -538,3 +538,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     `GAME_POSITION` PLAYER field): the bitboard type stays uint64 (the canonical form), and the int64 is only the REGAB
     database storage form. Exactly one reference changes; all other uint64 in the book are left as-is. Build green (116
     pp), linter green (0), spell green (0). One checkin: D-591.
+  - At Roberto's call, corrected three terms in the "Le feature" chapter: intercetto -> intercetta (8), quadrato/i ->
+    cella/celle (16, with the feminine gender agreement on the articles), and bandiera -> flag (3, the side flag,
+    article fem->masc). Checked each change in context; the build caught and I fixed a brace imbalance the "flag" edit
+    had introduced. Build green (116 pp), linter green (0), spell green (0). One checkin: D-592.
