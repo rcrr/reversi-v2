@@ -2372,3 +2372,12 @@ D-594 | 2026-11-09 | At Roberto's call, the book's "Summary" (the front-matter `
          skeleton placeholder. The now-unused `abstract` environment definition and its \abstractname are removed from
          main.tex; the front matter is now \maketitle, \tableofcontents, then the chapters. Build green (116 pages,
          0/0), whole-book linter green (0), spell green (0).
+
+D-595 | 2026-11-09 | The LATEX campaign is closed: the book has reached an acceptable draft (a document describing the
+         work, in the `latex/` zone, built with `make -C latex latex`). At Roberto's call the campaign ends here and a
+         fresh campaign will take up the remaining book work in a new session. The overview is updated to reflect the
+         close: the "The LATEX campaign" Next-steps bullet is removed (it carried the decision pointers that do not
+         belong in the overview), a Current-state bullet records the book as an acceptable draft + the PDF command, and
+         a new Next-steps bullet lists the planned improvements (document program usage, a LOGISTELLO-results chapter, a
+         rewritten Introduction, the Kogge-Stone legal-moves/make-move documentation, an extensive bibliography, wording
+         fine-tuning) as the open seed for the next campaign.

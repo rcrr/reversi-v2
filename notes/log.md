@@ -551,3 +551,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     introduction, not a summary. Moved its content (the Reversi-ecosystem prose) into the Introduction chapter, which
     was an empty skeleton; removed the now-unused abstract environment from main.tex (front matter is now \maketitle,
     \tableofcontents, chapters). Build green (116 pp), linter green (0), spell green (0). One checkin: D-594.
+  - Closed the LATEX campaign at Roberto's call: the book is at an acceptable draft. Updated the overview - removed the
+    "The LATEX campaign" Next-steps bullet (it carried the D-pointers that don't belong there), added a Current-state
+    bullet (the book draft + the `make -C latex latex` PDF command), and added a Next-steps bullet listing the planned
+    book improvements as the open seed for a fresh campaign (to open in a new session). `notes_lint` green. One
+    checkin: D-595.
