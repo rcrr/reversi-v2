@@ -2507,3 +2507,19 @@ D-604 | 2026-11-09 | Campaign phase 2: the 27 selective-mobility models 0004-003
          column header became "coppia" (the book's established word) to keep the spell gate at 0 without dict pollution.
          Gates: 27/27 runs `CONVERGED_MIN_GRAD` (10-34 iters), all generalization gaps negative, full build 126 pages
          0/0, the spell 0, the whole-book linter 0, the visual pass OK.
+
+D-605 | 2026-11-09 | Campaign phase 3 and the OptMob definition: the nine "full-board + class" models 0031-0039 — each
+         carries the intercept plus the full-board LMS + ALMS pair AND the selective LMS + ALMS pair of one cell class
+         (four mobility features in all). The question: on top of the full-board pair (0003, 20.13), does any class ADD
+         information? The answer is a clear winner: A1 (the corners) — the pair lowers the validation RMSE to 18.93, an
+         additive contribution of -1.20 (six times the runner-up; -28.0% over the 26.28 baseline); the other eight
+         classes are null to slightly negative (-0.03 to +0.20) — their information is already contained in the
+         full-board count. Why: the corner count is not redundant with the total — its DIFFERENCE from the total (legal
+         moves outside the corners) is a new quantity, so the model learns the DISTRIBUTION of mobility, not just its
+         measure; consistent with the known corner-control strategy. The resulting four-feature mobility (the full-board
+         LMC + ALMC, plus the LMC/ALMC pair restricted to the A1 mask) is named OptMob (Optimized Mobility) and is
+         designated the mobility component of the best model in the campaign's continuation. Book: chapter 13 gains
+         section 13.5 (the question, the geometric reason, the definition). Registry: the rigid index.md format becomes
+         3-column (ID + config link + a mirror of the config's one-line description) on Roberto's approval — R-360
+         updated accordingly, and the index was regenerated programmatically from the 40 configs (an exact mirror, no
+         manual transcription). All nine runs `CONVERGED_MIN_GRAD` (60-73 iters), all gaps negative.

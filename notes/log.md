@@ -626,3 +626,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     toward a silent center; C1 > B1 is non-monotonic; nothing approaches the full-board pair (20.13). The
     book gains section 13.4 with the results table. Batch note: the 0007-0009 "failures" were my 3-digit
     build-dir naming slip (a shell artifact) — fixed, re-run clean.
+  - Campaign phase 3 (D-605): the nine "full-board + class" models 0031-0039 (the full-board LMS + ALMS
+    plus one class's selective pair — four mobility features). Clear winner: the A1 corners — 18.93 over
+    the full-board pair's 20.13 (additive -1.20); the other eight null/negative. The four-feature mobility
+    is named OptMob (Optimized Mobility) — the best model's mobility component. The book gains section
+    13.5. The index becomes 3-column (description mirror) on Roberto's approval; R-360 updated.

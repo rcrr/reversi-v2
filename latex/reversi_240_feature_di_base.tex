@@ -35,7 +35,9 @@
 % dell'ALMC, l'assenza di overfitting). Seconda fase: le 27 mobility
 % selettive sulle nove orbite D4 di celle (il blocco centrale 2x2 e'
 % escluso: non e' mai vuoto in una posizione legale) — la tabella per
-% classe e la lettura del gradiente verso il centro.
+% classe e la lettura del gradiente verso il centro. Terza fase: i 9
+% modelli full-board + classe, il clear winner degli angoli, e la
+% definizione di OptMob (la mobility a 4 feature del best model).
 %-----------------------------------------------------------------------------
 
 \part{Esperienze con il modello logistico}
@@ -230,3 +232,29 @@ Infine, nessuna mask selettiva eguaglia la mask piena (il migliore è
 completa. L'igiene numerica è uniforme su tutta la campagna: i 27
 modelli convergono tutti, e tutti i gap di generalizzazione restano
 negativi.
+
+\section{OptMob: la mobility a quattro feature}
+
+La domanda che chiude la campagna selettiva è la più pratica di tutte:
+a mobilità a mask piena già acquisita, una delle nove classi di cella
+è in grado di \emph{aggiungere} informazione? La risposta è netta. Sopra la coppia a mask
+piena (20.13), la coppia selettiva degli angoli $A_1$ abbassa la RMSE
+a \textbf{18.93} — un contributo additivo di $-1.20$, sei volte il
+secondo classificato; le altre otto classi sono nulle o leggermente
+negative ($-0.03$ al meglio, $+0.20$ nel peggiore dei casi): la loro
+informazione è già contenuta nel conteggio pieno, e i quattro pesi in
+più non comprano nulla.
+
+Il motivo è geometrico. Il conteggio angolare non è ridondante con il
+totale: la sua \emph{differenza} rispetto al conteggio pieno — quante
+mosse legali stanno \emph{fuori} dagli angoli — è una quantità nuova,
+e il modello impara così la \emph{distribuzione} della mobilità sulla
+board, non solo la sua misura. Che sia proprio la concentrazione
+angolare a pagare è coerente con la strategia nota del gioco: il
+controllo degli angoli.
+
+La mobility risultante — la LMC e l'ALMC a mask piena, più la coppia
+LMC/ALMC ristretta alla mask degli angoli: quattro feature in tutto —
+assume il nome di \textbf{OptMob} (\emph{Optimized Mobility}), e sarà
+il componente di mobilità del modello migliore nella prosecuzione della
+campagna.

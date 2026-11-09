@@ -166,10 +166,11 @@ the persistent data is a DB/campaign artifact, decided explicitly.
 
 The model configs are tracked under `models/<family>/<ec-level>/NNNN/` (family `lm`; ec-level `ec<empty_count>`; NNNN 4
 digits, sequential, never reused), one config per model named `<family>_<ec-level>_<NNNN>.json`; each ec-level folder
-carries a rigid `index.md` registry (a 2-column table: the ID + a relative markdown link to the config; the model
-name/description live in the config, never duplicated). The config's `base_dir` is RELATIVE
-(`./build/<family>/<ec-level>/NNNN`), resolved from the workspace root — the pipeline is always launched from the root;
-the run's outputs land in the 1:1 gitignored `build/` mirror (R-600 user data).
+carries a rigid `index.md` registry (a 3-column table: the ID + a relative markdown link to the config + a mirror of the
+config's one-line description, so the registry stays readable without opening each file; the model's NAME lives in the
+config only). The config's `base_dir` is RELATIVE (`./build/<family>/<ec-level>/NNNN`), resolved from the workspace root
+— the pipeline is always launched from the root; the run's outputs land in the 1:1 gitignored `build/` mirror (R-600
+user data).
 
 ## Naming & platform
 
