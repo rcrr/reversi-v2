@@ -559,28 +559,36 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 
 ## 2026-11-09 — session 127 (the USO campaign opens — the models/ zone, D-596)
   - Recon first (Roberto: "non fare nulla, controlla e riferisci"): git tree clean at D-595 (the LATEX close),
-    notes\_lint green on all 15 governance files, the fast tier green (1151 tests) once PostgreSQL was back up
-    (it had been down: 21 DB-gated errors + 1 order-artifact FAIL with the DB off, all clear with it on).
-  - Scope with Roberto: the USO campaign starts with the model-tracking rules — he wants to develop several models,
-    keep the JSON configs in git, and keep every pipeline output out. His design (adopted): `models/lm/ec20/NNNN/`
-    with `lm_ec20_NNNN.json`, a rigid `index.md`, and the 1:1 `build/lm/ec20/NNNN/` output mirror with a RELATIVE
-    `base_dir` (no absolute paths in tracked files — portability). Plan mode: three micro-choices settled — the
-    index is a MINIMAL pure registry (ID + a markdown link straight into the JSON, Roberto's words), the zone opens
-    empty (the template lives in the user guide, no fake 0000), and the operational doc goes to docs/user/.
-  - Verified the ground before building: the LMConfig schema already accepts a relative `base_dir` (the three gates
-    run on the CWD-resolved path; `docs/user/lm_config_guide.md` already shows a `models/my-model` example) — so
-    the zone needs ZERO pipeline code changes. The pre-commit hook already feeds every staged .json to the license
-    audit; only the audit's full-mode `git ls-files` glob and the R-595 text miss `models/` (that is D-597).
-  - Item 1 (D-596): created `models/lm/ec20/index.md` (the format preamble + the empty 2-column table), promoted
-    R-360 (the models/ zone) into the register's Layout & tree band, added the overview Environment bullet and the
-    README Layout row. notes\_lint green; suite wrapper measurement fresh; checkin green.
+    notes\_lint green on all 15 governance files, the fast tier green (1151 tests) once PostgreSQL was back up (it had
+    been down: 21 DB-gated errors + 1 order-artifact FAIL with the DB off, all clear with it on).
+  - Scope with Roberto: the USO campaign starts with the model-tracking rules — he wants to develop several models, keep
+    the JSON configs in git, and keep every pipeline output out. His design (adopted): `models/lm/ec20/NNNN/` with
+    `lm_ec20_NNNN.json`, a rigid `index.md`, and the 1:1 `build/lm/ec20/NNNN/` output mirror with a RELATIVE `base_dir`
+    (no absolute paths in tracked files — portability). Plan mode: three micro-choices settled — the index is a MINIMAL
+    pure registry (ID + a markdown link straight into the JSON, Roberto's words), the zone opens empty (the template
+    lives in the user guide, no fake 0000), and the operational doc goes to docs/user/.
+  - Verified the ground before building: the LMConfig schema already accepts a relative `base_dir` (the three gates run
+    on the CWD-resolved path; `docs/user/lm_config_guide.md` already shows a `models/my-model` example) — so the zone
+    needs ZERO pipeline code changes. The pre-commit hook already feeds every staged .json to the license audit; only
+    the audit's full-mode `git ls-files` glob and the R-595 text miss `models/` (that is D-597).
+  - Item 1 (D-596): created `models/lm/ec20/index.md` (the format preamble + the empty 2-column table), promoted R-360
+    (the models/ zone) into the register's Layout & tree band, added the overview Environment bullet and the README
+    Layout row. notes\_lint green; suite wrapper measurement fresh; checkin green.
   - Item 2 (D-597): extended the R-595 license-header scope to the models' .json configs: the audit's full-mode
     `git ls-files` glob gains `models/*.json` (the pre-commit path already fed every staged .json — no hook change),
-    plus the R-595 register text and the wsutils.md inventory row. Full-mode audit green (165 files; the zone is
-    empty, so the new glob is unexercised until the first real model).
+    plus the R-595 register text and the wsutils.md inventory row. Full-mode audit green (165 files; the zone is empty,
+    so the new glob is unexercised until the first real model).
   - Item 3 (D-598): wrote `docs/user/model_development.md` (the second `docs/user/` doc): the operational life of a
-    model — next NNNN, `mkdir -p` of both trees, the config template (smallest valid 10-key shape, GPL header,
-    relative `base_dir`), the registry row with its link, the run command from the workspace root, the output home.
-    The template is verified to load through the real `LMConfig` schema (json5 + pydantic) — the §8 "Truth"
-    contract; the key reference points to lm\_config\_guide.md instead of duplicating it. docs\_rules.md §8
-    registers the second doc.
+    model — next NNNN, `mkdir -p` of both trees, the config template (smallest valid 10-key shape, GPL header, relative
+    `base_dir`), the registry row with its link, the run command from the workspace root, the output home. The template
+    is verified to load through the real `LMConfig` schema (json5 + pydantic) — the §8 "Truth" contract; the key
+    reference points to lm\_config\_guide.md instead of duplicating it. docs\_rules.md §8 registers the second doc.
+  - Model 0000 (D-599): the first real model of the zone — the INTERCEPT-only ec20 baseline, the fully-explicit config
+    (12/12 sections, 100% of the schema fields) with Roberto's values (the `_cache_` prefix, the bid 6/5 split,
+    ridge 0.01, the `_checkpoint_optimize.dat` checkpoint, `high_performance_fg` true). The first run attempt failed at
+    POSITIONS (the draft connection localhost/`regab` asked for a password); Roberto: use `tst_regab`@localhost, no
+    password in the config — it is in `~/.pgpass` (libpq reads it automatically; the pipeline's `RegabDBConnection` also
+    sets `search_path TO reversi` — the tables live in that schema). The corrected run: 19/19 levels green, 199,932
+    training / 20,000 validation (0% overlap), the convergence in 5 iterations, the validation RMSE(y) 26.28 = the
+    population std (the baseline is exactly what it should be), the CLIENT\_CHECK 0.0e+00. Every output under
+    `build/lm/ec20/0000/` (gitignored). Committed the config + the first registry row.

@@ -2417,3 +2417,18 @@ D-598 | 2026-11-09 | The model-development user guide is written: `docs/user/mod
          reference is POINTED to lm\_config\_guide.md, not duplicated (one fact, one home); a "Where things live" table
          pins every fact to its single home. `build/` is flagged as gitignored-but-not-disposable (R-600).
          docs\_rules.md §8 registers the second doc.
+
+D-599 | 2026-11-09 | The first real model of the models/ zone is created and run (D-596's zone, R-360):
+         `models/lm/ec20/0000/lm_ec20_0000.json` — the INTERCEPT-only ec20 baseline (no patterns, no mobilities), the
+         fully-explicit config (all 12 sections carry 100% of the schema fields, nothing implicit), with Roberto's
+         values: `cache_files_prefix` `_cache_`, the training `bid` 6 / the validation `bid` 5,
+         `ridge_regularization` 0.01, the checkpoint `_checkpoint_optimize.dat`, `high_performance_fg` true. The DB
+         connection is `tst_regab`@localhost with `password: null` — the authentication comes from the user's
+         `~/.pgpass` (libpq reads it automatically), so no secret ever lands in the tracked config (the repo is public).
+         The first run attempt failed at POSITIONS (the draft connection, localhost/`regab`, asked for a password); the
+         corrected run completed all 19 levels (exit 0): 199,932 training positions (5.11% duplicates, kept), 20,000
+         validation (0.00% overlap with the training set — independent), L-BFGS converged in 5 iterations
+         (`CONVERGED_MIN_GRAD`, the single intercept parameter), the validation RMSE(y) 26.28 equals the population's
+         std (26.28) — the intercept-only model predicts the mean, the intended zero-capacity baseline; the
+         CLIENT\_CHECK passed with max difference 0.0e+00. Every output landed under `build/lm/ec20/0000/` (gitignored,
+         the R-360 1:1 mirror). The registry `index.md` carries its first row.
