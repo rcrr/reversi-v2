@@ -67,17 +67,6 @@
   frame=single
 }
 
-% The book class has no built-in `abstract` environment (article/report do); define one.
-\providecommand{\abstractname}{Riassunto}
-\newenvironment{abstract}{%
-  \clearpage
-  \begin{center}\bfseries\abstractname\end{center}%
-  \vspace{\baselineskip}%
-}{%
-  \vspace{\baselineskip}%
-  \clearpage
-}
-
 % Fast-compile switch (G3): `make latex CH=NNN` writes \includeonly{reversi_NNN_slug}
 % here; empty -> a full build. See notes/latex_rules.md.
 \input{includeonly}
@@ -95,24 +84,6 @@
 
 \begin{document}
 \maketitle
-\begin{abstract}
-\normalsize
-Reversi è un ecosistema di programmi e strumenti informatici per studiare il gioco da tavolo Othello, anche chiamato Reversi.
-L'intento è studiare, capire, sviluppare algoritmi e modelli che possano progredire nella realizzazione di un agente
-sintetico ed autonomo che sia in grado di giocare una partita in maniera autorevole. E in prospettiva di tendere alla
-risoluzione matematica del gioco, o quantomeno ad una sua approssimazione probabilistica.
-I programmi sono scritti principalmente in ANSI C, Python, SQL, con altri linguaggi come Common Lisp, Java, Clojure, R usati
-per sperimentazioni, ma non rilevanti nella sostanza.
-Il corpo principale del programma è sviluppato in C, e comprende l'endgame solver, il generatore di partite random, il
-solutore integrato con il database REGAB, e le funzioni di risoluzione del modello di ML basato sulla Regressione Logistica.
-Il Database SQL REGAB, sviluppato in PostgreSQL, ed in linguaggio procedurale PL/pgSQL, contiene le posizioni random
-che poi vengono risolte e taggate con il valore vero del game.
-Il codice in C è stato poi portato in Python, per poter operare più agilmente con l'ecosistema attivo del Machine-Learning, AI,
-calcolo scientifico, acceleratori GPU, e tutto quanto serve per la ricerca di frontiera.
-Il codice in C rimane più performante per la risoluzione delle posizioni, il codice in Python è più consono allo sviluppo
-dei Modelli per la definizione di evaluation function più evolute.
-\end{abstract}
-
 \tableofcontents
 
 \include{reversi_020_introduzione}

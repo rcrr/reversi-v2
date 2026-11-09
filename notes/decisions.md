@@ -2365,3 +2365,10 @@ D-593 | 2026-11-09 | Roberto flagged Italian comments in listing 12.1 (page 79, 
          diverged from the code. Fix: the five Italian comments in that listing are translated to English, aligned to
          the code's real section names. A scan of every lstlisting block in the book confirms 12.1 was the only one with
          Italian comments (now 0). Build green (116 pages, 0/0), whole-book linter green (0), spell green (0).
+
+D-594 | 2026-11-09 | At Roberto's call, the book's "Summary" (the front-matter `abstract` environment, labelled
+         "Riassunto") is eliminated - a book has an introduction, not a summary. Its content (the prose describing the
+         Reversi ecosystem) is moved into the Introduction chapter (`reversi_020_introduzione.tex`), which was an empty
+         skeleton placeholder. The now-unused `abstract` environment definition and its \abstractname are removed from
+         main.tex; the front matter is now \maketitle, \tableofcontents, then the chapters. Build green (116 pages,
+         0/0), whole-book linter green (0), spell green (0).

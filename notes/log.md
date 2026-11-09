@@ -547,3 +547,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     was only in the book's hand-written listing excerpt. Translated the five listing-12.1 comments to English (aligned
     to the code's section names); a scan of all lstlisting blocks confirms it was the only one. Build green (116 pp),
     linter green (0), spell green (0). One checkin: D-593.
+  - At Roberto's call, eliminated the book's "Summary" (the front-matter abstract, labelled "Riassunto") - a book has an
+    introduction, not a summary. Moved its content (the Reversi-ecosystem prose) into the Introduction chapter, which
+    was an empty skeleton; removed the now-unused abstract environment from main.tex (front matter is now \maketitle,
+    \tableofcontents, chapters). Build green (116 pp), linter green (0), spell green (0). One checkin: D-594.
