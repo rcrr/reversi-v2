@@ -161,6 +161,16 @@ creating, documenting and retiring one: notes/wsutils.md.
 NEVER inside src/, notes/ or any other code folder: a git clone must be self-contained (the cloner recomputes it once);
 the persistent data is a DB/campaign artifact, decided explicitly.
 
+
+**R-360 — The models/ zone (the tracked model configs)**
+
+The model configs are tracked under `models/<family>/<ec-level>/NNNN/` (family `lm`; ec-level `ec<empty_count>`; NNNN 4
+digits, sequential, never reused), one config per model named `<family>_<ec-level>_<NNNN>.json`; each ec-level folder
+carries a rigid `index.md` registry (a 2-column table: the ID + a relative markdown link to the config; the model
+name/description live in the config, never duplicated). The config's `base_dir` is RELATIVE
+(`./build/<family>/<ec-level>/NNNN`), resolved from the workspace root — the pipeline is always launched from the root;
+the run's outputs land in the 1:1 gitignored `build/` mirror (R-600 user data).
+
 ## Naming & platform
 
 **R-400 — Reversi (othello), NOT chess**

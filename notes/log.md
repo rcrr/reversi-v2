@@ -556,3 +556,21 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     bullet (the book draft + the `make -C latex latex` PDF command), and added a Next-steps bullet listing the planned
     book improvements as the open seed for a fresh campaign (to open in a new session). `notes_lint` green. One
     checkin: D-595.
+
+## 2026-11-09 — session 127 (the USO campaign opens — the models/ zone, D-596)
+  - Recon first (Roberto: "non fare nulla, controlla e riferisci"): git tree clean at D-595 (the LATEX close),
+    notes\_lint green on all 15 governance files, the fast tier green (1151 tests) once PostgreSQL was back up
+    (it had been down: 21 DB-gated errors + 1 order-artifact FAIL with the DB off, all clear with it on).
+  - Scope with Roberto: the USO campaign starts with the model-tracking rules — he wants to develop several models,
+    keep the JSON configs in git, and keep every pipeline output out. His design (adopted): `models/lm/ec20/NNNN/`
+    with `lm_ec20_NNNN.json`, a rigid `index.md`, and the 1:1 `build/lm/ec20/NNNN/` output mirror with a RELATIVE
+    `base_dir` (no absolute paths in tracked files — portability). Plan mode: three micro-choices settled — the
+    index is a MINIMAL pure registry (ID + a markdown link straight into the JSON, Roberto's words), the zone opens
+    empty (the template lives in the user guide, no fake 0000), and the operational doc goes to docs/user/.
+  - Verified the ground before building: the LMConfig schema already accepts a relative `base_dir` (the three gates
+    run on the CWD-resolved path; `docs/user/lm_config_guide.md` already shows a `models/my-model` example) — so
+    the zone needs ZERO pipeline code changes. The pre-commit hook already feeds every staged .json to the license
+    audit; only the audit's full-mode `git ls-files` glob and the R-595 text miss `models/` (that is D-597).
+  - Item 1 (D-596): created `models/lm/ec20/index.md` (the format preamble + the empty 2-column table), promoted
+    R-360 (the models/ zone) into the register's Layout & tree band, added the overview Environment bullet and the
+    README Layout row. notes\_lint green; suite wrapper measurement fresh; checkin green.

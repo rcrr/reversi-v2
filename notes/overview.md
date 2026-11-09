@@ -37,6 +37,9 @@ define the evaluation function.
 - Mirror docs: docs/ mirrors the tracked sources one-to-one — every source and test file has its doc, and the Doc column
   of the two tables is the index (format: notes/docs\_rules.md). The user-facing, non-mirror docs live in the
   `docs/user/` zone (docs\_rules.md §8).
+- Models: `models/` — the tracked model-config registry (R-360): `models/<family>/<ec-level>/NNNN/` with a rigid
+  `index.md` per ec-level; the runs' outputs mirror 1:1 under the gitignored `build/` (the relative `base_dir`, the
+  pipeline launched from the workspace root).
 - Scratch: scratch/ is the disposable session area — gitignored, never tracked, nothing permanent goes there.
 - Governance: all the governance files (the active rules, the decisions log, the session journal, the ideas, the format
   rules, the domain vocabulary, the design principles) live in notes/ — the Index below is their registry.

@@ -55,6 +55,7 @@ The config file format — a minimal entry and the exhaustive per-section refere
 | `test/` | the unit-test suite (unittest, mirroring the source tree) |
 | `docs/` | the mirror documentation (one doc per source file) |
 | `docs/user/` | the user-facing documentation |
+| `models/` | the tracked model configs (one folder per model, a registry `index.md` per level) |
 | `notes/` | the workspace governance (decisions log, rules register, session journal) |
 | `probes/` | the standalone verification probes |
 | `wsutils/` | the workspace tools (the format guards, the checkin gate) |

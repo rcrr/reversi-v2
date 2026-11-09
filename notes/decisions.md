@@ -2381,3 +2381,18 @@ D-595 | 2026-11-09 | The LATEX campaign is closed: the book has reached an accep
          a new Next-steps bullet lists the planned improvements (document program usage, a LOGISTELLO-results chapter, a
          rewritten Introduction, the Kogge-Stone legal-moves/make-move documentation, an extensive bibliography, wording
          fine-tuning) as the open seed for the next campaign.
+
+D-596 | 2026-11-09 | The USO campaign opens with the models/ zone (Roberto's design, the plan approved in session): the
+         tracked model configs live under `models/<family>/<ec-level>/NNNN/` (family `lm`; ec-level `ec<empty_count>`;
+         NNNN 4 digits, sequential, never reused), one config per model named `<family>_<ec-level>_<NNNN>.json`; each
+         ec-level folder carries a rigid `index.md` registry (a 2-column table: the ID + a relative markdown link to the
+         config — the model name/description live in the config's schema-required fields, never duplicated in the index;
+         Roberto: "minimale, registry puro, ma il nome file con link che nel md mi fa andare subito al JSON"). The
+         config's `base_dir` is RELATIVE (`./build/<family>/<ec-level>/NNNN`), resolved from the workspace root — the
+         pipeline is always launched from the root, and no absolute path ever lands in a tracked file (portability
+         across environments). The run's outputs mirror 1:1 under the gitignored `build/` (R-600 user data). No pipeline
+         code change is needed: the LMConfig schema already accepts a relative `base_dir` (the gates check
+         exists/is-dir/writable on the CWD-resolved path), and docs/user/lm\_config\_guide.md already shows a
+         `models/...` example. The zone opens EMPTY (no fake 0000): the config template lives in the user guide (D-598),
+         and the first real model opens the registry. Artifacts: `models/lm/ec20/index.md` (the format preamble + the
+         empty table), the new register rule R-360, the overview Environment bullet, the README Layout row.
