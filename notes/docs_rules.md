@@ -95,9 +95,10 @@ Same skeleton, two substitutions:
 
 ## 8. User documents (docs/user/…)
 
-User-facing, operational docs that mirror NO source file (the first: the LM config user guide,
-`docs/user/lm_config_guide.md`). The mirror rules of §1-§7 do not apply to them (no fixed header, no section skeleton,
-no size budget); the house format does: English, prose wrapped to ~120, no trailing whitespace. Two extra contracts:
+User-facing, operational docs that mirror NO source file (the LM config user guide, `docs/user/lm_config_guide.md`; the
+model development guide, `docs/user/model_development.md`). The mirror rules of §1-§7 do not apply to them (no fixed
+header, no section skeleton, no size budget); the house format does: English, prose wrapped to ~120, no trailing
+whitespace. Two extra contracts:
 
 - **Truth** — every technical claim is checkable against the sources (the guide's example configs validate against the
   real `LMConfig` schema); where a fact has a mirror-doc home, the user doc POINTS to it and does not duplicate it (one

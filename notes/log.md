@@ -578,3 +578,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     `git ls-files` glob gains `models/*.json` (the pre-commit path already fed every staged .json — no hook change),
     plus the R-595 register text and the wsutils.md inventory row. Full-mode audit green (165 files; the zone is
     empty, so the new glob is unexercised until the first real model).
+  - Item 3 (D-598): wrote `docs/user/model_development.md` (the second `docs/user/` doc): the operational life of a
+    model — next NNNN, `mkdir -p` of both trees, the config template (smallest valid 10-key shape, GPL header,
+    relative `base_dir`), the registry row with its link, the run command from the workspace root, the output home.
+    The template is verified to load through the real `LMConfig` schema (json5 + pydantic) — the §8 "Truth"
+    contract; the key reference points to lm\_config\_guide.md instead of duplicating it. docs\_rules.md §8
+    registers the second doc.

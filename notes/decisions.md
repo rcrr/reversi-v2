@@ -2405,3 +2405,15 @@ D-597 | 2026-11-09 | The R-595 license-header scope is extended to the models' .
          markers by the .json suffix); the R-595 register text and the wsutils.md inventory row name the new class.
          Verified: the audit's full mode is green over the 165 tracked source files (the models/ zone is still empty, so
          the new glob matches nothing yet — the first real model config will be its first exercise).
+
+D-598 | 2026-11-09 | The model-development user guide is written: `docs/user/model_development.md` (the second doc of
+         the `docs/user/` zone, docs\_rules.md §8). It is the operational side of R-360 — the whole life of one model:
+         taking the next NNNN, creating both trees (`mkdir -p` of the config folder AND the `build/` output mirror — the
+         `base_dir` gate makes it mandatory), writing the config from the template, adding the registry row with its
+         markdown link, committing config + index in one commit, running from the workspace root, and where the outputs
+         land. The template is the smallest valid 10-key shape (the guide's Minimal example, adapted to the zone: the
+         GPL header, the relative `base_dir`, the `family_ec_ID` output name) and is VERIFIED to load through the real
+         `LMConfig` schema (json5 + pydantic, the cross-field checks included) — the §8 "Truth" contract. The key
+         reference is POINTED to lm\_config\_guide.md, not duplicated (one fact, one home); a "Where things live" table
+         pins every fact to its single home. `build/` is flagged as gitignored-but-not-disposable (R-600).
+         docs\_rules.md §8 registers the second doc.
