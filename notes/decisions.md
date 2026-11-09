@@ -2444,3 +2444,16 @@ D-600 | 2026-11-09 | The second model of the models/ zone is created and run (R-
          — the RMSE down 17.0%, the MAE down 17.2%; the generalization gap (RMSE) is -0.20 (the validation slightly
          BEATS the training — no overfitting); the CLIENT\_CHECK max difference 0.0e+00. Every output under
          `build/lm/ec20/0001/` (gitignored). The registry carries its second row.
+
+D-601 | 2026-11-09 | The third model of the models/ zone is created and run (R-360):
+         `models/lm/ec20/0002/lm_ec20_0002.json` — INTERCEPT + the full-board ALMC (no patterns), the fully-explicit
+         config, identical to model 0001 except the identity fields and the mobility (the side `opponent`, a diff proved
+         it): the feature set `InterceptALMC` = the intercept + `FullBoardALMC`. The run: 19/19 levels green (exit 0);
+         22 parameters (W) / 66 dense; L-BFGS converged in 42 iterations (`CONVERGED_MIN_GRAD`); the validation
+         RMSE(y) 22.47 / the MAE(y) 18.43 / the loss 1.2478e-02; the generalization gap (RMSE) -0.11; the CLIENT\_CHECK
+         max difference 0.0e+00. Reading of the emerging triangle: the ALMC alone beats the 0000 baseline by 14.4% RMSE
+         (it carries its own predictive information) but is ~3% weaker than the LMC model 0001 (22.47 vs 21.81) at the
+         identical parameter budget — the mover's mobility outweighs the opponent's would-be mobility. The next
+         experiment (model 0003, the standard LMC + ALMC pair) will settle whether the ALMC adds MARGINAL value on top
+         of the LMC or is redundant. Every output under `build/lm/ec20/0002/` (gitignored). The registry carries its
+         third row.

@@ -598,3 +598,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     the RMSE down 17.0%, the MAE down 17.2%, the generalization gap -0.20 (no overfitting), the
     CLIENT\_CHECK 0.0e+00. The campaign's first real comparison: the full-board LMC alone, with 22 parameters,
     is worth a 17% RMSE. Committed the config + the registry row.
+  - Model 0002 (D-601): INTERCEPT + the full-board ALMC (the side `opponent`), identical to 0001 except the
+    identity fields and the mobility (a diff proved it). Run 19/19 green: 22 parameters (W) / 66 dense, 42
+    iterations, the validation RMSE(y) 22.47 / the MAE 18.43, the generalization gap -0.11, the
+    CLIENT\_CHECK 0.0e+00. The triangle is now readable: the ALMC alone beats the baseline by 14.4% RMSE but
+    is ~3% weaker than the LMC (22.47 vs 21.81) at the identical parameter budget. Committed the config + the
+    registry row.
