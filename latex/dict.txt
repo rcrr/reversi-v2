@@ -1,7 +1,3 @@
-# Personal dictionary (G8) — domain terms legitimately used in the Italian text.
-# aspell -d it would otherwise flag these as foreign/unknown; the Makefile `spell`
-# target removes them from aspell's output via `grep -vFxi -f dict.txt`. Entries are
-# stored lowercase and matched case-insensitively, so one entry covers every casing.
 abstract
 ac
 action
@@ -20,6 +16,7 @@ antitrasformazioni
 arg
 armijo
 array
+# aspell -d it would otherwise flag these as foreign/unknown; the Makefile `spell`
 at
 atomic
 barbel
@@ -56,6 +53,7 @@ caveat
 cayley
 cells
 centering
+ch
 chain
 championships
 checkpoint
@@ -179,6 +177,7 @@ forward
 fourc
 framed
 freeze
+frequency
 function
 functions
 fvert
@@ -224,6 +223,7 @@ int
 inter
 intercept
 invariare
+iparametri
 iper
 is
 ist
@@ -243,34 +243,29 @@ keywordstyle
 kl
 klein
 kullback
+label
 l'adherence
+lagrange
 l'almc
 l'anova
 l'array
 l'audit
 l'average
-l'ec
-l'echo
-l'endgame
-l'engine
-l'header
-l'helper
-l'hessiana
-l'ottimizzatore
-l'overfitting
-l'overhead
-l'rmse
-l'upcast
-label
-lagrange
 layout
 lbfgs
 leakage
 learning
+l'ec
+l'echo
 legal
 leibler
+l'endgame
+l'engine
 level
 levels
+l'header
+l'helper
+l'hessiana
 limited
 line
 linear
@@ -299,6 +294,11 @@ logistic
 logit
 lookup
 loss
+l'ottimizzatore
+l'overfitting
+l'overhead
+l'rmse
+l'upcast
 lx
 lz
 mace
@@ -370,6 +370,7 @@ packing
 parallel
 parametrata
 parsing
+part
 pass
 path
 pattern
@@ -378,6 +379,7 @@ pdb
 pdf
 pdftitle
 percentage
+# Personal dictionary (G8) — domain terms legitimately used in the Italian text.
 pgsql
 pilot
 pl
@@ -500,6 +502,7 @@ stall
 starting
 stateless
 step
+# stored lowercase and matched case-insensitively, so one entry covers every casing.
 storey
 streaming
 stringstyle
@@ -516,6 +519,7 @@ tab
 table
 taggate
 taggato
+# target removes them from aspell's output via `grep -vFxi -f dict.txt`. Entries are
 the
 thread
 tick
@@ -535,8 +539,8 @@ twoloop
 twond
 txt
 ulp
-un'indicatore
 uncertainty
+un'indicatore
 unique
 unpack
 unsigned

@@ -2471,3 +2471,20 @@ D-602 | 2026-11-09 | The fourth model of the models/ zone is created and run (R-
          marginal gain is smaller than the ALMC's stand-alone gain of -3.81 over the baseline — the overlapping part —
          but substantially non-zero). Cumulative: -23.6% RMSE over the 0000 baseline with the mobility pair alone. Every
          output under `build/lm/ec20/0003/` (gitignored). The registry carries its fourth row.
+
+D-603 | 2026-11-09 | The book gains its Part II and chapter 13: the new `reversi_240_feature_di_base.tex` opens the part
+         "Esperienze con il modello logistico" with the chapter "Le feature di base" (2 pages): the first experimental
+         campaign in book form — the four minimal models (0000 the intercept; 0001 +LMC; 0002 +ALMC; 0003 +LMC+ALMC)
+         trained and validated on the same ec20 corpus (199,932 / 20,000 positions, 0% overlap), the results table (the
+         validation RMSE 26.28 / 21.81 / 22.47 / 20.13; the pair is the cumulative -23.6% over the baseline), and the
+         marginal reading (the ALMC's marginal contribution on top of the LMC is -1.68 RMSE — complementary, not
+         redundant; the generalization gap is negative in all four; the client check is exact). Structural calls
+         (Roberto's): (1) "Fondamenti" is the Part I title, and the `\part` marker sits at the top of "La board" so that
+         the Introduzione (chapter 1) stands BEFORE all the parts; (2) the appendices are lifted OUT of Part II — the
+         book class makes `\appendix` inherit the active part (the reason a document viewer nested them); the fix is an
+         unnumbered `\part*{Appendici}` (+ its toc entry) in main.tex, so A/B form a standalone final section; (3) the
+         closing campaign-forecast paragraph is removed, and the chapter's opening sentence is rewritten in Roberto's
+         words (characterize the contribution of the available features, then assemble ever stronger models). dict.txt
+         gains 4 label fragments leaking through `\ref`/`\part*` (ch, frequency, iparametri, part). Gates: the full
+         build 122 -> 124 pages 0/0, the spell 0, the whole-book linter 0, the visual pass over the toc / part /
+         appendici pages OK.

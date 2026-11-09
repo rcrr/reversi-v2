@@ -611,3 +611,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     answered: the ALMC is NOT redundant — a net marginal -1.68 RMSE on top of the LMC (-7.7% over the
     LMC-only model) for +21 parameters; the pair is cumulative -23.6% RMSE over the baseline. Committed the
     config + the registry row.
+  - Chapter 13 (D-603): "Le feature di base" opens the part "Esperienze con il modello logistico" — the first
+    experimental campaign in book form: the four minimal models on the same ec20 corpus, the results table, the
+    marginal reading of the ALMC (complementary, not redundant), the no-overfitting controls. Roberto's
+    structural calls: "Fondamenti" as the Part I title; the Introduzione moved BEFORE all the parts (the `\part`
+    marker at the top of "La board"); the appendices lifted out of Part II with an unnumbered `\part*{Appendici}`
+    (the book class makes `\appendix` inherit the active part — the reason the viewer nested them); the closing
+    campaign-forecast paragraph removed; the opening sentence rewritten in his words. dict.txt +4 label
+    fragments. Gates: the build 124 pages 0/0, the spell 0, the linter 0, the visual pass OK.

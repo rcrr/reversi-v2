@@ -1,0 +1,159 @@
+%
+% reversi_240_feature_di_base.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: Le feature di base.
+%
+% Prima campagna sperimentale del modello logistico: i quattro modelli
+% minimali (l'intercetta; l'intercetta + LMC; l'intercetta + ALMC; la
+% coppia completa), addestrati e validati sullo stesso corpus ec20, e
+% la prima lettura comparata dei risultati (il contributo marginale
+% dell'ALMC, l'assenza di overfitting).
+%-----------------------------------------------------------------------------
+
+\part{Esperienze con il modello logistico}
+
+\chapter{Le feature di base}
+\label{ch:feature-base}
+
+Fino a qui il libro ha descritto \emph{come} il modello logistico viene
+costruito: la teoria, la pipeline, i suoi livelli. Questa parte inverte
+la prospettiva: impieghiamo il modello per caratterizzare il contributo
+delle diverse feature disponibili, e di seguito assemblare modelli via
+via più capaci.
+
+Il metodo è quello della campagna sperimentale che questa parte
+documenta: si costruiscono modelli \emph{minimali}, ciascuno con una
+sola famiglia di feature in più rispetto al precedente, e si
+confrontano i risultati di validazione. Tutti e quattro i modelli sono
+addestrati e validati sullo \emph{stesso} corpus, con gli stessi
+iparametri (frequency cut-off 1, logit clipping 0.05, regolarizzazione
+ridge 0.01), in modo che ogni differenza di merito sia attribuibile
+alla sola feature set.
+
+\section{Il corpus e i quattro modelli}
+
+Il corpus è il set di posizioni REGAB alla finestra ec20 (\emph{empty
+count} 20): 199\,932 posizioni di addestramento e 20\,000 di
+validazione, estratte dal database con i soli filtri di batch e di
+stato. Le due parti sono \emph{disgiunte}: l'incrocio conta zero
+posizioni comuni (0.00\%), quindi la validazione misura la capacità di
+generalizzazione, non la memoria.
+
+La tabella~\ref{tab:feature-base-modelli} elenca i quattro modelli. La
+progressione è a scalini: si parte dal modello debole per eccellenza
+(l'intercetta da sola) e si aggiunge una famiglia di feature per
+volta.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llcl}
+\toprule
+ID & nome & feature set & parametri ($W$) \\
+\midrule
+0000 & baseline & intercetta & 1 \\
+0001 & +\,LMC & intercetta + LMC & 22 \\
+0002 & +\,ALMC & intercetta + ALMC & 22 \\
+0003 & +\,LMC\,+\,ALMC & intercetta + LMC + ALMC & 43 \\
+\bottomrule
+\end{tabular}
+\caption{I quattro modelli della prima campagna sperimentale (corpus ec20).}
+\label{tab:feature-base-modelli}
+\end{table}
+
+LMC e ALMC sono le due mobility standard a mask piena descritte nel
+capitolo~\ref{ch:feature}: il numero di mosse legali di chi muove, e il
+numero di mosse che \emph{avrebbe} l'avversario se toccasse a lui.
+Ogni mobility a mask piena ammette 65 configurazioni possibili (il
+conto corre da 0 a 64); con la soglia di frequenza in uso, solo le
+configurazioni osservate nel corpus restano nel modello, e il conteggio
+effettivo è 21 per mobility. Da qui i 22 parametri dei modelli 0001 e
+0002 (l'intercetta più 21 pesi) e i 43 del modello 0003 (l'intercetta
+più 21 più 21).
+
+\section{I risultati}
+
+La tabella~\ref{tab:feature-base-risultati} raccoglie i risultati di
+validazione dei quattro modelli.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+metrica & 0000 & 0001 & 0002 & 0003 \\
+\midrule
+RMSE (y)           & 26.28  & 21.81  & 22.47  & \textbf{20.13} \\
+MAE (y)            & 21.63  & 17.90  & 18.43  & \textbf{16.47} \\
+Loss ($\mathrm{MSE}/2$) & $1.707\times10^{-2}$ & $1.176\times10^{-2}$ & $1.248\times10^{-2}$ & \textbf{$1.002\times10^{-2}$} \\
+parametri $W$      & 1      & 22     & 22     & 43 \\
+parametri dense    & 1      & 66     & 66     & 131 \\
+iterazioni L-BFGS  & 5      & 40     & 42     & 60 \\
+gap di generalizzazione & $-0.13$ & $-0.20$ & $-0.11$ & $-0.20$ \\
+\bottomrule
+\end{tabular}
+\caption{Risultati di validazione dei quattro modelli (corpus ec20, 20\,000
+posizioni). Il valore in grassetto è il migliore di ogni riga.}
+\label{tab:feature-base-risultati}
+\end{table}
+
+La cosa che salta agli occhi per prima è la prima colonna: il modello
+0000, privo di ogni feature, riproduce \emph{per costruzione} la
+deviazione standard della popolazione di validazione (26.28 contro
+26.28): predice la media, e il suo errore \emph{è} la dispersione dei
+valori di gioco. È il riferimento contro cui misurare tutto il resto.
+
+Rispetto a quel riferimento, i guadagni in RMSE sono:
+
+\begin{itemize}
+  \item LMC da sola (0001): $-17.0\%$;
+  \item ALMC da sola (0002): $-14.4\%$, poco più debole;
+  \item la coppia completa (0003): $-23.6\%$.
+\end{itemize}
+
+\section{Contributo marginale e complementarità}
+
+La domanda interessante non è quanto vale l'ALMC da sola, ma quanto
+vale \emph{in presenza} della LMC. La risposta si legge sottraendo:
+la coppia porta l'errore da 21.81 a 20.13, un contributo marginale
+netto di $-1.68$ in RMSE ($-7.7\%$ sul modello 0001) al prezzo di 21
+parametri in più.
+
+Il contributo marginale è più piccolo del contributo da sola ($-1.68$
+contro $-3.81$): l'informazione di ALMC sovrappone in parte quella di
+LMC — è plausibile, le due quantità contano mosse sulla stessa board —
+ma una frazione sostanziale è informazione nuova, quante mosse
+\emph{perderebbe} l'avversario. Le due mobility sono
+quindi \emph{complementari}, non ridondanti: entrambe restano nel
+feature set.
+
+Due controlli di sanità, validi per tutti e quattro i modelli. Il gap
+di generalizzazione (RMSE di training meno RMSE di validazione) resta
+\emph{negativo}: la validazione batte sempre l'addestramento, e non c'è
+alcun segnale di overfitting fino a 43 parametri. E il controllo di
+client — il round-trip tra il file dei pesi e le predizioni in
+memoria — è esatto in tutti e quattro i run (differenza massima
+$0.0\times10^{0}$).
