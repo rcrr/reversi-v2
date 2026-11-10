@@ -2606,3 +2606,11 @@ D-610 | 2026-11-10 | New book chapter 14 "Assemblaggio delle feature": the secti
          DIAG5 -0.19, DIAG4 -0.04, and R2 -0.02, kept as data and not as law. New campaign champion: 2X5COR+XEDGE+CORNER
          at 8.11 validation RMSE (-69.3% over the 26.42 baseline), 67,050 weights, gap +0.29. The index now carries 75
          models (0000-0074).
+
+D-611 | 2026-11-10 | Fixed the PDF navigation tree of the pattern catalog appendix. Root cause: hyperref writes the
+         outline level as the NUMERIC value of \theHsubsection (\theHsection.\arabic{subsection}); the catalog chapter
+         has no \section at all, so the first pattern (ELLE, 0.1) landed at outline level 1 while the other 28
+         (0.2-0.29) landed at level 2, and the PDF tree showed ELLE as the parent of every other pattern. The 29 pattern
+         headings are promoted from \subsection to \section: all patterns are now level-1 siblings directly under
+         "Catalogo dei Pattern", and the printed numbering improves from 0.1-0.29 to A.1-A.29. The appendix carries no
+         \label and no cross-reference points at those numbers, so nothing else changes.

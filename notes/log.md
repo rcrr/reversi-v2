@@ -661,3 +661,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     models 0066-0074 (the base 2X5COR+XEDGE plus a partner, batches 3/6, analyses off) all
     improve the base, the contributions are ordered by proximity, and the new champion is
     2X5COR+XEDGE+CORNER at 8.11 (-69.3%). The index is at 75.
+  - Appendix fix: the pattern catalog's navigation tree is repaired (the 29 pattern headings move
+    from \subsection to \section) — every pattern now sits at the same level as ELLE, directly
+    under "Catalogo dei Pattern", and the printed numbering reads A.1-A.29.
