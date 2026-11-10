@@ -2614,3 +2614,13 @@ D-611 | 2026-11-10 | Fixed the PDF navigation tree of the pattern catalog append
          headings are promoted from \subsection to \section: all patterns are now level-1 siblings directly under
          "Catalogo dei Pattern", and the printed numbering improves from 0.1-0.29 to A.1-A.29. The appendix carries no
          \label and no cross-reference points at those numbers, so nothing else changes.
+
+D-612 | 2026-11-10 | Book section 14.4 "Il terzo livello di aggregazione: la prossimità all'angolo" plus the eight
+         third-level models 0075-0082 (the base 2X5COR+XEDGE+CORNER plus one of DIAG8..DIAG4, R2..R4; selection 3/6;
+         analyses OFF). Seven of the eight improve the base (8.11) and DIAG4 is flat: the contributions are ordered by
+         proximity in GROUPS — the four corner-adjacent patterns lead (R4 -0.29, DIAG7 -0.27, R3 -0.23, DIAG6 -0.20),
+         the central ones trail (DIAG5 -0.06, R2 -0.02, DIAG4 0.00) — while the fine order inside a group is not rigid
+         (here R4 overtakes R3, inverting the second level). New campaign champion: 2X5COR+XEDGE+CORNER+R4 at 7.82
+         validation RMSE (-70.4% over the 26.42 baseline), 68,535 weights, gap +0.28. The phase header comments are
+         re-homed: file 240 closes at the sixth phase, file 250 carries the seventh through the ninth. The index now
+         carries 83 models.

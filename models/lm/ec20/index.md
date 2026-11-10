@@ -82,3 +82,11 @@ without opening each file. The model's name lives in the config file itself.
 | 0072 | [lm_ec20_0072.json](0072/lm_ec20_0072.json) | The intercept plus the 2X5COR, XEDGE and R2 patterns - trained on batch 3, validated on batch 6. |
 | 0073 | [lm_ec20_0073.json](0073/lm_ec20_0073.json) | The intercept plus the 2X5COR, XEDGE and R3 patterns - trained on batch 3, validated on batch 6. |
 | 0074 | [lm_ec20_0074.json](0074/lm_ec20_0074.json) | The intercept plus the 2X5COR, XEDGE and R4 patterns - trained on batch 3, validated on batch 6. |
+| 0075 | [lm_ec20_0075.json](0075/lm_ec20_0075.json) | The intercept plus the 2X5COR, XEDGE, CORNER and DIAG8 patterns - trained on batch 3, validated on batch 6. |
+| 0076 | [lm_ec20_0076.json](0076/lm_ec20_0076.json) | The intercept plus the 2X5COR, XEDGE, CORNER and DIAG7 patterns - trained on batch 3, validated on batch 6. |
+| 0077 | [lm_ec20_0077.json](0077/lm_ec20_0077.json) | The intercept plus the 2X5COR, XEDGE, CORNER and DIAG6 patterns - trained on batch 3, validated on batch 6. |
+| 0078 | [lm_ec20_0078.json](0078/lm_ec20_0078.json) | The intercept plus the 2X5COR, XEDGE, CORNER and DIAG5 patterns - trained on batch 3, validated on batch 6. |
+| 0079 | [lm_ec20_0079.json](0079/lm_ec20_0079.json) | The intercept plus the 2X5COR, XEDGE, CORNER and DIAG4 patterns - trained on batch 3, validated on batch 6. |
+| 0080 | [lm_ec20_0080.json](0080/lm_ec20_0080.json) | The intercept plus the 2X5COR, XEDGE, CORNER and R2 patterns - trained on batch 3, validated on batch 6. |
+| 0081 | [lm_ec20_0081.json](0081/lm_ec20_0081.json) | The intercept plus the 2X5COR, XEDGE, CORNER and R3 patterns - trained on batch 3, validated on batch 6. |
+| 0082 | [lm_ec20_0082.json](0082/lm_ec20_0082.json) | The intercept plus the 2X5COR, XEDGE, CORNER and R4 patterns - trained on batch 3, validated on batch 6. |

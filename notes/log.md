@@ -664,3 +664,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   - Appendix fix: the pattern catalog's navigation tree is repaired (the 29 pattern headings move
     from \subsection to \section) — every pattern now sits at the same level as ELLE, directly
     under "Catalogo dei Pattern", and the printed numbering reads A.1-A.29.
+  - Book section 14.4 and the eight third-level models 0075-0082 (the base plus
+    DIAG8..DIAG4 / R2..R4, batches 3/6, analyses off): seven improve, DIAG4 is flat, and
+    proximity orders the contributions in groups. The new champion is
+    2X5COR+XEDGE+CORNER+R4 at 7.82 (-70.4%). The index is at 83.
