@@ -45,6 +45,8 @@
 % Sesta fase: EDGE dentro XEDGE (0055) — l'analisi delle frequenze
 % delle configurazioni (eta2/omega2, SU) come sonda di espressivita'
 % e sovrapposizione, indipendente dal training.
+% Settima fase: 2X5COR sommato agli altri 10 pattern classici
+% (0056-0065): a pagare sono le celle nuove e il loro luogo.
 %-----------------------------------------------------------------------------
 
 \part{Esperienze con il modello logistico}
@@ -464,3 +466,77 @@ Il risultato vale come metodo: prima di sommare pattern, l'analisi
 delle configurazioni dice se c'è informazione nuova da guadagnare. In
 questo caso lo diceva la geometria; in generale lo dicono i numeri, e
 lo dicono \emph{prima} di spendere il training.
+
+\section{Sommare i pattern: il valore delle celle nuove}
+
+Sommare pattern è la domanda successiva: il campione della campagna,
+2X5COR, portato a 9.67 con dieci volte il dato, cosa guadagna a
+essere sommato agli altri pattern classici? Dieci modelli
+(0056--0065) lo misurano: l'intercetta più 2X5COR più un secondo
+pattern — XEDGE, CORNER, le diagonali DIAG4--DIAG8, le file
+R2--R4 — sempre sulla selezione REGAB a batch grandi e con le
+analisi sulle configurazioni attive.
+
+La tabella~\ref{tab:feature-base-pattern-aggregazione} riassume i
+risultati. La prima evidenza: \emph{tutte e dieci le coppie battono
+2X5COR da solo} — nessun partner peggiora il modello — ma i
+guadagni coprono un ordine di grandezza, da $-1.07$ a $-0.05$.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrrl}
+\toprule
+partner & pesi $W$ & RMSE validazione & $\Delta$ su 2X5COR & SU (coppia) & celle nuove \\
+\midrule
+XEDGE  & 61\,894 & 8.60 & $-1.07$ & 0.589 & 4 ($F_1$, $G_1$, $H_1$, $G_2$) \\
+CORNER & 43\,004 & 9.21 & $-0.46$ & 0.601 & 3 ($A_3$, $B_3$, $C_3$) \\
+R3     & 41\,152 & 9.25 & $-0.42$ & 0.157 & 8 (l'intera fila 3) \\
+DIAG7  & 38\,604 & 9.31 & $-0.36$ & 0.076 & 7 \\
+R4     & 39\,333 & 9.32 & $-0.35$ & 0.106 & 8 (l'intera fila 4) \\
+DIAG8  & 39\,296 & 9.33 & $-0.34$ & 0.083 & 8 \\
+DIAG6  & 38\,226 & 9.41 & $-0.26$ & 0.143 & 5 \\
+DIAG5  & 37\,983 & 9.49 & $-0.18$ & 0.250 & 3 \\
+R2     & 41\,169 & 9.61 & $-0.06$ & 0.537 & 3 ($F_2$, $G_2$, $H_2$) \\
+DIAG4  & 37\,893 & 9.62 & $-0.05$ & 0.272 & 2 ($B_3$, $A_4$) \\
+\bottomrule
+\end{tabular}
+\caption{2X5COR sommato a ciascuno degli altri pattern classici (i
+modelli 0056--0065, selezione REGAB 3/6): i pesi, la RMSE di
+validazione, il guadagno su 2X5COR da solo (9.67), la sovrapposizione
+SU della coppia e le celle del partner non contenute nel blocco
+$2\times5$ in angolo.}
+\label{tab:feature-base-pattern-aggregazione}
+\end{table}
+
+La seconda evidenza è la più importante: a predire il guadagno non
+è l'espressività del partner da solo, né la sovrapposizione SU, ma
+le sue \emph{celle nuove} — quelle non contenute nel blocco
+$2\times5$ in angolo. XEDGE porta quattro celle nuove e vale
+$-1.07$; CORNER ne porta tre e vale $-0.46$; le file intere R3 e
+R4 e le diagonali lunghe DIAG7 e DIAG8, con sette-otto celle nuove,
+valgono tra $-0.34$ e $-0.42$; R2 ne porta tre e vale $-0.06$;
+DIAG4, con due celle nuove, è all'apice della scala con $-0.05$.
+
+E contano anche la \emph{posizione} di quelle celle. Le quattro di
+XEDGE sono $F_1$, $G_1$, $H_1$ e $G_2$: l'angolo opposto $H_1$ e il
+suo contorno — la legge degli angoli che si ripete nell'angolo
+opposto, mentre il blocco $2\times5$ copre solo $A_1$. Le tre di R2
+sono invece $F_2$, $G_2$, $H_2$: il bordo lontano della seconda
+fila, senza nessun contorno angolare. Quattro celle nuove
+sull'angolo valgono diciotto volte tre celle nuove sul bordo.
+
+La sovrapposizione SU, da sola, inganna: R2 ha SU 0.537, quasi come
+XEDGE (0.589), eppure vale $-0.06$; DIAG7 ha SU 0.076, il più basso
+della tabella, e vale $-0.36$. Il SU misura quanto le due
+distribuzioni si determinano a vicenda, in blocco; ciò che paga è
+la frazione dell'informazione del partner \emph{non già contenuta}
+nel $2\times5$ — e quella la governano le celle nuove e la loro
+posizione, non il SU.
+
+Il campione aggiornato è 2X5COR+XEDGE: 8.60 di RMSE, $-67.4\%$ sul
+baseline 26.42. I pesi salgono a 38\,000--62\,000 e i gap di
+generalizzazione restano $+0.21$--$+0.28$: i due milioni di righe
+di addestramento tengono la memorizzazione sotto controllo anche a
+questa scala. La regola operativa che ne esce: per sommare un
+pattern al modello, contano le sue celle nuove e il luogo dove
+stanno — non la sua espressività da solo.

@@ -648,3 +648,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     the same instance, the eta-squared 0.215 vs 0.337) measure the redundancy before the
     training; the book gains section 13.8 and section 13.6 is repaired to the ternary
     configuration (the 3^k code space). The index is at 56.
+  - The 10 aggregation models 0056-0065 (2X5COR + a partner, batches 3/6, analyses on): all beat
+    2X5COR alone, the gains span an order of magnitude (-1.07 XEDGE ... -0.05 DIAG4), and the
+    predictor is the partner's NEW CELLS and where they sit — not the SU, not the expressiveness
+    alone. XEDGE adds the mirror corner H1: 2X5COR+XEDGE = 8.60, the new champion (-67.4%). The
+    book gains section 13.9 ("Sommare i pattern: il valore delle celle nuove"); a text fix inside
+    ("salgono", not the pseudo-regular "saliscono" — the dictionary entry added in the meantime
+    was removed). The index is at 66.

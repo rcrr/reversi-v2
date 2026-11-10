@@ -2576,3 +2576,18 @@ D-608 | 2026-11-10 | Model 0055: the intercept + the EDGE and XEDGE patterns, RE
          the SU overlap between pairs) as a probe that works before any training is spent, and documents 0055 as the
          test case: the analyses measure the redundancy, the training confirms it. The index now carries 56 models
          (0000-0055).
+
+D-609 | 2026-11-10 | The 10 aggregation models 0056-0065: the intercept + 2X5COR + one partner (XEDGE, CORNER,
+         DIAG8..DIAG4, R2..R4), REGAB selection 3/6, all three analysis blocks active. Every one of the ten pairs beats
+         2X5COR alone (9.67) — no partner makes the model worse — but the gains span an order of magnitude, from -1.07
+         (XEDGE) to -0.05 (DIAG4). The analyses show what predicts the gain: not the partner's expressiveness alone, not
+         the pair's symmetrical uncertainty, but the partner's NEW CELLS — the cells not contained in the 2x5 corner
+         block — and where those cells sit. XEDGE's four new cells are the mirror corner H1 and its rim (F1, G1, H1,
+         G2): the corner law operating on the far side, worth -1.07; R2's three new cells are the far edge of row 2 (F2,
+         G2, H2), worth -0.06. The SU alone misleads (R2 0.537 vs DIAG7 0.076, with the gains in the opposite order of
+         importance). New campaign champion: 2X5COR+XEDGE at 8.60 validation RMSE (-67.4% over the 26.42 baseline),
+         61,894 weights, gap +0.28. The book gains section 13.9 ("Sommare i pattern: il valore delle celle nuove") with
+         the results table (13.7) and the operative rule: to add a pattern, count its new cells and where they sit — not
+         its expressiveness alone. One text fix inside the section: "salgono" for the pseudo-regular "saliscono"
+         (flagged by Roberto); the bogus dict.txt entry added in the meantime was removed, the dictionary is back to its
+         committed state. The index now carries 66 models (0000-0065).
