@@ -1,0 +1,211 @@
+%
+% reversi_250_assemblaggio_feature.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: Assemblaggio delle feature.
+%
+% Dal "pattern dentro il pattern" (la sonda delle configurazioni) ai due
+% livelli di aggregazione del modello migliore: l'ordinamento per
+% prossimita' all'angolo.
+
+\chapter{Assemblaggio delle feature}
+\section{Un pattern dentro l'altro: l'analisi delle configurazioni}
+
+Prima di ogni training, le frequenze delle configurazioni sono di per
+sé uno strumento di analisi. Ogni pattern possiede uno spazio di
+codici — la disposizione dei dischi sulle sue celle, vuoti, neri o
+bianchi, $3^k$ per $k$ celle — e il corpus ne rivela la
+distribuzione. Da questa distribuzione si misurano due cose,
+\emph{senza addestrare nulla}: l'\emph{espressività} del pattern, la
+frazione di varianza della posizione che il pattern da solo spiega
+(gli indici $\eta^2$ e $\omega^2$); e la \emph{sovrapposizione} tra
+due pattern, quanto la distribuzione dell'uno determina quella
+dell'altro (l'incertezza simmetrica, SU: 0 è l'ortogonalità perfetta,
+1 la determinazione completa).
+
+Il modello 0055 è il caso di prova: l'intercetta più i due pattern
+EDGE e XEDGE, con la selezione REGAB su batch di dati grandi
+(training sul batch 3, 1\,999\,179 righe; validazione sul batch 6).
+La geometria lo decide in anticipo: le otto celle di EDGE sono otto
+delle dieci celle di XEDGE. EDGE è \emph{incluso} in XEDGE.
+
+L'analisi sulle frequenze, calcolata su un corpus di dieci milioni di
+posizioni generate, conferma la geometria con i numeri.
+L'espressività cresce con le celle: $\eta^2$ 0.215 per EDGE, 0.337
+per XEDGE. La sovrapposizione è il dato forte: EDGE e XEDGE danno
+SU 0.879 sulla stessa istanza della board — una correlazione molto
+forte, l'informazione di EDGE è quasi interamente contenuta in
+XEDGE — e scendono a 0.10--0.12 tra istanze diverse, dove i due
+pattern sono di fatto indipendenti. La ridondanza non è un'ipotesi:
+è misurata.
+
+Il training conferma il fenomeno. I pesi del modello sono
+27\,049: l'intercetta, 3\,002 configurazioni di EDGE e 24\,046 di
+XEDGE, selezionate a frequenza non nulla nel corpus di
+addestramento. La RMSE di validazione è 12.90 — contro il 12.91 di
+XEDGE da solo: un guadagno di un centesimo, nel rumore. I 3\,002 pesi
+di EDGE non aggiungono informazione: tutto quello che EDGE vede,
+XEDGE lo vede già, e l'ottimizzatore lo sa. Il modello combinato è,
+a tutti gli effetti, XEDGE.
+
+Il risultato vale come metodo: prima di sommare pattern, l'analisi
+delle configurazioni dice se c'è informazione nuova da guadagnare. In
+questo caso lo diceva la geometria; in generale lo dicono i numeri, e
+lo dicono \emph{prima} di spendere il training.
+
+\section{Il primo livello di aggregazione: la prossimità all'angolo}
+
+Sommare pattern è la domanda successiva: il campione della campagna,
+2X5COR, portato a 9.67 con dieci volte il dato, cosa guadagna a
+essere sommato agli altri pattern classici? Dieci modelli
+(0056--0065) lo misurano: l'intercetta più 2X5COR più un secondo
+pattern — XEDGE, CORNER, le diagonali DIAG4--DIAG8, le file
+R2--R4 — sempre sulla selezione REGAB a batch grandi e con le
+analisi sulle configurazioni attive.
+
+La tabella~\ref{tab:feature-base-pattern-aggregazione} riassume i
+risultati. La prima evidenza: \emph{tutte e dieci le coppie battono
+2X5COR da solo} — nessun pattern lo peggiora — ma i
+guadagni coprono un ordine di grandezza, da $-1.07$ a $-0.05$.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+pattern & pesi $W$ & RMSE validazione & $\Delta$ su 2X5COR & SU (coppia) \\
+\midrule
+XEDGE  & 61\,894 & 8.60 & $-1.07$ & 0.589 \\
+CORNER & 43\,004 & 9.21 & $-0.46$ & 0.601 \\
+R3     & 41\,152 & 9.25 & $-0.42$ & 0.157 \\
+DIAG7  & 38\,604 & 9.31 & $-0.36$ & 0.076 \\
+R4     & 39\,333 & 9.32 & $-0.35$ & 0.106 \\
+DIAG8  & 39\,296 & 9.33 & $-0.34$ & 0.083 \\
+DIAG6  & 38\,226 & 9.41 & $-0.26$ & 0.143 \\
+DIAG5  & 37\,983 & 9.49 & $-0.18$ & 0.250 \\
+R2     & 41\,169 & 9.61 & $-0.06$ & 0.537 \\
+DIAG4  & 37\,893 & 9.62 & $-0.05$ & 0.272 \\
+\bottomrule
+\end{tabular}
+\caption{2X5COR sommato a ciascuno degli altri pattern classici (i
+modelli 0056--0065, selezione REGAB 3/6): i pesi, la RMSE di
+validazione, il guadagno su 2X5COR da solo (9.67) e la sovrapposizione
+SU della coppia.}
+\label{tab:feature-base-pattern-aggregazione}
+\end{table}
+
+La seconda evidenza è l'ordinamento per \emph{prossimità
+all'angolo}: i guadagni decrescono al crescere della distanza del
+pattern dalla regione angolare. XEDGE, che giunge a entrambi gli
+angoli con la prima fila e i due contorni $B_2$ e $G_2$, apporta
+$-1.07$; CORNER, il blocco $3\times3$ attorno all'angolo, $-0.46$;
+la file R3, confinante con il blocco, $-0.42$; le diagonali che
+nascono sul contorno dell'angolo opposto (DIAG7, DIAG8) $-0.36$ e
+$-0.34$; si scende poi con la file R4 ($-0.35$) e le diagonali che
+si allontanano (DIAG6 $-0.26$, DIAG5 $-0.18$), fino alla diagonale
+corta e centrale DIAG4 ($-0.05$). Un caso non segue l'ordinamento e
+si tiene come dato, non come legge: R2, la seconda file, confinante
+anch'essa con la regione angolare, apporta $-0.06$.
+
+La sovrapposizione SU, da sola, non ordina i guadagni: R2 ha SU
+0.537, quasi come XEDGE (0.589), eppure apporta $-0.06$; DIAG7 ha
+SU 0.076, il più basso della tabella, e apporta $-0.36$. Il SU
+misura quanto le due distribuzioni si determinano a vicenda, in
+blocco: è una misura della sovrapposizione, non dell'apporto.
+
+Il campione aggiornato è 2X5COR+XEDGE: 8.60 di RMSE, $-67.4\%$ sul
+baseline 26.42. I pesi salgono a 38\,000--62\,000 e i gap di
+generalizzazione restano $+0.21$--$+0.28$: i due milioni di righe
+di addestramento tengono la memorizzazione sotto controllo anche a
+questa scala. È la prossimità, non la sovrapposizione, a ordinare
+gli apporti: da qui partirà il secondo livello di aggregazione.
+
+\section{Il secondo livello di aggregazione: la prossimità
+all'angolo}
+
+Completato il primo livello di aggregazione — 2X5COR più XEDGE, il
+modello a 8.60 — la domanda è se i pattern restanti apportino ancora
+informazione. Nove modelli (0066--0074) lo misurano: la base
+2X5COR+XEDGE più un terzo pattern — CORNER, le diagonali
+DIAG4--DIAG8, le file R2--R4 — sempre sulla selezione REGAB a batch
+grandi; le analisi sulle configurazioni sono disattivate, a questo
+punto non servono.
+
+La tabella~\ref{tab:feature-base-pattern-secondo-livello} riassume
+i risultati. La prima evidenza: tutti e nove i modelli migliorano la
+base — nessun pattern la peggiora — ma gli apporti si riducono di un
+ordine di grandezza rispetto al primo livello (da $-1.07$ a
+$-0.02$--$-0.49$): la massa predittiva della posizione è concentrata
+nella regione angolare, e il primo livello l'ha in larga parte
+raccolta.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+pattern & pesi $W$ & RMSE validazione & $\Delta$ sulla base & gap (val $-$ train) \\
+\midrule
+CORNER & 67\,050 & 8.11 & $-0.49$ & $+0.29$ \\
+R3     & 65\,198 & 8.15 & $-0.45$ & $+0.29$ \\
+R4     & 63\,379 & 8.22 & $-0.38$ & $+0.28$ \\
+DIAG7  & 62\,650 & 8.22 & $-0.38$ & $+0.29$ \\
+DIAG8  & 63\,342 & 8.24 & $-0.36$ & $+0.27$ \\
+DIAG6  & 62\,272 & 8.32 & $-0.28$ & $+0.29$ \\
+DIAG5  & 62\,029 & 8.41 & $-0.19$ & $+0.28$ \\
+DIAG4  & 61\,939 & 8.56 & $-0.04$ & $+0.29$ \\
+R2     & 65\,215 & 8.58 & $-0.02$ & $+0.31$ \\
+\bottomrule
+\end{tabular}
+\caption{La base 2X5COR+XEDGE (8.60) più un terzo pattern (i modelli
+0066--0074, selezione REGAB 3/6): i pesi, la RMSE di validazione,
+l'apporto sulla base e il gap di generalizzazione, in ordine
+decrescente di apporto.}
+\label{tab:feature-base-pattern-secondo-livello}
+\end{table}
+
+La seconda evidenza è l'ordinamento per \emph{prossimità
+all'angolo}. Gli apporti decrescono al crescere della distanza del
+pattern dalla regione angolare: CORNER, il blocco $3\times3$
+attorno all'angolo, $-0.49$; la file R3, confinante con il blocco,
+$-0.45$; la file R4, il gradino successivo, $-0.38$; le diagonali
+che nascono sul contorno dell'angolo opposto (DIAG7, DIAG8) $-0.38$
+e $-0.36$; le diagonali che se ne allontanano (DIAG6, DIAG5)
+$-0.28$ e $-0.19$; la diagonale corta e centrale (DIAG4) $-0.04$. È
+lo stesso principio che governa la campagna fin dalle sue origini,
+ora formulato in termini di prossimità: a parità di tutto il resto,
+l'apporto è maggiore per il pattern che insiste più direttamente
+sulla regione angolare.
+
+Un caso non segue l'ordinamento e si tiene come dato, non come
+legge: R2, la seconda file, confinante anch'essa con la regione
+angolare, apporta $-0.02$.
+
+Il campione aggiornato è 2X5COR+XEDGE+CORNER: 8.11 di RMSE,
+$-69.3\%$ sul baseline 26.42, 67\,050 pesi, gap di
+generalizzazione $+0.29$: la memorizzazione resta contenuta anche a
+questa scala, grazie ai due milioni di righe di addestramento. Il
+modello migliore della campagna è costruito, per la sua parte di
+pattern, quasi interamente sulla regione angolare.

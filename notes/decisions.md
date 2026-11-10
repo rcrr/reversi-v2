@@ -2591,3 +2591,18 @@ D-609 | 2026-11-10 | The 10 aggregation models 0056-0065: the intercept + 2X5COR
          its expressiveness alone. One text fix inside the section: "salgono" for the pseudo-regular "saliscono"
          (flagged by Roberto); the bogus dict.txt entry added in the meantime was removed, the dictionary is back to its
          committed state. The index now carries 66 models (0000-0065).
+
+D-610 | 2026-11-10 | New book chapter 14 "Assemblaggio delle feature": the sections that lived at the tail of chapter 13
+         (13.8-13.10) move to 14.1-14.3, and chapter 13 now closes at 13.7. Forward repair inside, disclosed: Roberto
+         rejected the "new cells" framework of section 13.9 (committed in D-609) — it is not a well-defined quantity,
+         because a pattern acts through several D4 instances (2X5COR covers the A1 corner through BOTH the T0 and the T7
+         instance, mask 0x0000000303030303, so the set-difference count depends on which instances are combined). The
+         section is rewritten around the single solid principle — PROXIMITY TO THE CORNER — the table loses the "celle
+         nuove" column, the header reads "pattern" (not the English "partner") in both tables, and the title becomes "Il
+         primo livello di aggregazione: la prossimità all'angolo", symmetric with 14.3. The nine second-level
+         aggregation models 0066-0074 (the BASE 2X5COR+XEDGE plus one of CORNER, DIAG8..DIAG4, R2..R4; selection 3/6;
+         the analysis blocks OFF by the user's call) all improve the base (8.60): the contributions are ordered by
+         proximity to the corner region — CORNER -0.49, R3 -0.45, R4 -0.38, DIAG7 -0.38, DIAG8 -0.36, DIAG6 -0.28,
+         DIAG5 -0.19, DIAG4 -0.04, and R2 -0.02, kept as data and not as law. New campaign champion: 2X5COR+XEDGE+CORNER
+         at 8.11 validation RMSE (-69.3% over the 26.42 baseline), 67,050 weights, gap +0.29. The index now carries 75
+         models (0000-0074).

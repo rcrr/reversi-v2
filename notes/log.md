@@ -655,3 +655,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     book gains section 13.9 ("Sommare i pattern: il valore delle celle nuove"); a text fix inside
     ("salgono", not the pseudo-regular "saliscono" — the dictionary entry added in the meantime
     was removed). The index is at 66.
+  - Book: chapter 14 "Assemblaggio delle feature" is open (13.8-13.10 become 14.1-14.3; chapter 13
+    closes at 13.7), and section 14.2 is repaired — the "new cells" framework is out (not
+    well-defined across the D4 instances), proximity to the corner is in. The nine second-level
+    models 0066-0074 (the base 2X5COR+XEDGE plus a partner, batches 3/6, analyses off) all
+    improve the base, the contributions are ordered by proximity, and the new champion is
+    2X5COR+XEDGE+CORNER at 8.11 (-69.3%). The index is at 75.
