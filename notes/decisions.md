@@ -2624,3 +2624,13 @@ D-612 | 2026-11-10 | Book section 14.4 "Il terzo livello di aggregazione: la pro
          validation RMSE (-70.4% over the 26.42 baseline), 68,535 weights, gap +0.28. The phase header comments are
          re-homed: file 240 closes at the sixth phase, file 250 carries the seventh through the ninth. The index now
          carries 83 models.
+
+D-613 | 2026-11-10 | Book section 14.5 "Il quarto livello di aggregazione: la prossimità all'angolo" plus the six
+         fourth-level models 0083-0088 (the base 2X5COR+XEDGE+CORNER+R4 plus one of the remaining patterns DIAG8..DIAG5,
+         R2, R3; selection 3/6; analyses OFF; DIAG4 excluded after its zero contribution at the third level). All six
+         improve the base (7.82), but the scale compresses again (-0.29 to -0.12..-0.03): the campaign approaches the
+         informational floor of the classical patterns. Proximity keeps ordering the groups — the two diagonals born on
+         the H1 side of the edge lead (DIAG7 -0.12, DIAG8 -0.11), the corner-adjacent R3 follows (-0.08), the central
+         ones trail (-0.05..-0.03) — and the order inside the group is stable in sign (DIAG7 leads the diagonals, as at
+         the second level). New campaign champion: 2X5COR+XEDGE+CORNER+R4+DIAG7 at 7.70 validation RMSE (-70.9% over
+         the 26.42 baseline), 69,291 weights, gap +0.29. The index now carries 89 models.

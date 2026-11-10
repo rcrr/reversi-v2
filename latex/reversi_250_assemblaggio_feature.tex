@@ -40,6 +40,10 @@
 % Nona fase: il terzo livello di aggregazione (0075-0082, la base
 % 2X5COR+XEDGE+CORNER + un quarto pattern): la prossimita' ordina i
 % gruppi, il campione sale a 7.82.
+% Decima fase: il quarto livello di aggregazione (0083-0088, la base
+% 2X5COR+XEDGE+CORNER+R4 + uno dei pattern restanti, DIAG4 escluso):
+% la scala si comprime sotto il decimo di punto, il campione sale a
+% 7.70.
 
 \chapter{Assemblaggio delle feature}
 \section{Un pattern dentro l'altro: l'analisi delle configurazioni}
@@ -277,3 +281,56 @@ $-70.4\%$ sul baseline 26.42, 68\,535 pesi, gap di
 generalizzazione $+0.28$: la memorizzazione resta contenuta anche a
 questa scala. I quattro pattern del modello migliore della campagna
 sono tutti, ciascuno a modo suo, sulla regione angolare.
+
+\section{Il quarto livello di aggregazione: la prossimità
+all'angolo}
+
+Completato il terzo livello — la base 2X5COR+XEDGE+CORNER+R4, il
+modello a 7.82 — sei modelli (0083--0088) misurano il prossimo
+gradino: la base più uno dei pattern restanti — le diagonali
+DIAG5--DIAG8, le file R2 e R3 — sempre sulla selezione REGAB a
+batch grandi; le analisi sulle configurazioni restano
+disattivate. DIAG4 è escluso dal giro: al livello precedente non
+aveva apportato nulla.
+
+La tabella~\ref{tab:feature-base-pattern-quarto-livello} riassume i
+risultati. Tutti e sei i pattern apportano un miglioramento, ma la
+scala si comprime ancora (da $-0.29$ a $-0.12$--$-0.03$): la
+campagna si avvicina al pavimento informativo dei pattern
+classici.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+pattern & pesi $W$ & RMSE validazione & $\Delta$ sulla base & gap (val $-$ train) \\
+\midrule
+DIAG7  & 69\,291 & 7.70 & $-0.12$ & $+0.29$ \\
+DIAG8  & 69\,983 & 7.71 & $-0.11$ & $+0.28$ \\
+R3     & 71\,839 & 7.74 & $-0.08$ & $+0.30$ \\
+DIAG6  & 68\,913 & 7.77 & $-0.05$ & $+0.29$ \\
+DIAG5  & 68\,670 & 7.78 & $-0.04$ & $+0.28$ \\
+R2     & 71\,856 & 7.79 & $-0.03$ & $+0.29$ \\
+\bottomrule
+\end{tabular}
+\caption{La base 2X5COR+XEDGE+CORNER+R4 (7.82) più uno dei pattern
+restanti (i modelli 0083--0088, selezione REGAB 3/6): i pesi, la
+RMSE di validazione, l'apporto sulla base e il gap di
+generalizzazione, in ordine decrescente di apporto.}
+\label{tab:feature-base-pattern-quarto-livello}
+\end{table}
+
+La prossimità all'angolo continua a ordinare i \emph{gruppi}. In
+testa le due diagonali nate sul bordo, dal lato di H1 (DIAG7,
+DIAG8), tra $-0.12$ e $-0.11$; a seguire la file R3, adiacente al
+blocco angolare, $-0.08$; in fondo i pattern centrali (DIAG6,
+DIAG5, R2), tra $-0.05$ e $-0.03$. L'ordine dentro il gruppo resta
+stabile nel segno: come al secondo livello, è DIAG7 a guidare le
+diagonali.
+
+Il campione aggiornato è 2X5COR+XEDGE+CORNER+R4+DIAG7: 7.70 di
+RMSE, $-70.9\%$ sul baseline 26.42, 69\,291 pesi, gap di
+generalizzazione $+0.29$: la memorizzazione resta contenuta anche a
+cinque pattern. I margini sono scesi sotto il decimo di punto: la
+regione angolare è in larga parte raccolta, e i pattern classici si
+avviano verso il loro pavimento.

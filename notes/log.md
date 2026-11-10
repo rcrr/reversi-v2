@@ -668,3 +668,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     DIAG8..DIAG4 / R2..R4, batches 3/6, analyses off): seven improve, DIAG4 is flat, and
     proximity orders the contributions in groups. The new champion is
     2X5COR+XEDGE+CORNER+R4 at 7.82 (-70.4%). The index is at 83.
+  - Book section 14.5 and the six fourth-level models 0083-0088 (the base plus the
+    remaining partners, DIAG4 excluded, batches 3/6, analyses off): all six improve, the
+    scale compresses under a tenth of a point, and the campaign reaches its informational
+    floor. The new champion is 2X5COR+XEDGE+CORNER+R4+DIAG7 at 7.70 (-70.9%). The index
+    is at 89.
