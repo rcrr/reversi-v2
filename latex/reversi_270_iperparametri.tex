@@ -1,0 +1,104 @@
+%
+% reversi_270_iperparametri.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: Gli hyper-parameter.
+%
+% Tredicesima fase: lo sweep della regolarizzazione ridge sul campione
+% (0104, identico a 0103 salvo il parametro), con la campagna a passo
+% unitario da 0 a 10: il minimo e' la regione piatta [0, 2], la curva
+% sale in modo monotono da 3 a 10 (7.10); la normalizzazione
+% alpha = lambda / M spinge il ginocchio della curva verso l'alto a
+% questa scala del dato; il valore in uso (0.01) e' al centro del minimo.
+
+\chapter{Gli hyper-parameter}
+
+\section{La regolarizzazione ridge: la curva del minimo}
+
+Eseguiamo una campagna di messa a punto degli hyper-parameter del
+modello logistico, usiamo il miglior modello costruito nei capitoli
+precedenti, con i dieci pattern più OptMob, e il batch di training da
+14 milioni di posizioni. Incominciamo dalla regolarizzazione di
+Ridge, sempre fissa a 0.01 in tutti i modelli sviluppati fino ad ora,
+la domanda è se esista un valore che abbassi la RMSE di validazione
+del campione.
+
+La scansione gira su un unico modello nuovo (0104), identico al
+campione 0103 salvo il parametro: prima la metà (0.005), poi il doppio
+(0.02), poi piccoli passi nella direzione del miglioramento (0.04,
+0.03, 0.015 a sondare il centro, 0.001, 0.025, 0.05, 0.1 a
+esplorare l'intervallo largo, 0.0 e 0.5 a chiudere i due capi, e
+infine la campagna completa a passo unitario, da 0 a 10).
+
+La tabella~\ref{tab:ridge-curva} riporta i punti della campagna a
+passo unitario.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrr}
+\toprule
+ridge & RMSE validazione & iterazioni \\
+\midrule
+0  & 7.05 & 301 \\
+1  & 7.05 & 261 \\
+2  & 7.05 & 248 \\
+3  & 7.06 & 237 \\
+4  & 7.06 & 219 \\
+5  & 7.07 & 204 \\
+6  & 7.08 & 193 \\
+7  & 7.08 & 198 \\
+8  & 7.09 & 197 \\
+9  & 7.10 & 194 \\
+10 & 7.10 & 191 \\
+\bottomrule
+\end{tabular}
+\caption{La RMSE di validazione al variare della regolarizzazione
+ridge, a passo unitario da 0 a 10 (il modello 0104, identico a 0103
+salvo il parametro): la RMSE di validazione e le iterazioni di
+ottimizzazione.}
+\label{tab:ridge-curva}
+\end{table}
+
+La campagna a passo unitario chiude il quadro. Il minimo è la regione
+piatta da 0 a 2 — 7.05 ai punti interi, 7.04 al miglior punto
+osservato, 0.01 — e da 3 in poi la curva sale in modo monotono, di un
+centesimo alla volta, fino a 7.10 a 10: non c'è alcun minimo nascosto
+nel tratto, la funzione è piatta sul primo intervallo e regolarmente
+crescente sul secondo. Il valore in uso — 0.01 — sta al centro del
+minimo largo, e il bordo destro, netto e regolare, è la firma di una
+penalità che comincia a contare.
+
+Perché il pianoro è così largo? La risposta sta nella
+normalizzazione: la pipeline scala la penalità per il numero di
+posizioni, $\alpha = \lambda / M$, in modo che i criteri di
+convergenza non dipendano dalla dimensione del corpus. Su
+quattordici milioni di righe, un $\lambda$ nominale fisso pesa dunque
+molto meno per campione che su un corpus piccolo, e il ginocchio della
+curva viene spinto di conseguenza verso l'alto. Il ritocco della
+regolarizzazione resta privo di beneficio: il valore in uso è al
+centro del minimo, e la salita a 10 conferma che oltre quel piano il
+parametro comincia a costare.

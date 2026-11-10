@@ -682,3 +682,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     at every step (7.46 down to 7.04 on 14M of training rows), OptMob is worth -0.28 on
     top of the ten patterns, and the generalization gap collapses to +0.07. The new
     champion is 0103 at 7.04 (-73.4%). The index is at 104.
+  - Book chapter 15 (Gli hyper-parameter) opened: the ridge fine-tuning campaign on 0104
+    shows a wide flat minimum [0, 2] and a monotone rise from 3 to 10; 0.01 stays at
+    its center. The section keeps the 11-point integer table only; the chapter 13
+    "iparametri" typo is fixed forward.

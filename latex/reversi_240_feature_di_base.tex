@@ -63,7 +63,7 @@ documenta: si costruiscono modelli \emph{minimali}, ciascuno con una
 sola famiglia di feature in più rispetto al precedente, e si
 confrontano i risultati di validazione. Tutti e quattro i modelli sono
 addestrati e validati sullo \emph{stesso} corpus, con gli stessi
-iparametri (frequency cut-off 1, logit clipping 0.05, regolarizzazione
+hyper-parameter (frequency cut-off 1, logit clipping 0.05, regolarizzazione
 ridge 0.01), in modo che ogni differenza di merito sia attribuibile
 alla sola feature set.
 
@@ -190,7 +190,7 @@ costruzione.
 Ogni orbita diventa una mask, e su ogni mask si ripetono le tre
 configurazioni della sezione precedente (LMC, ALMC, la coppia): 9
 orbite $\times$ 3 configurazioni = 27 modelli (0004--0030), addestrati
-e validati sullo stesso corpus ec20, con gli stessi iparametri. La
+e validati sullo stesso corpus ec20, con gli stessi hyper-parameter. La
 tabella~\ref{tab:feature-base-classi} raccoglie la RMSE di
 validazione.
 

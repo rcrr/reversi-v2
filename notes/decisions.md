@@ -2660,3 +2660,18 @@ D-615 | 2026-11-10 | Book section 14.8 "La mobilità e la scala del dato" plus t
          while validation keeps falling: what drives the descent is not memorization. New campaign champion: 0103
          at 7.04 validation RMSE (-73.4% over the 26.42 baseline), 81,269 weights, gap +0.07. The index now carries 104
          models.
+
+D-616 | 2026-11-10 | Book chapter 15 "Gli hyper-parameter" opened, with section 15.1 "La regolarizzazione ridge: la
+         curva del minimo": a fine-tuning campaign on the champion 0103, run on one new model 0104 (identical to 0103
+         except `ridge_regularization`, reusing its own feature cache at every re-run). The sweep
+         probed 0.005/0.02/0.04/0.03/0.015, then 0.001/0.025/0.05/0.1, then 0.0/0.5, 1.0/10.0, and finally the full
+         unit-step campaign 0 to 10. Result: the minimum is a wide flat region [0, 2] (7.05 at the integer points; 7.04
+         at the best observed point, 0.01) and the curve rises monotonically from 3 to 10
+         (7.06, 7.06, 7.07, 7.08, 7.08, 7.09, 7.10, 7.10) — no hidden minimum in between. The book explains the wide
+         plateau by the pipeline's M-normalization (alpha = lambda / M in `hlp_gradient.py`): at 14M rows a fixed
+         nominal lambda weighs far less per sample, pushing the curve's knee up; the in-use value 0.01 sits at the
+         center of the minimum and is kept. Per the user's call the section keeps only the 11-point integer table (both
+         figures removed). Forward fix in chapter 13: the "iparametri" typo (masked by a dict.txt entry) became
+         "hyper-parameter" in two places; dict.txt now carries regolarizzazione, hyper, hyper-parameter, parameter and
+         the tikz keywords, and dropped the iparametri/regularizzazione entries. 0104's config is set to ridge 0.01; the
+         index is at 105.

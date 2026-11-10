@@ -55,6 +55,7 @@ caveat
 cayley
 cells
 centering
+circle
 ch
 chain
 championships
@@ -105,6 +106,7 @@ dall'identita
 dataclass
 dataframe
 dataset
+draw
 db
 dedup
 deduplica
@@ -160,12 +162,14 @@ exact
 extract
 facade
 fail
+fill
 fallback
 fcfc
 feature
 features
 featureset
 federation
+foreach
 ff
 ffc
 fh
@@ -213,6 +217,8 @@ hessiana
 hi
 history
 hot
+hyper
+hyper-parameter
 ideal
 ij
 incr
@@ -231,7 +237,6 @@ int
 inter
 intercept
 invariare
-iparametri
 iper
 is
 ist
@@ -347,6 +352,7 @@ new
 nn
 nnn
 nocedal
+node
 norm
 not
 null'altra
@@ -378,6 +384,7 @@ ox
 oxxxo
 packing
 parallel
+parameter
 parametrata
 parsing
 part
@@ -436,6 +443,7 @@ redundante
 reflection
 regab
 regex
+regolarizzazione
 regolarizzatore
 report
 representative
@@ -494,6 +502,7 @@ sigmoid
 sigmoide
 sink
 skipped
+small
 smoothing
 snake
 solver
@@ -536,6 +545,7 @@ taggato
 the
 thread
 tick
+tikzpicture
 to
 total
 train
