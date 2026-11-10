@@ -2647,3 +2647,16 @@ D-614 | 2026-11-10 | Book sections 14.6-14.7 (in chapter 14, not a standalone ch
          is the most relevant, because part of 2X5COR's information is shared with (replaceable by) the other members
          while XEDGE's is almost entirely its own; the leave-one-out decomposition therefore measures each pattern's
          IRREPLACEABLE QUOTA, not its expressiveness. The index now carries 100 models.
+
+D-615 | 2026-11-10 | Book section 14.8 "La mobilità e la scala del dato" plus the four OptMob/big-data models 0100-0103
+         (the 10-pattern champion plus OptMob, the four-feature mobility of the selective campaign, trained on batch 3,
+         on batch 9, on batch 12 (8M rows), and on batches 3+9+12 (14M rows); all validated on batch 6; analyses OFF).
+         The series descends at every step — 7.46, 7.18, 7.10, 7.06, 7.04 — with regularly shrinking increments
+         (-0.28, -0.08, -0.04, -0.02): convergence toward a floor, not a floor reached. OptMob on top of the ten
+         patterns is worth -0.28 with 52 active weights out of 140: the best contribution-to-cost ratio of the campaign.
+         The data scale collapses the generalization gap monotonically from +0.32 to +0.07 (the smallest of the
+         campaign) while the training RMSE stays flat (6.87-6.98): more data, less fitting of its own training, better
+         validation. The final training loss of the 14M run closes slightly ABOVE the 2M run's (1.20e-3 vs 1.17e-3)
+         while validation keeps falling: what drives the descent is not memorization. New campaign champion: 0103
+         at 7.04 validation RMSE (-73.4% over the 26.42 baseline), 81,269 weights, gap +0.07. The index now carries 104
+         models.

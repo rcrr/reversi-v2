@@ -1,0 +1,157 @@
+/*
+ * lm_ec20_0102.json
+ *
+ * This file is part of the reversi program
+ * http://github.com/rcrr/reversi-v2
+ *
+ * Author Roberto Corradini mailto:rob_corradini@yahoo.it
+ * Copyright 2026 Roberto Corradini. All rights reserved.
+ *
+ * License
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3, or (at your option) any
+ * later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * or visit the site <http://www.gnu.org/licenses/>.
+ */
+{
+    "name": "lm_ec20_0102 — INTERCEPT + PATTERN 2X5COR+XEDGE+CORNER+R4+DIAG8+DIAG7+DIAG6+DIAG5+R2+R3 + OPTMOB (batches 12/6)",
+    "empty_count": 20,
+    "description": "The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility - trained on batch 12, validated on batch 6.",
+    "base_dir": "./build/lm/ec20/0102",
+    "output": "lm_ec20_0102.dat",
+    "use_cache": true,
+    "cache_files_prefix": "_cache_",
+    "regab_allow_duplicate": true,
+    "client_check_tol": 1e-8,
+    "target_level": "last",
+    "log_file_name": "lm_ec20_0102_run.log",
+    "properties": {},
+    "regab_data_set": {
+        "regab_db_connection": {
+            "dbname": "tst_regab",
+            "user": "tst_regab",
+            "host": "localhost",
+            "port": 5432,
+            "password": null,
+            "properties": {}
+        },
+        "bid": [12],
+        "status": ["CMS", "CMR"],
+        "properties": {}
+    },
+    "validation_data_set": {
+        "bid": [6],
+        "status": ["CMS", "CMR"],
+        "properties": {}
+    },
+    "feature_set": {
+        "name": "Intercept2X5CORXEDGECORNERR4DIAG8DIAG7DIAG6DIAG5R2R3OptMob",
+        "intercept": true,
+        "mobility_set": {
+            "name": "LMSALMS_A1",
+            "mobility_features": [
+                { "name": "LMS", "mask": "FFFFFFFFFFFFFFFF", "side": "mover", "properties": {} },
+                { "name": "ALMS", "mask": "FFFFFFFFFFFFFFFF", "side": "opponent", "properties": {} },
+                { "name": "LMS_A1", "mask": "8100000000000081", "side": "mover", "properties": {} },
+                { "name": "ALMS_A1", "mask": "8100000000000081", "side": "opponent", "properties": {} }
+            ],
+            "properties": {}
+        },
+        "pattern_set": {
+            "name": "2X5COR+XEDGE+CORNER+R4+DIAG8+DIAG7+DIAG6+DIAG5+R2+R3",
+            "patterns": [
+                { "name": "2X5COR", "mask": "0000000000001F1F", "properties": {} },
+                { "name": "XEDGE", "mask": "00000000000042FF", "properties": {} },
+                { "name": "CORNER", "mask": "0000000000070707", "properties": {} },
+                { "name": "R4", "mask": "00000000FF000000", "properties": {} },
+                { "name": "DIAG8", "mask": "0102040810204080", "properties": {} },
+                { "name": "DIAG7", "mask": "0001020408102040", "properties": {} },
+                { "name": "DIAG6", "mask": "0000010204081020", "properties": {} },
+                { "name": "DIAG5", "mask": "0000000102040810", "properties": {} },
+                { "name": "R2", "mask": "000000000000FF00", "properties": {} },
+                { "name": "R3", "mask": "0000000000FF0000", "properties": {} }
+            ],
+            "properties": {}
+        },
+        "properties": {}
+    },
+    "stat_model": {
+        "frequency_cut_off": 1,
+        "logit_clipping": 0.05,
+        "ridge_regularization": 0.01,
+        "properties": {}
+    },
+    "optimization": {
+        "max_iters": 500,
+        "m": 50,
+        "c1": 0.0001,
+        "c2": 0.9,
+        "min_grad": [1e-05, 3],
+        "min_p_fun_decrease": [1e-14, 7],
+        "log_every_n": 10,
+        "save_every_n": 0,
+        "checkpoint_file": "_checkpoint_optimize.dat",
+        "high_performance_fg": true,
+        "hi_perf_blocks": 8,
+        "properties": {}
+    },
+    "analytics": {
+        "detailed_report": [],
+        "report_file_name": "model_analytics_report.txt",
+        "properties": {}
+    },
+    "plot": {
+        "enable": true,
+        "format": "png",
+        "dpi": 150,
+        "dir_name": "plots",
+        "plots": [],
+        "binned_note": " $(binned\\ every\\ 2)$",
+        "jitter_seed": 42,
+        "kde_seed": 43,
+        "kde_max_points": 100000,
+        "jitter_fitted_x": 0.005,
+        "jitter_y": 0.005,
+        "jitter_gv_x": 0.7,
+        "kde_grid": 512,
+        "axis_gv": 64.0,
+        "axis_density": 72.0,
+        "tick_step": 8.0,
+        "series_label_x": { "Validation": 0.04, "Training": 0.674, "Reference": 0.75 },
+        "series_label_y": { "Validation": 0.80, "Training": 0.96, "Reference": 0.98 },
+        "properties": {}
+    },
+    "su_analysis": {
+        "enable": false,
+        "corpus": {
+            "seed": 42,
+            "total_positions": 10000000,
+            "properties": {}
+        },
+        "su_pairs": [],
+        "rarity_thresholds": null,
+        "dir_name": "su_analysis",
+        "report_file_name": "su_analysis_report.txt",
+        "export_csv": false,
+        "properties": {}
+    },
+    "anova": {
+        "enable": false,
+        "top_k_adherence": 20,
+        "dir_name": "anova",
+        "report_file_name": "anova_report.txt",
+        "export_csv": false,
+        "properties": {}
+    }
+}

@@ -48,6 +48,9 @@
 % per esclusione a turno (0090-0099): l'ordine di importanza varia col
 % contesto; da solo e' il piu' espressivo 2X5COR, nel gruppo e' il piu'
 % rilevante XEDGE.
+% Dodicesima fase: OptMob in cima ai dieci pattern (0100) e la scala del
+% dato (0101-0103, fino a 14M di righe): la discesa continua fino a 7.04,
+% il gap collassa a +0.07.
 
 \chapter{Assemblaggio delle feature}
 \section{Un pattern dentro l'altro: l'analisi delle configurazioni}
@@ -418,3 +421,61 @@ il modello invariato.
 Il campione della campagna è il modello a dieci pattern: 7.46 di
 RMSE, $-71.8\%$ sul baseline, 77\,877 pesi, gap di
 generalizzazione $+0.32$.
+
+\section{La mobilità e la scala del dato}
+
+Le ultime due domande della campagna: la mobilità aggiunge ancora
+qualcosa in cima al modello a dieci pattern, e la scala del dato di
+addestramento continua a pagare? Cinque esecuzioni (0089,
+0100--0103) le rispondono insieme: il modello a dieci pattern, poi
+lo stesso con OptMob, poi lo stesso addestrato sul batch 9, sul
+batch 12 (otto milioni di righe) e sui batch 3+9+12 (quattordici
+milioni), sempre validato sul batch 6, analisi sulle configurazioni
+disattivate.
+
+La tabella~\ref{tab:mobilita-scala-dato} riassume la serie. La
+discesa non si ferma a nessun passo: 7.46, 7.18, 7.10, 7.06, 7.04 —
+e gli incrementi si assottigliano regolarmente ($-0.28$, $-0.08$,
+$-0.04$, $-0.02$): il profilo di una convergenza verso un
+pavimento, non di un pavimento raggiunto.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llrrrr}
+\toprule
+modello & training & posizioni (milioni) & pesi $W$ & RMSE validazione & gap (val $-$ train) \\
+\midrule
+0089 & 3      & 2  & 77\,877 & 7.46 & $+0.32$ \\
+0100 & 3      & 2  & 77\,929 & 7.18 & $+0.31$ \\
+0101 & 9      & 4  & 79\,534 & 7.10 & $+0.18$ \\
+0102 & 12     & 8  & 80\,654 & 7.06 & $+0.11$ \\
+0103 & 3+9+12 & 14 & 81\,269 & 7.04 & $+0.07$ \\
+\bottomrule
+\end{tabular}
+\caption{Il modello a dieci pattern, con e senza OptMob, addestrato
+su dati via via più grandi (i modelli 0089, 0100--0103; validazione
+sul batch 6): i pesi, la RMSE di validazione e il gap di
+generalizzazione.}
+\label{tab:mobilita-scala-dato}
+\end{table}
+
+Le due evidenze. OptMob, in cima ai dieci pattern, vale $-0.28$ —
+e lo fa con 52 pesi attivi su 140: il miglior rapporto tra
+contributo e costo di tutta la campagna. La mobilità porta
+l'informazione che la disposizione da sola non chiude: quante mosse
+legali ci sono, e dove stanno. La scala del dato, dal canto suo,
+collassa il gap di generalizzazione in modo monotono: da $+0.32$ a
+$+0.07$, il più piccolo della campagna, mentre la RMSE di
+addestramento resta appiattita tra 6.87 e 6.98. Più dato, meno
+adattamento al proprio training, migliore validazione: la legge che
+la campagna ha stabilito sul modello più piccolo, confermata qui sul
+modello finale nella sua forma più pulita.
+
+Il campione aggiornato è 0103: 7.04 di RMSE, $-73.4\%$ sul baseline
+26.42, 81\,269 pesi, gap di generalizzazione $+0.07$, perdita
+finale $1.2\times10^{-3}$ a 334 iterazioni. La perdita di
+addestramento chiude leggermente \emph{sopra} quella dell'esecuzione
+a due milioni ($1.17\times10^{-3}$): il modello si adatta di meno a
+un
+corpus più vasto, e la validazione intanto scende. Non c'è
+ambiguità: a guidare la discesa non è la memorizzazione.

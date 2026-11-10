@@ -678,3 +678,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     decomposition shows the importance order is context-dependent — alone 2X5COR is the most
     expressive, in the group XEDGE is the most relevant (its irreplaceable quota is the
     largest). The index is at 100.
+  - Book section 14.8 and the four OptMob/big-data models 0100-0103: the series descends
+    at every step (7.46 down to 7.04 on 14M of training rows), OptMob is worth -0.28 on
+    top of the ten patterns, and the generalization gap collapses to +0.07. The new
+    champion is 0103 at 7.04 (-73.4%). The index is at 104.

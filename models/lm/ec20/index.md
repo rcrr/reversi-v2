@@ -107,3 +107,7 @@ without opening each file. The model's name lives in the config file itself.
 | 0097 | [lm_ec20_0097.json](0097/lm_ec20_0097.json) | The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, R2 and R3 patterns - trained on batch 3, validated on batch 6. |
 | 0098 | [lm_ec20_0098.json](0098/lm_ec20_0098.json) | The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5 and R3 patterns - trained on batch 3, validated on batch 6. |
 | 0099 | [lm_ec20_0099.json](0099/lm_ec20_0099.json) | The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5 and R2 patterns - trained on batch 3, validated on batch 6. |
+| 0100 | [lm_ec20_0100.json](0100/lm_ec20_0100.json) | The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility - trained on batch 3, validated on batch 6. |
+| 0101 | [lm_ec20_0101.json](0101/lm_ec20_0101.json) | The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility - trained on batch 9, validated on batch 6. |
+| 0102 | [lm_ec20_0102.json](0102/lm_ec20_0102.json) | The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility - trained on batch 12, validated on batch 6. |
+| 0103 | [lm_ec20_0103.json](0103/lm_ec20_0103.json) | The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility - trained on batches 3, 9 and 12, validated on batch 6. |
