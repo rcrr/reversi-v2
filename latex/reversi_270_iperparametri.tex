@@ -34,6 +34,10 @@
 % sale in modo monotono da 3 a 10 (7.10); la normalizzazione
 % alpha = lambda / M spinge il ginocchio della curva verso l'alto a
 % questa scala del dato; il valore in uso (0.01) e' al centro del minimo.
+% Quattordicesima fase: lo sweep della frequency cut-off (0105, da 2 a
+% 100): la RMSE e' piatta, i pesi attivi calano del 21% a 100, ma i
+% parametri densi K non cambiano: la compressione non tocca
+% l'inferenza; il default 1 resta.
 
 \chapter{Gli hyper-parameter}
 
@@ -102,3 +106,58 @@ curva viene spinto di conseguenza verso l'alto. Il ritocco della
 regolarizzazione resta privo di beneficio: il valore in uso è al
 centro del minimo, e la salita a 10 conferma che oltre quel piano il
 parametro comincia a costare.
+
+\section{La frequency cut-off: i pesi si assottigliano, il modello no}
+
+Il secondo hyper-parameter in esame è la frequency cut-off, la soglia
+di occorrenze che una configurazione deve raggiungere per guadagnare
+un peso: fissa a 1 in tutti i modelli della campagna. La scansione
+(modello 0105, identico a 0103 salvo la soglia) sale da 2 a 100, e la
+tabella~\ref{tab:frequency-curva} riporta i tredici punti, con i
+pesi attivi $W$ accanto alla RMSE di validazione.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+cut-off & RMSE validazione & pesi attivi $W$ & iterazioni \\
+\midrule
+1  & 7.04 & 81\,269 & 334 \\
+2  & 7.05 & 80\,602 & 286 \\
+3  & 7.04 & 79\,929 & 310 \\
+4  & 7.05 & 79\,422 & 272 \\
+5  & 7.05 & 78\,919 & 284 \\
+10 & 7.05 & 77\,049 & 304 \\
+15 & 7.05 & 75\,592 & 295 \\
+20 & 7.05 & 74\,411 & 298 \\
+25 & 7.05 & 73\,340 & 275 \\
+30 & 7.05 & 72\,370 & 292 \\
+40 & 7.05 & 70\,697 & 294 \\
+50 & 7.05 & 69\,250 & 287 \\
+100 & 7.06 & 63\,853 & 257 \\
+\bottomrule
+\end{tabular}
+\caption{La RMSE di validazione e i pesi attivi al variare della
+frequency cut-off (il modello 0105, identico a 0103 salvo la soglia;
+la riga 1 è il riferimento 0103).}
+\label{tab:frequency-curva}
+\end{table}
+
+Le due curve fanno cose diverse. La RMSE di validazione è piatta: 7.04
+e 7.05 da 1 a 50, e solo a 100 il primo segno di usura (7.06) —
+l'informazione è distribuita su configurazioni ridondanti, e tagliarne
+una parte non toglie nulla di misurabile. I pesi attivi, invece,
+calano in modo monotono a ogni soglia: da 81\,269 a 63\,853,
+$-21.4\%$ a 100, con pendenza regolare e nessun crollo.
+
+Ma la compressione apparente non vale nulla, perché non tocca ciò che
+conta: il numero di parametri densi $K$ resta identico a ogni soglia
+(167\,325 tanto a cut-off 1 quanto a 100). La cut-off assottiglia
+l'insieme dei pesi sparsi attivi durante l'addestramento, ma lo
+spazio denso in cui l'inferenza lavora non cambia: il modello più
+leggero è leggero solo sul training, e all'inferenza — che è ciò che
+conta — è lo stesso modello.
+
+Il default 1 resta: è il punto di massima capacità, costa nulla
+all'inferenza, e la scansione non mostra alcun beneficio di
+accuratezza a soglie più alte.

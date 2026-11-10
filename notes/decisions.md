@@ -2675,3 +2675,13 @@ D-616 | 2026-11-10 | Book chapter 15 "Gli hyper-parameter" opened, with section 
          "hyper-parameter" in two places; dict.txt now carries regolarizzazione, hyper, hyper-parameter, parameter and
          the tikz keywords, and dropped the iparametri/regularizzazione entries. 0104's config is set to ridge 0.01; the
          index is at 105.
+
+D-617 | 2026-11-10 | Book section 15.2 "La frequency cut-off: i pesi si assottigliano, il modello no": the frequency
+         cut-off sweep (model 0105, identical to 0103 except the threshold) from 2 to 100, thirteen points including the
+         0103 reference at 1. The validation RMSE is flat across the whole range (7.04/7.05 from 1 to 50, first wear at
+         100: 7.06) while the active sparse weights W fall monotonically from 81,269 to 63,853 (-21.4% at 100). The
+         apparent compression is worthless for inference: the dense parameter count K is identical at every threshold
+         (167,325 at cutoff 1 and at cutoff 100) — the cut-off prunes the active sparse weights during training, but the
+         dense space in which inference runs is unchanged, so the lighter model is light only on training. Decision: the
+         default cutoff 1 is kept — maximum capacity, zero inference cost, no accuracy benefit found at higher
+         thresholds. 0105's config is set back to cutoff 1; the index is at 106.

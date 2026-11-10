@@ -686,3 +686,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     shows a wide flat minimum [0, 2] and a monotone rise from 3 to 10; 0.01 stays at
     its center. The section keeps the 11-point integer table only; the chapter 13
     "iparametri" typo is fixed forward.
+  - Book section 15.2: the frequency cut-off sweep (0105, 2 to 100) is flat on
+    validation RMSE while the active weights fall 21%; the dense count K is unchanged,
+    so the compression never reaches inference — the default cutoff 1 is kept.
