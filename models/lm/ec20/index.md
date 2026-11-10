@@ -59,3 +59,6 @@ without opening each file. The model's name lives in the config file itself.
 | 0049 | [lm_ec20_0049.json](0049/lm_ec20_0049.json) | The intercept plus the single CORNER pattern - no mobility. |
 | 0050 | [lm_ec20_0050.json](0050/lm_ec20_0050.json) | The intercept plus the single XEDGE pattern - no mobility. |
 | 0051 | [lm_ec20_0051.json](0051/lm_ec20_0051.json) | The intercept plus the single 2X5COR pattern - no mobility. |
+| 0052 | [lm_ec20_0052.json](0052/lm_ec20_0052.json) | The intercept plus the single CORNER pattern - trained on batch 3, validated on batch 6. |
+| 0053 | [lm_ec20_0053.json](0053/lm_ec20_0053.json) | The intercept plus the single XEDGE pattern - trained on batch 3, validated on batch 6. |
+| 0054 | [lm_ec20_0054.json](0054/lm_ec20_0054.json) | The intercept plus the single 2X5COR pattern - trained on batch 3, validated on batch 6. |

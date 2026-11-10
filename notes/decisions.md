@@ -2542,3 +2542,19 @@ D-606 | 2026-11-09 | The 12 standalone classic-pattern models 0040-0051 (interce
          checksums are unchanged). The top-3 pattern models show POSITIVE generalization gaps (mild memorization at the
          high parameter count — 2X5COR carries 32,761 weights) while every mobility model stays negative: the honest
          contrast is "rich patterns, partly memorized" vs "poor mobility, fully honest".
+
+D-607 | 2026-11-10 | Book chapter 13 extended with the pattern results, and the 3 batch-swapped models 0052-0054.
+         Section 13.6 ("I pattern classici: definizioni e primi risultati") documents the 12 standalone classic
+         patterns: the mechanism (each observed binary configuration of the mask is a feature with its own weight), the
+         geometric definitions (table 13.4), and the results sorted by the parameter count W (table 13.5) — the corner
+         patterns dominate (2X5COR 10.63, CORNER 12.38, XEDGE 13.64; a single corner pattern beats the whole OptMob),
+         EDGE and DIAG8 are far more expressive than the deeper rows and truncated diagonals because they touch the
+         corners, and the generalization gap grows with W (the price of expressiveness: rich patterns memorize partly).
+         Section 13.7 ("Gli stessi pattern, dieci volte i dati") documents the batch swap: the three largest patterns
+         re-trained identically, with the REGAB selection set to ten-times-bigger data batches (training on batch 3,
+         1,999,179 rows; validation on batch 6, 199,932 — the two validation populations are statistical twins,
+         baselines 26.41 vs 26.42). Four readings (table 13.6): more data improves the validation in all three (12.24
+         / 12.91 / 9.67), the memorization gaps collapse (+0.37→+0.03, +1.59→+0.13, +2.09→+0.22), the parameter count W
+         grows with the data (+7% / +27% / +15%) while the gap shrinks (memorization, not capacity), and 2X5COR remains
+         the strongest model of the campaign (9.67 on a 200,000 population). The dictionary gains the 11 pattern
+         identifiers (r2-r4, diag4-diag8, corner, 2x5cor, batches). The index now carries 55 models (0000-0054).

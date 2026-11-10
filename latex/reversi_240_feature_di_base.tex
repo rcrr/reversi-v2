@@ -38,6 +38,10 @@
 % classe e la lettura del gradiente verso il centro. Terza fase: i 9
 % modelli full-board + classe, il clear winner degli angoli, e la
 % definizione di OptMob (la mobility a 4 feature del best model).
+% Quarta fase: i 12 pattern classici da soli (definizioni, risultati,
+% il dominio degli angoli e il prezzo dell'espressivita' in gap).
+% Quinta fase: i tre pattern di dimensioni maggiori con batch di dati
+% 10x piu' grandi: la memorizzazione si paga con il dato, non e' destino.
 %-----------------------------------------------------------------------------
 
 \part{Esperienze con il modello logistico}
@@ -258,3 +262,157 @@ LMC/ALMC ristretta alla mask degli angoli: quattro feature in tutto —
 assume il nome di \textbf{OptMob} (\emph{Optimized Mobility}), e sarà
 il componente di mobilità del modello migliore nella prosecuzione della
 campagna.
+
+\section{I pattern classici: definizioni e primi risultati}
+
+Il pattern è la seconda famiglia di feature. Là dove la mobility
+fornisce un solo scalare — il \emph{conteggio} delle mosse — il
+pattern osserva l'occupazione \emph{binaria} di un insieme di celle:
+la configurazione è la disposizione esatta dei dischi sul mask. Ogni
+configurazione distinta, osservata nel corpus con frequenza non
+inferiore al cut-off, diventa una feature a tutti gli effetti, con il
+suo peso. Il pattern è dunque una feature \emph{ricca}: il numero di
+pesi $W$ non è fissato a priori, ma è il numero di configurazioni
+osservate, e può salire alle decine di migliaia.
+
+La tabella~\ref{tab:feature-base-pattern-definizione} definisce i
+dodici pattern classici impiegati nella campagna.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrl}
+\toprule
+pattern & celle & copertura \\
+\midrule
+EDGE   & 8  & l'intera prima fila ($A_1$--$H_1$) \\
+R2     & 8  & la seconda fila \\
+R3     & 8  & la terza fila \\
+R4     & 8  & la quarta fila \\
+DIAG4  & 4  & la diagonale corta ($D_1$, $C_2$, $B_3$, $A_4$) \\
+DIAG5  & 5  & la diagonale $E_1$--$A_5$ \\
+DIAG6  & 6  & la diagonale $F_1$--$A_6$ \\
+DIAG7  & 7  & la diagonale $G_1$--$A_7$ \\
+DIAG8  & 8  & la diagonale piena $H_1$--$A_8$: attraversa entrambi gli angoli \\
+CORNER & 9  & il blocco $3\times3$ attorno all'angolo \\
+XEDGE  & 10 & la prima fila più le due celle adiacenti agli angoli ($B_2$, $G_2$) \\
+2X5COR & 10 & il blocco $2\times5$ in angolo (file 1--2, colonne A--E) \\
+\bottomrule
+\end{tabular}
+\caption{I dodici pattern classici: il numero di celle del mask e la
+copertura geometrica. Il mask è il rappresentante principale
+dell'orbita: per simmetria $D_4$ la copertura vale per tutti e quattro
+gli angoli.}
+\label{tab:feature-base-pattern-definizione}
+\end{table}
+
+Su ciascun mask è stato addestrato un modello minimale — l'intercetta
+più il solo pattern, nessuna mobility (i modelli 0040--0051) — sempre
+sul corpus ec20, per misurare il contributo \emph{singolo} di ciascuna
+famiglia. La tabella~\ref{tab:feature-base-pattern-risultati}
+raccoglie i risultati, ordinati per numero di pesi $W$.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+pattern & pesi $W$ & RMSE validazione & $\Delta$ sul baseline & gap (val $-$ train) \\
+\midrule
+DIAG4  & 46      & 22.52 & $-3.76$  & $-0.19$ \\
+DIAG5  & 136     & 24.17 & $-2.11$  & $-0.15$ \\
+DIAG6  & 379     & 24.00 & $-2.28$  & $-0.11$ \\
+DIAG7  & 751     & 21.96 & $-4.32$  & $-0.20$ \\
+DIAG8  & 1\,322  & 17.95 & $-8.33$  & $+0.11$ \\
+R4     & 1\,480  & 23.94 & $-2.34$  & $+0.11$ \\
+EDGE   & 2\,964  & 17.59 & $-8.69$  & $+0.23$ \\
+R3     & 3\,235  & 21.79 & $-4.49$  & $+0.19$ \\
+R2     & 3\,322  & 21.16 & $-5.12$  & $+0.31$ \\
+CORNER & 4\,831  & 12.38 & $-13.90$ & $+0.37$ \\
+XEDGE  & 18\,955 & 13.64 & $-12.64$ & $+1.59$ \\
+2X5COR & 32\,761 & 10.63 & $-15.65$ & $+2.09$ \\
+\bottomrule
+\end{tabular}
+\caption{I dodici pattern classici da soli (l'intercetta più il
+pattern, nessuna mobility): i pesi $W$, la RMSE di validazione, il
+guadagno sul baseline 26.28 e il gap di generalizzazione (validazione
+meno training), in ordine crescente di $W$.}
+\label{tab:feature-base-pattern-risultati}
+\end{table}
+
+Tre letture. La prima è la più forte: i tre pattern che \emph{insistono}
+sull'angolo — 2X5COR, CORNER, XEDGE — occupano i primi tre posti
+(10.63, 12.38, 13.64), riducendo l'errore più della metà rispetto al
+baseline; un singolo pattern d'angolo batte l'intera OptMob (18.82). La
+struttura locale dell'angolo è l'informazione più predittiva della
+board.
+
+La seconda lettura separa i pattern non angolari. Tra questi, EDGE
+(17.59) e DIAG8 (17.95) sono molto più espressivi degli altri: R2, R3,
+R4 e le diagonali tronche DIAG4--DIAG7 restano tutte tra 21 e 24. La
+ragione è nella definizione stessa: DIAG8 è la diagonale piena, che
+attraversa \emph{entrambi} gli angoli; EDGE è la fila che li
+\emph{contiene}. Le file profonde (R3, R4) e le diagonali che
+non arrivano all'angolo non esprimono, di fatto, quasi nulla.
+
+La terza lettura è il prezzo dell'espressività. La tabella è ordinata
+per numero di pesi: in testa, i pattern a poche decine di pesi hanno
+gap \emph{negativi} — onesti, da sotto-addestramento — e al crescere
+di $W$ il gap (validazione meno training) cresce a sua volta: $+0.11$
+a circa 1\,300 pesi, $+0.23$--$+0.31$ a tremila, $+0.37$ a
+4\,800, poi il salto a $+1.59$ (XEDGE, 18\,955 pesi) e $+2.09$
+(2X5COR, 32\,761). Quanto più un pattern è espressivo, tanto più
+tende a \emph{memorizzare} il corpus: la validazione paga un premio
+crescente. È il contrappeso onesto al confronto con la mobility —
+pochi pesi, gap sempre negativi —: i pattern ricchi comprano
+precisione, in parte a memoria.
+
+\section{Gli stessi pattern, dieci volte i dati}
+
+I tre pattern di dimensioni maggiori sono stati addestrati di nuovo,
+identici in tutto il resto, con la selezione dal database REGAB
+impostata su batch di dati dieci volte più grandi: training sul
+batch 3 (1\,999\,179 righe, circa dieci volte il batch 6) e
+validazione sul batch 6 (199\,932 righe) — i modelli 0052--0054
+contro gli originali 0049--0051. Le due popolazioni di validazione
+sono statisticamente gemelle (baseline 26.41 contro 26.42), e il
+confronto è pulito.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llrrrr}
+\toprule
+pattern & model & batches & pesi $W$ & RMSE validazione & gap (val $-$ train) \\
+\midrule
+CORNER & 0049 & 6/5 & 4\,831  & 12.38 & $+0.37$ \\
+CORNER & 0052 & 3/6 & 5\,157  & 12.24 & $+0.03$ \\
+XEDGE  & 0050 & 6/5 & 18\,955 & 13.64 & $+1.59$ \\
+XEDGE  & 0053 & 3/6 & 24\,047 & 12.91 & $+0.13$ \\
+2X5COR & 0051 & 6/5 & 32\,761 & 10.63 & $+2.09$ \\
+2X5COR & 0054 & 3/6 & 37\,848 & 9.67  & $+0.22$ \\
+\bottomrule
+\end{tabular}
+\caption{I tre pattern angolari con la selezione REGAB invertita: il
+training sul batch 3 (10 volte più righe) e la validazione sul batch
+6, contro gli originali (training 6, validazione 5).}
+\label{tab:feature-base-pattern-dato}
+\end{table}
+
+Quattro letture. La prima: più dati, validazione migliore, in tutti e
+tre i casi — 12.38 contro 12.24, 13.64 contro 12.91, 10.63 contro
+9.67. Sul baseline 26.42 del batch 6 i tre modelli guadagnano
+$-53.7\%$, $-51.1\%$ e $-63.4\%$.
+
+La seconda: la memorizzazione collassa. Il gap (validazione meno
+training) crolla da $+0.37$ a $+0.03$, da $+1.59$ a $+0.13$, da
+$+2.09$ a $+0.22$: dieci volte il dato diluiscono la memorizzazione
+per configurazione. Il \emph{prezzo dell'espressività} documentato
+nella sezione precedente non è un destino del pattern: si paga, in
+gran parte, con il dato.
+
+La terza: i pesi crescono col dato — più configurazioni osservate a
+frequenza non nulla (2X5COR $+15\%$, XEDGE $+27\%$, CORNER $+7\%$) —
+eppure il gap cala: conferma che si trattava di memorizzazione, non
+di capacità.
+
+La quarta: 2X5COR resta il modello più forte della campagna — 9.67 di
+RMSE su una popolazione di 200\,000 posizioni. L'informazione
+angolare regge il cambio di corpus.

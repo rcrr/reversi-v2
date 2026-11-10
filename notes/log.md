@@ -638,3 +638,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     corrected. Code: the OPTIMIZE finish line now says "executed N iters" (thousands separator); the
     suite is green. The 12 configs run with `log_every_n: 10`; the first re-run was swallowed by the
     checkpoint cache — cleared, re-run fresh, deterministic.
+  - Book: section 13.6 (the 12 classic patterns — definitions, the corner dominance, the price of
+    expressiveness in the gap) and 13.7 (the three largest patterns on ten-times the data — the
+    validation improves and the memorization collapses: it is paid with data, not fate). New models
+    0052-0054 (the batch-swapped CORNER/XEDGE/2X5COR, training batch 3 / validation batch 6), the
+    index at 55, the dictionary +11 pattern terms.
