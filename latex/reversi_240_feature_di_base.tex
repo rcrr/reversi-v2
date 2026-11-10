@@ -42,6 +42,9 @@
 % il dominio degli angoli e il prezzo dell'espressivita' in gap).
 % Quinta fase: i tre pattern di dimensioni maggiori con batch di dati
 % 10x piu' grandi: la memorizzazione si paga con il dato, non e' destino.
+% Sesta fase: EDGE dentro XEDGE (0055) — l'analisi delle frequenze
+% delle configurazioni (eta2/omega2, SU) come sonda di espressivita'
+% e sovrapposizione, indipendente dal training.
 %-----------------------------------------------------------------------------
 
 \part{Esperienze con il modello logistico}
@@ -267,11 +270,12 @@ campagna.
 
 Il pattern è la seconda famiglia di feature. Là dove la mobility
 fornisce un solo scalare — il \emph{conteggio} delle mosse — il
-pattern osserva l'occupazione \emph{binaria} di un insieme di celle:
-la configurazione è la disposizione esatta dei dischi sul mask. Ogni
-configurazione distinta, osservata nel corpus con frequenza non
-inferiore al cut-off, diventa una feature a tutti gli effetti, con il
-suo peso. Il pattern è dunque una feature \emph{ricca}: il numero di
+pattern osserva la \emph{disposizione} dei dischi su un insieme di
+celle: per ogni cella lo stato è vuoto, nero o bianco, e la
+configurazione è la disposizione esatta su tutto il mask — uno spazio
+di $3^k$ codici per $k$ celle. Ogni configurazione distinta,
+osservata nel corpus con frequenza non inferiore al cut-off, diventa
+una feature a tutti gli effetti, con il suo peso. Il pattern è dunque una feature \emph{ricca}: il numero di
 pesi $W$ non è fissato a priori, ma è il numero di configurazioni
 osservate, e può salire alle decine di migliaia.
 
@@ -416,3 +420,47 @@ di capacità.
 La quarta: 2X5COR resta il modello più forte della campagna — 9.67 di
 RMSE su una popolazione di 200\,000 posizioni. L'informazione
 angolare regge il cambio di corpus.
+
+\section{Un pattern dentro l'altro: l'analisi delle configurazioni}
+
+Prima di ogni training, le frequenze delle configurazioni sono di per
+sé uno strumento di analisi. Ogni pattern possiede uno spazio di
+codici — la disposizione dei dischi sulle sue celle, vuoti, neri o
+bianchi, $3^k$ per $k$ celle — e il corpus ne rivela la
+distribuzione. Da questa distribuzione si misurano due cose,
+\emph{senza addestrare nulla}: l'\emph{espressività} del pattern, la
+frazione di varianza della posizione che il pattern da solo spiega
+(gli indici $\eta^2$ e $\omega^2$); e la \emph{sovrapposizione} tra
+due pattern, quanto la distribuzione dell'uno determina quella
+dell'altro (l'incertezza simmetrica, SU: 0 è l'ortogonalità perfetta,
+1 la determinazione completa).
+
+Il modello 0055 è il caso di prova: l'intercetta più i due pattern
+EDGE e XEDGE, con la selezione REGAB su batch di dati grandi
+(training sul batch 3, 1\,999\,179 righe; validazione sul batch 6).
+La geometria lo decide in anticipo: le otto celle di EDGE sono otto
+delle dieci celle di XEDGE. EDGE è \emph{incluso} in XEDGE.
+
+L'analisi sulle frequenze, calcolata su un corpus di dieci milioni di
+posizioni generate, conferma la geometria con i numeri.
+L'espressività cresce con le celle: $\eta^2$ 0.215 per EDGE, 0.337
+per XEDGE. La sovrapposizione è il dato forte: EDGE e XEDGE danno
+SU 0.879 sulla stessa istanza della board — una correlazione molto
+forte, l'informazione di EDGE è quasi interamente contenuta in
+XEDGE — e scendono a 0.10--0.12 tra istanze diverse, dove i due
+pattern sono di fatto indipendenti. La ridondanza non è un'ipotesi:
+è misurata.
+
+Il training conferma il fenomeno. I pesi del modello sono
+27\,049: l'intercetta, 3\,002 configurazioni di EDGE e 24\,046 di
+XEDGE, selezionate a frequenza non nulla nel corpus di
+addestramento. La RMSE di validazione è 12.90 — contro il 12.91 di
+XEDGE da solo: un guadagno di un centesimo, nel rumore. I 3\,002 pesi
+di EDGE non aggiungono informazione: tutto quello che EDGE vede,
+XEDGE lo vede già, e l'ottimizzatore lo sa. Il modello combinato è,
+a tutti gli effetti, XEDGE.
+
+Il risultato vale come metodo: prima di sommare pattern, l'analisi
+delle configurazioni dice se c'è informazione nuova da guadagnare. In
+questo caso lo diceva la geometria; in generale lo dicono i numeri, e
+lo dicono \emph{prima} di spendere il training.

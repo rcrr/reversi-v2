@@ -643,3 +643,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     validation improves and the memorization collapses: it is paid with data, not fate). New models
     0052-0054 (the batch-swapped CORNER/XEDGE/2X5COR, training batch 3 / validation batch 6), the
     index at 55, the dictionary +11 pattern terms.
+  - Model 0055 (EDGE + XEDGE, batches 3/6): the validation RMSE 12.90 equals XEDGE alone (12.91)
+    — EDGE is included in XEDGE, no new information. The configuration analyses (the SU 0.879 on
+    the same instance, the eta-squared 0.215 vs 0.337) measure the redundancy before the
+    training; the book gains section 13.8 and section 13.6 is repaired to the ternary
+    configuration (the 3^k code space). The index is at 56.

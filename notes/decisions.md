@@ -2558,3 +2558,21 @@ D-607 | 2026-11-10 | Book chapter 13 extended with the pattern results, and the 
          grows with the data (+7% / +27% / +15%) while the gap shrinks (memorization, not capacity), and 2X5COR remains
          the strongest model of the campaign (9.67 on a 200,000 population). The dictionary gains the 11 pattern
          identifiers (r2-r4, diag4-diag8, corner, 2x5cor, batches). The index now carries 55 models (0000-0054).
+
+D-608 | 2026-11-10 | Model 0055: the intercept + the EDGE and XEDGE patterns, REGAB selection 3/6 (training batch 3,
+         validation batch 6). The result answers the inclusion question: the validation RMSE is 12.90 against 12.91 for
+         XEDGE alone — a one-hundredth gain, in the noise — because EDGE's 8 cells are eight of XEDGE's 10. The config
+         is extended with the three analysis blocks (analytics detailed report on the two pattern names, the SU analysis
+         with the EDGE-XEDGE pair, the ANOVA), and the analyses confirm the geometry, measured INDEPENDENTLY of the
+         training on a 10,000,000-position generated corpus: the expressiveness rises with the cells (eta-squared 0.215
+         EDGE vs 0.337 XEDGE), the symmetrical-uncertainty matrix is 0.8794 on the diagonal (the same board instance —
+         very strong, the inclusion) and 0.099-0.123 off-diagonal (near independence), and the adherence ranking puts
+         all four XEDGE instances above all four EDGE ones. The weight vector reconciles exactly: 27,049 = 1 intercept +
+         3,002 selected EDGE configurations + 24,046 selected XEDGE configurations. The runs also exposed a book
+         inaccuracy, repaired forward: the pattern configuration is TERNARY (each mask cell is empty / black / white, a
+         3^k code space — EDGE 3^8 = 6,561, XEDGE 3^10 = 59,049), not the "binary occupancy" section 13.6 had printed;
+         the section is corrected. The book gains section 13.8 ("Un pattern dentro l'altro: l'analisi delle
+         configurazioni"), which introduces the configuration-frequency analyses (the eta/omega-squared expressiveness,
+         the SU overlap between pairs) as a probe that works before any training is spent, and documents 0055 as the
+         test case: the analyses measure the redundancy, the training confirms it. The index now carries 56 models
+         (0000-0055).
