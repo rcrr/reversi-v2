@@ -673,3 +673,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     scale compresses under a tenth of a point, and the campaign reaches its informational
     floor. The new champion is 2X5COR+XEDGE+CORNER+R4+DIAG7 at 7.70 (-70.9%). The index
     is at 89.
+  - Book sections 14.6-14.7 and the 11 leave-one-out models 0089-0099: the full 10-pattern
+    model is the new champion at 7.46 (-71.8%), all ten patterns are necessary, and the
+    decomposition shows the importance order is context-dependent — alone 2X5COR is the most
+    expressive, in the group XEDGE is the most relevant (its irreplaceable quota is the
+    largest). The index is at 100.

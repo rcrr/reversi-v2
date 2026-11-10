@@ -44,6 +44,10 @@
 % 2X5COR+XEDGE+CORNER+R4 + uno dei pattern restanti, DIAG4 escluso):
 % la scala si comprime sotto il decimo di punto, il campione sale a
 % 7.70.
+% Undicesima fase: il modello a dieci pattern (0089) e la decomposizione
+% per esclusione a turno (0090-0099): l'ordine di importanza varia col
+% contesto; da solo e' il piu' espressivo 2X5COR, nel gruppo e' il piu'
+% rilevante XEDGE.
 
 \chapter{Assemblaggio delle feature}
 \section{Un pattern dentro l'altro: l'analisi delle configurazioni}
@@ -334,3 +338,83 @@ generalizzazione $+0.29$: la memorizzazione resta contenuta anche a
 cinque pattern. I margini sono scesi sotto il decimo di punto: la
 regione angolare è in larga parte raccolta, e i pattern classici si
 avviano verso il loro pavimento.
+
+\section{Il modello a dieci pattern}
+
+L'ultimo passo della composizione: tutti e sei i pattern restanti
+entrano nella base 2X5COR+XEDGE+CORNER+R4, e il modello arriva a
+dieci pattern (0089). Al modello pieno fanno da contrapposto dieci
+modelli per esclusione a turno (0090--0099): ciascuno ripete la
+composizione a dieci pattern con un pattern escluso, sempre sulla
+selezione REGAB a batch grandi, analisi sulle configurazioni
+disattivate.
+
+Il modello pieno vale 7.46 di RMSE, $-71.8\%$ sul baseline 26.42:
+migliora il campione a cinque pattern (7.70) di un quarto di
+punto. I sei pattern minori non sono dunque decorativi — sommati,
+valgono il loro quarto di punto.
+
+La tabella~\ref{tab:decomposizione-contributi} riporta i dieci
+modelli per esclusione a turno. Il "contributo reale" di un
+pattern è quanto la RMSE sale quando quel pattern viene escluso
+dal gruppo: è la sua quota di informazione \emph{nel modello
+finito}, non la sua espressività da solo.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+pattern escluso & pesi $W$ & RMSE validazione & contributo reale & gap (val $-$ train) \\
+\midrule
+XEDGE   & 53\,831 & 8.60 & $+1.14$ & $+0.28$ \\
+2X5COR  & 40\,030 & 8.20 & $+0.74$ & $+0.19$ \\
+CORNER  & 72\,721 & 7.66 & $+0.20$ & $+0.31$ \\
+DIAG7   & 77\,121 & 7.56 & $+0.10$ & $+0.32$ \\
+R4      & 76\,392 & 7.55 & $+0.09$ & $+0.32$ \\
+DIAG8   & 76\,429 & 7.54 & $+0.08$ & $+0.32$ \\
+R3      & 74\,573 & 7.51 & $+0.05$ & $+0.30$ \\
+DIAG6   & 77\,499 & 7.50 & $+0.04$ & $+0.32$ \\
+DIAG5   & 77\,742 & 7.48 & $+0.02$ & $+0.32$ \\
+R2      & 74\,556 & 7.48 & $+0.02$ & $+0.31$ \\
+\bottomrule
+\end{tabular}
+\caption{Il modello a dieci pattern (0089, 7.46) con un pattern
+escluso a turno (i modelli 0090--0099, selezione REGAB 3/6): i
+pesi, la RMSE di validazione, il contributo reale del pattern
+escluso nel gruppo e il gap di generalizzazione, in ordine
+decrescente di contributo.}
+\label{tab:decomposizione-contributi}
+\end{table}
+
+\section{Due misure di importanza: l'espressività da sola e la
+quota insostituibile}
+
+La tabella mette in luce un fatto che i giri precedenti avevano
+solo anticipato. Misurato da solo, il pattern più espressivo della
+campagna è 2X5COR: il campione a 9.67, il primo di ogni scala di
+aggregazione. Misurato nel gruppo, il più rilevante è XEDGE:
+escluso, il modello passa da 7.46 a 8.60, un contributo di
+$+1.14$ contro lo $+0.74$ di 2X5COR.
+
+Le due misure non sono due letture della stessa quantità:
+l'ordine di importanza \emph{varia col contesto}. Da solo, 2X5COR
+è il più espressivo; nel gruppo, una parte della sua informazione
+è condivisa con gli altri pattern — il blocco in angolo, le prime
+due file — e diventa in parte sostituibile. XEDGE è il contrario:
+attraversa entrambi gli angoli con la prima fila, e nessun altro
+pattern del gruppo fa lo stesso; la sua informazione è quasi
+interamente propria, e per questo la sua esclusione costa di più.
+
+La decomposizione per esclusione a turno non misura dunque
+l'\emph{espressività} del pattern, ma la sua \emph{quota
+insostituibile}: la frazione della informazione che, nel gruppo,
+nessun altro pattern fornisce. I due pilastri lo confermano:
+XEDGE e 2X5COR da soli valgono 1.88 dei 2.48 totali — i tre
+quarti della decomposizione — e l'ordine interno del gruppo
+segue, ancora una volta, la prossimità alla regione angolare.
+Tutti e dieci i pattern sono necessari: nessuno, escluso, lascia
+il modello invariato.
+
+Il campione della campagna è il modello a dieci pattern: 7.46 di
+RMSE, $-71.8\%$ sul baseline, 77\,877 pesi, gap di
+generalizzazione $+0.32$.

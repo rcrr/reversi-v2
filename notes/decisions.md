@@ -2634,3 +2634,16 @@ D-613 | 2026-11-10 | Book section 14.5 "Il quarto livello di aggregazione: la pr
          ones trail (-0.05..-0.03) — and the order inside the group is stable in sign (DIAG7 leads the diagonals, as at
          the second level). New campaign champion: 2X5COR+XEDGE+CORNER+R4+DIAG7 at 7.70 validation RMSE (-70.9% over
          the 26.42 baseline), 69,291 weights, gap +0.29. The index now carries 89 models.
+
+D-614 | 2026-11-10 | Book sections 14.6-14.7 (in chapter 14, not a standalone chapter — the user asked for two
+         paragraphs) plus the 11 leave-one-out models 0089-0099. 0089 is the full 10-pattern model — the base
+         2X5COR+XEDGE+CORNER+R4 plus all six remaining partners; 0090-0099 each drop one of the ten patterns in turn
+         (selection 3/6, analyses OFF). The full model is the new campaign champion: 7.46 validation RMSE (-71.8% over
+         the 26.42 baseline), 77,877 weights, gap +0.32, improving the 5-pattern champion (7.70) by a quarter of a
+         point. The real in-group contributions: XEDGE +1.14, 2X5COR +0.74 (the two pillars, 76% of the 2.48 total),
+         CORNER +0.20, DIAG7 +0.10, R4 +0.09, DIAG8 +0.08, R3 +0.05, DIAG6 +0.04, DIAG5 +0.02, R2 +0.02. Two findings
+         are recorded: all ten patterns are necessary (no exclusion leaves the model unchanged), and the importance
+         ORDER is context-dependent — alone, 2X5COR is the most expressive pattern of the campaign, in the group XEDGE
+         is the most relevant, because part of 2X5COR's information is shared with (replaceable by) the other members
+         while XEDGE's is almost entirely its own; the leave-one-out decomposition therefore measures each pattern's
+         IRREPLACEABLE QUOTA, not its expressiveness. The index now carries 100 models.
