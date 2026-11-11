@@ -50,6 +50,15 @@
 % lo switch entra nella schiera dei parametri che il dato rende
 % irrilevanti. Nota di chiusura: configurazione di riferimento da qui in
 % avanti (allow_duplicates: false, ridge 1.0, clipping 0.15).
+% Diciasettesima fase: il criterio di convergenza min_grad 10x piu
+% stretto (0108): le iterazioni moltiplicano per 2,8 (246 -> 687), le
+% RMSE di training e validazione non si muovono; il criterio cambia lo
+% sforzo, non il modello. Poi la serie della memoria L-BFGS m da 50 a
+% 179 (50, 73, 97, 131, 151, 179, ogni run da cartella vuota: m non e'
+% tra i gate di invalidazione del checkpoint): iterazioni in discesa
+% regolare (687 -> 492), tempo proporzionale agli step con costo per
+% iterazione in lieve crescita (319 -> 352 ms), guadagno netto 21%,
+% pavimento a m 131, stessa soluzione a ogni punto.
 
 \chapter{Gli hyper-parameter}
 
@@ -317,3 +326,74 @@ adotta la configurazione di hyper-parameter
 \texttt{allow\_duplicates: false},
 \texttt{ridge\_regularization: 1.0},
 \texttt{logit\_clipping: 0.15}.
+
+\section{Il criterio di convergenza: più passi, stessa soluzione}
+
+L'unico parametro della fase di ottimizzazione che può alterare il
+modello è il criterio di convergenza. Lo si mette alla prova: il
+modello 0108, stessa configurazione di riferimento, con il criterio
+\texttt{min\_grad} dieci volte più stretto
+($[1\times10^{-5}, 3] \rightarrow [1\times10^{-6}, 5]$) e
+\texttt{max\_iters} portato a 2000.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+criterio di convergenza & iterazioni & RMSE training & RMSE validazione \\
+\midrule
+\texttt{min\_grad} $[1\times10^{-5}, 3]$ (riferimento) & 246 & 6.96 & 7.02 \\
+\texttt{min\_grad} $[1\times10^{-6}, 5]$ (0108) & 687 & 6.95 & 7.01 \\
+\bottomrule
+\end{tabular}
+\caption{Le iterazioni di ottimizzazione e le RMSE al variare del
+criterio di convergenza (configurazione di riferimento; la riga in
+alto è il modello 0107, la riga in basso il modello 0108).}
+\label{tab:min-grad}
+\end{table}
+
+La conclusione è immediata: le iterazioni moltiplicano per 2,8
+(246 contro 687), ma le RMSE di training e di validazione non
+si muovono oltre la risoluzione con cui i risultati sono riportati.
+Il criterio più lasco convergeva già alla stessa soluzione: i 441
+passi in più non comprano nulla di misurabile. Il criterio di
+convergenza cambia lo sforzo, non il modello.
+
+La memoria L-BFGS, il secondo parametro della fase di
+ottimizzazione, si mette alla prova nello stesso modo: il modello
+0108, con il criterio \texttt{min\_grad}
+$[1\times10^{-6}, 5]$, e la memoria $m$ portata da 50 a 179 — i
+punti 50, 73, 97, 131, 151 e 179, ogni run partito da cartella vuota,
+perché la memoria non è tra i parametri che invalidano il
+checkpoint dell'ottimizzazione.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+\toprule
+memoria $m$ & iterazioni & tempo di ottimizzazione (s) \\
+\midrule
+50  & 687 & 219 \\
+73  & 669 & 219 \\
+97  & 593 & 191 \\
+131 & 524 & 173 \\
+151 & 510 & 174 \\
+179 & 492 & 173 \\
+\bottomrule
+\end{tabular}
+\caption{Le iterazioni e il tempo di ottimizzazione, letto dal log,
+al variare della memoria L-BFGS $m$ (modello 0108, criterio
+\texttt{min\_grad} $[1\times10^{-6}, 5]$; a ogni punto la RMSE di
+training è 6.95 e quella di validazione 7.01).}
+\label{tab:lbfgs-memoria}
+\end{table}
+
+Il tempo di ottimizzazione è proporzionale al numero di
+iterazioni, a ogni punto della serie. Ciò che cambia con la memoria
+è il costo per iterazione, che sale di un decimo dal 50 al 179
+(319 contro 352 millisecondi), perché la ricorsione che
+approssima la metrica cresce al passo con la memoria. Il guadagno
+netto è del 21\% (219 contro 173 secondi) e si esaurisce a memoria
+131: oltre, la memoria non compra più né passi né tempo. La
+soluzione resta la stessa a ogni punto. La memoria L-BFGS, come il
+criterio di convergenza, cambia lo sforzo, non il modello.

@@ -2713,3 +2713,15 @@ D-619 | 2026-11-11 | New reference configuration for all future models, per the 
          non contano" records the single run, the two-row comparison table, and the reference-configuration note in
          closing, without emphasis, per the user's spec. 0107 is the first model built with the reference configuration
          and carries the name suffix "— `allow_duplicates`: false"; the index is at 108.
+
+D-620 | 2026-11-11 | Book section 15.5 "Il criterio di convergenza: più passi, stessa soluzione", in two proofs on model
+         0108 (reference configuration). Proof 1: the `min_grad` criterion tightened tenfold ([1e-05, 3] to [1e-06, 5])
+         with `max_iters` raised to 2000 — iterations multiply 2.8 (246 to 687) while the training and validation RMSE
+         do not move beyond resolution. Proof 2: the L-BFGS memory `m` swept over 50, 73, 97, 131, 151, 179 (every run
+         from an emptied build folder, because `m` is not one of the checkpoint-invalidation gates — the first sweep
+         silently resumed the m=50 checkpoint and reported its stored 687 iters for every m; caught by the user, redone
+         clean): iterations descend regularly (687, 669, 593, 524, 510, 492), the optimization time read from the run
+         log is proportional to the step count with a per-iteration cost rising a tenth (319 to 352 ms), the net gain is
+         21% (219 s to 173 s) and exhausts at m=131, the solution unchanged at every point. Both proofs close on the
+         same line: the optimization parameters change the effort, not the model. 0108's config is back at m=50; the
+         index is at 109.

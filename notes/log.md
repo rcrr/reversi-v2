@@ -698,3 +698,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     within resolution (7.02 vs 7.01, W unchanged) — the 5.1% duplicate positions do not
     move the solution. New reference configuration for all future models:
     `regab_allow_duplicate` false, ridge 1.0, `logit_clipping` 0.15 (D-619).
+  - Book section 15.5 in two proofs: the `min_grad` criterion (246 to 687 iters, RMSE
+    unchanged) and the L-BFGS memory series 50-179 (687 to 492 iters, optimization time
+    proportional to steps, 21% net gain, floor at 131) — both change the effort, not the
+    model. Methodological note recorded: `m` does not invalidate the optimization
+    checkpoint, so optimization-parameter sweeps must run from an emptied build folder.
