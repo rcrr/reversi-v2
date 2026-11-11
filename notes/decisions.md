@@ -2685,3 +2685,19 @@ D-617 | 2026-11-10 | Book section 15.2 "La frequency cut-off: i pesi si assottig
          dense space in which inference runs is unchanged, so the lighter model is light only on training. Decision: the
          default cutoff 1 is kept — maximum capacity, zero inference cost, no accuracy benefit found at higher
          thresholds. 0105's config is set back to cutoff 1; the index is at 106.
+
+D-618 | 2026-11-11 | Book section 15.3 "La logit clipping: il primo ritocco che vale": the `logit_clipping` sweep (model
+         0106, identical to 0103 except the parameter) from 0.01 to 0.20 in steps of 0.01, twenty points, with per-run
+         diagnostic plots (`resid_vs_gv`, `gv_by_egv_box`, `resid_mean_by_egv`) collected in scratch. The first
+         responsive curve of the chapter: a regular descent from 7.09 at 0.01 to 7.01 at 0.12, a wide plateau of seven
+         consecutive points at 7.01 on [0.12, 0.18], and a rise back to 7.02 at 0.19/0.20. The in-use value 0.05 (7.04)
+         sits on the descending flank, three cents above the floor — the first hyper-parameter of the campaign that
+         merits a retune; the plateau center is 0.15. The book explains the mechanism through the target map:
+         `logit_clipping` c affinely maps the game values [-64, +64] to [c, 1-c] in logistic space; small c pushes the
+         extreme targets into the sigmoid's saturated, flat borders (the S-shaped systematic bias in the
+         mean-residual-by-game-value plot), large c keeps them in the well-conditioned central region; the cost side is
+         the 128 / (1-2c) re-stretching of the logistic residual back into game-value scale, which dominates past 0.18
+         and turns the curve up. Section content per the user's spec: the campaign description, the 20-point RMSE table,
+         two plots (the in-use 0.05 with the S-distortion, the optimum 0.15 flat), and the mechanism paragraph. First
+         \includegraphics figures in the book (latex/figures/, the two 150-dpi PNGs). 0106's config is set back to
+         clipping 0.05; the index is at 107.

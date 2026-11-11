@@ -38,6 +38,12 @@
 % 100): la RMSE e' piatta, i pesi attivi calano del 21% a 100, ma i
 % parametri densi K non cambiano: la compressione non tocca
 % l'inferenza; il default 1 resta.
+% Quindicesima fase: lo sweep della logit clipping (0106, da 0.01 a
+% 0.20 a passo 0.01): la prima curva che risponde. Minimo 7.01 sul
+% pianoro [0.12, 0.18], salita a 0.19/0.20; il meccanismo e' la mappa
+% del target [c, 1-c] (saturazione per c piccolo, amplificazione
+% 128/(1-2c) per c grande); il valore in uso 0.05 (7.04) sta sul
+% fianco discendente: primo ritocco che vale, centro del pianoro 0.15.
 
 \chapter{Gli hyper-parameter}
 
@@ -161,3 +167,105 @@ conta — è lo stesso modello.
 Il default 1 resta: è il punto di massima capacità, costa nulla
 all'inferenza, e la scansione non mostra alcun beneficio di
 accuratezza a soglie più alte.
+
+\section{La logit clipping: il primo ritocco che vale}
+
+Il terzo hyper-parameter in esame è la logit clipping: fissa a 0.05
+in tutti i modelli della campagna, è la soglia $c$ che l'affinità del
+target usa per mappare i valori di gioco $[-64, +64]$ nell'intervallo
+$[c, 1-c]$ dello spazio logistico. La scansione (modello 0106,
+identico a 0103 salvo il parametro) copre da 0.01 a 0.20 a passo
+0.01, venti punti: la tabella~\ref{tab:logit-curva} riporta la RMSE
+di validazione a ogni soglia. Il punto a 0.05 coincide con il
+riferimento 0103 (7.04, 334 iterazioni).
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lr}
+\toprule
+logit clipping & RMSE validazione \\
+\midrule
+0.01 & 7.09 \\
+0.02 & 7.07 \\
+0.03 & 7.06 \\
+0.04 & 7.05 \\
+0.05 & 7.04 \\
+0.06 & 7.04 \\
+0.07 & 7.03 \\
+0.08 & 7.03 \\
+0.09 & 7.02 \\
+0.10 & 7.02 \\
+0.11 & 7.02 \\
+0.12 & 7.01 \\
+0.13 & 7.01 \\
+0.14 & 7.01 \\
+0.15 & 7.01 \\
+0.16 & 7.01 \\
+0.17 & 7.01 \\
+0.18 & 7.01 \\
+0.19 & 7.02 \\
+0.20 & 7.02 \\
+\bottomrule
+\end{tabular}
+\caption{La RMSE di validazione al variare della logit clipping (il
+modello 0106, identico a 0103 salvo il parametro; la riga 0.05 è il
+riferimento 0103).}
+\label{tab:logit-curva}
+\end{table}
+
+La curva, a differenza delle due precedenti, risponde. Scende in
+modo regolare da 0.01 (7.09) fino a 0.12 (7.01), si appiattisce in
+un pianoro largo — sette soglie consecutive a 7.01, da 0.12 a 0.18 —
+e riparte in salita a 0.19 e 0.20 (7.02). Il minimo non è un punto
+ma un intervallo, come per la ridge, solo che qui l'intervallo non
+contiene il valore in uso: il 0.05 sta sul fianco discendente, tre
+centesimi sopra il fondo.
+
+La figura~\ref{fig:logit-distorsione} mostra il fenomeno nella sua
+forma più diretta: il residuo medio, con la propria deviazione
+standard, per ogni valore di gioco valutato, alla soglia in uso (a
+sinistra) e al centro del minimo (a destra).
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig153_clipping_005.png}
+  \par\smallskip
+  \textbf{a} — la soglia in uso, 0.05
+\end{minipage}
+\hfill
+\begin{minipage}[b]{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig153_clipping_015.png}
+  \par\smallskip
+  \textbf{b} — il centro del minimo, 0.15
+\end{minipage}
+\caption{Il residuo medio per valore di gioco valutato (con la deviazione
+standard), alla logit clipping in uso (a) e al centro del minimo
+(b). A sinistra la distorsione a S: i valori di gioco negativi estremi sono
+sovrastimati, la fascia centrale sottostimata, la coda positiva
+precipita. A destra la curva è piatta: il bias sistematico è
+sparito.}
+\label{fig:logit-distorsione}
+\end{figure}
+
+Il meccanismo è nella mappa del target. Con $c$ piccolo, i valori di
+gioco estremi cadono vicino ai bordi 0 e 1 dello spazio logistico:
+per raggiungerli la sigmoide deve lavorare in saturazione, dove è
+piatta e fragile, e le code della previsione restano sistematicamente
+sbagliate — la distorsione a S del primo plot. Con $c$ grande, i
+target restano nella regione centrale, ben condizionata, della
+sigmoide: la distorsione si dissolve, e con essa una parte
+significativa della RMSE. Il costo, quando arriva, è l'altro lato
+della stessa mappa: un residuo misurato nello spazio logistico viene
+ristretto nella scala dei valori di gioco con il fattore $128 / (1-2c)$,
+che cresce al crescere di $c$. Nel pianoro i due effetti si
+compensano; oltre 0.18 l'amplificazione domina, e la curva riparte
+in salita.
+
+È il primo hyper-parameter della campagna a meritare un ritocco. Il
+valore in uso (0.05) vale 7.04; il centro del pianoro, 0.15, vale
+7.01 — e lo fa con il bias sistematico rimosso, non con una
+compressione del modello: i pesi e la struttura restano quelli del
+campione.

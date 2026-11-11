@@ -689,3 +689,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   - Book section 15.2: the frequency cut-off sweep (0105, 2 to 100) is flat on
     validation RMSE while the active weights fall 21%; the dense count K is unchanged,
     so the compression never reaches inference — the default cutoff 1 is kept.
+  - Book section 15.3: the `logit_clipping` sweep (0106, 0.01 to 0.20) is the first
+    responsive curve — minimum 7.01 on the wide plateau [0.12, 0.18], the in-use 0.05
+    sits three cents above it; the mechanism is the target map [c, 1-c] (sigmoid
+    saturation vs the 128/(1-2c) re-stretch). The section carries the 20-point table and
+    the 0.05-vs-0.15 plot pair; the book grows to 140 pages.

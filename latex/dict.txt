@@ -176,6 +176,7 @@ fh
 fhori
 fifo
 fig
+figures
 filecolor
 final
 fingerprint
@@ -200,6 +201,7 @@ gather
 gen
 generalization
 geometry
+graphics
 gof
 gpu
 grad
