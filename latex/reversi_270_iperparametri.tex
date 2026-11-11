@@ -44,6 +44,12 @@
 % del target [c, 1-c] (saturazione per c piccolo, amplificazione
 % 128/(1-2c) per c grande); il valore in uso 0.05 (7.04) sta sul
 % fianco discendente: primo ritocco che vale, centro del pianoro 0.15.
+% Sedicesima fase: allow_duplicates in posizione false (0107, singolo
+% run): risultato identico entro la risoluzione (7.02 contro 7.01),
+% le duplicate sono il 5.1% del dataset e non spostano la soluzione;
+% lo switch entra nella schiera dei parametri che il dato rende
+% irrilevanti. Nota di chiusura: configurazione di riferimento da qui in
+% avanti (allow_duplicates: false, ridge 1.0, clipping 0.15).
 
 \chapter{Gli hyper-parameter}
 
@@ -269,3 +275,45 @@ valore in uso (0.05) vale 7.04; il centro del pianoro, 0.15, vale
 7.01 — e lo fa con il bias sistematico rimosso, non con una
 compressione del modello: i pesi e la struttura restano quelli del
 campione.
+
+\section{allow\_duplicates: le posizioni duplicate non contano}
+
+Il quarto hyper-parameter in esame è \texttt{allow\_duplicates}, lo
+switch che decide se le posizioni ripetute — stesso giocatore, stesso
+avversario — restano tutte nel dataset o se viene eseguita la
+deduplica. I modelli della campagna sono sempre girati con lo switch
+in posizione \texttt{true}; la prova è un singolo run (modello 0107,
+feature set del campione) con lo switch in posizione
+\texttt{false}, a configurazione di riferimento.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrr}
+\toprule
+\texttt{allow\_duplicates} & RMSE validazione & pesi attivi $W$ \\
+\midrule
+\texttt{true}  (riferimento) & 7.01 & 81\,269 \\
+\texttt{false} (0107)       & 7.02 & 81\,269 \\
+\bottomrule
+\end{tabular}
+\caption{La RMSE di validazione e i pesi attivi con lo switch in
+posizione \texttt{true} (il riferimento) e \texttt{false} (il modello
+0107, stessa configurazione di riferimento).}
+\label{tab:allow-duplicates}
+\end{table}
+
+Il risultato è identico, entro la risoluzione con cui i risultati
+sono riportati: un centesimo di RMSE, i pesi alla stessa
+unità. Le posizioni duplicate sono il 5,1\% del dataset —
+10\,211 rimosse su 199\,932 nella validazione, la stessa proporzione
+nel training — e toglierle non sposta la soluzione: a quattordici
+milioni di righe, cinque posizioni su cento in più o in meno non
+cambiano nulla. Lo switch entra così nella stessa schiera della
+regolarizzazione e della frequency cut-off, tra i parametri che il
+dato rende irrilevanti.
+
+Nota: da questo punto della campagna, il modello di riferimento
+adotta la configurazione di hyper-parameter
+\texttt{allow\_duplicates: false},
+\texttt{ridge\_regularization: 1.0},
+\texttt{logit\_clipping: 0.15}.

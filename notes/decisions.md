@@ -2701,3 +2701,15 @@ D-618 | 2026-11-11 | Book section 15.3 "La logit clipping: il primo ritocco che 
          two plots (the in-use 0.05 with the S-distortion, the optimum 0.15 flat), and the mechanism paragraph. First
          \includegraphics figures in the book (latex/figures/, the two 150-dpi PNGs). 0106's config is set back to
          clipping 0.05; the index is at 107.
+
+D-619 | 2026-11-11 | New reference configuration for all future models, per the user: `regab_allow_duplicate: false`,
+         `ridge_regularization: 1.0`, `logit_clipping: 0.15` (the plateau center of the 15.3 sweep). Verified on model
+         0107 (the champion's feature set: 10 patterns + OptMob, batches 3,9,12/6): val RMSE 7.02, W 81,269, 246 iters —
+         identical within resolution to the 7.01 benchmark, the one-cent gap being the campaign's noise floor. The
+         `ridge` 1.0 damping is empirically invisible under the M-normalization (an effective per-sample lambda of about
+         7e-7 at 14M rows) and keeps the Hessian better conditioned, so the parameters stay stable and repeatable;
+         `regab_allow_duplicate: false` removes about 5.1% duplicate positions (10,211 of 199,932 in validation, the
+         same ratio in training) at no measurable cost. Book section 15.4 "`allow_duplicates`: le posizioni duplicate
+         non contano" records the single run, the two-row comparison table, and the reference-configuration note in
+         closing, without emphasis, per the user's spec. 0107 is the first model built with the reference configuration
+         and carries the name suffix "— `allow_duplicates`: false"; the index is at 108.

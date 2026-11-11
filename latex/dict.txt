@@ -7,6 +7,7 @@ adherence
 affinamente
 all
 all'ec
+allow
 almc
 alms
 analysis
@@ -141,6 +142,7 @@ downcast
 dp
 dtype
 dump
+duplicates
 dy
 east
 ec
@@ -536,6 +538,7 @@ suriettivamente
 sv
 sw
 swap
+switch
 symmetrical
 symmetries
 symmetry

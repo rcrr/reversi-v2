@@ -694,3 +694,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     sits three cents above it; the mechanism is the target map [c, 1-c] (sigmoid
     saturation vs the 128/(1-2c) re-stretch). The section carries the 20-point table and
     the 0.05-vs-0.15 plot pair; the book grows to 140 pages.
+  - Book section 15.4: the `allow_duplicates` switch (single run on 0107) is identical
+    within resolution (7.02 vs 7.01, W unchanged) — the 5.1% duplicate positions do not
+    move the solution. New reference configuration for all future models:
+    `regab_allow_duplicate` false, ridge 1.0, `logit_clipping` 0.15 (D-619).
