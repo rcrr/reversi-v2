@@ -703,3 +703,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     proportional to steps, 21% net gain, floor at 131) — both change the effort, not the
     model. Methodological note recorded: `m` does not invalidate the optimization
     checkpoint, so optimization-parameter sweeps must run from an emptied build folder.
+  - Book chapter 16 (Il momento evolutivo della partita) opened: model 0108 run at
+    `empty_count` 24 to 4 (21 regressions, 20 new level registries) — the validation
+    RMSE is stable (6.96-7.05) from 11 to 24 and descends to 5.65 at 4; no data exists
+    for 25-60.

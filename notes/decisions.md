@@ -2725,3 +2725,13 @@ D-620 | 2026-11-11 | Book section 15.5 "Il criterio di convergenza: più passi, 
          21% (219 s to 173 s) and exhausts at m=131, the solution unchanged at every point. Both proofs close on the
          same line: the optimization parameters change the effort, not the model. 0108's config is back at m=50; the
          index is at 109.
+
+D-621 | 2026-11-12 | Book chapter 16 "Il momento evolutivo della partita" opened, with section 16.1 "La RMSE di
+         validazione per empty count": model 0108 (reference configuration) run at every `empty_count` value from 24 to
+         4 in steps of 1 — 21 independent regressions across 20 new level registries (models/lm/ec24 … ec10 and ec9 …
+         ec4, each carrying its own 0108 config and one-row index.md). Facts recorded: for `empty_count` 11-24 the
+         validation RMSE is stable in 6.96-7.05 (7.01 at 20); for 4-10 it decreases at every step, from 6.88 at 10
+         to 5.65 at 4; the active weights fall from 80,457 (24) to 66,962 (4); the optimization iters span 683-941,
+         rising as `empty_count` falls. For `empty_count` 25-60 no data exists in the REGAB database and the series does
+         not extend to that interval (the game starts at ec=60; the cost of a resolved position grows about 3x per ply,
+         10x every two ply). The section is written dry, facts only, per the user's spec.

@@ -1,0 +1,93 @@
+%
+% reversi_280_momento_evolutivo.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: Il momento evolutivo della partita.
+%
+% Prima fase: il modello 0108 (configurazione di riferimento) e' eseguito a ogni
+% valore di empty_count da 24 a 4, a passo 1: 21 regressioni. Per
+% empty_count 25-60 non esistono dati nel database REGAB; la serie non si
+% estende a quell'intervallo. La RMSE di validazione e' in fascia stabile
+% (6.96-7.05) da 11 a 24 e decresce a ogni passo da 10 a 4 (6.88 -> 5.65);
+% i pesi attivi calano da 80.457 a 66.962.
+%-----------------------------------------------------------------------------
+
+\chapter{Il momento evolutivo della partita}
+
+\section{La RMSE di validazione per empty count}
+
+Il modello 0108 (configurazione di riferimento: dieci pattern e la
+mobilità OptMob, addestrato sui batch 3, 9 e 12, validato sul batch
+6) è eseguito a ogni valore di \texttt{empty\_count} da 24 a 4, a
+passo 1: 21 regressioni, una per valore. Per \texttt{empty\_count}
+compresi tra 25 e 60 non esistono dati nel database REGAB; la serie
+non si estende a quell'intervallo. La
+tabella~\ref{tab:ec-rmse} riporta, a ogni valore, la RMSE di
+validazione, i pesi attivi $W$ e le iterazioni di ottimizzazione.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+\toprule
+empty count & RMSE validazione & pesi attivi $W$ & iterazioni \\
+\midrule
+24 & 6.99 & 80\,457 & 774 \\
+23 & 7.00 & 80\,696 & 711 \\
+22 & 6.98 & 80\,974 & 718 \\
+21 & 7.02 & 81\,079 & 715 \\
+20 & 7.01 & 81\,269 & 687 \\
+19 & 7.04 & 81\,372 & 714 \\
+18 & 7.00 & 81\,547 & 702 \\
+17 & 7.05 & 81\,620 & 703 \\
+16 & 7.00 & 81\,714 & 683 \\
+15 & 7.02 & 81\,775 & 738 \\
+14 & 7.01 & 81\,816 & 721 \\
+13 & 7.02 & 81\,797 & 710 \\
+12 & 6.97 & 81\,822 & 743 \\
+11 & 6.96 & 81\,787 & 716 \\
+10 & 6.88 & 81\,739 & 712 \\
+9  & 6.84 & 81\,627 & 778 \\
+8  & 6.75 & 81\,502 & 770 \\
+7  & 6.62 & 81\,063 & 840 \\
+6  & 6.39 & 79\,785 & 886 \\
+5  & 6.13 & 75\,932 & 941 \\
+4  & 5.65 & 66\,962 & 941 \\
+\bottomrule
+\end{tabular}
+\caption{La RMSE di validazione, i pesi attivi e le iterazioni al
+variare di \texttt{empty\_count} (il modello 0108, configurazione di
+riferimento; 21 regressioni indipendenti).}
+\label{tab:ec-rmse}
+\end{table}
+
+Per \texttt{empty\_count} da 11 a 24 la RMSE di validazione resta
+nell'intervallo 6.96--7.05 (ampiezza 0.09); il valore a 20 è 7.01.
+Per \texttt{empty\_count} da 4 a 10 la RMSE decresce a ogni passo:
+da 6.88 a 10 a 5.65 a 4. I pesi attivi diminuiscono al diminuire
+di \texttt{empty\_count}: da 80\,457 a 24 a 66\,962 a 4. Le iterazioni di
+ottimizzazione sono comprese tra 683 e 941, in crescita al
+diminuire di \texttt{empty\_count}.
