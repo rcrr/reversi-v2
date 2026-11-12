@@ -1,0 +1,90 @@
+%
+% reversi_290_nuovi_pattern.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: Nuovi pattern.
+%
+% Prima fase: il pattern CASTLE (12 bit) al posto di XEDGE (10 bit), in tre
+% run a ec20. A parita di condizioni (batch 3/6, min_grad [1e-05, 3]) XEDGE
+% resta avanti di 0.09 in validazione; con i batch 3,9,12 e il criterio
+% [1e-06, 3] CASTLE ottiene 12.51, 0.40 sotto il riferimento XEDGE a batch
+% singolo. Nel feature set completo del modello 0108, CASTLE al posto di
+% XEDGE porta la RMSE di validazione da 7.01 a 6.93 (il primo modello della
+% serie sotto 7.00) e i pesi attivi da 81.269 a 219.546.
+%-----------------------------------------------------------------------------
+
+\chapter{Nuovi pattern}
+
+\section{Da XEDGE a CASTLE}
+
+Il pattern CASTLE (mask \texttt{0x000000000000C3FF}, 12 bit)
+estende il pattern XEDGE
+(\texttt{0x00000000000042FF}, 10 bit). Tre run a ec20 lo
+mettono alla prova: il modello 0109 (intercept + CASTLE, batch
+3/6, \texttt{min\_grad} $[1\times10^{-5}, 3]$), eseguito alle
+medesime condizioni del modello 0053 (intercept + XEDGE); il
+modello 0110 (medesimo feature set, batch 3, 9, 12/6,
+\texttt{min\_grad} $[1\times10^{-6}, 3]$, \texttt{max\_iters}
+2000); il modello 0111 (il feature set del modello 0108 con
+CASTLE al posto di XEDGE: dieci pattern e la mobilità OptMob,
+configurazione di riferimento, \texttt{min\_grad}
+$[1\times10^{-6}, 5]$). La tabella~\ref{tab:castle} riassume le
+tre run CASTLE e i due modelli XEDGE di confronto.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{llllrrrr}
+\toprule
+modello & feature set & batch train & \texttt{min\_grad} & RMSE train & RMSE val & $W$ & iterazioni \\
+\midrule
+0053 & intercept + XEDGE & 3 & $[10^{-5}, 3]$ & 12.78 & 12.91 & 24\,047 & 171 \\
+0109 & intercept + CASTLE & 3 & $[10^{-5}, 3]$ & 11.93 & 13.00 & 141\,032 & 284 \\
+0110 & intercept + CASTLE & 3, 9, 12 & $[10^{-6}, 3]$ & 12.32 & 12.51 & 164\,239 & 819 \\
+0108 & 10 pattern + XEDGE + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.95 & 7.01 & 81\,269 & 687 \\
+0111 & 10 pattern + CASTLE + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.82 & 6.93 & 219\,546 & 909 \\
+\bottomrule
+\end{tabular}
+\caption{Il pattern CASTLE in tre run a ec20, accanto ai modelli
+XEDGE di confronto (0053 e 0108).}
+\label{tab:castle}
+\end{table}
+
+A parità di condizioni (0053 contro 0109) la RMSE di validazione
+di XEDGE è 0.09 più bassa di quella di CASTLE (12.91 contro
+13.00); CASTLE porta 141\,032 pesi attivi contro i 24\,047 di
+XEDGE e una RMSE di training più bassa (11.93 contro 12.78). Con
+i batch 3, 9 e 12 di training e il criterio
+$[1\times10^{-6}, 3]$ (0110) la RMSE di validazione di CASTLE è
+12.51, 0.40 sotto il riferimento XEDGE a batch singolo. Nel
+feature set completo (0111 contro 0108) la sostituzione di
+XEDGE con CASTLE abbassa la RMSE di validazione da 7.01 a 6.93
+e quella di training da 6.95 a 6.82; i pesi attivi passano da
+81\,269 a 219\,546 (+138\,277) e il gap training--validazione da
+0.06 a 0.11. Entrambe le run convergono (687 e 909
+iterazioni). Il modello 0111 è il primo della serie con una RMSE
+di validazione inferiore a 7.00.

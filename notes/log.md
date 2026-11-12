@@ -707,3 +707,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     `empty_count` 24 to 4 (21 regressions, 20 new level registries) — the validation
     RMSE is stable (6.96-7.05) from 11 to 24 and descends to 5.65 at 4; no data exists
     for 25-60.
+  - Book chapter 17 (Nuovi pattern) opened: CASTLE (12 bit) against XEDGE — as a
+    single pattern XEDGE leads by 0.09 at equal conditions; at full batches CASTLE
+    reaches 12.51; in the complete feature set 0111 scores 6.93, the first model
+    below 7.00 (219,546 active weights).

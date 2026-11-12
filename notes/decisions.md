@@ -2735,3 +2735,12 @@ D-621 | 2026-11-12 | Book chapter 16 "Il momento evolutivo della partita" opened
          rising as `empty_count` falls. For `empty_count` 25-60 no data exists in the REGAB database and the series does
          not extend to that interval (the game starts at ec=60; the cost of a resolved position grows about 3x per ply,
          10x every two ply). The section is written dry, facts only, per the user's spec.
+
+D-622 | 2026-11-12 | Book chapter 17 "Nuovi pattern" opened, with section 17.1 "Da XEDGE a CASTLE": three CASTLE runs at
+         ec20. 0109 (intercept + CASTLE, batch 3/6, `min_grad` [1e-05, 3]) against 0053 (intercept + XEDGE, same
+         conditions): XEDGE keeps a 0.09 validation edge (12.91 vs 13.00) while CASTLE carries 141,032 active weights
+         against 24,047. 0110 (same feature set, batches 3, 9, 12/6, `min_grad` [1e-06, 3], `max_iters` 2000):
+         validation 12.51, 0.40 below the single-batch XEDGE reference — the first attempt at `max_iters` 500 hit
+         `MAX_ITERS` and was rerun with 2000 (converged at 819 iters). 0111 (the 0108 feature set with CASTLE in place
+         of XEDGE): validation 6.93 vs 7.01, training 6.82 vs 6.95, active weights 219,546 vs 81,269 — the first model
+         of the series below 7.00. Per the user, CASTLE is a 12-bit pattern (XEDGE 10). The ec20 index is at 112.
