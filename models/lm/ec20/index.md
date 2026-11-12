@@ -119,3 +119,21 @@ without opening each file. The model's name lives in the config file itself.
 | 0109 | [lm_ec20_0109.json](0109/lm_ec20_0109.json) | The intercept plus the single CASTLE pattern - trained on batch 3, validated on batch 6. |
 | 0110 | [lm_ec20_0110.json](0110/lm_ec20_0110.json) | The intercept plus the single CASTLE pattern - trained on batches 3, 9 and 12, validated on batch 6. |
 | 0111 | [lm_ec20_0111.json](0111/lm_ec20_0111.json) | The intercept plus the 2X5COR, CASTLE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0112 | [lm_ec20_0112.json](0112/lm_ec20_0112.json) | The intercept plus the single 2X6COR pattern - trained on batch 3, validated on batch 6. |
+| 0113 | [lm_ec20_0113.json](0113/lm_ec20_0113.json) | The intercept plus the single 2X6COR pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0114 | [lm_ec20_0114.json](0114/lm_ec20_0114.json) | The intercept plus the 2X6COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0115 | [lm_ec20_0115.json](0115/lm_ec20_0115.json) | The intercept plus the single 3X4COR pattern - trained on batch 3, validated on batch 6. |
+| 0116 | [lm_ec20_0116.json](0116/lm_ec20_0116.json) | The intercept plus the single 3X4COR pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0117 | [lm_ec20_0117.json](0117/lm_ec20_0117.json) | The intercept plus the 2X5COR, XEDGE, 3X4COR, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0118 | [lm_ec20_0118.json](0118/lm_ec20_0118.json) | The intercept plus the single KATE pattern - trained on batch 3, validated on batch 6. |
+| 0119 | [lm_ec20_0119.json](0119/lm_ec20_0119.json) | The intercept plus the single KATE pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0120 | [lm_ec20_0120.json](0120/lm_ec20_0120.json) | The intercept plus the 2X5COR, XEDGE, KATE, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0121 | [lm_ec20_0121.json](0121/lm_ec20_0121.json) | The intercept plus the single KATE2 pattern - trained on batch 3, validated on batch 6. |
+| 0122 | [lm_ec20_0122.json](0122/lm_ec20_0122.json) | The intercept plus the single KATE2 pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0123 | [lm_ec20_0123.json](0123/lm_ec20_0123.json) | The intercept plus the 2X5COR, XEDGE, KATE2, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0124 | [lm_ec20_0124.json](0124/lm_ec20_0124.json) | The intercept plus the single KATE3 pattern - trained on batch 3, validated on batch 6. |
+| 0125 | [lm_ec20_0125.json](0125/lm_ec20_0125.json) | The intercept plus the single KATE3 pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0126 | [lm_ec20_0126.json](0126/lm_ec20_0126.json) | The intercept plus the 2X5COR, XEDGE, KATE3, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0127 | [lm_ec20_0127.json](0127/lm_ec20_0127.json) | The intercept plus the single KATEK pattern - trained on batch 3, validated on batch 6. |
+| 0128 | [lm_ec20_0128.json](0128/lm_ec20_0128.json) | The intercept plus the single KATEK pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0129 | [lm_ec20_0129.json](0129/lm_ec20_0129.json) | The intercept plus the 2X5COR, XEDGE, KATEK, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |

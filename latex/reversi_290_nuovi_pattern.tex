@@ -28,13 +28,28 @@
 %-----------------------------------------------------------------------------
 % Capitolo: Nuovi pattern.
 %
-% Prima fase: il pattern CASTLE (12 bit) al posto di XEDGE (10 bit), in tre
-% run a ec20. A parita di condizioni (batch 3/6, min_grad [1e-05, 3]) XEDGE
-% resta avanti di 0.09 in validazione; con i batch 3,9,12 e il criterio
-% [1e-06, 3] CASTLE ottiene 12.51, 0.40 sotto il riferimento XEDGE a batch
-% singolo. Nel feature set completo del modello 0108, CASTLE al posto di
-% XEDGE porta la RMSE di validazione da 7.01 a 6.93 (il primo modello della
-% serie sotto 7.00) e i pesi attivi da 81.269 a 219.546.
+% Tre blocchi di esperimenti a ec20 su pattern nuovi o estesi.
+%
+% 1) Il pattern CASTLE (12 bit) al posto di XEDGE (10 bit), in tre run. A
+%    parita di condizioni (batch 3/6, min_grad [1e-05, 3]) XEDGE resta
+%    avanti di 0.09 in validazione; con i batch 3,9,12 e il criterio
+%    [1e-06, 3] CASTLE ottiene 12.51, 0.40 sotto il riferimento XEDGE a
+%    batch singolo. Nel feature set completo del modello 0108, CASTLE al
+%    posto di XEDGE porta la RMSE di validazione da 7.01 a 6.93 (il primo
+%    modello della serie sotto 7.00) e i pesi attivi da 81.269 a 219.546.
+%
+% 2) Il pattern 2X6COR (12 bit) al posto di 2X5COR (10 bit), in tre run. A
+%    parita di condizioni 2X5COR resta avanti di 0.07 in validazione; con i
+%    batch 3,9,12 2X6COR ottiene 9.08, 0.59 sotto il riferimento 2X5COR a
+%    batch singolo. Nel feature set completo del modello 0108, 2X6COR al
+%    posto di 2X5COR porta la RMSE di validazione da 7.01 a 6.85 (il primo
+%    modello della serie sotto 6.93).
+%
+% 3) Cinque pattern nuovi (3X4COR, KATE, KATE2, KATE3, KATEK) in tre run
+%    ciascuno, al posto di CORNER. Tutti e cinque battono CORNER da soli a
+%    parita di condizioni e nel feature set completo del modello 0108;
+%    3X4COR e' il migliore nelle tre condizioni (6.78, il nuovo record
+%    della serie, 0.07 sotto il 2X6COR).
 %-----------------------------------------------------------------------------
 
 \chapter{Nuovi pattern}
@@ -88,3 +103,122 @@ e quella di training da 6.95 a 6.82; i pesi attivi passano da
 0.06 a 0.11. Entrambe le run convergono (687 e 909
 iterazioni). Il modello 0111 è il primo della serie con una RMSE
 di validazione inferiore a 7.00.
+
+\section{Da 2X5COR a 2X6COR}
+
+Il pattern 2X6COR (mask \texttt{0x0000000000003F3F}, 12 bit)
+estende il pattern 2X5COR
+(\texttt{0x0000000000001F1F}, 10 bit). Tre run a ec20 lo
+mettono alla prova: il modello 0112 (intercept + 2X6COR, batch
+3/6, \texttt{min\_grad} $[1\times10^{-5}, 3]$), eseguito alle
+medesime condizioni del modello 0054 (intercept + 2X5COR); il
+modello 0113 (medesimo feature set, batch 3, 9, 12/6,
+\texttt{min\_grad} $[1\times10^{-6}, 3]$, \texttt{max\_iters}
+2000); il modello 0114 (il feature set del modello 0108 con
+2X6COR al posto di 2X5COR: dieci pattern e la mobilità
+OptMob, configurazione di riferimento, \texttt{min\_grad}
+$[1\times10^{-6}, 5]$). La tabella~\ref{tab:2x6cor} riassume le
+tre run 2X6COR e i due modelli 2X5COR di confronto.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{llllrrrr}
+\toprule
+modello & feature set & batch train & \texttt{min\_grad} & RMSE train & RMSE val & $W$ & iterazioni \\
+\midrule
+0054 & intercept + 2X5COR & 3 & $[10^{-5}, 3]$ & 9.45 & 9.67 & 37\,848 & 139 \\
+0112 & intercept + 2X6COR & 3 & $[10^{-5}, 3]$ & 8.28 & 9.74 & 259\,768 & 273 \\
+0113 & intercept + 2X6COR & 3, 9, 12 & $[10^{-6}, 3]$ & 8.80 & 9.08 & 306\,009 & 867 \\
+0108 & 10 pattern + 2X5COR + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.95 & 7.01 & 81\,269 & 687 \\
+0114 & 10 pattern + 2X6COR + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.70 & 6.85 & 348\,122 & 914 \\
+\bottomrule
+\end{tabular}
+\caption{Il pattern 2X6COR in tre run a ec20, accanto ai modelli
+2X5COR di confronto (0054 e 0108).}
+\label{tab:2x6cor}
+\end{table}
+
+A parità di condizioni (0054 contro 0112) la RMSE di
+validazione di 2X5COR è 0.07 più bassa di quella di 2X6COR
+(9.67 contro 9.74); 2X6COR porta 259\,768 pesi attivi contro i
+37\,848 di 2X5COR e una RMSE di training molto più bassa
+(8.28 contro 9.45). Con i batch 3, 9 e 12 di training e il
+criterio $[1\times10^{-6}, 3]$ (0113) la RMSE di validazione
+di 2X6COR è 9.08, 0.59 sotto il riferimento 2X5COR a batch
+singolo. Nel feature set completo (0114 contro 0108) la
+sostituzione di 2X5COR con 2X6COR abbassa la RMSE di
+validazione da 7.01 a 6.85 e quella di training da 6.95 a
+6.70; i pesi attivi passano da 81\,269 a 348\,122
+(+266\,853) e il gap training--validazione da 0.06 a 0.15.
+Entrambe le run convergono (687 e 914 iterazioni). Il modello
+0114 è il primo della serie con una RMSE di validazione
+inferiore a 6.93.
+
+\section{Cinque alternative a CORNER}
+
+Cinque nuovi pattern entrano nel catalogo (appendice~A):
+3X4COR (12 bit), KATE (10), KATE2 (11), KATE3 (12) e KATEK
+(12). Ognuno è messo alla prova con il protocollo a tre run
+già usato per CASTLE e 2X6COR: da solo con batch 3/6 e
+\texttt{min\_grad} $[1\times10^{-5}, 3]$, contro il modello
+0052 (intercept + CORNER, medesime condizioni); da solo con i
+batch 3, 9, 12 e il criterio $[1\times10^{-6}, 3]$; e nel
+feature set completo del modello 0108 al posto di CORNER
+(configurazione di riferimento, \texttt{min\_grad}
+$[1\times10^{-6}, 5]$). I quindici modelli sono i
+0115--0129, tre per pattern. La tabella~\ref{tab:corner5} li
+riassume accanto ai due riferimenti 0052 e 0108.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{llllrrrr}
+\toprule
+modello & feature set & batch train & \texttt{min\_grad} & RMSE train & RMSE val & $W$ & iterazioni \\
+\midrule
+0052 & intercept + CORNER & 3 & $[10^{-5}, 3]$ & 12.21 & 12.24 & 5\,157 & 109 \\
+0115 & intercept + 3X4COR & 3 & $[10^{-5}, 3]$ & 9.02 & 9.94 & 163\,043 & 222 \\
+0118 & intercept + KATE & 3 & $[10^{-5}, 3]$ & 12.05 & 12.11 & 10\,192 & 153 \\
+0121 & intercept + KATE2 & 3 & $[10^{-5}, 3]$ & 11.99 & 12.11 & 20\,047 & 165 \\
+0124 & intercept + KATE3 & 3 & $[10^{-5}, 3]$ & 11.79 & 12.21 & 56\,657 & 148 \\
+0127 & intercept + KATEK & 3 & $[10^{-5}, 3]$ & 10.69 & 11.16 & 68\,725 & 235 \\
+0116 & intercept + 3X4COR & 3, 9, 12 & $[10^{-6}, 3]$ & 9.36 & 9.54 & 189\,347 & 776 \\
+0119 & intercept + KATE & 3, 9, 12 & $[10^{-6}, 3]$ & 12.08 & 12.07 & 10\,418 & 352 \\
+0122 & intercept + KATE2 & 3, 9, 12 & $[10^{-6}, 3]$ & 12.04 & 12.04 & 20\,725 & 455 \\
+0125 & intercept + KATE3 & 3, 9, 12 & $[10^{-6}, 3]$ & 11.95 & 12.01 & 61\,015 & 454 \\
+0128 & intercept + KATEK & 3, 9, 12 & $[10^{-6}, 3]$ & 10.85 & 10.93 & 75\,155 & 686 \\
+0108 & 10 pattern + CORNER + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.95 & 7.01 & 81\,269 & 687 \\
+0117 & 10 pattern + 3X4COR + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.64 & 6.78 & 265\,389 & 856 \\
+0120 & 10 pattern + KATE + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.93 & 6.99 & 86\,460 & 684 \\
+0123 & 10 pattern + KATE2 + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.90 & 6.97 & 96\,767 & 750 \\
+0126 & 10 pattern + KATE3 + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.86 & 6.95 & 137\,057 & 774 \\
+0129 & 10 pattern + KATEK + OptMob & 3, 9, 12 & $[10^{-6}, 5]$ & 6.79 & 6.88 & 151\,197 & 842 \\
+\bottomrule
+\end{tabular}
+\caption{I cinque pattern alternativi a CORNER in tre run a ec20
+ciascuno, accanto ai riferimenti 0052 (CORNER da solo) e 0108
+(feature set completo con CORNER).}
+\label{tab:corner5}
+\end{table}
+
+Da soli a parità di condizioni (batch 3/6) tutti e cinque i
+pattern battono CORNER (12.24): 3X4COR di 2.30 (9.94), KATEK
+di 1.08 (11.16), KATE, KATE2 e KATE3 di 0.13, 0.13 e 0.03
+(12.11, 12.11, 12.21). Con i batch 3, 9 e 12 la RMSE di
+validazione di 3X4COR scende a 9.54, sotto il riferimento
+2X5COR a batch singolo (9.67 del modello 0054); KATEK è
+secondo a 10.93.
+
+Nel feature set completo tutti e cinque battono il modello
+0108 (7.01): 3X4COR porta la RMSE di validazione a 6.78,
+0.23 sotto e il nuovo record della serie, 0.07 sotto il 2X6COR
+del modello 0114 (6.85); seguono KATEK a 6.88, KATE3 a 6.95,
+KATE2 a 6.97 e KATE a 6.99. I quindici run convergono tutti.
+
+3X4COR è il pattern migliore della campagna in tutte e tre le
+condizioni. KATE ha il profilo di generalizzazione più pulito
+(gap training--validazione tra 0.00 e 0.06 nelle tre run) e,
+nel modello completo, i pesi attivi più bassi (86\,460). Il
+gap del modello 0117 è 0.14, nella stessa fascia del 0114
+(0.15).

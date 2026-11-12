@@ -1100,3 +1100,173 @@ I Pattern sono categorizzati secondo i Sottogruppi di $D_4$ e propongono un set 
 \end{figure}
 
 \newpage
+
+\section{Pattern 3X4COR}
+
+\begin{tcolorbox}[sharp corners, fontupper=\ttfamily\small, colback=white]
+  \noindent Pattern: name = 3X4COR, mask = 0x00000000000F0F0F\\
+  {[} n\_squares = 12, n\_configurations = 531441,
+  n\_instances = 8, n\_stabilizers = 1, type = 0 { ]}\\[1.0ex]
+  \begin{tabularx}{\textwidth}{@{} p{3.5cm} X @{}}
+    Cells:               & {[}A1, B1, C1, D1, A2, B2, C2, D2, A3, B3, C3, D3{]}\\[0.5ex]
+    Transformed masks:   & 00000000000F0F0F, 00000000E0E0E0E0, F0F0F00000000000, 0707070700000000, 0000000000F0F0F0, E0E0E0E000000000, 0F0F0F0000000000, 0000000007070707\\[0.5ex]
+    Mask indexes:        & {[}0, 1, 2, 3, 4, 5, 6, 7{]}\\[0.5ex]
+    Unique masks:        & 00000000000F0F0F, 00000000E0E0E0E0, F0F0F00000000000, 0707070700000000, 0000000000F0F0F0, E0E0E0E000000000, 0F0F0F0000000000, 0000000007070707\\[0.5ex]
+    Unique mask indexes: & {[}0, 1, 2, 3, 4, 5, 6, 7{]}\\[0.5ex]
+    Transf. functions:   & {[}ro000, ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8{]}\\[0.5ex]
+    Anti-transf. f.:     & {[}ro000, ro270, ro180, ro090, fvert, fh1a8, fhori, fa1h8{]}\\[0.5ex]
+    Symmetry functions:  & {[}{]}\\[0.5ex]
+  \end{tabularx}
+\end{tcolorbox}
+
+\begin{figure}[htbp]
+  \centering
+  \drawSubfigure{0}{ro000}{00000000000F0F0F}{a1:b1:c1:d1:a2:b2:c2:d2:a3:b3:c3:d3} \hfill
+  \drawSubfigure{1}{ro090}{00000000E0E0E0E0}{h1:h2:h3:h4:g1:g2:g3:g4:f1:f2:f3:f4} \hfill
+  \drawSubfigure{2}{ro180}{F0F0F00000000000}{h8:g8:f8:e8:h7:g7:f7:e7:h6:g6:f6:e6} \hfill
+  \drawSubfigure{3}{ro270}{0707070700000000}{a8:a7:a6:a5:b8:b7:b6:b5:c8:c7:c6:c5}
+  \vspace{0.3cm}
+  \drawSubfigure{4}{fvert}{0000000000F0F0F0}{h1:g1:f1:e1:h2:g2:f2:e2:h3:g3:f3:e3} \hfill
+  \drawSubfigure{5}{fh1a8}{E0E0E0E000000000}{h8:h7:h6:h5:g8:g7:g6:g5:f8:f7:f6:f5} \hfill
+  \drawSubfigure{6}{fhori}{0F0F0F0000000000}{a8:b8:c8:d8:a7:b7:c7:d7:a6:b6:c6:d6} \hfill
+  \drawSubfigure{7}{fa1h8}{0000000007070707}{a1:a2:a3:a4:b1:b2:b3:b4:c1:c2:c3:c4}
+  \caption{Istanze e indici di permutazione del pattern 3X4COR.}
+\end{figure}
+
+\newpage
+
+\section{Pattern KATE}
+
+\begin{tcolorbox}[sharp corners, fontupper=\ttfamily\small, colback=white]
+  \noindent Pattern: name = KATE, mask = 0x0000000008070707\\
+  {[} n\_squares = 10, n\_configurations = 59049,
+  n\_instances = 4, n\_stabilizers = 2, type = 3 { ]}\\[1.0ex]
+  \begin{tabularx}{\textwidth}{@{} p{3.5cm} X @{}}
+    Cells:               & {[}A1, B1, C1, A2, B2, C2, A3, B3, C3, D4{]}\\[0.5ex]
+    Transformed masks:   & 0000000008070707, 0000000010E0E0E0, E0E0E01000000000, 0707070800000000, 0000000010E0E0E0, E0E0E01000000000, 0707070800000000, 0000000008070707\\[0.5ex]
+    Mask indexes:        & {[}0, 1, 2, 3, 1, 2, 3, 0{]}\\[0.5ex]
+    Unique masks:        & 0000000008070707, 0000000010E0E0E0, E0E0E01000000000, 0707070800000000\\[0.5ex]
+    Unique mask indexes: & {[}0, 1, 2, 3{]}\\[0.5ex]
+    Transf. functions:   & {[}ro000, ro090, ro180, ro270{]}\\[0.5ex]
+    Anti-transf. f.:     & {[}ro000, ro270, ro180, ro090{]}\\[0.5ex]
+    Symmetry functions:  & {[}fa1h8{]}\\[0.5ex]
+  \end{tabularx}
+\end{tcolorbox}
+
+\begin{figure}[htbp]
+  \centering
+  \drawSubfigure{0}{ro000}{0000000008070707}{a1:b1:c1:a2:b2:c2:a3:b3:c3:d4} \hfill
+  \drawSubfigure{1}{ro090}{0000000010E0E0E0}{h1:h2:h3:g1:g2:g3:f1:f2:f3:e4} \hfill
+  \drawSubfigure{2}{ro180}{E0E0E01000000000}{h8:g8:f8:h7:g7:f7:h6:g6:f6:e5} \hfill
+  \drawSubfigure{3}{ro270}{0707070800000000}{a8:a7:a6:b8:b7:b6:c8:c7:c6:d5}
+  \vspace{0.3cm}
+  \drawSubfigure{4}{fvert}{0000000010E0E0E0}{h1:g1:f1:h2:g2:f2:h3:g3:f3:e4} \hfill
+  \drawSubfigure{5}{fh1a8}{E0E0E01000000000}{h8:h7:h6:g8:g7:g6:f8:f7:f6:e5} \hfill
+  \drawSubfigure{6}{fhori}{0707070800000000}{a8:b8:c8:a7:b7:c7:a6:b6:c6:d5} \hfill
+  \drawSubfigure{7}{fa1h8}{0000000008070707}{a1:a2:a3:b1:b2:b3:c1:c2:c3:d4}
+  \caption{Istanze e indici di permutazione del pattern KATE.}
+\end{figure}
+
+\newpage
+
+\section{Pattern KATE2}
+
+\begin{tcolorbox}[sharp corners, fontupper=\ttfamily\small, colback=white]
+  \noindent Pattern: name = KATE2, mask = 0x0000000810E0E0E0\\
+  {[} n\_squares = 11, n\_configurations = 177147,
+  n\_instances = 4, n\_stabilizers = 2, type = 5 { ]}\\[1.0ex]
+  \begin{tabularx}{\textwidth}{@{} p{3.5cm} X @{}}
+    Cells:               & {[}F1, G1, H1, F2, G2, H2, F3, G3, H3, E4, D5{]}\\[0.5ex]
+    Transformed masks:   & 0000000810E0E0E0, E0E0E01008000000, 0707070810000000, 0000001008070707, 0000001008070707, 0000000810E0E0E0, E0E0E01008000000, 0707070810000000\\[0.5ex]
+    Mask indexes:        & {[}0, 1, 2, 3, 3, 0, 1, 2{]}\\[0.5ex]
+    Unique masks:        & 0000000810E0E0E0, E0E0E01008000000, 0707070810000000, 0000001008070707\\[0.5ex]
+    Unique mask indexes: & {[}0, 1, 2, 3{]}\\[0.5ex]
+    Transf. functions:   & {[}ro000, ro090, ro180, ro270{]}\\[0.5ex]
+    Anti-transf. f.:     & {[}ro000, ro270, ro180, ro090{]}\\[0.5ex]
+    Symmetry functions:  & {[}fh1a8{]}\\[0.5ex]
+  \end{tabularx}
+\end{tcolorbox}
+
+\begin{figure}[htbp]
+  \centering
+  \drawSubfigure{0}{ro000}{0000000810E0E0E0}{f1:g1:h1:f2:g2:h2:f3:g3:h3:e4:d5} \hfill
+  \drawSubfigure{1}{ro090}{E0E0E01008000000}{h6:h7:h8:g6:g7:g8:f6:f7:f8:e5:d4} \hfill
+  \drawSubfigure{2}{ro180}{0707070810000000}{c8:b8:a8:c7:b7:a7:c6:b6:a6:d5:e4} \hfill
+  \drawSubfigure{3}{ro270}{0000001008070707}{a3:a2:a1:b3:b2:b1:c3:c2:c1:d4:e5}
+  \vspace{0.3cm}
+  \drawSubfigure{4}{fvert}{0000001008070707}{c1:b1:a1:c2:b2:a2:c3:b3:a3:d4:e5} \hfill
+  \drawSubfigure{5}{fh1a8}{0000000810E0E0E0}{h3:h2:h1:g3:g2:g1:f3:f2:f1:e4:d5} \hfill
+  \drawSubfigure{6}{fhori}{E0E0E01008000000}{f8:g8:h8:f7:g7:h7:f6:g6:h6:e5:d4} \hfill
+  \drawSubfigure{7}{fa1h8}{0707070810000000}{a6:a7:a8:b6:b7:b8:c6:c7:c8:d5:e4}
+  \caption{Istanze e indici di permutazione del pattern KATE2.}
+\end{figure}
+
+\newpage
+
+\section{Pattern KATE3}
+
+\begin{tcolorbox}[sharp corners, fontupper=\ttfamily\small, colback=white]
+  \noindent Pattern: name = KATE3, mask = 0x0000040810E0E0E0\\
+  {[} n\_squares = 12, n\_configurations = 531441,
+  n\_instances = 4, n\_stabilizers = 2, type = 5 { ]}\\[1.0ex]
+  \begin{tabularx}{\textwidth}{@{} p{3.5cm} X @{}}
+    Cells:               & {[}F1, G1, H1, F2, G2, H2, F3, G3, H3, E4, D5, C6{]}\\[0.5ex]
+    Transformed masks:   & 0000040810E0E0E0, E0E0E01008040000, 0707070810200000, 0000201008070707, 0000201008070707, 0000040810E0E0E0, E0E0E01008040000, 0707070810200000\\[0.5ex]
+    Mask indexes:        & {[}0, 1, 2, 3, 3, 0, 1, 2{]}\\[0.5ex]
+    Unique masks:        & 0000040810E0E0E0, E0E0E01008040000, 0707070810200000, 0000201008070707\\[0.5ex]
+    Unique mask indexes: & {[}0, 1, 2, 3{]}\\[0.5ex]
+    Transf. functions:   & {[}ro000, ro090, ro180, ro270{]}\\[0.5ex]
+    Anti-transf. f.:     & {[}ro000, ro270, ro180, ro090{]}\\[0.5ex]
+    Symmetry functions:  & {[}fh1a8{]}\\[0.5ex]
+  \end{tabularx}
+\end{tcolorbox}
+
+\begin{figure}[htbp]
+  \centering
+  \drawSubfigure{0}{ro000}{0000040810E0E0E0}{f1:g1:h1:f2:g2:h2:f3:g3:h3:e4:d5:c6} \hfill
+  \drawSubfigure{1}{ro090}{E0E0E01008040000}{h6:h7:h8:g6:g7:g8:f6:f7:f8:e5:d4:c3} \hfill
+  \drawSubfigure{2}{ro180}{0707070810200000}{c8:b8:a8:c7:b7:a7:c6:b6:a6:d5:e4:f3} \hfill
+  \drawSubfigure{3}{ro270}{0000201008070707}{a3:a2:a1:b3:b2:b1:c3:c2:c1:d4:e5:f6}
+  \vspace{0.3cm}
+  \drawSubfigure{4}{fvert}{0000201008070707}{c1:b1:a1:c2:b2:a2:c3:b3:a3:d4:e5:f6} \hfill
+  \drawSubfigure{5}{fh1a8}{0000040810E0E0E0}{h3:h2:h1:g3:g2:g1:f3:f2:f1:e4:d5:c6} \hfill
+  \drawSubfigure{6}{fhori}{E0E0E01008040000}{f8:g8:h8:f7:g7:h7:f6:g6:h6:e5:d4:c3} \hfill
+  \drawSubfigure{7}{fa1h8}{0707070810200000}{a6:a7:a8:b6:b7:b8:c6:c7:c8:d5:e4:f3}
+  \caption{Istanze e indici di permutazione del pattern KATE3.}
+\end{figure}
+
+\newpage
+
+\section{Pattern KATEK}
+
+\begin{tcolorbox}[sharp corners, fontupper=\ttfamily\small, colback=white]
+  \noindent Pattern: name = KATEK, mask = 0x000000000907070F\\
+  {[} n\_squares = 12, n\_configurations = 531441,
+  n\_instances = 4, n\_stabilizers = 2, type = 3 { ]}\\[1.0ex]
+  \begin{tabularx}{\textwidth}{@{} p{3.5cm} X @{}}
+    Cells:               & {[}A1, B1, C1, D1, A2, B2, C2, A3, B3, C3, A4, D4{]}\\[0.5ex]
+    Transformed masks:   & 000000000907070F, 0000000090E0E0F0, F0E0E09000000000, 0F07070900000000, 0000000090E0E0F0, F0E0E09000000000, 0F07070900000000, 000000000907070F\\[0.5ex]
+    Mask indexes:        & {[}0, 1, 2, 3, 1, 2, 3, 0{]}\\[0.5ex]
+    Unique masks:        & 000000000907070F, 0000000090E0E0F0, F0E0E09000000000, 0F07070900000000\\[0.5ex]
+    Unique mask indexes: & {[}0, 1, 2, 3{]}\\[0.5ex]
+    Transf. functions:   & {[}ro000, ro090, ro180, ro270{]}\\[0.5ex]
+    Anti-transf. f.:     & {[}ro000, ro270, ro180, ro090{]}\\[0.5ex]
+    Symmetry functions:  & {[}fa1h8{]}\\[0.5ex]
+  \end{tabularx}
+\end{tcolorbox}
+
+\begin{figure}[htbp]
+  \centering
+  \drawSubfigure{0}{ro000}{000000000907070F}{a1:b1:c1:d1:a2:b2:c2:a3:b3:c3:a4:d4} \hfill
+  \drawSubfigure{1}{ro090}{0000000090E0E0F0}{h1:h2:h3:h4:g1:g2:g3:f1:f2:f3:e1:e4} \hfill
+  \drawSubfigure{2}{ro180}{F0E0E09000000000}{h8:g8:f8:e8:h7:g7:f7:h6:g6:f6:h5:e5} \hfill
+  \drawSubfigure{3}{ro270}{0F07070900000000}{a8:a7:a6:a5:b8:b7:b6:c8:c7:c6:d8:d5}
+  \vspace{0.3cm}
+  \drawSubfigure{4}{fvert}{0000000090E0E0F0}{h1:g1:f1:e1:h2:g2:f2:h3:g3:f3:h4:e4} \hfill
+  \drawSubfigure{5}{fh1a8}{F0E0E09000000000}{h8:h7:h6:h5:g8:g7:g6:f8:f7:f6:e8:e5} \hfill
+  \drawSubfigure{6}{fhori}{0F07070900000000}{a8:b8:c8:d8:a7:b7:c7:a6:b6:c6:a5:d5} \hfill
+  \drawSubfigure{7}{fa1h8}{000000000907070F}{a1:a2:a3:a4:b1:b2:b3:c1:c2:c3:d1:d4}
+  \caption{Istanze e indici di permutazione del pattern KATEK.}
+\end{figure}
+
+\newpage

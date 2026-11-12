@@ -592,122 +592,109 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     training / 20,000 validation (0% overlap), the convergence in 5 iterations, the validation RMSE(y) 26.28 = the
     population std (the baseline is exactly what it should be), the CLIENT\_CHECK 0.0e+00. Every output under
     `build/lm/ec20/0000/` (gitignored). Committed the config + the first registry row.
-  - Model 0001 (D-600): INTERCEPT + the full-board LMC, the fully-explicit config — a diff against 0000 proved
-    only the identity fields and the feature set differ. Run 19/19 green: 22 parameters (W) (the dense table
-    66), 40 iterations, the validation RMSE(y) 21.81 / the MAE 17.90 — against the 0000 baseline's 26.28 / 21.63:
-    the RMSE down 17.0%, the MAE down 17.2%, the generalization gap -0.20 (no overfitting), the
-    CLIENT\_CHECK 0.0e+00. The campaign's first real comparison: the full-board LMC alone, with 22 parameters,
-    is worth a 17% RMSE. Committed the config + the registry row.
-  - Model 0002 (D-601): INTERCEPT + the full-board ALMC (the side `opponent`), identical to 0001 except the
-    identity fields and the mobility (a diff proved it). Run 19/19 green: 22 parameters (W) / 66 dense, 42
-    iterations, the validation RMSE(y) 22.47 / the MAE 18.43, the generalization gap -0.11, the
-    CLIENT\_CHECK 0.0e+00. The triangle is now readable: the ALMC alone beats the baseline by 14.4% RMSE but
-    is ~3% weaker than the LMC (22.47 vs 21.81) at the identical parameter budget. Committed the config + the
-    registry row.
-  - Model 0003 (D-602): INTERCEPT + the standard mobility pair (the LMC + the ALMC, the same full-board
-    mask), identical to 0001/0002 except the identity fields and the second mobility. Run 19/19 green: 43
-    parameters (W) / 131 dense, 60 iterations, the validation RMSE(y) 20.13 / the MAE 16.47 — the best of
-    the four, the generalization gap still -0.20 (no overfitting), the CLIENT\_CHECK 0.0e+00. The triangle
-    answered: the ALMC is NOT redundant — a net marginal -1.68 RMSE on top of the LMC (-7.7% over the
-    LMC-only model) for +21 parameters; the pair is cumulative -23.6% RMSE over the baseline. Committed the
-    config + the registry row.
+  - Model 0001 (D-600): INTERCEPT + the full-board LMC, the fully-explicit config — a diff against 0000 proved only the
+    identity fields and the feature set differ. Run 19/19 green: 22 parameters (W) (the dense table 66), 40 iterations,
+    the validation RMSE(y) 21.81 / the MAE 17.90 — against the 0000 baseline's 26.28 / 21.63: the RMSE down 17.0%, the
+    MAE down 17.2%, the generalization gap -0.20 (no overfitting), the CLIENT\_CHECK 0.0e+00. The campaign's first real
+    comparison: the full-board LMC alone, with 22 parameters, is worth a 17% RMSE. Committed the config + the registry
+    row.
+  - Model 0002 (D-601): INTERCEPT + the full-board ALMC (the side `opponent`), identical to 0001 except the identity
+    fields and the mobility (a diff proved it). Run 19/19 green: 22 parameters (W) / 66 dense, 42 iterations, the
+    validation RMSE(y) 22.47 / the MAE 18.43, the generalization gap -0.11, the CLIENT\_CHECK 0.0e+00. The triangle is
+    now readable: the ALMC alone beats the baseline by 14.4% RMSE but is ~3% weaker than the LMC (22.47 vs 21.81) at the
+    identical parameter budget. Committed the config + the registry row.
+  - Model 0003 (D-602): INTERCEPT + the standard mobility pair (the LMC + the ALMC, the same full-board mask), identical
+    to 0001/0002 except the identity fields and the second mobility. Run 19/19 green: 43 parameters (W) / 131 dense, 60
+    iterations, the validation RMSE(y) 20.13 / the MAE 16.47 — the best of the four, the generalization gap still -0.20
+    (no overfitting), the CLIENT\_CHECK 0.0e+00. The triangle answered: the ALMC is NOT redundant — a net marginal -1.68
+    RMSE on top of the LMC (-7.7% over the LMC-only model) for +21 parameters; the pair is cumulative -23.6% RMSE over
+    the baseline. Committed the config + the registry row.
   - Chapter 13 (D-603): "Le feature di base" opens the part "Esperienze con il modello logistico" — the first
-    experimental campaign in book form: the four minimal models on the same ec20 corpus, the results table, the
-    marginal reading of the ALMC (complementary, not redundant), the no-overfitting controls. Roberto's
-    structural calls: "Fondamenti" as the Part I title; the Introduzione moved BEFORE all the parts (the `\part`
-    marker at the top of "La board"); the appendices lifted out of Part II with an unnumbered `\part*{Appendici}`
-    (the book class makes `\appendix` inherit the active part — the reason the viewer nested them); the closing
-    campaign-forecast paragraph removed; the opening sentence rewritten in his words. dict.txt +4 label
-    fragments. Gates: the build 124 pages 0/0, the spell 0, the linter 0, the visual pass OK.
-  - Campaign phase 2 (D-604): the 27 selective-mobility models 0004-0030 — the nine D4 cell orbits x
-    {LMC, ALMC, pair} on the same ec20 corpus. The masks verified as true D4 orbits (disjoint, tiling the
-    60 outer cells; the center 2x2 is the 10th orbit, excluded by Roberto's ruling: never empty in a legal
-    position). The pair wins in all nine classes; the A1 corners are the strongest (-12.0%); a gradient
-    toward a silent center; C1 > B1 is non-monotonic; nothing approaches the full-board pair (20.13). The
-    book gains section 13.4 with the results table. Batch note: the 0007-0009 "failures" were my 3-digit
-    build-dir naming slip (a shell artifact) — fixed, re-run clean.
-  - Campaign phase 3 (D-605): the nine "full-board + class" models 0031-0039 (the full-board LMS + ALMS
-    plus one class's selective pair — four mobility features). Clear winner: the A1 corners — 18.93 over
-    the full-board pair's 20.13 (additive -1.20); the other eight null/negative. The four-feature mobility
-    is named OptMob (Optimized Mobility) — the best model's mobility component. The book gains section
-    13.5. The index becomes 3-column (description mirror) on Roberto's approval; R-360 updated.
-  - The 12 standalone classic patterns (D-606): 0040-0051, the intercept + one pattern. 2X5COR is the
-    clear winner (validation 10.63, -59.6%), then CORNER 12.38 and XEDGE 13.64 — a single corner pattern
-    beats the whole OptMob (18.82). Roberto caught my column mix-up (the training-dense reported as
-    validation): the book's tables 13.3/13.5 are repaired to the true validation values, the gap formula
-    corrected. Code: the OPTIMIZE finish line now says "executed N iters" (thousands separator); the
-    suite is green. The 12 configs run with `log_every_n: 10`; the first re-run was swallowed by the
-    checkpoint cache — cleared, re-run fresh, deterministic.
-  - Book: section 13.6 (the 12 classic patterns — definitions, the corner dominance, the price of
-    expressiveness in the gap) and 13.7 (the three largest patterns on ten-times the data — the
-    validation improves and the memorization collapses: it is paid with data, not fate). New models
-    0052-0054 (the batch-swapped CORNER/XEDGE/2X5COR, training batch 3 / validation batch 6), the
-    index at 55, the dictionary +11 pattern terms.
-  - Model 0055 (EDGE + XEDGE, batches 3/6): the validation RMSE 12.90 equals XEDGE alone (12.91)
-    — EDGE is included in XEDGE, no new information. The configuration analyses (the SU 0.879 on
-    the same instance, the eta-squared 0.215 vs 0.337) measure the redundancy before the
-    training; the book gains section 13.8 and section 13.6 is repaired to the ternary
-    configuration (the 3^k code space). The index is at 56.
-  - The 10 aggregation models 0056-0065 (2X5COR + a partner, batches 3/6, analyses on): all beat
-    2X5COR alone, the gains span an order of magnitude (-1.07 XEDGE ... -0.05 DIAG4), and the
-    predictor is the partner's NEW CELLS and where they sit — not the SU, not the expressiveness
-    alone. XEDGE adds the mirror corner H1: 2X5COR+XEDGE = 8.60, the new champion (-67.4%). The
-    book gains section 13.9 ("Sommare i pattern: il valore delle celle nuove"); a text fix inside
-    ("salgono", not the pseudo-regular "saliscono" — the dictionary entry added in the meantime
-    was removed). The index is at 66.
-  - Book: chapter 14 "Assemblaggio delle feature" is open (13.8-13.10 become 14.1-14.3; chapter 13
-    closes at 13.7), and section 14.2 is repaired — the "new cells" framework is out (not
-    well-defined across the D4 instances), proximity to the corner is in. The nine second-level
-    models 0066-0074 (the base 2X5COR+XEDGE plus a partner, batches 3/6, analyses off) all
-    improve the base, the contributions are ordered by proximity, and the new champion is
+    experimental campaign in book form: the four minimal models on the same ec20 corpus, the results table, the marginal
+    reading of the ALMC (complementary, not redundant), the no-overfitting controls. Roberto's structural calls:
+    "Fondamenti" as the Part I title; the Introduzione moved BEFORE all the parts (the `\part` marker at the top of "La
+    board"); the appendices lifted out of Part II with an unnumbered `\part*{Appendici}` (the book class makes
+    `\appendix` inherit the active part — the reason the viewer nested them); the closing campaign-forecast paragraph
+    removed; the opening sentence rewritten in his words. dict.txt +4 label fragments. Gates: the build 124 pages 0/0,
+    the spell 0, the linter 0, the visual pass OK.
+  - Campaign phase 2 (D-604): the 27 selective-mobility models 0004-0030 — the nine D4 cell orbits x {LMC, ALMC, pair}
+    on the same ec20 corpus. The masks verified as true D4 orbits (disjoint, tiling the 60 outer cells; the center 2x2
+    is the 10th orbit, excluded by Roberto's ruling: never empty in a legal position). The pair wins in all nine
+    classes; the A1 corners are the strongest (-12.0%); a gradient toward a silent center; C1 > B1 is non-monotonic;
+    nothing approaches the full-board pair (20.13). The book gains section 13.4 with the results table. Batch note: the
+    0007-0009 "failures" were my 3-digit build-dir naming slip (a shell artifact) — fixed, re-run clean.
+  - Campaign phase 3 (D-605): the nine "full-board + class" models 0031-0039 (the full-board LMS + ALMS plus one class's
+    selective pair — four mobility features). Clear winner: the A1 corners — 18.93 over the full-board pair's 20.13
+    (additive -1.20); the other eight null/negative. The four-feature mobility is named OptMob (Optimized Mobility) —
+    the best model's mobility component. The book gains section 13.5. The index becomes 3-column (description mirror) on
+    Roberto's approval; R-360 updated.
+  - The 12 standalone classic patterns (D-606): 0040-0051, the intercept + one pattern. 2X5COR is the clear winner
+    (validation 10.63, -59.6%), then CORNER 12.38 and XEDGE 13.64 — a single corner pattern beats the whole OptMob
+    (18.82). Roberto caught my column mix-up (the training-dense reported as validation): the book's tables 13.3/13.5
+    are repaired to the true validation values, the gap formula corrected. Code: the OPTIMIZE finish line now says
+    "executed N iters" (thousands separator); the suite is green. The 12 configs run with `log_every_n: 10`; the first
+    re-run was swallowed by the checkpoint cache — cleared, re-run fresh, deterministic.
+  - Book: section 13.6 (the 12 classic patterns — definitions, the corner dominance, the price of expressiveness in the
+    gap) and 13.7 (the three largest patterns on ten-times the data — the validation improves and the memorization
+    collapses: it is paid with data, not fate). New models 0052-0054 (the batch-swapped CORNER/XEDGE/2X5COR, training
+    batch 3 / validation batch 6), the index at 55, the dictionary +11 pattern terms.
+  - Model 0055 (EDGE + XEDGE, batches 3/6): the validation RMSE 12.90 equals XEDGE alone (12.91) — EDGE is included in
+    XEDGE, no new information. The configuration analyses (the SU 0.879 on the same instance, the eta-squared 0.215
+    vs 0.337) measure the redundancy before the training; the book gains section 13.8 and section 13.6 is repaired to
+    the ternary configuration (the 3^k code space). The index is at 56.
+  - The 10 aggregation models 0056-0065 (2X5COR + a partner, batches 3/6, analyses on): all beat 2X5COR alone, the gains
+    span an order of magnitude (-1.07 XEDGE ... -0.05 DIAG4), and the predictor is the partner's NEW CELLS and where
+    they sit — not the SU, not the expressiveness alone. XEDGE adds the mirror corner H1: 2X5COR+XEDGE = 8.60, the new
+    champion (-67.4%). The book gains section 13.9 ("Sommare i pattern: il valore delle celle nuove"); a text fix inside
+    ("salgono", not the pseudo-regular "saliscono" — the dictionary entry added in the meantime was removed). The index
+    is at 66.
+  - Book: chapter 14 "Assemblaggio delle feature" is open (13.8-13.10 become 14.1-14.3; chapter 13 closes at 13.7), and
+    section 14.2 is repaired — the "new cells" framework is out (not well-defined across the D4 instances), proximity to
+    the corner is in. The nine second-level models 0066-0074 (the base 2X5COR+XEDGE plus a partner, batches 3/6,
+    analyses off) all improve the base, the contributions are ordered by proximity, and the new champion is
     2X5COR+XEDGE+CORNER at 8.11 (-69.3%). The index is at 75.
-  - Appendix fix: the pattern catalog's navigation tree is repaired (the 29 pattern headings move
-    from \subsection to \section) — every pattern now sits at the same level as ELLE, directly
-    under "Catalogo dei Pattern", and the printed numbering reads A.1-A.29.
-  - Book section 14.4 and the eight third-level models 0075-0082 (the base plus
-    DIAG8..DIAG4 / R2..R4, batches 3/6, analyses off): seven improve, DIAG4 is flat, and
-    proximity orders the contributions in groups. The new champion is
+  - Appendix fix: the pattern catalog's navigation tree is repaired (the 29 pattern headings move from \subsection to
+    \section) — every pattern now sits at the same level as ELLE, directly under "Catalogo dei Pattern", and the printed
+    numbering reads A.1-A.29.
+  - Book section 14.4 and the eight third-level models 0075-0082 (the base plus DIAG8..DIAG4 / R2..R4, batches 3/6,
+    analyses off): seven improve, DIAG4 is flat, and proximity orders the contributions in groups. The new champion is
     2X5COR+XEDGE+CORNER+R4 at 7.82 (-70.4%). The index is at 83.
-  - Book section 14.5 and the six fourth-level models 0083-0088 (the base plus the
-    remaining partners, DIAG4 excluded, batches 3/6, analyses off): all six improve, the
-    scale compresses under a tenth of a point, and the campaign reaches its informational
-    floor. The new champion is 2X5COR+XEDGE+CORNER+R4+DIAG7 at 7.70 (-70.9%). The index
-    is at 89.
-  - Book sections 14.6-14.7 and the 11 leave-one-out models 0089-0099: the full 10-pattern
-    model is the new champion at 7.46 (-71.8%), all ten patterns are necessary, and the
-    decomposition shows the importance order is context-dependent — alone 2X5COR is the most
-    expressive, in the group XEDGE is the most relevant (its irreplaceable quota is the
-    largest). The index is at 100.
-  - Book section 14.8 and the four OptMob/big-data models 0100-0103: the series descends
-    at every step (7.46 down to 7.04 on 14M of training rows), OptMob is worth -0.28 on
-    top of the ten patterns, and the generalization gap collapses to +0.07. The new
-    champion is 0103 at 7.04 (-73.4%). The index is at 104.
-  - Book chapter 15 (Gli hyper-parameter) opened: the ridge fine-tuning campaign on 0104
-    shows a wide flat minimum [0, 2] and a monotone rise from 3 to 10; 0.01 stays at
-    its center. The section keeps the 11-point integer table only; the chapter 13
-    "iparametri" typo is fixed forward.
-  - Book section 15.2: the frequency cut-off sweep (0105, 2 to 100) is flat on
-    validation RMSE while the active weights fall 21%; the dense count K is unchanged,
-    so the compression never reaches inference — the default cutoff 1 is kept.
-  - Book section 15.3: the `logit_clipping` sweep (0106, 0.01 to 0.20) is the first
-    responsive curve — minimum 7.01 on the wide plateau [0.12, 0.18], the in-use 0.05
-    sits three cents above it; the mechanism is the target map [c, 1-c] (sigmoid
-    saturation vs the 128/(1-2c) re-stretch). The section carries the 20-point table and
-    the 0.05-vs-0.15 plot pair; the book grows to 140 pages.
-  - Book section 15.4: the `allow_duplicates` switch (single run on 0107) is identical
-    within resolution (7.02 vs 7.01, W unchanged) — the 5.1% duplicate positions do not
-    move the solution. New reference configuration for all future models:
-    `regab_allow_duplicate` false, ridge 1.0, `logit_clipping` 0.15 (D-619).
-  - Book section 15.5 in two proofs: the `min_grad` criterion (246 to 687 iters, RMSE
-    unchanged) and the L-BFGS memory series 50-179 (687 to 492 iters, optimization time
-    proportional to steps, 21% net gain, floor at 131) — both change the effort, not the
-    model. Methodological note recorded: `m` does not invalidate the optimization
-    checkpoint, so optimization-parameter sweeps must run from an emptied build folder.
-  - Book chapter 16 (Il momento evolutivo della partita) opened: model 0108 run at
-    `empty_count` 24 to 4 (21 regressions, 20 new level registries) — the validation
-    RMSE is stable (6.96-7.05) from 11 to 24 and descends to 5.65 at 4; no data exists
-    for 25-60.
-  - Book chapter 17 (Nuovi pattern) opened: CASTLE (12 bit) against XEDGE — as a
-    single pattern XEDGE leads by 0.09 at equal conditions; at full batches CASTLE
-    reaches 12.51; in the complete feature set 0111 scores 6.93, the first model
-    below 7.00 (219,546 active weights).
+  - Book section 14.5 and the six fourth-level models 0083-0088 (the base plus the remaining partners, DIAG4 excluded,
+    batches 3/6, analyses off): all six improve, the scale compresses under a tenth of a point, and the campaign reaches
+    its informational floor. The new champion is 2X5COR+XEDGE+CORNER+R4+DIAG7 at 7.70 (-70.9%). The index is at 89.
+  - Book sections 14.6-14.7 and the 11 leave-one-out models 0089-0099: the full 10-pattern model is the new champion
+    at 7.46 (-71.8%), all ten patterns are necessary, and the decomposition shows the importance order is
+    context-dependent — alone 2X5COR is the most expressive, in the group XEDGE is the most relevant (its irreplaceable
+    quota is the largest). The index is at 100.
+  - Book section 14.8 and the four OptMob/big-data models 0100-0103: the series descends at every step (7.46 down
+    to 7.04 on 14M of training rows), OptMob is worth -0.28 on top of the ten patterns, and the generalization gap
+    collapses to +0.07. The new champion is 0103 at 7.04 (-73.4%). The index is at 104.
+  - Book chapter 15 (Gli hyper-parameter) opened: the ridge fine-tuning campaign on 0104 shows a wide flat minimum [0,
+    2] and a monotone rise from 3 to 10; 0.01 stays at its center. The section keeps the 11-point integer table only;
+    the chapter 13 "iparametri" typo is fixed forward.
+  - Book section 15.2: the frequency cut-off sweep (0105, 2 to 100) is flat on validation RMSE while the active weights
+    fall 21%; the dense count K is unchanged, so the compression never reaches inference — the default cutoff 1 is kept.
+  - Book section 15.3: the `logit_clipping` sweep (0106, 0.01 to 0.20) is the first responsive curve — minimum 7.01 on
+    the wide plateau [0.12, 0.18], the in-use 0.05 sits three cents above it; the mechanism is the target map [c, 1-c]
+    (sigmoid saturation vs the 128/(1-2c) re-stretch). The section carries the 20-point table and the 0.05-vs-0.15 plot
+    pair; the book grows to 140 pages.
+  - Book section 15.4: the `allow_duplicates` switch (single run on 0107) is identical within resolution (7.02 vs 7.01,
+    W unchanged) — the 5.1% duplicate positions do not move the solution. New reference configuration for all future
+    models: `regab_allow_duplicate` false, ridge 1.0, `logit_clipping` 0.15 (D-619).
+  - Book section 15.5 in two proofs: the `min_grad` criterion (246 to 687 iters, RMSE unchanged) and the L-BFGS memory
+    series 50-179 (687 to 492 iters, optimization time proportional to steps, 21% net gain, floor at 131) — both change
+    the effort, not the model. Methodological note recorded: `m` does not invalidate the optimization checkpoint, so
+    optimization-parameter sweeps must run from an emptied build folder.
+  - Book chapter 16 (Il momento evolutivo della partita) opened: model 0108 run at `empty_count` 24 to 4 (21
+    regressions, 20 new level registries) — the validation RMSE is stable (6.96-7.05) from 11 to 24 and descends to 5.65
+    at 4; no data exists for 25-60.
+  - Book chapter 17 (Nuovi pattern) opened: CASTLE (12 bit) against XEDGE — as a single pattern XEDGE leads by 0.09 at
+    equal conditions; at full batches CASTLE reaches 12.51; in the complete feature set 0111 scores 6.93, the first
+    model below 7.00 (219,546 active weights).
+  - Five new patterns (3X4COR, KATE, KATE2, KATE3, KATEK) added to `pattern_sample_data` and to Appendix A — the
+    appendix is regenerated with the documented program chain (mdp.csv via `Pattern.mdp_csv_file`, then the
+    `scratch/gen_appendix.py` loop over it), not hand edited: the 29 archived sections reproduce byte-identical, the
+    five new ones append. Book: 17.2 "Da 2X5COR a 2X6COR" (6.85 in the complete feature set, first model below 6.93)
+    and 17.3 "Cinque alternative a CORNER" (15 runs 0115-0129, three per pattern): all five beat CORNER alone at equal
+    conditions and in the complete model; 3X4COR is best in all three conditions — 6.78, the new series record (0.07
+    below 2X6COR). (D-623)

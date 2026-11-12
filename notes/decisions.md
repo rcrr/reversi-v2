@@ -2744,3 +2744,18 @@ D-622 | 2026-11-12 | Book chapter 17 "Nuovi pattern" opened, with section 17.1 "
          `MAX_ITERS` and was rerun with 2000 (converged at 819 iters). 0111 (the 0108 feature set with CASTLE in place
          of XEDGE): validation 6.93 vs 7.01, training 6.82 vs 6.95, active weights 219,546 vs 81,269 — the first model
          of the series below 7.00. Per the user, CASTLE is a 12-bit pattern (XEDGE 10). The ec20 index is at 112.
+
+D-623 | 2026-11-12 | Five new patterns enter `pattern_sample_data` and the Appendix A catalog: 3X4COR (12 cells), KATE
+         (10), KATE2 (11), KATE3 (12), KATEK (12). KATE2 and KATE3 were supplied in a non-principal orientation and are
+         stored in their principal form (the `Pattern` class rejects non-principal masks). Appendix A is regenerated
+         with the documented program chain instead of hand editing: `Pattern.mdp_csv_file` writes the 34-row mdp.csv,
+         the `scratch/gen_appendix.py` loop expands it to static LaTeX (the historical `datatool` build-time loop,
+         expanded because datatool is not in this TeX Live); the generator's stale constants are refreshed (output file
+         100 to 800, subsection to section, figure cells lowercased) and the diff against the committed catalog is a
+         single 170-line append — the 29 archived sections reproduce byte-identical. Book: section 17.2 "Da 2X5COR a
+         2X6COR" (0112/0113/0114; at equal conditions 2X5COR keeps a 0.07 edge, at full batches 2X6COR reaches 9.08, in
+         the complete 0108 feature set 6.85 — the first model below 6.93) and section 17.3 "Cinque alternative a CORNER"
+         (15 runs, 0115-0129, three per pattern on the CASTLE/2X6COR protocol): all five beat CORNER both alone at equal
+         conditions (0052, 12.24) and in the complete feature set (0108, 7.01) — 3X4COR is best in all three conditions
+         (9.94, 9.54, 6.78; 6.78 is the new series record, 0.07 below 2X6COR), KATEK is second in the complete model
+         (6.88), KATE has the cleanest generalization profile (gap 0.00-0.06). The ec20 index is at 130.
