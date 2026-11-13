@@ -1,0 +1,158 @@
+%
+% reversi_300_pattern_pi_grandi.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+
+%-----------------------------------------------------------------------------
+% Capitolo: Pattern ancora piu' grandi.
+%
+% Gli undici pattern da 13-14 celle del catalogo (KATEKB, KATEKC, ARROW,
+% ARROWB, HANOI, R1R2P5, R1R2P6, CASTLE2, 2X7COR, 3X4CORB, 3X4CORC) messi
+% alla prova da soli a ec20, in due run ciascuno: batch 3/6 con criterio
+% [1e-05, 3] e batch 3,9,12 con criterio [1e-06, 3]. A batch singolo nove su
+% undici battono CORNER (12.24), R1R2P5 e' il migliore (9.64, sotto il 2X5COR
+% 9.67) e la famiglia ARROW peggiora; i gap training-validazione sono ampi
+% (1.32-5.49) e i pesi attivi vanno da 182.186 a 1.188.318. Con i batch
+% pieni tutti e undici migliorano (-0.63/-2.33) e i gap si restringono:
+% R1R2P5 resta primo (8.55, sotto il 2X6COR 9.08), una fascia di quattro
+% pattern sta sotto 9 e la famiglia ARROW resta ultima (12.46/12.61).
+%
+% Nel riferimento 0153 il 2X6COR e' sostituito da R1R2P5 (0176) e da R1R2P6
+% (0177): due nuovi record (6.48, 6.46) e il training che scende di
+% passo (6.22, 6.12, 5.96), ma i pesi attivi raddoppiano a ogni scalino
+% (711.853, 1.198.914, 2.210.923), il gap si allarga (0.28, 0.36, 0.50)
+% e il 0177 si ferma su LOW_PROGRESS: ogni sostituzione vale 0.02 di
+% validazione, a un costo decrescente in rendimento.
+%-----------------------------------------------------------------------------
+
+\chapter{Pattern ancora più grandi}
+
+\section{Gli undici pattern grandi da soli}
+
+Gli undici pattern da 13--14 celle entrati nel catalogo
+(appendice~A) sono messi alla prova da soli a ec20, con il
+protocollo a due run: intercept + pattern, batch 3/6 e
+\texttt{min\_grad} $[1\times10^{-5}, 3]$, contro il modello 0052
+(CORNER, 12.24); poi batch 3, 9, 12 e \texttt{min\_grad}
+$[1\times10^{-6}, 3]$. I modelli sono i 0154--0175, due per
+pattern. La tabella~\ref{tab:grandi} li riassume accanto al
+riferimento 0052.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lllrrrr}
+\toprule
+modello & pattern & batch train & RMSE train & RMSE val & $W$ & iterazioni \\
+\midrule
+0052 & CORNER & 3 & 12.21 & 12.24 & 5\,157 & 109 \\
+0154 & KATEKB & 3 & 9.56 & 10.88 & 200\,092 & 266 \\
+0165 & KATEKB & 3, 9, 12 & 9.99 & 10.25 & 249\,225 & 667 \\
+0155 & KATEKC & 3 & 9.13 & 11.37 & 347\,016 & 272 \\
+0166 & KATEKC & 3, 9, 12 & 9.68 & 10.13 & 466\,061 & 820 \\
+0156 & ARROW & 3 & 11.76 & 13.13 & 182\,186 & 171 \\
+0167 & ARROW & 3, 9, 12 & 12.25 & 12.46 & 210\,215 & 779 \\
+0157 & ARROWB & 3 & 10.67 & 14.81 & 555\,742 & 292 \\
+0168 & ARROWB & 3, 9, 12 & 11.78 & 12.61 & 792\,836 & 1275 \\
+0158 & HANOI & 3 & 7.53 & 10.49 & 521\,672 & 344 \\
+0169 & HANOI & 3, 9, 12 & 8.44 & 9.14 & 857\,331 & 1262 \\
+0159 & R1R2P5 & 3 & 7.09 & 9.64 & 568\,456 & 267 \\
+0170 & R1R2P5 & 3, 9, 12 & 7.97 & 8.55 & 793\,070 & 1065 \\
+0160 & R1R2P6 & 3 & 6.07 & 10.58 & 1\,098\,184 & 245 \\
+0171 & R1R2P6 & 3, 9, 12 & 7.58 & 8.79 & 1\,805\,079 & 1261 \\
+0161 & CASTLE2 & 3 & 8.23 & 11.67 & 568\,839 & 198 \\
+0172 & CASTLE2 & 3, 9, 12 & 9.36 & 10.17 & 894\,752 & 1276 \\
+0162 & 2X7COR & 3 & 5.77 & 11.26 & 1\,188\,318 & 319 \\
+0173 & 2X7COR & 3, 9, 12 & 7.61 & 8.93 & 1\,858\,017 & 1236 \\
+0163 & 3X4CORB & 3 & 8.26 & 10.19 & 385\,661 & 241 \\
+0174 & 3X4CORB & 3, 9, 12 & 8.38 & 8.79 & 492\,155 & 1042 \\
+0164 & 3X4CORC & 3 & 7.43 & 11.45 & 821\,527 & 379 \\
+0175 & 3X4CORC & 3, 9, 12 & 8.31 & 9.22 & 1\,191\,185 & 1209 \\
+\bottomrule
+\end{tabular}
+\caption{Gli undici pattern da 13--14 celle da soli a ec20, in due
+run ciascuno (batch 3/6 e batch 3, 9, 12), accanto al riferimento
+0052 (CORNER).}
+\label{tab:grandi}
+\end{table}
+
+A batch 3/6 nove undici pattern battono CORNER (12.24): R1R2P5 è
+il migliore (9.64, sotto il 9.67 del 2X5COR a parità di
+condizioni), seguito da 3X4CORB (10.19), HANOI (10.49), R1R2P6
+(10.58), KATEKB (10.88), 2X7COR (11.26), KATEKC (11.37),
+3X4CORC (11.45) e CASTLE2 (11.67); la famiglia ARROW peggiora
+(13.13 e 14.81). In questa colonna i gap
+training--validazione sono ampi, da 1.32 (KATEKB) a 5.49
+(2X7COR), e i pesi attivi vanno da 182\,186 (ARROW) a
+1\,188\,318 (2X7COR).
+
+Con i batch 3, 9 e 12 tutti e undici migliorano, da $-0.63$
+(KATEKB) a $-2.33$ (2X7COR), e i gap si restringono: 2X7COR
+passa da 5.49 a 1.32, R1R2P6 da 4.51 a 1.21, 3X4CORC da 4.02 a
+0.91. R1R2P5 resta il primo (8.55, sotto il 9.08 del 2X6COR a
+batch pieni) e una fascia di quattro pattern sta sotto 9
+(R1R2P5 8.55, 3X4CORB e R1R2P6 8.79, 2X7COR 8.93); la famiglia
+ARROW resta ultima (12.46 e 12.61). I pesi attivi massimi sono
+i 1\,858\,017 del 2X7COR e i 1\,805\,079 del R1R2P6. Le
+ventidue run convergono (171--1276 iterazioni).
+
+\section{R1R2P5 e R1R2P6 al posto di 2X6COR}
+
+Il modello riferimento 0153 è messo alla prova sostituendo il 2X6COR
+con i due pattern più grandi R1R2P5 e R1R2P6, a parità del resto
+del feature set (CASTLE, 3X4COR, R4, BARBEL, DIAG7, DIAG6,
+DIAG5, R2, R3 e OptMob). Le run usano i batch 3, 9, 12, il batch
+6 di validazione e il criterio $[1\times10^{-6}, 5]$, come il
+resto della serie. La tabella~\ref{tab:r1r2swap} riassume.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{llrrrr}
+\toprule
+modello & contenuto & RMSE train & RMSE val & $W$ & iterazioni \\
+\midrule
+0153 & riferimento (2X6COR) & 6.22 & 6.50 & 711\,853 & 950 \\
+0176 & R1R2P5 al posto di 2X6COR & 6.12 & 6.48 & 1\,198\,914 & 1004 \\
+0177 & R1R2P6 al posto di 2X6COR & 5.96 & 6.46 & 2\,210\,923 & 1046 \\
+\bottomrule
+\end{tabular}
+\caption{Il riferimento 0153 con R1R2P5 e R1R2P6 in sostituzione del
+2X6COR.}
+\label{tab:r1r2swap}
+\end{table}
+
+Le due sostituzioni abbassano la RMSE di validazione, 6.48 e
+6.46 — due nuovi record della serie — e la RMSE di training
+scende di passo (6.22, 6.12, 5.96): i pattern grandi portano
+segnale nel modello completo. Il prezzo cresce con la
+dimensione del pattern: i pesi attivi passano da 711\,853 a
+1\,198\,914 e poi a 2\,210\,923 ($\times 3.1$ il riferimento), il
+gap training--validazione si allarga (0.28, 0.36, 0.50) e la
+run del 0177 si ferma su \texttt{LOW\_PROGRESS} anziché sul
+criterio di gradiente. Ciascuna sostituzione vale 0.02 di
+validazione: la prima al costo di 487\,061 pesi, la seconda a
+quello di 1\,012\,009 — un rendimento decrescente che la
+traiettoria 2X6COR → R1R2P5 → R1R2P6 rende esplicito.

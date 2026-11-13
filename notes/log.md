@@ -705,3 +705,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     one-at-a-time runs 0148-0152, 940 weights total in 0147); BARBEL carries signal, and BARBEL-for-DIAG8 alone (0153)
     is the entire 0147 improvement — 6.50, the new series reference (711,853 weights). Book: 17.4 (the trio) and 17.5
     (the simple patterns). (D-624)
+  - Larger patterns arc: the eleven 13-14-cell patterns (KATEKB, KATEKC, ARROW, ARROWB, HANOI, R1R2P5, R1R2P6, CASTLE2,
+    2X7COR, 3X4CORB, 3X4CORC) verified principal, added to the catalog (45 entries), Appendix A regenerated at 45
+    sections. Alone at ec20 (0154-0175): nine of eleven beat CORNER, R1R2P5 best (9.64 at batch 3/6, 8.55 at full
+    batches — below 2X6COR's 9.08), the ARROW family last; full batches improve all eleven and narrow the wide
+    single-batch gaps. In the reference 0153, R1R2P5 (0176) and R1R2P6 (0177) in place of 2X6COR give two new records
+    (6.48, 6.46) with the training stepping down (6.22/6.12/5.96) but the weights doubling per step (711k/1.20M/2.21M)
+    and the gap widening (0.28/0.36/0.50) — a decreasing return. New book chapter 18 with sections 18.1 (the eleven
+    alone) and 18.2 (the two substitutions). (D-625)

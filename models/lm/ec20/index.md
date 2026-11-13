@@ -161,3 +161,27 @@ without opening each file. The model's name lives in the config file itself.
 | 0151 | [lm_ec20_0151.json](0151/lm_ec20_0151.json) | The intercept plus the 2X6COR, CASTLE, 3X4COR, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2, R3 and CORED patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
 | 0152 | [lm_ec20_0152.json](0152/lm_ec20_0152.json) | The intercept plus the 2X6COR, CASTLE, 3X4COR, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2, R3 and COREA patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
 | 0153 | [lm_ec20_0153.json](0153/lm_ec20_0153.json) | The intercept plus the 2X6COR, CASTLE, 3X4COR, R4, BARBEL, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0154 | [lm_ec20_0154.json](0154/lm_ec20_0154.json) | The intercept plus the single KATEKB pattern - trained on batch 3, validated on batch 6. |
+| 0155 | [lm_ec20_0155.json](0155/lm_ec20_0155.json) | The intercept plus the single KATEKC pattern - trained on batch 3, validated on batch 6. |
+| 0156 | [lm_ec20_0156.json](0156/lm_ec20_0156.json) | The intercept plus the single ARROW pattern - trained on batch 3, validated on batch 6. |
+| 0157 | [lm_ec20_0157.json](0157/lm_ec20_0157.json) | The intercept plus the single ARROWB pattern - trained on batch 3, validated on batch 6. |
+| 0158 | [lm_ec20_0158.json](0158/lm_ec20_0158.json) | The intercept plus the single HANOI pattern - trained on batch 3, validated on batch 6. |
+| 0159 | [lm_ec20_0159.json](0159/lm_ec20_0159.json) | The intercept plus the single R1R2P5 pattern - trained on batch 3, validated on batch 6. |
+| 0160 | [lm_ec20_0160.json](0160/lm_ec20_0160.json) | The intercept plus the single R1R2P6 pattern - trained on batch 3, validated on batch 6. |
+| 0161 | [lm_ec20_0161.json](0161/lm_ec20_0161.json) | The intercept plus the single CASTLE2 pattern - trained on batch 3, validated on batch 6. |
+| 0162 | [lm_ec20_0162.json](0162/lm_ec20_0162.json) | The intercept plus the single 2X7COR pattern - trained on batch 3, validated on batch 6. |
+| 0163 | [lm_ec20_0163.json](0163/lm_ec20_0163.json) | The intercept plus the single 3X4CORB pattern - trained on batch 3, validated on batch 6. |
+| 0164 | [lm_ec20_0164.json](0164/lm_ec20_0164.json) | The intercept plus the single 3X4CORC pattern - trained on batch 3, validated on batch 6. |
+| 0165 | [lm_ec20_0165.json](0165/lm_ec20_0165.json) | The intercept plus the single KATEKB pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0166 | [lm_ec20_0166.json](0166/lm_ec20_0166.json) | The intercept plus the single KATEKC pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0167 | [lm_ec20_0167.json](0167/lm_ec20_0167.json) | The intercept plus the single ARROW pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0168 | [lm_ec20_0168.json](0168/lm_ec20_0168.json) | The intercept plus the single ARROWB pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0169 | [lm_ec20_0169.json](0169/lm_ec20_0169.json) | The intercept plus the single HANOI pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0170 | [lm_ec20_0170.json](0170/lm_ec20_0170.json) | The intercept plus the single R1R2P5 pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0171 | [lm_ec20_0171.json](0171/lm_ec20_0171.json) | The intercept plus the single R1R2P6 pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0172 | [lm_ec20_0172.json](0172/lm_ec20_0172.json) | The intercept plus the single CASTLE2 pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0173 | [lm_ec20_0173.json](0173/lm_ec20_0173.json) | The intercept plus the single 2X7COR pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0174 | [lm_ec20_0174.json](0174/lm_ec20_0174.json) | The intercept plus the single 3X4CORB pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0175 | [lm_ec20_0175.json](0175/lm_ec20_0175.json) | The intercept plus the single 3X4CORC pattern - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0176 | [lm_ec20_0176.json](0176/lm_ec20_0176.json) | The intercept plus the R1R2P5, CASTLE, 3X4COR, R4, BARBEL, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0177 | [lm_ec20_0177.json](0177/lm_ec20_0177.json) | The intercept plus the R1R2P6, CASTLE, 3X4COR, R4, BARBEL, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, tighter convergence criterion - trained on batches 3, 9 and 12, validated on batch 6. |

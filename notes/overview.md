@@ -55,10 +55,13 @@ define the evaluation function.
   `make -C latex latex`.
 - The USO (FEATURE-SET) campaign stands at ec20: the record ladder is 7.01 (0108) → 6.93 (0111, CASTLE) → 6.85 (0114,
   2X6COR) → 6.78 (0117, 3X4COR) → 6.68 (0130, the CASTLE+2X6COR+KATEK trio) → 6.57 (0134, the trio with 3X4COR) → 6.50
-  (0153, the new reference: 0134 with BARBEL in place of DIAG8, 711,853 active weights). The five simple central
-  patterns (RCT2X4, FOURC, CORE, CORED, COREA) were found inert at ec20; all new patterns beat CORNER in the complete
-  model. The book carries ch. 15.5 (hyperparameters), ch. 16 (evolutionary moment), ch. 17 (new patterns, five sections)
-  and Appendix A (34 patterns, regenerated with the mdp.csv → `gen_appendix.py` program chain).
+  (0153, the reference: 0134 with BARBEL in place of DIAG8, 711,853 active weights) → 6.48 (0176, R1R2P5 in place of
+  2X6COR) → 6.46 (0177, R1R2P6 in place of 2X6COR, 2,210,923 weights — the current record, at a decreasing return per
+  step). Eleven 13-14-cell patterns joined the catalog (45 entries); alone at ec20 nine of eleven beat CORNER, R1R2P5 is
+  the strongest single pattern found (8.55 at full batches, below 2X6COR's 9.08) and the ARROW family carries no signal.
+  The book carries ch. 15.5 (hyperparameters), ch. 16 (evolutionary moment), ch. 17 (new patterns, five sections), ch.
+  18 (larger patterns, two sections) and Appendix A (45 patterns, regenerated with the mdp.csv → `gen_appendix.py`
+  program chain).
 
 ## Next steps
 

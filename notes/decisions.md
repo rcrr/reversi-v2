@@ -2775,3 +2775,18 @@ D-624 | 2026-11-13 | The trio and the simple patterns, two book sections and 24 
          contributing the 0.01 residue at resolution level. Per the user, model 0153 (0134 with BARBEL in place of
          DIAG8: training 6.22, validation 6.50, 711,853 active weights, 950 iters) becomes the new reference of the
          series. The ec20 index is at 154.
+
+D-625 | 2026-11-13 | Larger patterns: eleven 13-14-cell patterns in the catalog, new book chapter 18, 24 models. The
+         user's eleven larger patterns (KATEKB, KATEKC, ARROW, ARROWB, HANOI, R1R2P5, R1R2P6, CASTLE2, 2X7COR, 3X4CORB,
+         3X4CORC) were verified already principal (ARROW included), added to `pattern_sample_data` (45 entries), the
+         test suite passed (76 ok), and the mdp.csv -> `gen_appendix.py` chain regenerated Appendix A at 45 sections
+         (book at 166 pages). New chapter 18 "Pattern ancora piu' grandi": section 18.1 runs all eleven alone at ec20 in
+         the two-run protocol — at batch 3/6 nine of eleven beat CORNER (12.24), R1R2P5 is the best alone (9.64, below
+         2X5COR's 9.67), the ARROW family worsens (13.13/14.81), the train-val gaps are wide (1.32-5.49) and the active
+         weights span 182,186-1,188,318; at full batches all eleven improve (-0.63/-2.33) and the gaps narrow, R1R2P5
+         stays first (8.55, below 2X6COR's 9.08) with a four-pattern tier under 9 and the ARROW family last.
+         Section 18.2: in the reference model 0153 the 2X6COR is replaced by R1R2P5 (0176) and R1R2P6 (0177) — two new
+         series records (6.48, 6.46) and the training RMSE stepping down (6.22, 6.12, 5.96), while the active weights
+         double per step (711,853 / 1,198,914 / 2,210,923, x3.1 the reference), the gap widens (0.28/0.36/0.50) and the
+         0177 run stops on `LOW_PROGRESS`: each substitution is worth 0.02 of validation at a decreasing return. The
+         ec20 index is at 178.
