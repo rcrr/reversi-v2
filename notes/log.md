@@ -720,3 +720,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     the 13.27M-position corpus. Closing reading: 0153 (6.50, 711,853 weights) is the best capacity/complexity compromise
     with the current data; the 0177 line (6.46, 2.21M weights) points toward 6.00 at a two- or three-fold larger corpus
     of solved positions. (D-626)
+  - Session close (2026-11-13): the USO ec20 arc closes at D-626 — the book stands at 168 pages with ch. 18 complete
+    (four sections: the eleven large patterns alone, the two 2X6COR substitutions, the ridge scale, the frequency
+    threshold and the data limit), the catalog at 45 patterns and the model index at 178. Final reading: 0153 (6.50,
+    711,853 weights) is the series reference and the best capacity/complexity compromise with the current data; 0177
+    (6.46, 2,210,923 weights, m = 131) is the record, with the potential of 6.00 at a two- or three-fold corpus of
+    solved positions. Tree clean; session 127 closes. (D-627)
