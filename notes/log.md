@@ -698,3 +698,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     and 17.3 "Cinque alternative a CORNER" (15 runs 0115-0129, three per pattern): all five beat CORNER alone at equal
     conditions and in the complete model; 3X4COR is best in all three conditions — 6.78, the new series record (0.07
     below 2X6COR). (D-623)
+  - The trio (0130: CASTLE + 2X6COR + KATEK in the 0108 feature set) scores 6.68 — 0.33 below 0108, 0.07 beyond the sum
+    of the three single substitutions. The five corners compared on it (0130-0134) keep the 0108-context ordering; 0134
+    (3X4COR) is the new record at 6.57. Six simpler patterns then tested (0135-0147): the five central ones (RCT2X4,
+    FOURC, CORE, CORED, COREA) have no ec20 signal alone and are inert in the complete model (6.57 in all five
+    one-at-a-time runs 0148-0152, 940 weights total in 0147); BARBEL carries signal, and BARBEL-for-DIAG8 alone (0153)
+    is the entire 0147 improvement — 6.50, the new series reference (711,853 weights). Book: 17.4 (the trio) and 17.5
+    (the simple patterns). (D-624)

@@ -50,6 +50,21 @@
 %    parita di condizioni e nel feature set completo del modello 0108;
 %    3X4COR e' il migliore nelle tre condizioni (6.78, il nuovo record
 %    della serie, 0.07 sotto il 2X6COR).
+%
+% 4) Il trio: il feature set del 0108 con XEDGE sostituito da CASTLE, 2X5COR
+%    da 2X6COR e CORNER da KATEK (modello 0130): 6.68 in validazione, 0.33
+%    sotto il 0108, 0.07 oltre la somma degli effetti misurati singolarmente.
+%    Sul trio, i cinque corner a confronto (0130-0134): l'ordinamento e'
+%    identico a quello del contesto 0108; 3X4COR e' il nuovo campione della
+%    serie (0134, 6.57), con 670.519 pesi attivi e il gap piu' alto (0.27).
+%
+% 5) Sei pattern piu' semplici (RCT2X4, FOURC, CORE, CORED, COREA, BARBEL):
+%    i cinque centrali non hanno segnale a ec20 (da soli RMSE 22-26, 7-349
+%    pesi attivi; nel modello completo sono inerti, 0.00). BARBEL ha
+%    segnale (15.43/15.24) e la sua sostituzione di DIAG8 nel 0134 e'
+%    l'intero miglioramento del modello a 15 pattern (0147, 6.49): il
+%    modello 0153 (0134 con BARBEL al posto di DIAG8, 6.50) diventa il
+%    nuovo riferimento della serie.
 %-----------------------------------------------------------------------------
 
 \chapter{Nuovi pattern}
@@ -222,3 +237,135 @@ condizioni. KATE ha il profilo di generalizzazione più pulito
 nel modello completo, i pesi attivi più bassi (86\,460). Il
 gap del modello 0117 è 0.14, nella stessa fascia del 0114
 (0.15).
+
+\section{Il trio: CASTLE, 2X6COR e il corner}
+
+Il modello 0130 prende il feature set del modello 0108 e
+applica le tre sostituzioni già misurate nei paragrafi
+precedenti: XEDGE con CASTLE, 2X5COR con 2X6COR e CORNER con
+KATEK — dieci pattern e la mobilità OptMob, configurazione di
+riferimento, \texttt{min\_grad} $[1\times10^{-6}, 5]$. La run
+converge in 972 iterazioni: RMSE di training 6.45, di
+validazione 6.68, 556\,327 pesi attivi. Le tre sostituzioni
+valgono da sole 0.02, 0.08 e 0.16 nel contesto 0108
+(tabella~\ref{tab:corner5}); insieme valgono 0.33, cioè 0.07
+oltre la somma.
+
+Sul trio si confrontano i cinque corner: il modello 0130
+(KATEK) e i cloni 0131--0134, identici in ogni altro campo,
+con KATE, KATE2, KATE3 e 3X4COR al posto di KATEK. La
+tabella~\ref{tab:trio} li riassume.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{llrrrrr}
+\toprule
+modello & corner & RMSE train & RMSE val & $W$ & iterazioni & gap \\
+\midrule
+0134 & 3X4COR & 6.30 & 6.57 & 670\,519 & 944 & 0.27 \\
+0130 & KATEK & 6.45 & 6.68 & 556\,327 & 972 & 0.23 \\
+0133 & KATE3 & 6.52 & 6.75 & 542\,187 & 945 & 0.23 \\
+0132 & KATE2 & 6.56 & 6.77 & 501\,897 & 1002 & 0.21 \\
+0131 & KATE & 6.58 & 6.79 & 491\,590 & 983 & 0.21 \\
+\bottomrule
+\end{tabular}
+\caption{Il trio (2X6COR + CASTLE + corner) a ec20 con i cinque
+corner; il resto del feature set è quello del modello 0108.}
+\label{tab:trio}
+\end{table}
+
+L'ordinamento dei cinque corner (3X4COR, KATEK, KATE3, KATE2,
+KATE) è identico a quello misurato nel contesto 0108
+(tabella~\ref{tab:corner5}): i passi sono 0.11, 0.07, 0.02 e
+0.02, e KATE, KATE2 e KATE3 formano un plateau. Il modello
+0134 (3X4COR) è il nuovo campione della serie: 6.57 in
+validazione, 0.44 sotto il modello 0108 e 0.11 sotto il 0130.
+I pesi attivi crescono col corner, da 491\,590 (KATE) a
+670\,519 (3X4COR), contro gli 81\,269 del 0108; il gap
+training--validazione va da 0.21 a 0.27, massimo per il 0134.
+Le cinque run convergono (944--1002 iterazioni).
+
+\section{I pattern semplici}
+
+Sei pattern più semplici sono messi alla prova con il protocollo
+a due run: da soli (intercept + pattern), batch 3/6 e \texttt{min\_grad}
+$[1\times10^{-5}, 3]$, contro il modello 0052 (CORNER, 12.24); da
+soli con i batch 3, 9, 12 e il criterio $[1\times10^{-6}, 3]$. La
+tabella~\ref{tab:semplici} li riassume.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lllrrrr}
+\toprule
+modello & pattern & batch train & RMSE train & RMSE val & $W$ & iterazioni \\
+\midrule
+0052 & CORNER & 3 & 12.21 & 12.24 & 5\,157 & 109 \\
+0135 & RCT2X4 & 3 & 25.74 & 25.76 & 349 & 41 \\
+0136 & RCT2X4 & 3, 9, 12 & 25.76 & 25.76 & 351 & 117 \\
+0137 & FOURC & 3 & 22.22 & 22.23 & 22 & 33 \\
+0138 & FOURC & 3, 9, 12 & 22.23 & 22.23 & 22 & 43 \\
+0139 & CORE & 3 & 26.40 & 26.39 & 7 & 11 \\
+0140 & CORE & 3, 9, 12 & 26.42 & 26.39 & 7 & 12 \\
+0141 & CORED & 3 & 26.21 & 26.21 & 232 & 38 \\
+0142 & CORED & 3, 9, 12 & 26.22 & 26.20 & 232 & 67 \\
+0143 & COREA & 3 & 25.77 & 25.80 & 331 & 40 \\
+0144 & COREA & 3, 9, 12 & 25.79 & 25.80 & 333 & 61 \\
+0145 & BARBEL & 3 & 15.10 & 15.43 & 37\,317 & 189 \\
+0146 & BARBEL & 3, 9, 12 & 15.23 & 15.24 & 42\,818 & 768 \\
+\bottomrule
+\end{tabular}
+\caption{I sei pattern semplici da soli a ec20, accanto al
+riferimento 0052 (CORNER).}
+\label{tab:semplici}
+\end{table}
+
+I cinque pattern centrali (RCT2X4, FOURC, CORE, CORED, COREA)
+non hanno segnale a ec20: RMSE di validazione tra 22.23 e 26.39
+contro i 12.24 di CORNER, e pesi attivi tra 7 e 349. Le run a
+batch pieni lo confermano: RMSE invariate a due decimali e
+ottimizzazione che si ferma anticipatamente
+(\texttt{LOW\_PROGRESS}). BARBEL fa eccezione: 15.43 a batch 3/6
+e 15.24 a batch pieni (37\,317 e 42\,818 pesi attivi) — le
+diagonali hanno segnale, ma restano 3.2 dietro CORNER.
+
+Nel modello completo i sei entrano così: il modello 0147 aggiunge
+i cinque al 0134 e mette BARBEL al posto di DIAG8, che lo contiene
+completamente — quindici pattern, RMSE di validazione 6.49. Per
+decomporre i contributi, i pattern sono aggiunti uno alla volta al
+0134 (0148--0152) e BARBEL è provato da solo in sostituzione di
+DIAG8 (0153). La tabella~\ref{tab:decomposizione} riassume le sei run.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{llrrrr}
+\toprule
+modello & contenuto & RMSE train & RMSE val & $W$ & iterazioni \\
+\midrule
+0134 & base & 6.30 & 6.57 & 670\,519 & 944 \\
+0148 & + RCT2X4 & 6.30 & 6.57 & 670\,869 & 955 \\
+0149 & + FOURC & 6.30 & 6.57 & 670\,540 & 1009 \\
+0150 & + CORE & 6.30 & 6.57 & 670\,525 & 1007 \\
+0151 & + CORED & 6.30 & 6.57 & 670\,750 & 973 \\
+0152 & + COREA & 6.30 & 6.57 & 670\,851 & 904 \\
+0153 & BARBEL al posto di DIAG8 & 6.22 & 6.50 & 711\,853 & 950 \\
+0147 & i cinque + BARBEL insieme & 6.21 & 6.49 & 712\,793 & 1136 \\
+\bottomrule
+\end{tabular}
+\caption{La decomposizione del modello 0147: i cinque pattern
+semplici aggiunti uno alla volta al 0134, BARBEL in sostituzione di
+DIAG8, e i due estremi.}
+\label{tab:decomposizione}
+\end{table}
+
+I cinque pattern semplici sono inerti nel modello completo:
+aggiunti uno alla volta non muovono la RMSE di validazione (6.57
+in tutti e cinque) e portano al 0147 in totale 940 pesi attivi.
+La sostituzione BARBEL/DIAG8 da sola vale 0.07 (6.50): è l'intero
+miglioramento del 0147 (6.49), al quale i cinque pattern
+contribuiscono il residuo 0.01, a livello di risoluzione. Il
+modello 0153 — il 0134 con BARBEL al posto di DIAG8 — diventa il
+nuovo riferimento della serie: RMSE di training 6.22, di
+validazione 6.50, 711\,853 pesi attivi, 950 iterazioni.

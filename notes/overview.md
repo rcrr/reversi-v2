@@ -53,11 +53,12 @@ define the evaluation function.
   at the argument / `cfg.target_level` / the last step.
 - A LaTeX book describing the work exists as an acceptable draft in the `latex/` zone; the PDF is generated with
   `make -C latex latex`.
-- The USO (FEATURE-SET) campaign stands at ec20: the complete-0108-feature-set record ladder is 7.01 (0108) → 6.93
-  (0111, CASTLE) → 6.85 (0114, 2X6COR) → 6.78 (0117, 3X4COR); five new patterns (3X4COR, KATE, KATE2, KATE3, KATEK) are
-  in the catalog and all five beat CORNER in the complete model. The book carries ch. 15.5 (hyperparameters), ch. 16
-  (evolutionary moment), ch. 17 (new patterns, three sections) and Appendix A (34 patterns, regenerated with the mdp.csv
-  → `gen_appendix.py` program chain).
+- The USO (FEATURE-SET) campaign stands at ec20: the record ladder is 7.01 (0108) → 6.93 (0111, CASTLE) → 6.85 (0114,
+  2X6COR) → 6.78 (0117, 3X4COR) → 6.68 (0130, the CASTLE+2X6COR+KATEK trio) → 6.57 (0134, the trio with 3X4COR) → 6.50
+  (0153, the new reference: 0134 with BARBEL in place of DIAG8, 711,853 active weights). The five simple central
+  patterns (RCT2X4, FOURC, CORE, CORED, COREA) were found inert at ec20; all new patterns beat CORNER in the complete
+  model. The book carries ch. 15.5 (hyperparameters), ch. 16 (evolutionary moment), ch. 17 (new patterns, five sections)
+  and Appendix A (34 patterns, regenerated with the mdp.csv → `gen_appendix.py` program chain).
 
 ## Next steps
 

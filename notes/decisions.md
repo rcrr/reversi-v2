@@ -2759,3 +2759,19 @@ D-623 | 2026-11-12 | Five new patterns enter `pattern_sample_data` and the Appen
          conditions (0052, 12.24) and in the complete feature set (0108, 7.01) — 3X4COR is best in all three conditions
          (9.94, 9.54, 6.78; 6.78 is the new series record, 0.07 below 2X6COR), KATEK is second in the complete model
          (6.88), KATE has the cleanest generalization profile (gap 0.00-0.06). The ec20 index is at 130.
+
+D-624 | 2026-11-13 | The trio and the simple patterns, two book sections and 24 models. Section 17.4 "Il trio: CASTLE,
+         2X6COR e il corner": model 0130 (the 0108 feature set with XEDGE replaced by CASTLE, 2X5COR by 2X6COR and
+         CORNER by KATEK) scores 6.68 in validation, 0.33 below 0108 — 0.07 beyond the sum of the three substitutions
+         measured individually (0.02, 0.08, 0.16). The five corners compared on the trio (0130-0134) keep exactly the
+         0108-context ordering (3X4COR, KATEK, KATE3, KATE2, KATE); 0134 (3X4COR) becomes the series record at 6.57 with
+         670,519 active weights. Section 17.5 "I pattern semplici": six simpler patterns (RCT2X4, FOURC, CORE, CORED,
+         COREA, BARBEL) on the two-run protocol — the five central ones carry no ec20 signal alone (validation
+         RMSE 22.23-26.39 vs CORNER 12.24, 7-349 active weights, unchanged at full batches, `LOW_PROGRESS` stops) while
+         BARBEL has signal (15.43/15.24, 37,317/42,818 weights). In the complete model the five are inert: added one at
+         a time to 0134 (0148-0152) they move the validation RMSE not at all (6.57 in all five) and bring 940 active
+         weights in total to the 15-pattern model 0147 (6.49). The BARBEL-for-DIAG8 substitution alone (DIAG8 is
+         contained in BARBEL) is worth 0.07 by itself (0153, 6.50): it is the entire improvement of 0147, the five
+         contributing the 0.01 residue at resolution level. Per the user, model 0153 (0134 with BARBEL in place of
+         DIAG8: training 6.22, validation 6.50, 711,853 active weights, 950 iters) becomes the new reference of the
+         series. The ec20 index is at 154.
