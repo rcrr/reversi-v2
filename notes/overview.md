@@ -57,11 +57,16 @@ define the evaluation function.
   2X6COR) → 6.78 (0117, 3X4COR) → 6.68 (0130, the CASTLE+2X6COR+KATEK trio) → 6.57 (0134, the trio with 3X4COR) → 6.50
   (0153, the reference: 0134 with BARBEL in place of DIAG8, 711,853 active weights) → 6.48 (0176, R1R2P5 in place of
   2X6COR) → 6.46 (0177, R1R2P6 in place of 2X6COR, 2,210,923 weights — the current record, at a decreasing return per
-  step). Eleven 13-14-cell patterns joined the catalog (45 entries); alone at ec20 nine of eleven beat CORNER, R1R2P5 is
-  the strongest single pattern found (8.55 at full batches, below 2X6COR's 9.08) and the ARROW family carries no signal.
-  The book carries ch. 15.5 (hyperparameters), ch. 16 (evolutionary moment), ch. 17 (new patterns, five sections), ch.
-  18 (larger patterns, two sections) and Appendix A (45 patterns, regenerated with the mdp.csv → `gen_appendix.py`
-  program chain).
+  step). The parameter campaign on the 0177 found the validation minimum at ridge = 1.0 (bracketed by the 0.5-10.0
+  scale), the m = 131 L-BFGS history converting the `LOW_PROGRESS` stop into a clean `MIN_GRAD` at the
+  identical 5.96/6.46, and the frequency cut-off a near-free weight-compression lever (-61% of the weights at +0.06
+  validation at 20): the rare-configuration tail is unsupported by the current 13.27M-position corpus. Closing reading:
+  0153 (6.50, 711,853 weights) is the best capacity/complexity compromise with the data at hand; the 0177 line points
+  toward 6.00 at a two- or three-fold larger corpus of solved positions. Eleven 13-14-cell patterns joined the catalog
+  (45 entries); alone at ec20 nine of eleven beat CORNER, R1R2P5 is the strongest single pattern found (8.55 at full
+  batches, below 2X6COR's 9.08) and the ARROW family carries no signal. The book carries ch. 15.5 (hyperparameters), ch.
+  16 (evolutionary moment), ch. 17 (new patterns, five sections), ch. 18 (larger patterns, four sections) and Appendix A
+  (45 patterns, regenerated with the mdp.csv → `gen_appendix.py` program chain).
 
 ## Next steps
 

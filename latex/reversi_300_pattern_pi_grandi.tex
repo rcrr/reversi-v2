@@ -45,6 +45,24 @@
 % (711.853, 1.198.914, 2.210.923), il gap si allarga (0.28, 0.36, 0.50)
 % e il 0177 si ferma su LOW_PROGRESS: ogni sostituzione vale 0.02 di
 % validazione, a un costo decrescente in rendimento.
+%
+% Sul 0177 la campagna sui due parametri muti della regressione: la
+% storia L-BFGS m (50 -> 131) e il ridge regularization scalato su
+% 0.5/1.0/2.0/5.0/10.0. La validazione e' minimizzata a ridge = 1.0
+% (6.46, delimitato da 6.47 a 0.5 e 6.50 a 2.0); a parita' di ridge la
+% storia 131 raggiunge la stessa soluzione con convergenza MIN_GRAD
+% (841 iters) contro il LOW_PROGRESS (1046) della storia 50. Il 0177
+% e' fissato a m = 131, ridge = 1.0.
+%
+% La scala della soglia di frequenza (frequency_cut_off 1/2/5/10/20)
+% sul 0177 e' una leva di compressione dei pesi quasi gratuita in
+% validazione: a 20 i pesi scendono del 61% (2.21M -> 866k) a +0.06
+% di validazione — la coda di configurazioni rare non e' supportata
+% dai 13.27M di posizioni attuali. Con i dati disponibili il modello
+% 0153 (6.50, 711.853 pesi) e' il miglior compromesso della serie;
+% la linea dei pattern grandi (0177, 6.46, 2.21M pesi) ha la
+% potenzialita' di avvicinarsi a 6.00, ma richiede un corpus di
+% posizioni risolte almeno doppio o triplo.
 %-----------------------------------------------------------------------------
 
 \chapter{Pattern ancora più grandi}
@@ -119,6 +137,7 @@ i 1\,858\,017 del 2X7COR e i 1\,805\,079 del R1R2P6. Le
 ventidue run convergono (171--1276 iterazioni).
 
 \section{R1R2P5 e R1R2P6 al posto di 2X6COR}
+\label{sec:swap182}
 
 Il modello riferimento 0153 è messo alla prova sostituendo il 2X6COR
 con i due pattern più grandi R1R2P5 e R1R2P6, a parità del resto
@@ -156,3 +175,105 @@ criterio di gradiente. Ciascuna sostituzione vale 0.02 di
 validazione: la prima al costo di 487\,061 pesi, la seconda a
 quello di 1\,012\,009 — un rendimento decrescente che la
 traiettoria 2X6COR → R1R2P5 → R1R2P6 rende esplicito.
+
+\section{La scala del ridge sul modello 0177}
+
+Il modello 0177 (sezione~\ref{sec:swap182}) si era fermato a
+1\,046 iterazioni su \texttt{LOW\_PROGRESS}, con $m = 50$ e
+\texttt{ridge\_regularization} $= 1.0$. La campagna varia i due
+parametri della regressione: la lunghezza $m$ della storia
+L-BFGS (50 → 131) e il coefficiente di ridge, il termine
+$\alpha\,\left\lvert w\right\rvert^2$ dell'obiettivo, con $\alpha = \text{ridge}/M$
+($M = 13\,270\,708$ posizioni di training). Il ridge è scalato su
+cinque valori — 0.5, 1.0, 2.0, 5.0, 10.0 — a $m = 131$; la
+tabella~\ref{tab:ridge} riassume i cinque punti accanto al punto
+originale.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{rrrrrr}
+\toprule
+ridge & $m$ & RMSE train & RMSE val & $W$ & iterazioni \\
+\midrule
+1.0 & 50 & 5.96 & 6.46 & 2\,210\,923 & 1046 \\
+0.5 & 131 & 5.87 & 6.47 & 2\,210\,923 & 1061 \\
+1.0 & 131 & 5.96 & 6.46 & 2\,210\,923 & 841 \\
+2.0 & 131 & 6.09 & 6.50 & 2\,210\,923 & 607 \\
+5.0 & 131 & 6.34 & 6.64 & 2\,210\,923 & 434 \\
+10.0 & 131 & 6.63 & 6.86 & 2\,210\,923 & 336 \\
+\bottomrule
+\end{tabular}
+\caption{Il modello 0177 sulla scala del ridge (0.5--10.0) a
+$m = 131$, accanto al punto originale ($m = 50$, ridge 1.0).}
+\label{tab:ridge}
+\end{table}
+
+La RMSE di validazione è minimizzata a ridge $= 1.0$ (6.46) e il
+minimo è delimitato da entrambi i lati: 6.47 a 0.5 e 6.50 a 2.0;
+sopra il 1.0 la curva sale monotona fino a 6.86 a 10.0. La RMSE
+di training scende monotona al diminuire del ridge (6.63 a 10.0,
+5.87 a 0.5) e il gap training--validazione la segue in verso
+opposto (0.23 a 10.0, 0.60 a 0.5): sotto il 1.0 il modello
+compra fit sul training a prezzo di validazione e di gap, sopra
+il 1.0 perde fit su entrambi.
+
+A parità di ridge $= 1.0$, la storia $m = 131$ raggiunge la
+stessa soluzione della run originale (5.96/6.46) con la
+convergenza pulita su \texttt{MIN\_GRAD} a 841 iterazioni,
+contro la fermata su \texttt{LOW\_PROGRESS} a 1\,046 della
+run con $m = 50$. Le cinque run della scala convergono tutte su
+\texttt{MIN\_GRAD} (336--1\,061 iterazioni). Il modello 0177 è
+fissato a $m = 131$ e \texttt{ridge\_regularization} $= 1.0$:
+il record 6.46 con la convergenza sul criterio di gradiente.
+
+\section{La soglia di frequenza e il limite dei dati}
+
+L'ultimo parametro della campagna è la soglia di frequenza
+(\texttt{frequency\_cut\_off}): le configurazioni di un pattern
+osservate nel corpus con frequenza inferiore alla soglia
+condividono il singolo peso fallback del feature, invece di
+averne uno proprio. Scalata sul 0177 (a $m = 131$ e ridge
+$= 1.0$) sui valori 2, 5, 10, 20, la soglia produce la
+tabella~\ref{tab:soglia}.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{rrrrrr}
+\toprule
+cut\_off & RMSE train & RMSE val & $W$ & iterazioni & gap \\
+\midrule
+1 & 5.96 & 6.46 & 2\,210\,923 & 841 & 0.50 \\
+2 & 5.97 & 6.46 & 1\,921\,691 & 780 & 0.51 \\
+5 & 6.00 & 6.47 & 1\,474\,672 & 762 & 0.47 \\
+10 & 6.05 & 6.48 & 1\,154\,368 & 760 & 0.53 \\
+20 & 6.13 & 6.52 & 865\,902 & 766 & 0.61 \\
+\bottomrule
+\end{tabular}
+\caption{Il modello 0177 sulla scala della soglia di frequenza
+(1--20), a $m = 131$ e ridge $= 1.0$.}
+\label{tab:soglia}
+\end{table}
+
+La soglia è una leva di compressione dei pesi, quasi gratuita in
+validazione: a 20 i pesi attivi scendono del 61\%
+(2\,210\,923 → 865\,902) al costo di 0.06 di validazione e 0.17
+di training; a 2 il record 6.46 si mantiene identico con
+289\,232 pesi in meno. Il gap resta sostanzialmente piatto
+(0.47--0.61) e le cinque run convergono tutte su
+\texttt{MIN\_GRAD} (760--841 iterazioni). La lettura è che la
+coda di configurazioni rare dei pattern grandi — quelle
+osservate una o poche volte — non è supportata dai
+13\,270\,708 posizioni di training attuali: ripiegarla sul
+fallback costa poco, tenerla costa pesi.
+
+Con i dati disponibili, il modello 0153 (validazione 6.50,
+711\,853 pesi attivi) è il miglior compromesso della serie tra
+capacità predittiva e complessità. La linea dei pattern grandi
+— il 0177 a 6.46 con 2\,210\,923 pesi — mostra la direzione: ha
+la potenzialità di avvicinarsi a 6.00 di validazione, ma a
+condizione di un corpus di posizioni risolte sostanzialmente
+più grande, almeno doppio o triplo rispetto all'attuale, perché
+le configurazioni che oggi cadono sotto qualsiasi soglia
+diventino osservate e supportate.

@@ -713,3 +713,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
     (6.48, 6.46) with the training stepping down (6.22/6.12/5.96) but the weights doubling per step (711k/1.20M/2.21M)
     and the gap widening (0.28/0.36/0.50) — a decreasing return. New book chapter 18 with sections 18.1 (the eleven
     alone) and 18.2 (the two substitutions). (D-625)
+  - The parameter campaign on the 0177 (book 18.3-18.4): the ridge ladder (0.5-10.0 at m = 131) puts the validation
+    minimum at ridge = 1.0 (6.46, bracketed by 6.47/6.50) and the m = 131 history converts the original `LOW_PROGRESS`
+    stop into a clean `MIN_GRAD` at the identical 5.96/6.46; the frequency-cut-off ladder (1-20) is a near-free weight
+    compression (-61% of the weights at +0.06 validation at 20) — the rare-configuration tail is unsupported by
+    the 13.27M-position corpus. Closing reading: 0153 (6.50, 711,853 weights) is the best capacity/complexity compromise
+    with the current data; the 0177 line (6.46, 2.21M weights) points toward 6.00 at a two- or three-fold larger corpus
+    of solved positions. (D-626)

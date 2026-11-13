@@ -2790,3 +2790,22 @@ D-625 | 2026-11-13 | Larger patterns: eleven 13-14-cell patterns in the catalog,
          double per step (711,853 / 1,198,914 / 2,210,923, x3.1 the reference), the gap widens (0.28/0.36/0.50) and the
          0177 run stops on `LOW_PROGRESS`: each substitution is worth 0.02 of validation at a decreasing return. The
          ec20 index is at 178.
+
+D-626 | 2026-11-13 | The ridge / L-BFGS-history / frequency-cut-off campaign on model 0177, book sections 18.3-18.4. The
+         0177 (R1R2P6 in the reference) had stopped at 1,046 iters on `LOW_PROGRESS` with m = 50 and ridge 1.0. Verified
+         against the code first: the OPTIMIZE checkpoint carries exactly three gates (`design_matrix_checksum`,
+         `zed_checksum`, `ridge_regularization`) — m invalidates nothing, the ridge invalidates only the optimization,
+         the frequency cut-off cascades from WMAPS down. The ridge ladder (0.5/1.0/2.0/5.0/10.0 at m = 131): the
+         validation RMSE is minimized at ridge = 1.0 (6.46), bracketed by 6.47 at 0.5 and 6.50 at 2.0, monotone above;
+         the training RMSE and the gap move in opposite directions on either side of the minimum. At ridge = 1.0 the
+         longer L-BFGS history (m = 131) reaches the identical solution (5.96/6.46) with a clean `MIN_GRAD` convergence
+         at 841 iters, against the `LOW_PROGRESS` stop at 1,046 of the m = 50 run. The frequency-cut-off ladder
+         (1/2/5/10/20) is a near-free weight-compression lever: at 20 the active weights drop 61% (2,210,923 -> 865,902)
+         at a cost of 0.06 validation and 0.17 training, the gap stays flat (0.47-0.61) and all five runs converge
+         `MIN_GRAD` — the rare-configuration tail of the large patterns is not supported by the current
+         13,270,708-position corpus. Per the user's reading: with the data at hand, model 0153 (6.50, 711,853 active
+         weights) is the best capacity/complexity compromise of the series; the large-pattern line (0177, 6.46, 2.21M
+         weights) has the potential to approach 6.00 of validation, provided the corpus of solved positions grows at
+         least two- or three-fold, so that the below-cutoff configurations become observed and supported. Book: 18.3
+         (the ridge scale on the 0177) and 18.4 (the frequency threshold and the data limit). Model 0177 is fixed at m =
+         131, `ridge_regularization` = 1.0, `frequency_cut_off` = 1.
