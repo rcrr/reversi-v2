@@ -215,8 +215,9 @@ Test data (test/reversi/data/):
 - notes/hist\_decisions/decisions\_004.md — closed decision volume 004 (D-258…D-300, 2026-09-19 → 2026-09-23)
 - notes/hist\_decisions/decisions\_005.md — closed decision volume 005 (D-301…D-332, 2026-09-23 → 2026-09-29)
 - notes/hist\_decisions/decisions\_006.md — closed decision volume 006 (D-333…D-425, 2026-09-29 → 2026-10-03)
-- notes/hist\_decisions/decisions\_007.md — closed decision volume 007 (D-426…D-627, 2026-10-04 → 2026-11-13)
-- notes/analyses/ — the one-off analyses (work\_report.md: the 18-years vs 6-weeks work comparison of D-433).
+- notes/hist\_decisions/decisions\_007.md — closed decision volume 007 (D-426…D-626, 2026-10-04 → 2026-11-13)
+- notes/analyses/ — the one-off analyses (work\_report.md: the 18-years vs 6-weeks work comparison of D-433;
+  rules\_compliance\_audit\_2026-11-15.md: the capillary rules-compliance audit of session 128).
 - notes/ideas.md — the OPEN backlog
 - notes/ideas\_closed.md — the CLOSED ideas (done | dropped)
 - notes/decisions\_rules.md — the decisions-log format rules

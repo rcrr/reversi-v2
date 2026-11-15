@@ -14,4 +14,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   decisions log (D-426…D-627, 2811 lines > the 1000-line cap) closed as notes/hist\_decisions/decisions\_007.md, the
   new log opening at D-628. (D-629)
 - notes/overview.md — the Index updated for the three rotated files (decisions\_007, log\_005, log.md at volume 006).
-- Next: the checkin, on the user's ok.
+- notes/decisions.md + notes/overview.md — the record-integrity disclosure (the rules-compliance audit, zone A):
+  D-627 and D-463 are cited in the journals, the D-629 entry and the Index, yet exist in no decisions volume (D-627
+  was never written to the log at the session-127 close); the gaps are disclosed, the Index range corrected forward
+  to D-426…D-626, the frozen volume untouched. The audit file joins the Index. (D-630)
+- Next: the rules-compliance fix campaign (the user's item-by-item approvals).
