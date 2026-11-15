@@ -36,4 +36,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - wsutils/notes\_lint.py + notes/log\_rules.md — the R-200 historical exception: the LISTMARK guard (born D-484,
   after the D-368 cleaning) no longer reaches into the frozen hist\_\* corpus — the 26 documented residue markers in
   closed journal volumes 000–003 stand; the check stays fully active on the open files. (D-638)
+- notes/hist\_log/log\_000.md + log\_003.md + log\_004.md — the three H1 factual corrections (the one class the
+  archive freeze allows): "1–24"→"1–23", "38–89"→"38–78", "90–101"→"90–101, 98 missing" — the 13 phantom session
+  numbers resolved, no session content touched (logged as D-639: the D-636/D-637 numbers stand skipped by the
+  mid-campaign renumber). (D-639)
 - Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).
