@@ -76,3 +76,19 @@ D-635 | 2026-11-15 | The docs/ batch rewrap (the rules-compliance fix campaign, 
          docs\_format audit now reports ZERO non-size findings across docs/; the 9 size-budget items (4 docs under the
          60-line floor, 5 over/under the hub budget) are disclosed, not padded — reaching a line budget by adding filler
          is against the mirror-doc purpose.
+
+D-636 | 2026-11-15 | The three H1 factual corrections in the closed journal volumes (the rules-compliance fix campaign,
+         the user's item 4): log\_000 "sessions 1–24" → "1–23" (the volume holds 1–23), log\_003 "38–89" → "38–78" (it
+         holds 38–78), log\_004 "90–101" → "90–101, 98 missing" (it holds 90–97 and 99–101) — the ranges were verified
+         against the actual session headers before the edit. This is the ONE class of change the archive freeze allows
+         (log\_rules.md: "archived volumes are read-only EXCEPT factual corrections"); the 13 phantom session numbers
+         (24, 79–89, 98) are resolved, no session content is touched.
+
+D-638 | 2026-11-15 | The R-200 historical-exception documentation (the rules-compliance fix campaign, the user's item
+         4): the closed journal volumes 000–003 carry 26 line-leading `+` markers (the Obsidian nested-bullet form) that
+         the LISTMARK guard flags — a rule born at D-484, which POST-DATES the D-368 volume cleaning, applied
+         retroactively to a frozen corpus the archive freeze (iron rule 3) bars rewriting. The resolution: the guard
+         (wsutils/notes\_lint.py) exempts the frozen hist\_\* corpus from LISTMARK (a new is\_archived() gate; the check
+         stays fully active on every open file — verified with a synthetic recognized journal name), the docstring
+         records the D-638 exemption, and log\_rules.md documents the residue. The closed volumes are not touched by
+         this decision.

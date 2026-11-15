@@ -33,4 +33,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   the 3 split code spans healed), the 3 ragged Coverage tables repaired (escaped pipes), wrk\_vld\_positions.md
   back under 120; the docs audit now reports ZERO non-size findings (the 9 size-budget items disclosed, not
   padded). (D-635)
+- wsutils/notes\_lint.py + notes/log\_rules.md — the R-200 historical exception: the LISTMARK guard (born D-484,
+  after the D-368 cleaning) no longer reaches into the frozen hist\_\* corpus — the 26 documented residue markers in
+  closed journal volumes 000–003 stand; the check stays fully active on the open files. (D-638)
 - Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).

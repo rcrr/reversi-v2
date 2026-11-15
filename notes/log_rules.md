@@ -15,6 +15,10 @@ exact 2/4-space indentation.
 - Every volume starts with its H1 `# Session journal — volume 00N (sessions X–Y)` (Y = "..." while the volume is open,
   filled in at close) and the pointer line "Format rules: notes/log\_rules.md (rigid — follow when editing this file)."
 - The archived volumes are read-only except factual corrections.
+- The closed journal volumes 000–003 carry 26 line-leading `+` markers (the Obsidian nested-bullet form) as documented
+  historical residue: the LISTMARK guard (born D-484) post-dates the D-368 volume cleaning, and the archive freeze bars
+  rewriting them. The guard therefore exempts the frozen hist\_\* corpus (D-638); the check stays fully active on the
+  open files.
 
 ## Session entries
 

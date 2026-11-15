@@ -51,6 +51,7 @@ The session's bug classes are permanent codes:
             misread as a new block (digit+dot, dash, hash, pipe, D-NNN |)      [the 13-space class]
     LISTMARK no line-leading + / * after up to 3 spaces of indent — Obsidian
             renders it as a nested list bullet (escape it: \\+ / \\*)          [the D-483 class]
+            (the frozen hist_* archive is exempt: D-638)
 Plus: HEADER / INDENT / SEQ (decisions), RHEAD / RTITLE / RSPACE / DPOINTER /
 RSEQ (rules), DPH1 / DPSPACE / DPOINTER / DPSEQ (design), JH1 / JPOINTER / JSESSION / JINDENT / JBLANK
 (journals), WIDTH,
@@ -64,7 +65,8 @@ SAFETY: writes nothing. A read-only per-file report on stdout; exit 0 (green) / 
 
 ORIGIN: D-365 (born directly in tools/ — the decisions, register and journal linters); D-367 (the full-format
 extension: the overview, the domain rule files, the ideas); D-368 (the closed volumes green, the historical
-linter extensions); D-484 (the LISTMARK line-start code).
+linter extensions); D-484 (the LISTMARK line-start code); D-638 (the archive exemption: D-484 post-dates the
+D-368 cleaning, so the frozen hist_* corpus keeps its 26 documented historical markers).
 """
 import re
 import subprocess
@@ -105,12 +107,24 @@ def esc_issues(line):
 LISTMARK = re.compile(r'^\s{0,3}[+*](?=\s|$)')
 
 
-def listmark_issues(line):
+def is_archived(path):
+    """True for the frozen historical corpus (notes/hist_*/). The archive is
+    append-frozen (iron rule 3); a rule born after the fact must not reach
+    back into it (D-638)."""
+    return '/hist_' in str(path)
+
+
+def listmark_issues(line, archived=False):
     """Count the LISTMARK violations in one line: a line-leading + or * after
     up to 3 spaces of indent, OUTSIDE code spans — Obsidian renders it as a
     nested list bullet (the D-483 class; escape it to \\+ / \\*). A + or *
     not followed by a space (an inline plus, a ** bold opener) is not a list
-    marker; the line-leading - is the journal's own bullet (intended)."""
+    marker; the line-leading - is the journal's own bullet (intended).
+    The frozen archive is exempt (D-638): D-484 post-dates the D-368
+    cleaning, so the 26 historical line-leading markers in the closed journal
+    volumes are documented residue, not violations."""
+    if archived:
+        return 0
     return len(LISTMARK.findall(plain_of(line)))
 
 
@@ -202,7 +216,7 @@ def lint_decisions(path, lines, text):
         e = esc_issues(line)
         if e:
             v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
-        lm = listmark_issues(line)
+        lm = listmark_issues(line, is_archived(path))
         if lm:
             v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     common_tail(path, lines, text, v)
@@ -374,7 +388,7 @@ def lint_design(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
-            lm = listmark_issues(line)
+            lm = listmark_issues(line, is_archived(path))
             if lm:
                 v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     # the DPOINTER pass: a D-number in prose is a provenance leak — allowed only
@@ -453,7 +467,7 @@ def lint_journal(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
-            lm = listmark_issues(line)
+            lm = listmark_issues(line, is_archived(path))
             if lm:
                 v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     for n in range(1, len(lines) - 1):
@@ -600,7 +614,7 @@ def lint_overview(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
-            lm = listmark_issues(line)
+            lm = listmark_issues(line, is_archived(path))
             if lm:
                 v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     common_tail(path, lines, text, v)
@@ -642,7 +656,7 @@ def lint_rulefile(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
-            lm = listmark_issues(line)
+            lm = listmark_issues(line, is_archived(path))
             if lm:
                 v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     common_tail(path, lines, text, v)
@@ -700,7 +714,7 @@ def lint_ideas(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
-            lm = listmark_issues(line)
+            lm = listmark_issues(line, is_archived(path))
             if lm:
                 v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     common_tail(path, lines, text, v)
