@@ -50,3 +50,11 @@ D-632 | 2026-11-15 | R-550 reword (the rules-compliance fix campaign, the user's
          kept). Verified: 0 I-XXX in probe comment lines, the 6 probes compile. Observation (pre-existing, not touched):
          verify\_gradient.py carries 3 stale structural pins (C1 line count 184 vs the current 225, C5 class/test
          counts) — a re-pin candidate for the next probe-maintenance pass.
+
+D-633 | 2026-11-15 | R-330 amendment (the rules-compliance fix campaign, the user's item 3, choice (b)): the mirror rule
+         is amended to EXEMPT the package `__init__.py` files — they are not mechanically bound to the one-file-one-doc
+         rule, and the 6 un-documented `__init__.py` files (src/reversi, src/reversi/lm, src/reversi/tools, and the
+         three test packages) are declared conformant, no doc to be created. The register (R-330), the mirror-doc rules
+         (docs\_rules.md §7) and the overview's "Mirror docs" bullet are amended in this same commit, on the user's
+         explicit approval for the rule change; the overview's 1:1 claim is now true again (every MODULE file has its
+         doc).

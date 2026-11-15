@@ -146,7 +146,7 @@ pyproject.toml is the minimal editable-install form, with the implicit requireme
 **R-330 — docs/ mirrors src/ one file to one file**
 
 src/reversi/X.py → docs/src/reversi/X.md; the test files mirror the same way: test/reversi/X.py →
-docs/test/reversi/X.md.
+docs/test/reversi/X.md. Package `__init__.py` files are exempt (no mirror doc required).
 
 
 **R-340 — wsutils/ holds the workspace utilities**

@@ -90,6 +90,7 @@ Same skeleton, two substitutions:
 
 - test/reversi/data/\*.json are fixtures, not source: no mirror doc; their doc line is the Test files data note in
   notes/overview.md.
+- the package `__init__.py` files: no mirror doc (D-633) — they are exempt from the one-file-one-doc rule.
 - notes/analyses/ holds moved-out historical artifacts (verbatim analyses, retired one-off investigations): they are
   frozen records, never updated — a changed fact gets a NEW analysis, the old one keeps its date and its errors.
 

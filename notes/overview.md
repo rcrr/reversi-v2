@@ -34,9 +34,9 @@ define the evaluation function.
   notes/probe\_rules.md).
 - Workspace utils: wsutils/ — the workspace utilities (the notes/docs format re-wrapper, the source prose re-wrapper,
   the mirror-doc auditor, the suite counter; rules: notes/wsutils.md).
-- Mirror docs: docs/ mirrors the tracked sources one-to-one — every source and test file has its doc, and the Doc column
-  of the two tables is the index (format: notes/docs\_rules.md). The user-facing, non-mirror docs live in the
-  `docs/user/` zone (docs\_rules.md §8).
+- Mirror docs: docs/ mirrors the tracked sources one-to-one — every module file has its doc (the package `__init__.py`
+  files are exempt, D-633), and the Doc column of the two tables is the index (format: notes/docs\_rules.md). The
+  user-facing, non-mirror docs live in the `docs/user/` zone (docs\_rules.md §8).
 - Models: `models/` — the tracked model-config registry (R-360): `models/<family>/<ec-level>/NNNN/` with a rigid
   `index.md` per ec-level; the runs' outputs mirror 1:1 under the gitignored `build/` (the relative `base_dir`, the
   pipeline launched from the workspace root).

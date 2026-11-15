@@ -24,4 +24,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - the 7 probe files — the R-550 reword: the 8 I-XXX references in probe COMMENTS now name the change in words
   ("the level reordering", "the backlogged item realized" …), the R-580-allowed check labels untouched; 0 I-XXX in
   probe comment lines. (D-632)
+- notes/rules.md (R-330) + notes/docs\_rules.md §7 + notes/overview.md — the `__init__.py` mirror-doc exception
+  legislated (the user's choice (b)): the 6 package `__init__.py` files are exempt from the one-file-one-doc rule,
+  declared conformant; the overview's 1:1 claim is now true again. (D-633)
 - Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).
