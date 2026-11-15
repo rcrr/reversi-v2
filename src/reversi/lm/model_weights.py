@@ -158,7 +158,8 @@ def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights
         version = header.version
 
         if description != MODEL_WEIGHTS_FILE_HEADER_STR:
-            raise ValueError(f"File header mismatch, expected '{MODEL_WEIGHTS_FILE_HEADER_STR}', found '{description}'.")
+            raise ValueError(
+                f"File header mismatch, expected '{MODEL_WEIGHTS_FILE_HEADER_STR}', found '{description}'.")
         if version not in (1, 2):
             raise ValueError(f"File header version, expected '1' or '2', found '{version}'.")
 

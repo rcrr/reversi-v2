@@ -27,3 +27,14 @@ D-630 | 2026-11-15 | Record-integrity disclosure (the capillary rules-compliance
          … in cache\_manager (D-463)") but has no entry in volume 007 (the entries run …D-462, D-464…). Both gaps are
          DISCLOSED, not back-filled: the numbers stand lost, as D-152 is documented as a legal lost number
          (hist\_decisions/decisions\_006.md:622).
+
+D-631 | 2026-11-15 | R-520 rewrap (the rules-compliance fix campaign, the user's item 2): the 21 physical lines over the
+         120-char hard ceiling, in 8 files, are split back under the ceiling with zero semantic change:
+         src/reversi/pattern.py (14 lines — the 12 PatternType table literals each split over two lines, plus the two
+         long expressions at L379/L700), src/reversi/lm/hlp\_config\_schemas.py (the `side` Field description split),
+         src/reversi/lm/wrk\_optimize.py (the log\_event f-string split), src/reversi/lm/hlp\_zed.py (the
+         hlp\_zed\_fun\_factory return annotation split over lines), src/reversi/lm/model\_weights.py (the raise split),
+         src/reversi/lm/wrk\_vld\_positions.py (the log\_event split), probes/verify\_wmaps.py (the quoted check string
+         split — the string content is unchanged), run\_utests.sh (the banner echo split into two arguments — the
+         printed output is unchanged). Verified: 0 lines over 120 in the tracked .py/.sh set, test\_pattern 76/0/0,
+         verify\_wmaps all checks pass.

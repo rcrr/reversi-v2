@@ -90,51 +90,63 @@ MAX_NUMBER_OF_SQUARES_FOR_PATTERN = 18
 class PatternType(Enum):
     TYPE_0 = (
         ("I0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"),
-        {"type": "0", "sample_mask": 0x0000000000000107, "sample_name": "ELLE", "level": 1, "n_instances": 8, "n_stabilizers": 1}
+        {"type": "0", "sample_mask": 0x0000000000000107, "sample_name": "ELLE",
+         "level": 1, "n_instances": 8, "n_stabilizers": 1}
     )
     TYPE_1 = (
         ("I0", "T1", "S0", "S1", "T4", "T5", "S4", "S5"),
-        {"type": "1", "sample_mask": 0x0000000c30000000, "sample_name": "SNAKE", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+        {"type": "1", "sample_mask": 0x0000000c30000000, "sample_name": "SNAKE",
+         "level": 2, "n_instances": 4, "n_stabilizers": 2}
     )
     TYPE_2 = (
         ("I0", "T1", "T2", "T3", "S0", "S1", "S2", "S3"),
-        {"type": "2", "sample_mask": 0x00000000000000ff, "sample_name": "EDGE", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+        {"type": "2", "sample_mask": 0x00000000000000ff, "sample_name": "EDGE",
+         "level": 2, "n_instances": 4, "n_stabilizers": 2}
     )
     TYPE_3 = (
         ("I0", "T1", "T2", "T3", "S1", "S2", "S3", "S0"),
-        {"type": "3", "sample_mask": 0x0000000000010204, "sample_name": "DIAG3", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+        {"type": "3", "sample_mask": 0x0000000000010204, "sample_name": "DIAG3",
+         "level": 2, "n_instances": 4, "n_stabilizers": 2}
     )
     TYPE_3D = (
         ("I0", "T1", "T2", "T3", "I1", "I2", "I3", "I0"),
-        {"type": "3D", "sample_mask": 0x0000000000000001, "sample_name": "DOTA1", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+        {"type": "3D", "sample_mask": 0x0000000000000001, "sample_name": "DOTA1",
+         "level": 2, "n_instances": 4, "n_stabilizers": 2}
     )
     TYPE_4 = (
         ("I0", "T1", "T2", "T3", "S2", "S3", "S0", "S1"),
-        {"type": "4", "sample_mask": 0x010100c1c1000101, "sample_name": "TAU", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+        {"type": "4", "sample_mask": 0x010100c1c1000101, "sample_name": "TAU",
+         "level": 2, "n_instances": 4, "n_stabilizers": 2}
     )
     TYPE_5 = (
         ("I0", "T1", "T2", "T3", "S3", "S0", "S1", "S2"),
-        {"type": "5", "sample_mask": 0x010204081020c0c0, "sample_name": "MACE", "level": 2, "n_instances": 4, "n_stabilizers": 2}
+        {"type": "5", "sample_mask": 0x010204081020c0c0, "sample_name": "MACE",
+         "level": 2, "n_instances": 4, "n_stabilizers": 2}
     )
     TYPE_6 = (
         ("I0", "S0", "S0", "S0", "T4", "S4", "S4", "S4"),
-        {"type": "6", "sample_mask": 0x000008381c100000, "sample_name": "COREA", "level": 4, "n_instances": 2, "n_stabilizers": 4}
+        {"type": "6", "sample_mask": 0x000008381c100000, "sample_name": "COREA",
+         "level": 4, "n_instances": 2, "n_stabilizers": 4}
     )
     TYPE_7 = (
         ("I0", "T1", "S0", "S1", "S1", "S0", "S1", "S0"),
-        {"type": "7", "sample_mask": 0x030304081020c0c0, "sample_name": "BARBEL", "level": 4, "n_instances": 2, "n_stabilizers": 4}
+        {"type": "7", "sample_mask": 0x030304081020c0c0, "sample_name": "BARBEL",
+         "level": 4, "n_instances": 2, "n_stabilizers": 4}
     )
     TYPE_7D = (
         ("I0", "T1", "S0", "S1", "I3", "I0", "I1", "I2"),
-        {"type": "7D", "sample_mask": 0x0102040810204080, "sample_name": "DIAG8", "level": 4, "n_instances": 2, "n_stabilizers": 4}
+        {"type": "7D", "sample_mask": 0x0102040810204080, "sample_name": "DIAG8",
+         "level": 4, "n_instances": 2, "n_stabilizers": 4}
     )
     TYPE_8 = (
         ("I0", "T1", "S0", "S1", "S0", "S1", "S0", "S1"),
-        {"type": "8", "sample_mask": 0x0000003c3c000000, "sample_name": "RCT2X4", "level": 4, "n_instances": 2, "n_stabilizers": 4}
+        {"type": "8", "sample_mask": 0x0000003c3c000000, "sample_name": "RCT2X4",
+         "level": 4, "n_instances": 2, "n_stabilizers": 4}
     )
     TYPE_9 = (
         ("I0", "S0", "S0", "S0", "S0", "S0", "S0", "S0"),
-        {"type": "9", "sample_mask": 0x0000001818000000, "sample_name": "CORE", "level": 8, "n_instances": 1, "n_stabilizers": 8}
+        {"type": "9", "sample_mask": 0x0000001818000000, "sample_name": "CORE",
+         "level": 8, "n_instances": 1, "n_stabilizers": 8}
     )
 
     def __init__(self, fingerprint, data):
@@ -376,7 +388,9 @@ class Pattern:
         pos_map = _get_position_mapping(symms)
         unique_pos_map = set(pos_map)
         unique_pos_map.discard(0)
-        self.unique_symmetric_instance_indexes = [int(x) for i, x in enumerate(symmetric_instance_indexes) if i in unique_pos_map]
+        self.unique_symmetric_instance_indexes = [
+            int(x) for i, x in enumerate(symmetric_instance_indexes) if i in unique_pos_map
+        ]
         self.symmetry_fs = [bitboard_trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
         self.anti_symmetry_fs = [bitboard_anti_trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
         self._compute_symmetry_burnside_counts()
@@ -697,7 +711,9 @@ class Pattern:
         its stabilizer orbit); principal_indexes and principal_index_count are derived from it.
         """
         def _symmetry_transformations(ss_array: npt.NDArray[Bitboard],
-                                     symmetry_functions: List[Callable[[npt.NDArray[np.uint64]], npt.NDArray[np.uint64]]]) -> npt.NDArray[np.uint64]:
+                                      symmetry_functions: List[
+                                          Callable[[npt.NDArray[np.uint64]], npt.NDArray[np.uint64]]]
+                                      ) -> npt.NDArray[np.uint64]:
             # Apply each function to the entire array and collect the results in a list
             symmetries = [f(ss_array) for f in symmetry_functions]
             # Stack the columns into a single matrix N x X

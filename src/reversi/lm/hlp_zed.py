@@ -82,8 +82,10 @@ class LMZed:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
-                                                            Callable[[npt.NDArray[np.float32]], npt.NDArray[np.float32]]]:
+def hlp_zed_fun_factory(logit_clipping: float) -> Tuple[
+    Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
+    Callable[[npt.NDArray[np.float32]], npt.NDArray[np.float32]],
+]:
     """
     Returns two functions that perform an affine transformation. One on int8 arrays, it maps the
     range [-64, 64] to [logit_clipping, 1 - logit_clipping]. The second does the inverted transformation.

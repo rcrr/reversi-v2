@@ -204,7 +204,8 @@ check("D5 both setUps use the TemporaryDirectory idiom",
       repr(t2[77]))
 check("D6 both setUps anchor json_config to WORKSPACE_ROOT",
       t2[79] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_00.json\")"
-      and t2[190] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_01.json\")",
+      and t2[190] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / "
+                     "\"rlm_01.json\")",
       repr(t2[79]))
 check("D7 the paths import is present",
       t2[54] == "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[54]))

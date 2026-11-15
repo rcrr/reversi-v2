@@ -18,4 +18,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   D-627 and D-463 are cited in the journals, the D-629 entry and the Index, yet exist in no decisions volume (D-627
   was never written to the log at the session-127 close); the gaps are disclosed, the Index range corrected forward
   to D-426…D-626, the frozen volume untouched. The audit file joins the Index. (D-630)
-- Next: the rules-compliance fix campaign (the user's item-by-item approvals).
+- src/reversi/pattern.py + the 5 lm modules + probes/verify\_wmaps.py + run\_utests.sh — the R-520 rewrap: the 21
+  lines over the 120-char ceiling split back under it, no semantic change (0 lines over 120 in the tracked
+  sources; test\_pattern + verify\_wmaps green). (D-631)
+- Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).

@@ -49,7 +49,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 source .venv/bin/activate
 
-echo "run_utests: PERF=${PERF:-0} LONG=${LONG:-0} VLONG=${VLONG:-0} VVLONG=${VVLONG:-0} SKIP_REGAB_DB=${SKIP_REGAB_DB:-0}"
+echo "run_utests: PERF=${PERF:-0} LONG=${LONG:-0} VLONG=${VLONG:-0} VVLONG=${VVLONG:-0}" \
+     "SKIP_REGAB_DB=${SKIP_REGAB_DB:-0}"
 
 MODULES=(
     # 0 — tools
