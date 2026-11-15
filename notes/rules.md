@@ -51,8 +51,8 @@ is rigid in notes/log\_rules.md).
 **R-060 — The domain rule files**
 
 notes/naming.md, notes/decisions\_rules.md, notes/docs\_rules.md, notes/log\_rules.md, notes/overview\_rules.md,
-notes/probe\_rules.md, notes/tools.md (rigid; each owns its domain — this register points at them, never duplicates
-them).
+notes/probe\_rules.md, notes/wsutils.md, notes/latex\_rules.md, notes/design\_principles.md (rigid; each owns its domain
+— this register points at them, never duplicates them).
 
 
 **R-070 — notes/ideas.md**

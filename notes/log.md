@@ -48,4 +48,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - the 7 test modules — the R-750/R-760 anchoring: every TemporaryDirectory / mkdtemp now under the shared
   CUSTOM\_TMP\_BASE (6 modules out of the system /tmp; test\_state\_machine drops its self-derived TMP\_DIR for the
   same anchor); 136 tests, 0 failures. (D-641)
-- Next: the last item of the rules-compliance fix campaign (the user's item-by-item approvals).
+- notes/rules.md — the R-060 re-sync: the domain rule-file list now names wsutils.md (not the non-existent
+  tools.md) and adds latex\_rules.md + design\_principles.md; the reported missing L62 blank line re-verified as a
+  false positive (it is present at HEAD). (D-642)
