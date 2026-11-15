@@ -130,6 +130,9 @@ test helpers, or in the standard library.
 **R-300 — The workspace is a git repo**
 
 Minimal .gitignore: .venv/, build/, scratch/, .obsidian/; scratch/ is a disposable session area, never tracked.
+Sanctioned additions: `__pycache__/`, `*.egg-info/`, the Emacs lock patterns (`\#*`, `.\#*`) and `.env` (the DB
+credentials; .env.example is the tracked template); comment section headers and blank separator lines are formatting,
+not entries.
 
 
 **R-310 — All Python sources under src/**

@@ -57,3 +57,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   reflow (8 files), the 24 W291 banner lines, the .gitignore R-300 amendment and the R-310 mirror clause (the
   user's open question), the 3 stale verify\_gradient pins, and the zone-F probe naming / headers / DP-010 (the
   user asked for a fuller explanation first).
+- notes/rules.md (R-300) — the .gitignore is affirmed as-is (the user's call): the 5 over-list lines are sanctioned
+  functional entries (`__pycache__/`, `*.egg-info/`, the Emacs lock patterns, `.env`) and the section headers +
+  blank separators are formatting — the register now says so. (D-643)

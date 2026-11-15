@@ -124,3 +124,10 @@ D-641 | 2026-11-15 | The R-750 / R-760 test temp-dir anchoring (the rules-compli
          shared-idiom item) drops its self-derived TMP\_DIR (parents\[3\]/build/tmp) for the same shared anchor — the
          house rule it quotes in its own comment, now imported instead of re-derived. The 7 modules pass together: 136
          tests, 0 failures.
+
+D-643 | 2026-11-15 | R-300 amendment (the user's call after the audit): the .gitignore is affirmed as-is. The 5 lines
+         over the register's minimal list are NOT blank separators — they are 5 sanctioned functional entries:
+         \_\_pycache\_\_/, \*.egg-info/, the two Emacs lock patterns and .env (the DB credentials; .env.example is the
+         tracked template) — and the file's comment section headers + blank separator lines are formatting, not entries.
+         The register (R-300) now lists the sanctioned additions and exempts the section formatting, so the file and the
+         rule agree.
