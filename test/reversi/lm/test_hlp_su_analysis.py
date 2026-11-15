@@ -57,6 +57,7 @@ from pathlib import Path
 import numpy as np
 from pydantic import ValidationError
 
+from test.reversi.paths import CUSTOM_TMP_BASE
 from reversi.tools import binio
 from reversi.tools.state_machine import Verbosity
 from reversi.lm import hlp_su_analysis as hlp
@@ -107,7 +108,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
     """
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp = Path(self._tmp.name)
 
     def tearDown(self):

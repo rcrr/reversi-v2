@@ -45,4 +45,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   the prose is English (verbatim user quotes exempt) and the publication edit pass is the sole sanctioned strip of
   the infra notes; the credential detail in log\_000 is noted as publication-sensitive. The frozen corpus is
   untouched. (D-640)
-- Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).
+- the 7 test modules — the R-750/R-760 anchoring: every TemporaryDirectory / mkdtemp now under the shared
+  CUSTOM\_TMP\_BASE (6 modules out of the system /tmp; test\_state\_machine drops its self-derived TMP\_DIR for the
+  same anchor); 136 tests, 0 failures. (D-641)
+- Next: the last item of the rules-compliance fix campaign (the user's item-by-item approvals).

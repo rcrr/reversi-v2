@@ -48,7 +48,7 @@ import numpy as np
 from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.wrk_anova import _down, _up, wrk_anova
 from reversi.tools.state_machine import Verbosity
-from test.reversi.paths import WORKSPACE_ROOT
+from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from reversi.index import Index
 
 
@@ -109,7 +109,7 @@ class TestWrkAnova(unittest.TestCase):
     """
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp = Path(self._tmp.name)
 
     def tearDown(self):

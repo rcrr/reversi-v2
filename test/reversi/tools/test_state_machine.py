@@ -50,11 +50,12 @@ from unittest.mock import MagicMock, patch
 from io import StringIO
 from datetime import datetime, timezone, timedelta
 
+from test.reversi.paths import CUSTOM_TMP_BASE
 from reversi.tools.state_machine import StateMachine, Worker, Context, Relevance, Verbosity
 
-# House rule: test artifacts are written ONLY under workspace_root/build/tmp and removed afterwards.
-# The workspace root is 3 levels up from this file (test/reversi/tools/).
-TMP_DIR = Path(__file__).resolve().parents[3] / "build" / "tmp"
+# House rule: test artifacts are written ONLY under workspace_root/build/tmp and removed afterwards
+# (the shared CUSTOM_TMP_BASE anchor, test/reversi/paths.py).
+TMP_DIR = CUSTOM_TMP_BASE
 
 
 

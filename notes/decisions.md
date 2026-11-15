@@ -114,3 +114,13 @@ D-640 | 2026-11-15 | R-130 / R-100 disclosure + forward ruling (the rules-compli
          (b) when the notes become the GitHub publication material, the publication edit pass strips the disclosed
          infrastructure notes from the closed volumes — that pass is the sole sanctioned touch of the frozen corpus for
          this class.
+
+D-641 | 2026-11-15 | The R-750 / R-760 test temp-dir anchoring (the rules-compliance fix campaign, the user's item 5):
+         the 6 test modules that created their scratch dirs in the SYSTEM /tmp (R-750: test artifacts live ONLY under
+         the workspace build/tmp) are anchored to the shared CUSTOM\_TMP\_BASE (test/reversi/paths.py) —
+         test\_wrk\_anova.py, test\_hlp\_su\_analysis.py, test\_wrk\_analytics.py (4 sites),
+         test\_wrk\_final\_log\_print.py, test\_wrk\_su\_analysis.py (TemporaryDirectory(dir=...)) and
+         test\_usage\_binio.py (3 mkdtemp sites, dir= + the prefix kept); test\_state\_machine.py (the R-760
+         shared-idiom item) drops its self-derived TMP\_DIR (parents\[3\]/build/tmp) for the same shared anchor — the
+         house rule it quotes in its own comment, now imported instead of re-derived. The 7 modules pass together: 136
+         tests, 0 failures.

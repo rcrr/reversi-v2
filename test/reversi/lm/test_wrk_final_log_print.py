@@ -89,7 +89,7 @@ class TestWrkFinalLogPrint(unittest.TestCase):
     """
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp = Path(self._tmp.name)
 
     def tearDown(self):

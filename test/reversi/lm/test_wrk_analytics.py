@@ -52,6 +52,7 @@ from pathlib import Path
 
 import numpy as np
 
+from test.reversi.paths import CUSTOM_TMP_BASE
 from reversi.lm.hlp_analytics import hlp_analytics_format_file_report
 from reversi.lm.hlp_anova import hlp_anova_adherence
 from reversi.tools.state_machine import Verbosity
@@ -499,7 +500,7 @@ class TestSuSampleColumns(unittest.TestCase):
     """
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp = Path(self._tmp.name)
 
     def tearDown(self):
@@ -901,7 +902,7 @@ class TestAnalyticsConsoleReportAndUp(unittest.TestCase):
     """
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp = Path(self._tmp.name)
         self._events = []
 
@@ -1051,7 +1052,7 @@ class TestAnalyticsDownScope(unittest.TestCase):
     """
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self._events = []
 
@@ -1094,7 +1095,7 @@ class TestDenseRnSeriesConsistency(unittest.TestCase):
     """
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp = Path(self._tmp.name)
 
     def tearDown(self):
