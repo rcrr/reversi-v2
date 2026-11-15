@@ -27,4 +27,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - notes/rules.md (R-330) + notes/docs\_rules.md §7 + notes/overview.md — the `__init__.py` mirror-doc exception
   legislated (the user's choice (b)): the 6 package `__init__.py` files are exempt from the one-file-one-doc rule,
   declared conformant; the overview's 1:1 claim is now true again. (D-633)
+- docs/test/reversi/test\_index.md — rewritten to the test-doc skeleton (the auditor's 4 sections) and un-staled:
+  4 classes / 10 tests, not the 2 / 5 the old doc claimed. (D-634)
 - Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).

@@ -58,3 +58,10 @@ D-633 | 2026-11-15 | R-330 amendment (the rules-compliance fix campaign, the use
          (docs\_rules.md §7) and the overview's "Mirror docs" bullet are amended in this same commit, on the user's
          explicit approval for the rule change; the overview's 1:1 claim is now true again (every MODULE file has its
          doc).
+
+D-634 | 2026-11-15 | The test\_index.md mirror doc is rewritten to the test-doc skeleton (the rules-compliance fix
+         campaign, the user's item 3): the old 14-line doc was an unschematized skeleton (a lone Coverage table + a
+         provenance Note, 1/98 conforming) and was STALE — the suite has 4 classes / 10 tests since the ExtendedIndex
+         space landed, the doc said 2 / 5. The new 35-line doc carries the auditor's four test-doc sections (Coverage
+         with the per-class pin map, Goldens pinned = None, Conventions, Integration) and is green on the docs\_format
+         audit.
