@@ -101,3 +101,16 @@ D-639 | 2026-11-15 | The three H1 factual corrections in the closed journal volu
          (24, 79–89, 98) are resolved, no session content is touched. (The D-636/D-637 numbers stand skipped: a
          mid-campaign renumber — this correction was executed after D-638, and the log's D-numbers must increase
          strictly in file order.)
+
+D-640 | 2026-11-15 | R-130 / R-100 disclosure + forward ruling (the rules-compliance fix campaign, the user's item 4):
+         (1) POST-RULE infrastructure notes (the rule in force since D-154, 2026-09-11) survive in the frozen volumes:
+         hist\_decisions/decisions\_006.md:1409-1410, hist\_log/log\_002.md:354,966,
+         hist\_log/log\_004.md:666,678,1511-1512 (DSH mechanism / settings / subagent-OOM notes); a larger PRE-rule body
+         stands as history (incl. the DEEPSEEK\_API\_KEY credential detail at hist\_log/log\_000.md:447-449 — noted as
+         publication-sensitive). (2) The journal's OWN prose ran in Italian in the closed volumes 003 / 004 / 005
+         (session titles and bullet prose); the decisions / ideas files carry Italian only as verbatim user quotes.
+         Forward ruling (governs open files going forward, the frozen corpus untouched by this decision): (a) journal
+         and decisions prose in English — R-100's standing text, with verbatim user quotes (marked as quotes) exempt;
+         (b) when the notes become the GitHub publication material, the publication edit pass strips the disclosed
+         infrastructure notes from the closed volumes — that pass is the sole sanctioned touch of the frozen corpus for
+         this class.

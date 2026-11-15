@@ -40,4 +40,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   archive freeze allows): "1–24"→"1–23", "38–89"→"38–78", "90–101"→"90–101, 98 missing" — the 13 phantom session
   numbers resolved, no session content touched (logged as D-639: the D-636/D-637 numbers stand skipped by the
   mid-campaign renumber). (D-639)
+- notes/decisions.md — the R-130/R-100 disclosure + forward ruling: the post-rule DSH/vLLM/DeepSeek infra notes
+  and the Italian journal prose in the closed volumes are disclosed (with the file:line inventory); going forward
+  the prose is English (verbatim user quotes exempt) and the publication edit pass is the sole sanctioned strip of
+  the infra notes; the credential detail in log\_000 is noted as publication-sensitive. The frozen corpus is
+  untouched. (D-640)
 - Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).
