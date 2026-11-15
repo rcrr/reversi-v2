@@ -51,3 +51,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - notes/rules.md — the R-060 re-sync: the domain rule-file list now names wsutils.md (not the non-existent
   tools.md) and adds latex\_rules.md + design\_principles.md; the reported missing L62 blank line re-verified as a
   false positive (it is present at HEAD). (D-642)
+- The rules-compliance fix campaign CLOSES here (D-630…D-642, 11 items, the user's item-by-item approvals): 40
+  violation-class findings from the audit are fixed or legislated; what stands open by decision: the 9 docs
+  size-budget items (disclosed, not padded), the 19 over-long test docstrings (R-570, minor), the R-560 backlog
+  reflow (8 files), the 24 W291 banner lines, the .gitignore R-300 amendment and the R-310 mirror clause (the
+  user's open question), the 3 stale verify\_gradient pins, and the zone-F probe naming / headers / DP-010 (the
+  user asked for a fuller explanation first).
