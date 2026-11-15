@@ -53,29 +53,9 @@ define the evaluation function.
   at the argument / `cfg.target_level` / the last step.
 - A LaTeX book describing the work exists as an acceptable draft in the `latex/` zone; the PDF is generated with
   `make -C latex latex`.
-- The USO (FEATURE-SET) campaign stands at ec20: the record ladder is 7.01 (0108) → 6.93 (0111, CASTLE) → 6.85 (0114,
-  2X6COR) → 6.78 (0117, 3X4COR) → 6.68 (0130, the CASTLE+2X6COR+KATEK trio) → 6.57 (0134, the trio with 3X4COR) → 6.50
-  (0153, the reference: 0134 with BARBEL in place of DIAG8, 711,853 active weights) → 6.48 (0176, R1R2P5 in place of
-  2X6COR) → 6.46 (0177, R1R2P6 in place of 2X6COR, 2,210,923 weights — the current record, at a decreasing return per
-  step). The parameter campaign on the 0177 found the validation minimum at ridge = 1.0 (bracketed by the 0.5-10.0
-  scale), the m = 131 L-BFGS history converting the `LOW_PROGRESS` stop into a clean `MIN_GRAD` at the
-  identical 5.96/6.46, and the frequency cut-off a near-free weight-compression lever (-61% of the weights at +0.06
-  validation at 20): the rare-configuration tail is unsupported by the current 13.27M-position corpus. Closing reading:
-  0153 (6.50, 711,853 weights) is the best capacity/complexity compromise with the data at hand; the 0177 line points
-  toward 6.00 at a two- or three-fold larger corpus of solved positions. Eleven 13-14-cell patterns joined the catalog
-  (45 entries); alone at ec20 nine of eleven beat CORNER, R1R2P5 is the strongest single pattern found (8.55 at full
-  batches, below 2X6COR's 9.08) and the ARROW family carries no signal. The book carries ch. 15.5 (hyperparameters), ch.
-  16 (evolutionary moment), ch. 17 (new patterns, five sections), ch. 18 (larger patterns, four sections) and Appendix A
-  (45 patterns, regenerated with the mdp.csv → `gen_appendix.py` program chain).
 
 ## Next steps
 
-- The FEATURE-SET campaign (the scope): the first extended use of the completed pipeline (also an ergonomics check —
-  corrections may surface). Identify the feature set that maximizes the evaluation function's predictive capacity
-  relative to its complexity (the number of features and the number of parameters); determine the optimal hyperparameter
-  values; establish whether a single model definition stays valid across the resolved EC range [26..0] or distinct
-  per-phase optima exist; verify whether Buro's LOGISTELLO set is the best compromise for the logistic model, or if a
-  more competitive set can be found; develop the examples for the LaTeX document.
 - The MULTI-PLY campaign: the current EF is zero-ply; develop the N-ply game expansion (the alpha-beta search over the
   EF) delivering an evaluation based on a game tree search; evaluate the statistical properties of the resulting
   function.
@@ -235,6 +215,7 @@ Test data (test/reversi/data/):
 - notes/hist\_decisions/decisions\_004.md — closed decision volume 004 (D-258…D-300, 2026-09-19 → 2026-09-23)
 - notes/hist\_decisions/decisions\_005.md — closed decision volume 005 (D-301…D-332, 2026-09-23 → 2026-09-29)
 - notes/hist\_decisions/decisions\_006.md — closed decision volume 006 (D-333…D-425, 2026-09-29 → 2026-10-03)
+- notes/hist\_decisions/decisions\_007.md — closed decision volume 007 (D-426…D-627, 2026-10-04 → 2026-11-13)
 - notes/analyses/ — the one-off analyses (work\_report.md: the 18-years vs 6-weeks work comparison of D-433).
 - notes/ideas.md — the OPEN backlog
 - notes/ideas\_closed.md — the CLOSED ideas (done | dropped)
@@ -250,4 +231,5 @@ Test data (test/reversi/data/):
 - notes/hist\_log/log\_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)
 - notes/hist\_log/log\_003.md — session journal, volume 003 (sessions 38–89, closed 2026-09-29)
 - notes/hist\_log/log\_004.md — session journal, volume 004 (sessions 90–101, closed 2026-10-11)
-- notes/log.md — the session journal (volume 005, sessions 102–..., open)
+- notes/hist\_log/log\_005.md — session journal, volume 005 (sessions 102–127, closed 2026-11-15)
+- notes/log.md — the session journal (volume 006, sessions 128–..., open)
