@@ -65,3 +65,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   hlp\_final\_log\_print (3), hlp\_validate (7), model\_weights (5), wrk\_save (4) — 36 tests, 0 failures; each with
   its mirror doc + overview row; the suite is now 52 modules, all green. The R-310 mirror question is RESOLVED —
   no amendment needed. (D-645)
+- Session 128 CLOSES: the rules-compliance audit fix campaign is complete (D-630…D-645 — the 40 violation-class
+  findings fixed or legislated, the minors left as-is by the user's call, the 6 missing test mirrors created; the
+  suite is 52 modules, all green, the notes lint and the docs audit stand at their disclosed residue). The audit
+  report (notes/analyses/rules\_compliance\_audit\_2026-11-15.md) joins the repo with this close. Next session: the
+  project's campaign list stands (the overview Next steps, the MULTI-PLY first).
