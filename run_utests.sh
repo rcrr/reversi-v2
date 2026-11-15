@@ -69,6 +69,7 @@ MODULES=(
     test.reversi.tools.test_cache_manager
     test.reversi.tools.test_state_machine
     test.reversi.lm.test_logistic_model
+    test.reversi.test_base_model
     test.reversi.test_paths
     # 3 — DB access
     test.reversi.test_regab
@@ -113,12 +114,17 @@ MODULES=(
     test.reversi.lm.test_hlp_generate
     test.reversi.lm.test_wrk_generate
     test.reversi.lm.test_wrk_vld_positions
+    test.reversi.lm.test_hlp_validate
     test.reversi.lm.test_wrk_validate
+    test.reversi.lm.test_hlp_analytics
     test.reversi.lm.test_wrk_analytics
+    test.reversi.lm.test_model_weights
+    test.reversi.lm.test_wrk_save
     test.reversi.lm.test_client
     test.reversi.lm.test_wrk_client_check
     test.reversi.lm.test_hlp_plot
     test.reversi.lm.test_wrk_plot
+    test.reversi.lm.test_hlp_final_log_print
     test.reversi.lm.test_wrk_final_log_print
     test.reversi.lm.test_lm_worker_full_chain
 )

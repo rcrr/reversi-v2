@@ -138,3 +138,17 @@ D-644 | 2026-11-15 | The audit's remaining MINOR items are left as-is (the user'
          they stand disclosed in the audit report (notes/analyses/rules\_compliance\_audit\_2026-11-15.md) and may be
          picked up by a future maintenance campaign. The R-310 mirror clause (the 6 src modules without a test mirror)
          awaits the user's separate decision.
+
+D-645 | 2026-11-15 | The 6 missing test mirrors are CREATED (the user's call: brief, compact, each running in a few
+         tenths of a second; the anticipated dummy-with-pointer-docstring fallback turned out UNNEDED — all 6 admit real
+         fast NO-DB tests): test/reversi/test\_base\_model.py (9 — the facade delegation + the run/resume contract on a
+         3-worker mock machine), test/reversi/lm/test\_hlp\_analytics.py (8 — the SU verdict bands + the four
+         header-line forms), test/reversi/lm/test\_hlp\_final\_log\_print.py (3 — the writer on a mock ctx),
+         test/reversi/lm/test\_hlp\_validate.py (7 — the outlier kernel + the hand-computed 2-position forward pass),
+         test/reversi/lm/test\_model\_weights.py (5 — the v2 round trip compressed/uncompressed + the three reader
+         guards), test/reversi/lm/test\_wrk\_save.py (4 — the factory, the up artifact + the bounded echo, the down
+         no-op). 36 tests, all under 0.3 s, 0 failures; every module uses the NO-DB mock-ctx idiom and the shared
+         CUSTOM\_TMP\_BASE anchor. Each carries its mirror doc (the test-doc skeleton) and a row in the overview Test
+         files table (the suite is now 52 modules, all green); the 6 join the run\_utests.sh MODULES array in pipeline
+         order (each data module immediately before its worker). The audit's "6 src modules without a test mirror"
+         finding (the R-310 question) is RESOLVED — no rule amendment needed.
