@@ -60,3 +60,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - notes/rules.md (R-300) — the .gitignore is affirmed as-is (the user's call): the 5 over-list lines are sanctioned
   functional entries (`__pycache__/`, `*.egg-info/`, the Emacs lock patterns, `.env`) and the section headers +
   blank separators are formatting — the register now says so. (D-643)
+- The audit's remaining minor items are LEFT AS-IS (the user's explicit call) — they stand disclosed in the audit
+  report; the R-310 mirror clause (the 6 src modules without a test mirror) awaits the user's separate decision.
+  (D-644)

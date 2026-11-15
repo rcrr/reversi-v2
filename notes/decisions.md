@@ -131,3 +131,10 @@ D-643 | 2026-11-15 | R-300 amendment (the user's call after the audit): the .git
          tracked template) — and the file's comment section headers + blank separator lines are formatting, not entries.
          The register (R-300) now lists the sanctioned additions and exempts the section formatting, so the file and the
          rule agree.
+
+D-644 | 2026-11-15 | The audit's remaining MINOR items are left as-is (the user's explicit call): the 19 over-long test
+         docstrings (R-570), the 8 R-560 backlog-reflow files, the 24 W291 banner lines, the 9 docs size-budget items,
+         the 3 stale verify\_gradient pins, and the zone-F probe naming / headers / DP-010 items. No change is made;
+         they stand disclosed in the audit report (notes/analyses/rules\_compliance\_audit\_2026-11-15.md) and may be
+         picked up by a future maintenance campaign. The R-310 mirror clause (the 6 src modules without a test mirror)
+         awaits the user's separate decision.
