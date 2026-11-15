@@ -81,7 +81,7 @@
 # wrk_plot() import + worker-list entry) — the matplotlib diagnostic
 # figures are now the 18th level. V3c pins the 18 active levels; the
 # other checks are unchanged.
-# (2026-09-11): I-012 realized (the I-017 T1
+# (2026-09-11): the backlogged item realized (the reordering T1
 # transposition): FEATURES (step 2) before POSITIONS (step 3). The
 # V3c list pins the 18 active levels; the other checks are
 # unchanged.
@@ -90,7 +90,7 @@
 # log on file (the optional log_file_name config entry) is now the
 # 19th level. V3c re-pinned 18 -> 19; the other checks are
 # unchanged.
-# (2026-09-13): I-017 realized (the T16/T17
+# (2026-09-13): the reordering realized (the T16/T17
 # workers): the SU_ANALYSIS (step 3, the SU-analysis corpus cache, the
 # rlmwf_03 slot) sits between FEATURES and POSITIONS; the ANOVA
 # (step 6, the eta^2/omega^2 + the adherence, NO cache) sits between
@@ -229,7 +229,7 @@ for target, label in [(1, "int 1"), ("POSITIONS", "str POSITIONS"), ("move_to_la
             if target == "move_to_last":
                 m.move_to_last()
             elif target == "run":
-                # I-019: the target-driven entry starts at CONFIG too,
+                # the target-driven entry starts at CONFIG too,
                 # so the same failure surfaces through it.
                 m.run("POSITIONS")
             else:

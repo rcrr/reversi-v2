@@ -291,7 +291,7 @@ def d_main():
         def d10():
             files = sorted(p.name for p in Path(tmp).iterdir())
             # the no-cache slots of the CURRENT numbering: 09 = ZED,
-            # 10 = GRADIENT (they were 07/08 before the I-017 reordering)
+            # 10 = GRADIENT (they were 07/08 before the level reordering)
             assert not [n for n in files if n.startswith("rlmwf_09")], files
             assert not [n for n in files if n.startswith("rlmwf_10")], files
             for n in ("rlmwf_04_POSITIONS.dat",

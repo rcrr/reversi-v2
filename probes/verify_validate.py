@@ -215,7 +215,7 @@ else:
               f"mse_z={met['vld_mse_z']} 2*loss={2 * met['vld_loss']} "
               f"z=({vld_z.min()}, {vld_z.max()})")
         # C5 the no-cache fact: VALIDATE writes nothing. The slot is the CURRENT step number (14 =
-        # VALIDATE): the stale "rlmwf_12" pin predated the I-017 reordering, when VALIDATE was step 12.
+        # VALIDATE): the stale "rlmwf_12" pin predated the level reordering, when VALIDATE was step 12.
         c12 = [p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_14")]
         check("C5 no rlmwf_14_* cache file in the base dir (VALIDATE is pure compute)",
               c12 == [], f"files: {c12}")

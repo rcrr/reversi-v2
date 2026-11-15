@@ -29,7 +29,7 @@
 #
 # verify_su_analysis.py
 #
-# Probe pinning the SU_ANALYSIS level (the I-017 step 3, D-258):
+# Probe pinning the SU_ANALYSIS level (the reordering step 3, D-258):
 # the worker (src/reversi/lm/wrk_su_analysis.py) + its frequency data
 # plane (hlp_su_analysis, the accumulators — the D-295 hlp_random_play
 # retirement) + the shared kernels it calls (the local SU

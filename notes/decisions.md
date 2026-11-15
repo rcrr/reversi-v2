@@ -38,3 +38,15 @@ D-631 | 2026-11-15 | R-520 rewrap (the rules-compliance fix campaign, the user's
          split — the string content is unchanged), run\_utests.sh (the banner echo split into two arguments — the
          printed output is unchanged). Verified: 0 lines over 120 in the tracked .py/.sh set, test\_pattern 76/0/0,
          verify\_wmaps all checks pass.
+
+D-632 | 2026-11-15 | R-550 reword (the rules-compliance fix campaign, the user's item 2): the 8 I-XXX references in
+         PROBE COMMENTS (R-550 bans I-XXX in any docstring or comment of the probe Python code; R-580 sanctions them in
+         check labels only, per the house interpretation recorded in decisions\_007) are reworded to name the change in
+         words, the check labels untouched: probes/verify\_gradient.py:294 ("the I-017 reordering" → "the level
+         reordering"), probes/verify\_validate.py:218 (same), probes/verify\_wrk\_features.py:41 ("I-012 realized,
+         the I-017 T1" → "the backlogged item realized, the reordering T1"), probes/verify\_logistic\_model.py:84/93
+         (the two dated banner lines) and :232 (the bare "I-019:" dropped), probes/verify\_save.py:209 ("I-013:"
+         dropped), probes/verify\_su\_analysis.py:32 ("the I-017 step 3" → "the reordering step 3", the D-258 citation
+         kept). Verified: 0 I-XXX in probe comment lines, the 6 probes compile. Observation (pre-existing, not touched):
+         verify\_gradient.py carries 3 stale structural pins (C1 line count 184 vs the current 225, C5 class/test
+         counts) — a re-pin candidate for the next probe-maintenance pass.

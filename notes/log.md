@@ -21,4 +21,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - src/reversi/pattern.py + the 5 lm modules + probes/verify\_wmaps.py + run\_utests.sh — the R-520 rewrap: the 21
   lines over the 120-char ceiling split back under it, no semantic change (0 lines over 120 in the tracked
   sources; test\_pattern + verify\_wmaps green). (D-631)
+- the 7 probe files — the R-550 reword: the 8 I-XXX references in probe COMMENTS now name the change in words
+  ("the level reordering", "the backlogged item realized" …), the R-580-allowed check labels untouched; 0 I-XXX in
+  probe comment lines. (D-632)
 - Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).

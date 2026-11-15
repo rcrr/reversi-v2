@@ -38,7 +38,7 @@
 # removed), test T1-T4 + M2 (the tmp-dir idiom, the SKIP_REGAB_DB gate,
 # the dead import now load-bearing, header grammar, whitespace
 # clean) + the new golden content test (its hash literal pinned).
-# Test M1 resolved (I-012 realized, the I-017 T1): the
+# Test M1 resolved (the backlogged item realized, the reordering T1): the
 # stale POSITIONS-dependency comment is removed and the setUp
 # moves to FEATURES directly.
 #

@@ -206,7 +206,7 @@ def tier_d():
     #  sidecar, the read-back
     #  subset (incl. the D-144 embedded config provenance), the
     #  5 console report substrings (title + the 4 table rows incl.
-    #  Delta 0.00 (I-013: the sign of the f32 delta flipped) — the classification's 'a' label for D8 is stale:
+    #  Delta 0.00 (the sign of the f32 delta flipped) — the classification's 'a' label for D8 is stale:
     #  the test pins them all at L350-354), the 57f9766b... masked
     #  file-report hash, and the 6 ef training positions. The whole
     #  rlm_03 chain run is retired with the checks.)
