@@ -66,8 +66,8 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
 - **Pydantic + Numba layering** — the decoration set: `Pattern.__init__` is `@validate_call` `strict`; the other
   decorated methods (`Pattern.__repr__`, `_pack_bb`/`_unpack_bb`, `compute_indexes_on_position`,
   `convert_to_principal_index`, `PatternSet.__init__` — NOT strict —, `print`/`print_summary`/
-  `compute_principal_indexes`) are plain `@validate_call`; undecorated: `Pattern.print`, `mdp_record`,
-  `mdp_csv_file` (manual `isinstance` checks), `compute_principal_index_dict` and `PatternSet.__repr__`. Hot paths are
+  `compute_principal_indexes`) are plain `@validate_call`; undecorated: `Pattern.print`, `mdp_record`, `mdp_csv_file`
+  (manual `isinstance` checks), `compute_principal_index_dict` and `PatternSet.__repr__`. Hot paths are
   `njit(parallel=True, cache=True)` (no `fastmath` — meaningless for integer ops); the construction-time (cold) path
   calls the pydantic-wrapped scalar functions directly.
 - **Closed type table** — a pattern whose computed fingerprint is not in the PatternType table raises ValueError at

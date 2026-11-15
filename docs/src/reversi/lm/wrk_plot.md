@@ -1,9 +1,8 @@
 # reversi/lm/wrk_plot.py
 The PLOT worker of the LM pipeline — the 18th active level (step 18): the level after CLIENT_CHECK, before
-FINAL_LOG_PRINT. A non-cache worker — no `cache_manager` wiring, no rlmwf_18* file (a derived-artifact step,
-regenerated on every up-move, an idempotent overwrite). It writes the run's matplotlib diagnostic figures
-(the hlp_plot builders) to the configured plots directory.
-All figures are in Y space (the [-64, +64] game-value scale). The pilot is the config's
+FINAL_LOG_PRINT. A non-cache worker — no `cache_manager` wiring, no rlmwf_18* file (a derived-artifact step, regenerated
+on every up-move, an idempotent overwrite). It writes the run's matplotlib diagnostic figures (the hlp_plot builders) to
+the configured plots directory. All figures are in Y space (the [-64, +64] game-value scale). The pilot is the config's
 plot section: the WHITELIST of plot names decides what is generated (a listed name is written, an unlisted one is
 skipped, an empty list makes the level a no-op) and the `plot.enable` master switch dominates (false = do nothing, even
 with names listed). On an error the worker raises (the failure semantics: the machine logs and re-raises, the step stays
@@ -20,17 +19,17 @@ at PLOT). No context attribute is published; `_down` is a no-op (log only).
 ## Architecture
 
 - Imports: `Path`, pydantic, `Worker, Relevance`, the hlp_plot surface (`HLP_PLOT_BUILDERS`, `HlpPlotStyle`,
-  `hlp_plot_collect_data`, `hlp_plot_save_figure`, `hlp_plot_close_figure`), `LMContext` under TYPE_CHECKING.
-  NO `reversi.tools.cache_manager` import (by design) and NO top-level matplotlib import (it is lazy in
-  hlp_plot — see hlp_plot.md).
+  `hlp_plot_collect_data`, `hlp_plot_save_figure`, `hlp_plot_close_figure`), `LMContext` under TYPE_CHECKING. NO
+  `reversi.tools.cache_manager` import (by design) and NO top-level matplotlib import (it is lazy in hlp_plot — see
+  hlp_plot.md).
 - `_up`: the pilot: `plot.enable` false → "PLOT skipped: plot.enable is false." (log only, return); empty `plot.plots` →
-  "PLOT skipped: no plot names requested." (log only, return) → "Generating {n} plot(s)..." → `hlp_plot_collect_data(ctx)` →
-  the directory:
-  `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live outside base_dir), else `base_dir / dir_name`;
-  `mkdir(parents=True, exist_ok=True)` → the `HlpPlotStyle` (the 13 knobs of the plot section, the label dicts copied so
-  the schema's instances stay owned by it) → the per-name loop: `HLP_PLOT_BUILDERS[name](data, ctx.cfg.name, style)` →
-  `hlp_plot_save_figure` in every format of `plot_cfg.format` (the "pdf,png" pair writes both) → `hlp_plot_close_figure` →
-  "Plot '{name}' saved: {paths}" → the completion line: "PLOT done: {n} plot(s) written to {dir}."
+  "PLOT skipped: no plot names requested." (log only, return) → "Generating {n} plot(s)..." →
+  `hlp_plot_collect_data(ctx)` → the directory: `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live outside
+  base_dir), else `base_dir / dir_name`; `mkdir(parents=True, exist_ok=True)` → the `HlpPlotStyle` (the 13 knobs of the
+  plot section, the label dicts copied so the schema's instances stay owned by it) → the per-name loop:
+  `HLP_PLOT_BUILDERS[name](data, ctx.cfg.name, style)` → `hlp_plot_save_figure` in every format of `plot_cfg.format`
+  (the "pdf,png" pair writes both) → `hlp_plot_close_figure` → "Plot '{name}' saved: {paths}" → the completion line:
+  "PLOT done: {n} plot(s) written to {dir}."
 - `_down`: INFO "Clearing plot attributes..." — nothing cleared (the figures are built and closed locally on every
   up-move).
 - `wrk_plot()`: the factory, `@validate_call`-decorated (the uniform worker-factory idiom).
@@ -75,11 +74,11 @@ None.
   (`ctx.train_dense_rn` — the dense training residuals), VALIDATE (`ctx.vld_y_pred`, `ctx.vld_rn`), VLD_POSITIONS
   (`ctx.vld_game_values`) and CONFIG (`ctx.cfg.plot`, `ctx.cfg.name`, `ctx.cfg.base_dir`) — the SM half-open interval
   semantics guarantee every up-move to step 18 passes through all of them.
-- Consumes hlp_plot: `hlp_plot_collect_data` (the ASSEMBLY of the published series — no forward pass — the same
-  formulas as hlp_analytics' dense metrics and the CLIENT_CHECK reference), the `HLP_PLOT_BUILDERS` registry, `hlp_plot_save_figure`
-  / `hlp_plot_close_figure`.
+- Consumes hlp_plot: `hlp_plot_collect_data` (the ASSEMBLY of the published series — no forward pass — the same formulas
+  as hlp_analytics' dense metrics and the CLIENT_CHECK reference), the `HLP_PLOT_BUILDERS` registry,
+  `hlp_plot_save_figure` / `hlp_plot_close_figure`.
 - Consumes the config: `PlotConfig` (hlp_config_schemas) — the fail-fast name/format validation happens at the CONFIG
   level, before the pipeline reaches PLOT.
-- Downstream: nothing consumes the figures — the last artifact-producing level (FINAL_LOG_PRINT, the 19th,
-  follows — it consumes only the event log). `move_to_last()` reaches it; a failure leaves `current_step` at 18 (the
-  failure semantics).
+- Downstream: nothing consumes the figures — the last artifact-producing level (FINAL_LOG_PRINT, the 19th, follows — it
+  consumes only the event log). `move_to_last()` reaches it; a failure leaves `current_step` at 18 (the failure
+  semantics).

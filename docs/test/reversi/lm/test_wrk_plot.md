@@ -2,8 +2,8 @@
 The no-DB suite of the PLOT worker (the 18th level): it exercises the worker DIRECTLY on a synthetic rlm_04-mirror
 context (the same feature layout and the same production iwmap pin as test_wrk_client_check.py) — the training design
 indexes are built with the REAL `compute_indexes` column contract (one column per feature INSTANCE, the configuration
-index within the feature), and `wrk_plot().up(ctx)` runs the full level: pilot → `hlp_plot_collect_data` → directory → the
-figures → the save. No DB, no pipeline: the `Worker.up` @validate_call gate (context: Context) requires a REAL
+index within the feature), and `wrk_plot().up(ctx)` runs the full level: pilot → `hlp_plot_collect_data` → directory →
+the figures → the save. No DB, no pipeline: the `Worker.up` @validate_call gate (context: Context) requires a REAL
 `LMContext`; the `cfg` attribute is the SimpleNamespace stand-in and `log_event` a capturing lambda.
 
 ## Coverage
@@ -29,14 +29,14 @@ figures → the save. No DB, no pipeline: the `Worker.up` @validate_call gate (c
 
 ## Conventions
 
-- The tmp-file idiom: files ONLY under `build/tmp` (`CUSTOM_TMP_BASE`), removed in `tearDown` (the
-  `TemporaryDirectory` + defensive `getattr` cleanup, the house R-760 idiom).
+- The tmp-file idiom: files ONLY under `build/tmp` (`CUSTOM_TMP_BASE`), removed in `tearDown` (the `TemporaryDirectory`
+  + defensive `getattr` cleanup, the house R-760 idiom).
 - `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine): a SimpleNamespace context is rejected
   by the gate — hence the real `LMContext`; only the `cfg` attribute (with its `plot` SimpleNamespace) may be a
   stand-in.
 - The synthetic data is SEEDed (42) so the golden is stable; the full sizes (N_TRN 1200 / N_VLD 1000) keep the LONG-tier
-  renders under ~5 s in the default tier, and the small format-pair test drops to N_TRN 100 / N_VLD 75, dpi 50 to fit the
-  NORMAL budget (an all-seven small render would not — 7 matplotlib figures cannot fit 0.3 s, so the all-seven +
+  renders under ~5 s in the default tier, and the small format-pair test drops to N_TRN 100 / N_VLD 75, dpi 50 to fit
+  the NORMAL budget (an all-seven small render would not — 7 matplotlib figures cannot fit 0.3 s, so the all-seven +
   determinism pin stays LONG-tier only).
 
 ## Integration

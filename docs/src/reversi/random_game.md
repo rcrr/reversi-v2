@@ -1,15 +1,15 @@
 # reversi/random_game.py
 The random-game module of the Reversi engine: the random move pick, the random move execution, and the random path —
 including the batch array engine that plays a whole corpus of positions in lockstep. It is the corpus generator for the
-random-play statistics: the SU_ANALYSIS level's production corpus engine (the play-path batches feed the
-hlp_su_analysis accumulators; the hlp_wave wave engine is retired — D-285).
+random-play statistics: the SU_ANALYSIS level's production corpus engine (the play-path batches feed the hlp_su_analysis
+accumulators; the hlp_wave wave engine is retired — D-285).
 
 ## API
 
 The 3 `__all__` functions. Dual contract throughout: a scalar PositionField in → scalar out, a PositionArray of any
-shape in → array out of the same shape (a 1-D batch keeps the classic layout; the 2-D (N, 2) uint64 raw input is
-coerced to the 1-D PositionArray by the PositionArray validator). The PRNG is INJECTED — the caller owns the
-MT19937 stream ("one seed for all"); the N-D element order (the draw order) is the C-order ravel of the array.
+shape in → array out of the same shape (a 1-D batch keeps the classic layout; the 2-D (N, 2) uint64 raw input is coerced
+to the 1-D PositionArray by the PositionArray validator). The PRNG is INJECTED — the caller owns the MT19937 stream
+("one seed for all"); the N-D element order (the draw order) is the C-order ravel of the array.
 
 | family | name | contract |
 |---|---|---|
@@ -34,10 +34,10 @@ re-implements neither.
   per-element pick via the prng batch kernel.
 - The array path engine: the step loop in TWO fused kernels — `_classify_step` (per lane: the legal set via board's
   per-lane primitive `legal_moves_of`, the classification masks, the pass lanes' opponent set in kernel) and
-  `_advance_step` (per lane: the pick via prng's `prng_pick_one_from_set64` on the pre-drawn slot, the flip set via board's
-  `flips_of_move`, the in-place state update). Between the passes only the needs count, the prefix slot map and one
-  `get_uint64_batch` call. The state is the raw (movers, opponents) uint64 pair — copied once from the input, advanced
-  in place, assembled into the Position array once at the end.
+  `_advance_step` (per lane: the pick via prng's `prng_pick_one_from_set64` on the pre-drawn slot, the flip set via
+  board's `flips_of_move`, the in-place state update). Between the passes only the needs count, the prefix slot map and
+  one `get_uint64_batch` call. The state is the raw (movers, opponents) uint64 pair — copied once from the input,
+  advanced in place, assembled into the Position array once at the end.
 - The step bound is derived from the input (a lane needs at most its ec surplus over the target, plus one); a stall
   would raise, never hang.
 
@@ -76,16 +76,14 @@ None.
 - The engine arrays are mutated in place: the input batch is copied once, the caller's array is never touched.
 - The empty move set is the module constant `_EMPTY_MOVE_SET` — the pass signal of the pick domain; the tests pin the
   expected values as literals (the goldens), not through the constant.
-- @validate_call (pydantic, arbitrary_types_allowed) on the public functions; the dual scalar/array signature, arrays
-  of any shape (the pick / make-move run on the C-order ravel of the legal-move sets; the play-path engine runs on
-  the C-order ravel of the positions — the 1-D lane engine is unchanged — and the outputs are reshaped back to the
-  positions shape).
+- @validate_call (pydantic, arbitrary_types_allowed) on the public functions; the dual scalar/array signature, arrays of
+  any shape (the pick / make-move run on the C-order ravel of the legal-move sets; the play-path engine runs on the
+  C-order ravel of the positions — the 1-D lane engine is unchanged — and the outputs are reshaped back to the positions
+  shape).
 
 ## Integration
 
 - board.py (the geometry + the positions + the per-lane njit primitives `legal_moves_of` / `flips_of_move`).
 - tools/prng.py (the MT19937 stream, the pick primitives, the batch pre-draw).
-- The SU_ANALYSIS corpus engine (the su-corpus-5 lineage): wrk_su_analysis.py (step 3) feeds its play-path batches —
-  the harvested lanes at the model's ec — to the hlp_su_analysis accumulators. The hlp_wave wave engine is
-  RETIRED
-  (D-285).
+- The SU_ANALYSIS corpus engine (the su-corpus-5 lineage): wrk_su_analysis.py (step 3) feeds its play-path batches — the
+  harvested lanes at the model's ec — to the hlp_su_analysis accumulators. The hlp_wave wave engine is RETIRED (D-285).

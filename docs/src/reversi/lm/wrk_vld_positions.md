@@ -1,10 +1,10 @@
 # reversi/lm/wrk_vld_positions.py
-The VLD_POSITIONS worker of the LM pipeline — the 13th active level (step 13). The POSITIONS TWIN over the
-validation data set: the 7th `cache_manager` consumer and the only worker that REUSES another level's data module —
-`wrk_positions_extract_and_prepare` + `wrk_positions_is_cache_consistent` imported from `wrk_positions`, the keyword `bid`/`status`
-overrides selecting the validation query. After the population
-stats, the worker runs the validation-independence check — how many validation records are ALSO present in the training
-set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.SHA3-256`.
+The VLD_POSITIONS worker of the LM pipeline — the 13th active level (step 13). The POSITIONS TWIN over the validation
+data set: the 7th `cache_manager` consumer and the only worker that REUSES another level's data module —
+`wrk_positions_extract_and_prepare` + `wrk_positions_is_cache_consistent` imported from `wrk_positions`, the keyword
+`bid`/`status` overrides selecting the validation query. After the population stats, the worker runs the
+validation-independence check — how many validation records are ALSO present in the training set — LOG ONLY, no action.
+The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.SHA3-256`.
 
 ## API
 
@@ -16,27 +16,29 @@ set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.S
 
 - `_up`:
   - `vld_cfg = ctx.cfg.validation_data_set` — `ValidationDataSetConfig` declares ONLY `bid: List[NonNegativeInt]` +
-    `status: List[StatusString]`. The M1 note: the query's `ec` is the ROOT
-    `empty_count` (no longer inherited from `regab_data_set`); the shared `ec` (20
-    in rlm_02) gates BOTH the extraction (wrk_positions) and the cache consistency check (
-    there); the validation block cannot override `ec`.
+    `status: List[StatusString]`. The M1 note: the query's `ec` is the ROOT `empty_count` (no longer inherited from
+    `regab_data_set`); the shared `ec` (20 in rlm_02) gates BOTH the extraction (wrk_positions) and the cache
+    consistency check ( there); the validation block cannot override `ec`.
   - The uniform 7-kwargs `cache_manager_load_or_compute`:
-    `cache_path = ctx.get_cache_file_full_path_for_current_level()`, `is_allowed = ctx.use_cache`,
-    `load_fn = lambda path: regab_load_data_set_from_file(path, checksum=False)` (the `checksum=True` default
-    re-verified the sidecar cache_manager step 3 already checked), `store_fn = regab_store_data_set_to_file`,
-    `validate_fn = lambda cached: wrk_positions_is_cache_consistent(ctx, cached, bid=vld_cfg.bid, status=vld_cfg.status)` — the
-    override is LOAD-BEARING (without it the TRAINING cfg params are used and the vld rds would always mismatch),
-    `compute_fn = lambda: wrk_positions_extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status)` (the shared wrk_positions
-    compute path, extract → dedup policy → log; the cache file stores the POST-policy data set, so a flag flip changes
-    the stored content + the vld rds_checksum, cascading through the checksum lineage), `logger_fn = ctx.log_event`.
+    `cache_path = ctx.get_cache_file_full_path_for_current_level()`,
+    `is_allowed = ctx.use_cache`,
+    `load_fn = lambda path: regab_load_data_set_from_file(path, checksum=False)`
+    (the `checksum=True` default re-verified the sidecar cache_manager step 3 already checked),
+    `store_fn = regab_store_data_set_to_file`,
+    `validate_fn` (the `wrk_positions_is_cache_consistent` call with `bid=vld_cfg.bid, status=vld_cfg.status`)
+    — the override is LOAD-BEARING (without it the TRAINING cfg params are used and the vld rds would always mismatch),
+    `compute_fn = lambda: wrk_positions_extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status)` (the shared
+    wrk_positions compute path, extract → dedup policy → log; the cache file stores the POST-policy data set, so a flag
+    flip changes the stored content + the vld rds_checksum, cascading through the checksum lineage),
+    `logger_fn = ctx.log_event`.
   - The cache-hit log: on a hit the post-policy total is logged from the stored content ("Duplicate game positions (key:
     mover, opponent): [TOTAL: N] — data set loaded from cache (regab_allow_duplicate: …)"); on the compute path the full
     line is logged inside `wrk_positions_extract_and_prepare` before the store.
   - Post-processing: `vld_positions, vld_game_values = vld_rds.generate_positions_and_game_values()` (the board.py
-    `Position` structured dtype, mover/opponent u64); the 3 rds-derived fields set (`vld_rds_checksum` is the
-    duck-typed `RegabDataSet.compute_sha3_256_hash` over `df_mogv`; the publication is the DEBUG
-    "Model attributes … have been set." line); population stats logged + stored in
-    `ctx.vld_pop_stats` (count int + mean/std_dev/ variance np.float64 over the int8 game values).
+    `Position` structured dtype, mover/opponent u64); the 3 rds-derived fields set (`vld_rds_checksum` is the duck-typed
+    `RegabDataSet.compute_sha3_256_hash` over `df_mogv`; the publication is the DEBUG "Model attributes … have been
+    set." line); population stats logged + stored in `ctx.vld_pop_stats` (count int + mean/std_dev/ variance np.float64
+    over the int8 game values).
   - The validation-independence check: `overlap = regab_count_position_overlap(ctx.positions, ctx.vld_positions)` — the
     number of vld records whose (mover, opponent) key is also in the training set (a pandas inner-merge over the two key
     columns; the train side is deduped first) — then one INFO log ("Validation independence check: [OVERLAP: X of N
@@ -51,11 +53,11 @@ Pinned by the 17-check `probes/verify_vld_positions.py` + `test_wrk_vld_position
 DB-free).
 
 - Source shape (probe A1-A8): the REUSED wrk_positions pair — A7 pins the import
-  (`wrk_positions_extract_and_prepare, wrk_positions_is_cache_consistent`), A8 pins the vld `bid`/`status` overrides on BOTH the compute
-  (`wrk_positions_extract_and_prepare`) and the validate fns (D8 with the live-factory check D1, the reuse-identity pin now includes
-  `wrk_positions_extract_and_prepare.__module__`), the `_for_current_level` name, the `checksum=False` load_fn, the bid/status
-  overrides, the factory gate, no Path / regab-extract imports (numpy IS imported and load-bearing for the population
-  stats), the 4-field `_down`.
+  (`wrk_positions_extract_and_prepare, wrk_positions_is_cache_consistent`), A8 pins the vld `bid`/`status` overrides on
+  BOTH the compute (`wrk_positions_extract_and_prepare`) and the validate fns (D8 with the live-factory check D1, the
+  reuse-identity pin now includes `wrk_positions_extract_and_prepare.__module__`), the `_for_current_level` name, the
+  `checksum=False` load_fn, the bid/status overrides, the factory gate, no Path / regab-extract imports (numpy IS
+  imported and load-bearing for the population stats), the 4-field `_down`.
 - The context facts (probe B4/B5): the 4 pre-declared `vld_*` blackboard fields + the `validation_data_set` config
   section.
 - The live rlm_02 invariants (probe C3a-C3d + C4 + the worker suite): bid [8] / status [CMS, CMR] / shared ec 20 → **200
@@ -70,9 +72,9 @@ DB-free).
   "[OVERLAP: 0 of 200 validation records], [PERCENT: 0.00%]" + the chain continues; rlm_00 (train = vld = bid 8 — the
   deliberate mirror fixture) → "[OVERLAP: 200 of 200 …], [PERCENT: 100.00%]" + NO raise (the 100%-overlapping vld is
   traced, the worker completes).
-- The reused-override semantics (the DB-free TestIsCacheConsistentOverride class, 6 tests — probe D1 and D8):
-  full match → True; bid / status / ec / connection mismatch → False; NO override → the TRAINING cfg params are used →
-  False (the worker must pass bid/status explicitly).
+- The reused-override semantics (the DB-free TestIsCacheConsistentOverride class, 6 tests — probe D1 and D8): full match
+  → True; bid / status / ec / connection mismatch → False; NO override → the TRAINING cfg params are used → False (the
+  worker must pass bid/status explicitly).
 
 ## Open issues
 
@@ -85,9 +87,10 @@ None.
 
 ## Integration
 
-- Reuses `wrk_positions_extract_and_prepare` + `wrk_positions_is_cache_consistent` — the twin relationship: same extraction machinery
-  (and the same duplicate policy), different `bid`/`status` (validation bid [8] vs training bid [6,7] in rlm_02). The
-  flat files are distinct: `rlmwf_04_POSITIONS.dat` (training) vs `rlmwf_13_VLD_POSITIONS.dat` (validation).
+- Reuses `wrk_positions_extract_and_prepare` + `wrk_positions_is_cache_consistent` — the twin relationship: same
+  extraction machinery (and the same duplicate policy), different `bid`/`status` (validation bid [8] vs training bid
+  [6,7] in rlm_02). The flat files are distinct: `rlmwf_04_POSITIONS.dat` (training) vs `rlmwf_13_VLD_POSITIONS.dat`
+  (validation).
 - The independence check reads `ctx.positions` (the training set, level 4) — the SM half-open interval semantics
   guarantee POSITIONS ran before VLD_POSITIONS on every up-move.
 - Downstream: VALIDATE consumes `ctx.vld_positions` / `ctx.vld_game_values`; ANALYTICS consumes `ctx.vld_pop_stats`; the

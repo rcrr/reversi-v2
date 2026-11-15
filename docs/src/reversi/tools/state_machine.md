@@ -37,9 +37,9 @@ Reversi — the domain modules (e.g. the LM facade) subclass Context and feed it
   name ValueError; out of bounds IndexError.
 - **Context injection (side effect)** — `__init__` unconditionally binds onto the passed context: `log_event` +
   `format_event_log` (the FINAL_LOG_PRINT accessor, the bound render) (this machine's bound methods) +
-  `get_cache_file_path_for_current_level` + `get_cache_file_full_path_for_current_level`. A
-  context shared by two machines re-binds to the last machine built on it. The domain workers depend on this injection
-  (a future redesign is parked in ideas.md).
+  `get_cache_file_path_for_current_level` + `get_cache_file_full_path_for_current_level`. A context shared by two
+  machines re-binds to the last machine built on it. The domain workers depend on this injection (a future redesign is
+  parked in ideas.md).
 - **Cache path** — `{cache_files_prefix}{level:02}_{worker}.dat` with `level = current_step`, i.e. the currently
   executing worker (the step is set BEFORE execution). The prefix is CONCATENATED verbatim (a bare prefix glues: `cache`
   → `cache01_CONFIG.dat`; a directory-like prefix must end with a separator). The full variant prepends `cfg.base_dir`
@@ -48,8 +48,8 @@ Reversi — the domain modules (e.g. the LM facade) subclass Context and feed it
 - **Logging** — every event becomes a frozen `LogEntry` (attribute access, `asdict()` for file/DB dumps); the live line
   is `[ts UTC] [step][name] [REL:VERB] msg` with enum names in fixed-width right-justified fields (`{REL:>5}:{VERB:>8}`,
   14 chars total); `show_event_log` / `show_history_of_moves` render the frozen-golden tables. The live print and the
-  buffered replay (`format_event_log` — the FINAL_LOG_PRINT file source) share the `_format_event_line` static
-  (the single source of truth for the line format).
+  buffered replay (`format_event_log` — the FINAL_LOG_PRINT file source) share the `_format_event_line` static (the
+  single source of truth for the line format).
 
 ## Verified invariants
 

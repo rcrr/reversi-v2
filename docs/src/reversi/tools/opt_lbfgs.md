@@ -18,46 +18,45 @@ capability, logging and checkpointing via callback hooks. Self-contained: no LMC
 ## Architecture
 
 - Algorithm: (1) input validation (x0 must be an ndarray with float32/float64 dtype, fg callable — `TypeError`
-  otherwise; inconsistent iteration bounds — max_iters < 1 or initial_iter >= max_iters — raise `ValueError`);
-  (2) two-loop recursion for the search direction with gamma scaling (H = gamma·I) — the per-op product buffer is
-  pre-allocated ONCE per call (f64, `prod`) and the two per-op products are written with `np.multiply(...,
-  out=prod)` + `np.subtract/np.add(..., out=delta/r)` — it replicates the classic per-op temporaries' dtype
-  semantics BIT-FOR-BIT (the f64 product, the f32 in-place downcast), so the L-BFGS trajectory is unchanged (the
-  bit-identity test pins it); the numba two-loop variant was measured and NOT adopted (memory-bandwidth bound +
-  the serial two-loop recurrence resists prange — D-146); (3) restart — if the direction is not a descent
-  direction (pᵀg ≥ 0), the memory is cleared and the direction falls back to steepest descent; (4) strong Wolfe
-  line search: tries α=1 first, expands with cubic interpolation up to α_max, zooms when needed; (5) curvature
-  condition — (yᵀs) > CURVATURE_THRESHOLD (1e-15) required before adding a pair to the history; (6) two
-  convergence criteria: (a) gradient norm < threshold for N consecutive iterations, (b) fractional function
-  decrease < threshold for N consecutive iterations; (7) fixed-size history (m pairs, FIFO).
+  otherwise; inconsistent iteration bounds — max_iters < 1 or initial_iter >= max_iters — raise `ValueError`); (2)
+  two-loop recursion for the search direction with gamma scaling (H = gamma·I) — the per-op product buffer is
+  pre-allocated ONCE per call (f64, `prod`) and the two per-op products are written with `np.multiply(..., out=prod)` +
+  `np.subtract/np.add(..., out=delta/r)` — it replicates the classic per-op temporaries' dtype semantics BIT-FOR-BIT
+  (the f64 product, the f32 in-place downcast), so the L-BFGS trajectory is unchanged (the bit-identity test pins it);
+  the numba two-loop variant was measured and NOT adopted (memory-bandwidth bound + the serial two-loop recurrence
+  resists prange — D-146); (3) restart — if the direction is not a descent direction (pᵀg ≥ 0), the memory is cleared
+  and the direction falls back to steepest descent; (4) strong Wolfe line search: tries α=1 first, expands with cubic
+  interpolation up to α_max, zooms when needed; (5) curvature condition — (yᵀs) > CURVATURE_THRESHOLD (1e-15) required
+  before adding a pair to the history; (6) two convergence criteria: (a) gradient norm < threshold for N consecutive
+  iterations, (b) fractional function decrease < threshold for N consecutive iterations; (7) fixed-size history (m
+  pairs, FIFO).
 - `save_fn` signature (7 params): `save_fn(x, sl, yl, rho, k, f, g_norm)` — the worker's intermediate-checkpoint hook.
 
 ## Verified invariants
 
-Pinned by `test_opt_lbfgs.py` (24 tests, 9 classes, no DB, no PERF gate) + `probes/verify_optimize.py` (E5-E7 pin
-this module's signature, the info-dict literals and the x0.copy() contract). No dedicated probe file exists for the
-module (the suite is the verification apparatus).
+Pinned by `test_opt_lbfgs.py` (24 tests, 9 classes, no DB, no PERF gate) + `probes/verify_optimize.py` (E5-E7 pin this
+module's signature, the info-dict literals and the x0.copy() contract). No dedicated probe file exists for the module
+(the suite is the verification apparatus).
 
-- `_two_loop_recursion` with empty history returns `g` (the gamma=1.0 identity); with random pairs (yᵀs > 0)
-  produces a non-zero, shape-consistent result; the out= form is BIT-IDENTICAL to the original per-op-temporary
-  algorithm (the reference embedded verbatim in the test, three seeded histories: f32 n=50/m=5, f32 n=500/m=9,
-  f64 n=64/m=7 — `test_out_equals_original_bit_identical`).
+- `_two_loop_recursion` with empty history returns `g` (the gamma=1.0 identity); with random pairs (yᵀs > 0) produces a
+  non-zero, shape-consistent result; the out= form is BIT-IDENTICAL to the original per-op-temporary algorithm (the
+  reference embedded verbatim in the test, three seeded histories: f32 n=50/m=5, f32 n=500/m=9, f64 n=64/m=7 —
+  `test_out_equals_original_bit_identical`).
 - The `info` dict: exactly the 9 keys; `info['w']` IS the returned x; `f` / `g_norm` agree with a fresh `fg(x)`
-  evaluation; `iters` within (0, max_iters]; sl/yl/rho co-length and the history capped at m
-  (`TestLBFGSInfoContract`).
-- Input validation: non-ndarray x0, int32 dtype, non-callable fg raise `TypeError`; max_iters < 1 and
-  initial_iter >= max_iters raise `ValueError` (`TestLBFGSInputValidation`).
-- The stop reasons pinned at runtime: `CONVERGED_MIN_GRAD` (a quadratic), `MAX_ITERS_REACHED` (Rosenbrock, 2
-  iters, `iters == 2`), `CONVERGED_LOW_PROGRESS` (a near-flat function) (`TestLBFGSStopReasons`).
-- x0 is never mutated (the `x0.copy()` contract); a float32 x0 stays float32 end-to-end (x, the sl/yl vectors,
-  g_norm); the `logger` hook receives the log lines (`TestLBFGSInfoContract`).
-- The handcrafted quadratic (known minimum [−1.0, 1.5]) converges within 1e-3 (`TestLBFGSBaseFunction`); Rosenbrock
-  from [−1.0, −1.0] to [1, 1] within 1e-4, 1000 iters (`TestLBFGSRosenbrockFunction`); the 20D Zakharov converges
-  to the origin (seed 42, 1000 iters, within 1e-5) (`TestLBFGSZakharovFunction`).
+  evaluation; `iters` within (0, max_iters]; sl/yl/rho co-length and the history capped at m (`TestLBFGSInfoContract`).
+- Input validation: non-ndarray x0, int32 dtype, non-callable fg raise `TypeError`; max_iters < 1 and initial_iter >=
+  max_iters raise `ValueError` (`TestLBFGSInputValidation`).
+- The stop reasons pinned at runtime: `CONVERGED_MIN_GRAD` (a quadratic), `MAX_ITERS_REACHED` (Rosenbrock, 2 iters,
+  `iters == 2`), `CONVERGED_LOW_PROGRESS` (a near-flat function) (`TestLBFGSStopReasons`).
+- x0 is never mutated (the `x0.copy()` contract); a float32 x0 stays float32 end-to-end (x, the sl/yl vectors, g_norm);
+  the `logger` hook receives the log lines (`TestLBFGSInfoContract`).
+- The handcrafted quadratic (known minimum [−1.0, 1.5]) converges within 1e-3 (`TestLBFGSBaseFunction`); Rosenbrock from
+  [−1.0, −1.0] to [1, 1] within 1e-4, 1000 iters (`TestLBFGSRosenbrockFunction`); the 20D Zakharov converges to the
+  origin (seed 42, 1000 iters, within 1e-5) (`TestLBFGSZakharovFunction`).
 - Warm-start: 100 continuous iterations vs 50+50 with save/resume — final positions match within 1e-4
   (`TestLBFGSWarmStart`).
-- `FixedSizeMaxList`: `max()` on the empty window raises `RuntimeError`; the push/max/len/eviction behavior is
-  pinned (`TestFixedSizeMaxList`).
+- `FixedSizeMaxList`: `max()` on the empty window raises `RuntimeError`; the push/max/len/eviction behavior is pinned
+  (`TestFixedSizeMaxList`).
 
 ## Open issues
 

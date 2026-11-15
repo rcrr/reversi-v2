@@ -35,5 +35,5 @@ behaviour lives in `test_wrk_plot` (the worker tier) and `probes/verify_plot.py`
 - The module under test: `reversi/lm/hlp_plot.py` (hlp_plot.md).
 - The worker tier: `test_wrk_plot` (the level end-to-end on the synthetic ctx); the probe tier: `probes/verify_plot.py`
   (the vocabulary, the lazy import, the rendering, the determinism, the PlotConfig semantics).
-- The schema consumer of `HLP_PLOT_NAMES`: `test_hlp_config_schemas` (the PlotConfig section — the fail-fast unknown-name
-  guard).
+- The schema consumer of `HLP_PLOT_NAMES`: `test_hlp_config_schemas` (the PlotConfig section — the fail-fast
+  unknown-name guard).

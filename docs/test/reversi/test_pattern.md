@@ -14,14 +14,14 @@ The pattern unit suite — 13 classes / 76 tests, 3 PERF-gated (1M-size pack, `c
 | `TestTransformationsCayleyTable` | 4 | the 8 D8 functions in paper order (e, r, r2, r3, sv, sh, d1, d2) + the `trm = [0,1,2,3,4,6,7,5]` relabel to canonical D8 slot order (notes/naming.md); the 8×8 Cayley table checked as `cayley[i,j](data) == trs[j](trs[i](data))` on `ar`, 14 structural bitboards, and all 29 `pattern_sample_data` masks |
 | `TestPatternPrint` | 1 | the EDGE `print()` full 13-line string golden |
 | `TestPatternMdpCsvFile` | 5 | the `mdp_csv_file` classmethod via `mock_open` + `MagicMock(spec=Pattern)`; the 3 `TypeError` messages asserted with EXACT `assertEqual` |
-| `TestPatternComputeIndexes` | 8 | scalar + 1-D array + multi-position row independence + the N-D shape tests
-(2-D, 3-D, non-contiguous 2-D, empty 2-D) + PERF 1M |
+| `TestPatternComputeIndexes` | 8 | scalar + 1-D array + multi-position row independence + the N-D shape tests (2-D,
+  3-D, non-contiguous 2-D, empty 2-D) + PERF 1M |
 | `TestPatternSet` | 12 | construction (duplicate names/masks `ValueError`s + the empty pattern list), the `names`/`masks` properties, the `hash` formula with the golden pinned, the `__repr__` / `print_summary` / `print` goldens |
-| `TestPatternPrincipalIndex` | 2 | the single-pattern principal-index dict + the public convert array pin (the uint32 array converts; the
-  uint64 array raises `ValidationError`) |
+| `TestPatternPrincipalIndex` | 2 | the single-pattern principal-index dict + the public convert array pin (the uint32
+  array converts; the uint64 array raises `ValidationError`) |
 | `TestPatternComputePrincipalIndexDict` | 7 | the full principal-index dicts (9, 27, 81 entries) as `np.array` goldens |
-| `TestPatternSetComputePrincipalIndexes` | 8 | scalar + 1-D + multi-position + the N-D shape tests (2-D, 3-D, the `test_performance_1m` PERF benchmark gated on the LONG tier — D-533;
-non-contiguous 2-D, empty 2-D) + PERF 1M |
+| `TestPatternSetComputePrincipalIndexes` | 8 | scalar + 1-D + multi-position + the N-D shape tests (2-D, 3-D, the
+  `test_performance_1m` PERF benchmark gated on the LONG tier — D-533; non-contiguous 2-D, empty 2-D) + PERF 1M |
 
 ## Goldens pinned
 
@@ -36,9 +36,9 @@ non-contiguous 2-D, empty 2-D) + PERF 1M |
 - Dual scalar/array API everywhere; the 1M size is behind `PERF=1`.
 - Error paths: `assertRaises` + message substring (`"not principal"`, `"duplicate names"`, `"duplicate masks"`), EXCEPT
   `mdp_csv_file` where all three `TypeError` messages are exact `assertEqual`.
-- Star import `from reversi.pattern import *` (the 5 `__all__` names) + the explicit `from reversi.index import Index, IndexArray, validate_index_array` import +
-  explicit board-function imports; the Cayley test builds its OWN local 29-row pattern table (it does not use the
-  star-imported `pattern_sample_data`).
+- Star import `from reversi.pattern import *` (the 5 `__all__` names) + the explicit
+  `from reversi.index import Index, IndexArray, validate_index_array` import + explicit board-function imports; the
+  Cayley test builds its OWN local 29-row pattern table (it does not use the star-imported `pattern_sample_data`).
 - The module-level D8 fixture `ar` is the single Cayley exercise board (no pre-transformed copies).
 
 ## Integration

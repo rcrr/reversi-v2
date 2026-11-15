@@ -1,8 +1,9 @@
 # reversi/lm/wrk_config.py
 The CONFIG worker of the LM pipeline — the 1st active level (step 1), the first non-sentinel. It loads the LM JSON5
-config file, validates it into the hlp_config_schemas domain model, computes the config fingerprint (`ctx.config_checksum`,
-the sha3_256 of the normalized dump), and publishes the model (and the `use_cache` flag) on the context for the workers
-that follow. It writes NO cache file; the configuration provenance is EMBEDDED in the v2 model file at SAVE.
+config file, validates it into the hlp_config_schemas domain model, computes the config fingerprint
+(`ctx.config_checksum`, the sha3_256 of the normalized dump), and publishes the model (and the `use_cache` flag) on the
+context for the workers that follow. It writes NO cache file; the configuration provenance is EMBEDDED in the v2 model
+file at SAVE.
 
 ## API
 
@@ -13,15 +14,13 @@ that follow. It writes NO cache file; the configuration provenance is EMBEDDED i
 
 ## Architecture
 
-- `_up`: `_load` → INFO "loaded" → `_validate` → INFO "validated" → the DEBUG echo of the operational
-  sections (one line each: optimization, stat_model, su_analysis, anova, regab_data_set — the
-  dbname/user/host, never the password — and validation_data_set) → INFO (name/description/ base_dir) →
-  `ctx.use_cache = cfg.use_cache` →
-  `ctx.cfg = cfg` → the fingerprint:
-  `ctx.config_checksum = hashlib.sha3_256(cfg.model_dump_json(indent=4).encode()).hexdigest()` (the normalized dump is
-  the EFFECTIVE configuration of the run — the base_dir override included, pydantic defaults resolved — and this is the
-  single source of truth for the EMBEDDED model-file config provenance and the analytics report line) → the INFO log of
-  the hex.
+- `_up`: `_load` → INFO "loaded" → `_validate` → INFO "validated" → the DEBUG echo of the operational sections (one line
+  each: optimization, stat_model, su_analysis, anova, regab_data_set — the dbname/user/host, never the password — and
+  validation_data_set) → INFO (name/description/ base_dir) → `ctx.use_cache = cfg.use_cache` → `ctx.cfg = cfg` → the
+  fingerprint: `ctx.config_checksum = hashlib.sha3_256(cfg.model_dump_json(indent=4).encode()).hexdigest()` (the
+  normalized dump is the EFFECTIVE configuration of the run — the base_dir override included, pydantic defaults resolved
+  — and this is the single source of truth for the EMBEDDED model-file config provenance and the analytics report line)
+  → the INFO log of the hex.
 - `_down`: the INFO "Clearing configuration..." → `ctx.cfg = None`, `ctx.use_cache = None`,
   `ctx.config_checksum = None`.
 - `_load`: `json5.load` (UTF-8) of `ctx.config_file_path` with the DEBUG log of the path; an optional
@@ -43,8 +42,8 @@ Pinned by `probes/verify_wrk_config.py` (15 checks) + `test_wrk_config.py` (14 t
 - The repeat-run behaviour: the second up is a pure load with a STABLE fingerprint (probe C1), the `_down` reset (cfg,
   use_cache, config_checksum — probe C3).
 - The failure behaviour: the invalid json5 → `ValueError` (json5 0.15.0 raises a plain ValueError), the base_dir gates
-  with the precise OS types (the a-file override → `NotADirectoryError` in the FACADE `__init__`, the a-file from
-  the JSON → the worker's own gate, the not-writable → `PermissionError`, the missing → `FileNotFoundError`) —
+  with the precise OS types (the a-file override → `NotADirectoryError` in the FACADE `__init__`, the a-file from the
+  JSON → the worker's own gate, the not-writable → `PermissionError`, the missing → `FileNotFoundError`) —
   `TestLMWorkerConfigBaseDir`.
 - The integration: the bare (un-injected) context keeps the no-op closure lambda (probe E4a), `rlm_00.json` is NOT plain
   JSON (json5 load-bearing, probe E6), the down log line (probe E7).

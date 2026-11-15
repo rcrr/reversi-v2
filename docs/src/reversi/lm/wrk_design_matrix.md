@@ -1,8 +1,8 @@
 # reversi/lm/wrk_design_matrix.py
 The DESIGN_MTR worker of the LM pipeline — the 8th active level (step 8). Like POSITIONS, INDEXES and WMAPS it is a
-CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_design_matrix object (the flat
-`rlmwf_08_DESIGN_MTR.dat` + binio sidecar + the duck-typed data checksum) — the FIFTH cache_manager consumer in the
-pipeline; the flat files DO materialize (the DB test pins their existence).
+CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_design_matrix object (the flat `rlmwf_08_DESIGN_MTR.dat`
++ binio sidecar + the duck-typed data checksum) — the FIFTH cache_manager consumer in the pipeline; the flat files DO
+materialize (the DB test pins their existence).
 
 ## API
 
@@ -19,10 +19,10 @@ pipeline; the flat files DO materialize (the DB test pins their existence).
   already verified by cache_manager), `store_fn = hlp_design_matrix_store_to_file`,
   `validate_fn = lambda cached_dm: hlp_design_matrix_is_cache_consistent(ctx, cached_dm)` (the 1-field metadata
   compare), `compute_fn = lambda: hlp_design_matrix_compute(ctx)`, `logger_fn = ctx.log_event`. Then
-  `ctx.design_matrix = dm_obj.X` (the BARE ndarray, NOT the object) + the DEBUG "Design Matrix
-  computed/loaded. Shape: {shape}" line + the INFO "Design matrix checksum (design_matrix_checksum):
-  {checksum}." line + `ctx.design_matrix_checksum =
-  dm_checksum` (the 2nd attribute, the DATA checksum — the cache_manager 3rd return element).
+  `ctx.design_matrix = dm_obj.X` (the BARE ndarray, NOT the object) + the DEBUG "Design Matrix computed/loaded. Shape:
+  {shape}" line + the INFO "Design matrix checksum (design_matrix_checksum): {checksum}." line +
+  `ctx.design_matrix_checksum = dm_checksum` (the 2nd attribute, the DATA checksum — the cache_manager 3rd return
+  element).
 - `_down`: INFO "Clearing Design Matrix attribute..." → BOTH attributes to None — `ctx.design_matrix` AND
   `ctx.design_matrix_checksum` (the house shape: object + checksum).
 
@@ -30,18 +30,16 @@ pipeline; the flat files DO materialize (the DB test pins their existence).
 
 Pinned by the `probes/verify_design_matrix.py` B + C + D + F tiers + the 3-test suite.
 
-- Source shape (probe B1-B9): `__all__ = ['wrk_design_matrix']`, the factory name "DESIGN_MTR" WITH
-  `@validate_call` + the pydantic import, the full 7-kwargs cache wiring with the `checksum=False` load_fn, `_up` sets
-  `ctx.design_matrix` (the bare `dm_obj.X`) + `ctx.design_matrix_checksum`, `_down` clears both, 0 whitespace-only
-  lines.
-- The worker-test source shape (probe C1-C14): the gate in BOTH setUps, the idiom (TemporaryDirectory ×2
-  under CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored json ×2, the paths import, no `shutil`), all 3 `LogisticModel`
-  constructions `Verbosity.HIGH`, the cache names pinned, the step pins 7 (×2) + 8 (×3).
+- Source shape (probe B1-B9): `__all__ = ['wrk_design_matrix']`, the factory name "DESIGN_MTR" WITH `@validate_call` +
+  the pydantic import, the full 7-kwargs cache wiring with the `checksum=False` load_fn, `_up` sets `ctx.design_matrix`
+  (the bare `dm_obj.X`) + `ctx.design_matrix_checksum`, `_down` clears both, 0 whitespace-only lines.
+- The worker-test source shape (probe C1-C14): the gate in BOTH setUps, the idiom (TemporaryDirectory ×2 under
+  CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored json ×2, the paths import, no `shutil`), all 3 `LogisticModel` constructions
+  `Verbosity.HIGH`, the cache names pinned, the step pins 7 (×2) + 8 (×3).
 - The level boundary + golden re-derivation (live DB, probe D5-D10 + F tier): after `move_to_step("DESIGN_MTR")` — step
   8; the base dir holds the flat `rlmwf_08_DESIGN_MTR.dat` + `.SHA3-256` pair (the DB test pins both); the cross-run
-  cache hit + no recompute; X == the independent recompute
-  `iwmap[pindexes + col_offsets]`, every value a valid w index (< W=21), per-feature columns within their iwmap regions,
-  intercept column all 0, the DATA checksum identity.
+  cache hit + no recompute; X == the independent recompute `iwmap[pindexes + col_offsets]`, every value a valid w index
+  (< W=21), per-feature columns within their iwmap regions, intercept column all 0, the DATA checksum identity.
 - The end-to-end round-trip + the golden content (DB-gated): `test_compute_and_populate_cache` (step 8 pin, the FLAT
   `rlmwf_08_DESIGN_MTR.dat` + `.SHA3-256` on disk, "Forcing computation", `design_matrix` not None, shape == the
   principal-indexes shape, dtype uint32), `test_read_cache_on_new_instance` (the second instance to WMAPS, then

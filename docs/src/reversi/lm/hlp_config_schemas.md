@@ -28,10 +28,10 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 
 ## Architecture
 
-- **The bitboard masks** — `PatternConfig.mask` and `MobilityFeatureConfig.mask` are `Bitboard` (from
-  board.py) behind a `mode="before"` `field_validator` (`bitboard_from_hex_str`) and a `field_serializer`
-  (`f"{mask:016X}"`): in, a 16-digit hex string with NO 0x prefix (case-insensitive); out, uppercase 16-hex.
-  `model_config` is `arbitrary_types_allowed`.
+- **The bitboard masks** — `PatternConfig.mask` and `MobilityFeatureConfig.mask` are `Bitboard` (from board.py) behind a
+  `mode="before"` `field_validator` (`bitboard_from_hex_str`) and a `field_serializer` (`f"{mask:016X}"`): in, a
+  16-digit hex string with NO 0x prefix (case-insensitive); out, uppercase 16-hex. `model_config` is
+  `arbitrary_types_allowed`.
 - **The strong-Wolfe invariant** — `OptimizationConfig` carries the L-BFGS defaults (`max_iters=500` ge=1, `m=50` ge=1,
   `c1=1e-4` 0<c1<1, `c2=0.9` 0<c2<1, `min_grad=(1e-5, 3)`, `min_p_fun_decrease=(1e-14, 7)`, `log_every_n` /
   `save_every_n` ge=0, `checkpoint_file` required, `high_performance_fg` default False: False keeps the classic
@@ -42,30 +42,30 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   extraction (training + validation), and the saved model; D-280), `description`, `base_dir`, `output` (required),
   `use_cache=True`, `cache_files_prefix` default `"rlmwf_"` (the filename-prefix concatenation the state_machine
   closures implement), `regab_allow_duplicate` default `True` (True keeps every extracted row, False deduplicates by
-  `(mover, opponent)` keeping the first occurrence — the POSITIONS / VLD `wrk_positions_extract_and_prepare` path, log only),
-  `client_check_tol` default `1e-8` (the max absolute Y-space difference admitted between the SAVED-model recomputed
-  residuals and the in-memory VALIDATE ones; `gt=0`); `plot` + `analytics` by default factory; the five required domain
-  sections (`regab_data_set`, `feature_set`, `stat_model`, `optimization`, `validation_data_set`).
+  `(mover, opponent)` keeping the first occurrence — the POSITIONS / VLD `wrk_positions_extract_and_prepare` path, log
+  only), `client_check_tol` default `1e-8` (the max absolute Y-space difference admitted between the SAVED-model
+  recomputed residuals and the in-memory VALIDATE ones; `gt=0`); `plot` + `analytics` by default factory; the five
+  required domain sections (`regab_data_set`, `feature_set`, `stat_model`, `optimization`, `validation_data_set`).
 - **The analysis levels** — `su_analysis` + `anova`, both by default factory and both `enable` default **FALSE**
   (opt-in: the production configs leave the fields unset and get the no-op; the experiment configs rlm_05 / rlm_06 and
   the rlm_00 fixture opt in (su_analysis; anova is enabled by no shipped fixture)); `target_level: str` default `"last"`
   (a level name, case-insensitive, resolved fail-fast by the StateMachine, or "last" for the full pipeline; consumed by
   the facade's `run()` when no explicit target is given — a blank value means "last" too); `log_file_name: str | None`
-  default `None` (the FINAL_LOG_PRINT output file name, relative to base_dir: the run log from DEBUG upward; the
-  absent entry keeps the level a no-op);
-  and `check_su_pairs_feature_set`, a `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name
-  is not in the `feature_set` (the mobility + pattern names). The `SuAnalysisConfig.check_su_pairs` field validator does
-  the canonical sort + dedupe (each pair sorted, a repeated pair collapsed); the `check_rarity_thresholds` validator:
-  positive strictly-increasing integers (None / empty = section off).
+  default `None` (the FINAL_LOG_PRINT output file name, relative to base_dir: the run log from DEBUG upward; the absent
+  entry keeps the level a no-op); and `check_su_pairs_feature_set`, a `model_validator(mode="after")` that fails fast
+  when a `su_analysis.su_pairs` name is not in the `feature_set` (the mobility + pattern names). The
+  `SuAnalysisConfig.check_su_pairs` field validator does the canonical sort + dedupe (each pair sorted, a repeated pair
+  collapsed); the `check_rarity_thresholds` validator: positive strictly-increasing integers (None / empty = section
+  off).
 - **PlotConfig** — `enable: bool = True` (false makes the PLOT level a no-op even with names listed);
   `format: str = "png"` (`"png"`, `"pdf"` or a comma-separated pair — both; `check_format` normalizes whitespace,
   rejects unknown tokens, empty tokens and duplicates); `dpi: int = 150` (50..1200); `dir_name: Path = "plots"`
   (absolute as-is, it may live outside base_dir; relative resolves under base_dir — the resolution is the WORKER's job,
   the schema carries the Path); `plots: List[str] = []` (the WHITELIST: a listed name is generated, an unlisted one is
-  skipped, an empty list is a no-op; `check_plots` fails fast on names outside `HLP_PLOT_NAMES`, imported from hlp_plot —
-  the single source of truth — and deduplicates preserving order).
-- **Strictness** — the 3-letter uppercase status is enforced in BOTH status lists (regab + validation data set); `ec` is
-  0..60; `frequency_cut_off` is a PositiveInt.
+  skipped, an empty list is a no-op; `check_plots` fails fast on names outside `HLP_PLOT_NAMES`, imported from hlp_plot
+  — the single source of truth — and deduplicates preserving order).
+- **Strictness** — the 3-letter uppercase status is enforced in BOTH status lists (regab + validation data set); `ec`
+  is 0..60; `frequency_cut_off` is a PositiveInt.
 
 ## Verified invariants
 

@@ -29,4 +29,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   declared conformant; the overview's 1:1 claim is now true again. (D-633)
 - docs/test/reversi/test\_index.md — rewritten to the test-doc skeleton (the auditor's 4 sections) and un-staled:
   4 classes / 10 tests, not the 2 / 5 the old doc claimed. (D-634)
+- docs/ — the batch rewrap: all 38 docs with a format finding rewrapped to the house form (the 58 over-120 lines,
+  the 3 split code spans healed), the 3 ragged Coverage tables repaired (escaped pipes), wrk\_vld\_positions.md
+  back under 120; the docs audit now reports ZERO non-size findings (the 9 size-budget items disclosed, not
+  padded). (D-635)
 - Next: the rest of the rules-compliance fix campaign (the user's item-by-item approvals).

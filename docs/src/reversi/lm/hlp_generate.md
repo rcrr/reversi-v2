@@ -27,8 +27,8 @@ compressed-w checksum — the consistency anchor). The flat file is `rlmwf_12_GE
   payload parse.
 - `hlp_generate_is_cache_consistent` (the no-validation note — `LMContext` is a TYPE_CHECKING import): the single-field
   gate on `w_checksum` — when the OPTIMIZE weights change, the dense expansion must be recomputed.
-- `hlp_generate_compute_w_dense`: per feature, the slice `[iwmap_feature_offset[fid] : offset[fid+1]]` of `w_dense = zeros(K)` (K =
-  `offset[-1]`), with the 3 category branches:
+- `hlp_generate_compute_w_dense`: per feature, the slice `[iwmap_feature_offset[fid] : offset[fid+1]]` of
+  `w_dense = zeros(K)` (K = `offset[-1]`), with the 3 category branches:
   - Intercept: broadcast the single weight (`w[w_min : w_max+1][0]`) over the whole slice.
   - Mobility: `np.interp` over `arange(n_configurations)` with the seen configs (wmap `config_id >= 0` rows) — internal
     missing values interpolated, external clamped (the note: the ascending precondition is structural, hlp_wmaps

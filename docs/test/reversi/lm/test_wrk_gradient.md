@@ -17,16 +17,16 @@ fresh base dir, so a live DB is required) plus the DB-free `TestGradientFlagWiri
   mobilities; 2981 w entries) — all re-derived by the probe (the independent float64 reference).
 - The step pins: 9 (ZED) in setUp + 10 (GRADIENT) in `test_generate_gradient` + 9/ZED again in the _down test — the
   pipeline ordering locked.
-- The 3×2 zero-w worker golden (the `test_up_logs_generation_line_and_worker_golden` pin): f = 4/75, g = [1/30, 0, −1/30]
-  (rtol 1e-6 / atol 1e-8) — the same numbers the hlp level pins in test_hlp_gradient, now asserted THROUGH the
+- The 3×2 zero-w worker golden (the `test_up_logs_generation_line_and_worker_golden` pin): f = 4/75, g = [1/30, 0,
+  −1/30] (rtol 1e-6 / atol 1e-8) — the same numbers the hlp level pins in test_hlp_gradient, now asserted THROUGH the
   worker-published closure (the 0.01 mock ridge vanishes at w = 0).
 
 ## Conventions
 
 - Both tests are DB-gated: the setUp's move to ZED runs the positions chain (the live regab DB) on a fresh base dir —
   the same gate class as the other worker tests (the db_long_gate: SKIP_REGAB_DB + LONG).
-- The goldens are the canonical values: the float32 cast of g changes the values by < 1 float32 ulp (≈1e-10 absolute
-  at these magnitudes) — inside the pinned tolerances.
+- The goldens are the canonical values: the float32 cast of g changes the values by < 1 float32 ulp (≈1e-10 absolute at
+  these magnitudes) — inside the pinned tolerances.
 - The "How to run" header documents the gate.
 
 ## Integration

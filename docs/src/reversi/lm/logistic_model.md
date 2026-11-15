@@ -41,8 +41,8 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
 
 - **4-step construction** — (1) validate the domain paths with the plain helpers, (2) build the shared `LMContext`, (3)
   assemble the worker list (sentinel + the 19 factory calls), (4) `super().__init__` hands workers + context + verbosity
-  to `BaseModel` → `StateMachine`, which injects `log_event` + `format_event_log` + the two cache-path
-  closures into the context (replacing the lambda defaults under the same names — the same mechanism as `log_event`).
+  to `BaseModel` → `StateMachine`, which injects `log_event` + `format_event_log` + the two cache-path closures into the
+  context (replacing the lambda defaults under the same names — the same mechanism as `log_event`).
 - **LMContext is the shared blackboard** — a `@dataclass` extending the plain (non-dataclass) `Context` base; workers
   publish to the pre-declared fields (an ad-hoc attribute works but breaks the pattern); `cfg` must be populated by the
   CONFIG worker before any cache call (the injected closures read `ctx.cfg.cache_files_prefix` / `ctx.cfg.base_dir` and
@@ -68,9 +68,9 @@ No commented factory imports or worker-list entries remain. The factories follow
   family names (the A2050 = the 11-pattern production set, the A2030 = the small EDGE+LMC one); they are NOT derived
   from the ec (both fixtures run ec 20). Intentional, not a typo — do not "fix" them.
 - **Script entry (runnable as a command)** — from the workspace root:
-  `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]`
-  (default `standard`). The `__main__` block parses the `--verbosity` choice (lowercase `Verbosity` names) and
-  calls `build_model` — build the facade, run it to the last level.
+  `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
+  `standard`). The `__main__` block parses the `--verbosity` choice (lowercase `Verbosity` names) and calls
+  `build_model` — build the facade, run it to the last level.
 
 ## Verified invariants
 
@@ -113,8 +113,8 @@ Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.p
 - The facade is a pure pass-through: every method delegates per method, the read-only views mirror the SM, verbosity
   round-trips — `test_logistic_model` (the facade-delegation, views/verbosity and CSV-export tests).
 - The `build_model` script entry: it builds the facade on the config and runs it to the last level —
-  `test_logistic_model::test_build_model_builds_and_runs_to_the_last_level` (the `LogisticModel` patched in the
-  module namespace).
+  `test_logistic_model::test_build_model_builds_and_runs_to_the_last_level` (the `LogisticModel` patched in the module
+  namespace).
 
 ## Open issues
 

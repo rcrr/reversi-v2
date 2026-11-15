@@ -65,3 +65,14 @@ D-634 | 2026-11-15 | The test\_index.md mirror doc is rewritten to the test-doc 
          space landed, the doc said 2 / 5. The new 35-line doc carries the auditor's four test-doc sections (Coverage
          with the per-class pin map, Goldens pinned = None, Conventions, Integration) and is green on the docs\_format
          audit.
+
+D-635 | 2026-11-15 | The docs/ batch rewrap (the rules-compliance fix campaign, the user's item 3): all 38 docs carrying
+         a format finding are rewrapped to the house form with the canonical re-wrapper (notes\_format \-\-write,
+         self-verifying: content fingerprint + idempotence), healing the 58 lines over the 120-char width and the 3
+         split code spans; then the 3 ragged Coverage tables are repaired at the cell level —
+         test\_hlp\_design\_matrix.md and test\_hlp\_generate.md (the bare `str \| Path` in a cell, now escaped) and
+         test\_wrk\_analytics.md (the bare pipes of `mean(\|rn\|)`, now escaped) — and the 2 residual over-120 lines of
+         wrk\_vld\_positions.md are split (the validate\_fn cell re-phrased so the code span stays on one line). The
+         docs\_format audit now reports ZERO non-size findings across docs/; the 9 size-budget items (4 docs under the
+         60-line floor, 5 over/under the hub budget) are disclosed, not padded — reaching a line budget by adding filler
+         is against the mirror-doc purpose.

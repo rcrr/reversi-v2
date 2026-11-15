@@ -29,20 +29,19 @@ matrix a feature-table evaluation consumes).
   present/None, per-set name+hash lines, then one line per mobility (name + mask + side) and one per pattern (mask),
   closed by the "Features: [i, category, ...]" legend line
   `{i:02d} {category} {name:10s} {n_instances} {n_configurations:10,d}`.
-- `feature_blocks` (property): the per-feature column blocks (the column-labelling view over the compute_indexes
-  layout) — the `(name, col_start, col_end, n_configurations, n_instances)` tuples over the NON-intercept features,
-  in the `features` order (the documented layout: the intercept owns column 0 if present, then the mobilities in the
+- `feature_blocks` (property): the per-feature column blocks (the column-labelling view over the compute_indexes layout)
+  — the `(name, col_start, col_end, n_configurations, n_instances)` tuples over the NON-intercept features, in the
+  `features` order (the documented layout: the intercept owns column 0 if present, then the mobilities in the
   MobilitySet's sorted (mask, side) order, then the patterns in the PatternSet's sorted mask order); each feature
   occupies its `n_instances` contiguous columns (its D8 instance columns), so the blocks are instance-aware; the
   intercept is not a block (it is `fset.intercept`).
-- `compute_indexes(positions) -> IndexArray` (validated): the uint32 index array of shape positions.shape + (I,) —
-  a 1-D batch gives the classic `(N, I)` matrix — with `I` = the summed `n_instances`:
-  column 0 = the intercept (constant 0) if present, then the `mset.compute_indexes` block, then the
-  `pset.compute_principal_indexes` block (each pattern expanded into its `n_instances` columns in its unique-mask
-  first-seen D8 order), merged along the last axis with a single `np.concatenate(..., axis=-1)` (hstack would
-  concatenate axis 1 for ndim > 2). `N=0` or `I=0` returns `np.empty(positions.shape + (I,), dtype=Index)`
-  immediately. The `IndexArray` return annotation carries the BeforeValidator dtype check via the imported alias
-  (pattern.py).
+- `compute_indexes(positions) -> IndexArray` (validated): the uint32 index array of shape positions.shape + (I,) — a 1-D
+  batch gives the classic `(N, I)` matrix — with `I` = the summed `n_instances`: column 0 = the intercept (constant 0)
+  if present, then the `mset.compute_indexes` block, then the `pset.compute_principal_indexes` block (each pattern
+  expanded into its `n_instances` columns in its unique-mask first-seen D8 order), merged along the last axis with a
+  single `np.concatenate(..., axis=-1)` (hstack would concatenate axis 1 for ndim > 2). `N=0` or `I=0` returns
+  `np.empty(positions.shape + (I,), dtype=Index)` immediately. The `IndexArray` return annotation carries the
+  BeforeValidator dtype check via the imported alias (pattern.py).
 
 ## Verified invariants
 
@@ -54,14 +53,14 @@ matrix a feature-table evaluation consumes).
   the name-order golden (the ordering contract exercised for free), the pinned hash; the partial-None trio
   (intercept-only / mobility-only / pattern-only); a MOBILITY-category feature as intercept → ValueError; the full
   print_summary golden — `TestFeatureSet` (6).
-- `feature_blocks`: on the 13-pattern + 3-mobility fixture, the full 16-block list golden (with the intercept the
-  blocks start at column 1 and end at `n_instances` 53; without it they start at 0 and end at 52); the intercept-only
-  and the empty sets → `[]`; the contiguous instance-aware tiling (every block width = its `n_instances`, no gaps,
-  up to `n_instances`) — `TestFeatureSetFeatureBlocks` (5).
+- `feature_blocks`: on the 13-pattern + 3-mobility fixture, the full 16-block list golden (with the intercept the blocks
+  start at column 1 and end at `n_instances` 53; without it they start at 0 and end at 52); the intercept-only and the
+  empty sets → `[]`; the contiguous instance-aware tiling (every block width = its `n_instances`, no gaps, up to
+  `n_instances`) — `TestFeatureSetFeatureBlocks` (5).
 - `compute_indexes`: the 3×10 literal golden (EDGE + DIAG4 + LMC + intercept, 3 real positions); the N-D shape edges
-  ((1,3) → (1,3,I), (3,1,1) → (3,1,1,I), the F-order (1,3) parity, the empty (0,2) → (0,2,I)) element-wise as the
-  1-D call; the empty edges (0,10) / (3,0) / (0,0) + dtype; None / list / str / int64 ndarray → ValidationError
-  (subTest) — `TestFeatureSetComputeIndexes` (9).
+  ((1,3) → (1,3,I), (3,1,1) → (3,1,1,I), the F-order (1,3) parity, the empty (0,2) → (0,2,I)) element-wise as the 1-D
+  call; the empty edges (0,10) / (3,0) / (0,0) + dtype; None / list / str / int64 ndarray → ValidationError (subTest) —
+  `TestFeatureSetComputeIndexes` (9).
 - `test_performance_1m`: 1M positions, 51 instances, warmup, throughput print, N/I asserts only (PERF=1, print-only, no
   gate) — `TestFeatureSetComputeIndexesPerf` (1).
 
@@ -78,8 +77,7 @@ None.
 
 ## Integration
 
-- The composition point of `board` (PositionArray), `pattern` (Pattern/PatternSet), `index` (Index/IndexArray) and `mobility`
-  (Mobility/MobilitySet) — it owns no board logic of its own.
-- Consumed by the FEATURES worker (wrk_features.py) and, through `ctx.feature_set`, by the INDEXES level onward;
-  the `feature_blocks` property feeds the SU_ANALYSIS + ANOVA workers (the per-feature column blocks over the
-  index matrix).
+- The composition point of `board` (PositionArray), `pattern` (Pattern/PatternSet), `index` (Index/IndexArray) and
+  `mobility` (Mobility/MobilitySet) — it owns no board logic of its own.
+- Consumed by the FEATURES worker (wrk_features.py) and, through `ctx.feature_set`, by the INDEXES level onward; the
+  `feature_blocks` property feeds the SU_ANALYSIS + ANOVA workers (the per-feature column blocks over the index matrix).

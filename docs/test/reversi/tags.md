@@ -12,7 +12,8 @@ are CUMULATIVE — each implies the previous ones (default → LONG → VLONG �
 | `db_gate(testcase)` | Skip the test in a no-DB environment (`SKIP_REGAB_DB=1`) — NO tier requirement: the test sits in the DEFAULT tier and runs whenever the live regab DB is available (the D-532 fast DB tests). FIRST in `setUp` |
 | `db_long_gate(testcase)` | Skip the test when the live regab DB is unavailable or the LONG tier is off: `SKIP_REGAB_DB=1` always skips (the no-DB environment), then the tier check. It calls `testcase.skipTest(...)`, so it goes FIRST in `setUp` (the house setUp shape) |
 
-`__all__` = [db_gate, db_long_gate, tier_long, tier_vlong, tier_vvlong]. No `@validate_call` — these are test helpers, not domain functions.
+`__all__` = [db_gate, db_long_gate, tier_long, tier_vlong, tier_vvlong]. No `@validate_call` — these are test helpers,
+not domain functions.
 
 ## Architecture
 
@@ -51,16 +52,16 @@ None.
 ## Conventions
 
 - A class-level tier goes in the `@skipUnless` decorator, evaluated at decoration time; the DB gates stay in `setUp`.
-- A MIXED class (fast DB tests + slow siblings) takes `db_gate` in `setUp` and the `tier_long()` check FIRST in the
-  slow method body (D-532: `TestVldIndependenceCheck` — `test_zero_overlap_is_traced` at 1.7 s stays tiered).
+- A MIXED class (fast DB tests + slow siblings) takes `db_gate` in `setUp` and the `tier_long()` check FIRST in the slow
+  method body (D-532: `TestVldIndependenceCheck` — `test_zero_overlap_is_traced` at 1.7 s stays tiered).
 - A NEW tier means four edits: a predicate here, the runner header, the rules.md bullet, the overview.
-- `db_long_gate(cls)` is NOT supported: `TestCase.skipTest` needs an instance, so a `setUpClass` that must skip
-  raises `unittest.SkipTest` directly.
+- `db_long_gate(cls)` is NOT supported: `TestCase.skipTest` needs an instance, so a `setUpClass` that must skip raises
+  `unittest.SkipTest` directly.
 
 ## Integration
 
 - Imported by every DB-gated and long-running test module — the single source of the tier semantics. The DB-gated
   modules call `db_long_gate(self)` (the LONG tier: `test_regab`, the full-chain suite, the slow worker classes) or
-  `db_gate(self)` (the default tier: the D-532 fast worker classes) first in `setUp`; the long ones gate their class
-  on `tier_vlong()` (the 1e7 corpus test) or `tier_vvlong()` (the A2050 chain, D-534).
+  `db_gate(self)` (the default tier: the D-532 fast worker classes) first in `setUp`; the long ones gate their class on
+  `tier_vlong()` (the 1e7 corpus test) or `tier_vvlong()` (the A2050 chain, D-534).
 - The canonical runner `run_utests.sh` documents the same tiers in its header.

@@ -67,9 +67,8 @@ None.
 
 ## Conventions
 
-- The ContextVar pattern is concurrency-safe by construction: set before `@validate_call`, reset in `finally`
-  (no test can exercise the concurrency; the pattern is verified by inspection + the double-decorator order in
-  `regab_gp_as_df`).
+- The ContextVar pattern is concurrency-safe by construction: set before `@validate_call`, reset in `finally` (no test
+  can exercise the concurrency; the pattern is verified by inspection + the double-decorator order in `regab_gp_as_df`).
 - `SKIP_REGAB_DB=1` skips the 36 DB-dependent tests (the gate in `BaseTestCase.setUp`); the 2 fully-mocked
   `TestRegabDataSetFileLoadExceptions` tests always run.
 - The test data relies on `.env` in the workspace root (`load_dotenv(WORKSPACE_ROOT / ".env")`): the suite is NOT
@@ -90,8 +89,8 @@ None.
   `wrk_positions_extract_and_prepare` (extract → `regab_dedup_mogv` per the `regab_allow_duplicate` flag → log the
   duplicate count); the cache file stores the POST-policy data set, so a flag flip changes the stored content and the
   `rds_checksum`, cascading through the downstream checksum lineage.
-- The VLD level: `wrk_vld_positions` reuses the same `wrk_positions_extract_and_prepare` (with the vld bid/status overrides) + the
-  same load/store pair for the validation dataset, and after the population stats runs the validation-independence check
-  (`regab_count_position_overlap` over `ctx.positions` × `ctx.vld_positions`) — LOG ONLY, no action (a threshold/quality
-  parameter family is explicitly out of scope).
+- The VLD level: `wrk_vld_positions` reuses the same `wrk_positions_extract_and_prepare` (with the vld bid/status
+  overrides) + the same load/store pair for the validation dataset, and after the population stats runs the
+  validation-independence check (`regab_count_position_overlap` over `ctx.positions` × `ctx.vld_positions`) — LOG ONLY,
+  no action (a threshold/quality parameter family is explicitly out of scope).
 - `binio.md` is the serialization backend; `cache_manager.md` the idempotent sidecar re-writer in the pipeline flow.

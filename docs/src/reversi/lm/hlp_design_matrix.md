@@ -2,8 +2,8 @@
 The DESIGN_MTR domain module of the LM pipeline: the `LMDesignMatrix` data object (the (N,I) Index X — the w-index of
 each (position, feature-instance) cell — + the `wmaps_obj_checksum` metadata) + 4 public functions + the duck-typed
 `compute_sha3_256_hash` — the 8th active level's data object (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
-INDEXES → ANOVA → WMAPS → DESIGN_MTR), the 5th cache_manager consumer in the pipeline (after SU_ANALYSIS,
-POSITIONS, INDEXES and WMAPS).
+INDEXES → ANOVA → WMAPS → DESIGN_MTR), the 5th cache_manager consumer in the pipeline (after SU_ANALYSIS, POSITIONS,
+INDEXES and WMAPS).
 
 ## API
 
@@ -31,9 +31,9 @@ POSITIONS, INDEXES and WMAPS).
 - `hlp_design_matrix_compute`: `pindexes = ctx.hlp_indexes.indexes`;
   `col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
   `pindexes_with_offsets = pindexes + col_offsets`; the SINGLE guard — `np.any(ctx.iwmap[pindexes_with_offsets] == -1)`
-  → ValueError "It should never happen, pindexes is referring an invalid value."; `X = np.empty(pindexes.shape, dtype=Index)`
-  filled by `np.take(ctx.iwmap.astype(Index), pindexes_with_offsets, out=X)` — the explicit source cast (the note,
-  see Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
+  → ValueError "It should never happen, pindexes is referring an invalid value.";
+  `X = np.empty(pindexes.shape, dtype=Index)` filled by `np.take(ctx.iwmap.astype(Index), pindexes_with_offsets, out=X)`
+  — the explicit source cast (the note, see Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
 - `hlp_design_matrix_is_cache_consistent`: `dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field compare
   (no DB params, no independent model params: X is a pure function of the WMAPS outputs + pindexes, unlike WMAPS's 2
   fields and INDEXES's 2).
@@ -55,8 +55,8 @@ Pinned by the 53-check `probes/verify_design_matrix.py` + `test_hlp_design_matri
   layout n_instances [1,1,4,1] (sum 7) / n_configurations [1,65,27,81] (K=174). The unit suite (16 tests, no DB): the
   compute math (both branches — a handcrafted mock mirroring the WMAPS one — + the N-D shape parity), the consistency
   compare, the store/load contract (cycle + the str-filename form + golden hash + the 3 error paths), the init
-  validation. The end-to-end round-trip + the (10,7) golden (DB-gated, `test_wrk_design_matrix.py`) is the single
-  source of truth.
+  validation. The end-to-end round-trip + the (10,7) golden (DB-gated, `test_wrk_design_matrix.py`) is the single source
+  of truth.
 
 ## Open issues
 

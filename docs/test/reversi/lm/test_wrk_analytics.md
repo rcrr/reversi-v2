@@ -1,16 +1,16 @@
 # test/reversi/lm/test_wrk_analytics.py
-The ANALYTICS worker integration suite — the dedicated suite for the ANALYTICS level (the 5th non-cache level): its
-own data (the metrics + the two report forms) + the rlm_01 mobility-table branch of the file report + the SU sample
-columns + the INTERCEPT section + the cross-level eta² agreement. 9 classes / 20 tests: 7 DB-gated (the rlm_02 /
-rlm_01 / rlm_00 pipelines) + 13 NO-DB (the mock-ctx SU columns + the INTERCEPT section branches + the four UNGATED
-small/analyses classes: second-instance determinism, the console-report + `_up` pin, the `_down` scope, and the dense
-rn-series consistency).
+The ANALYTICS worker integration suite — the dedicated suite for the ANALYTICS level (the 5th non-cache level): its own
+data (the metrics + the two report forms) + the rlm_01 mobility-table branch of the file report + the SU sample columns
++ the INTERCEPT section + the cross-level eta² agreement. 9 classes / 20 tests: 7 DB-gated (the rlm_02 / rlm_01 / rlm_00
+pipelines) + 13 NO-DB (the mock-ctx SU columns + the INTERCEPT section branches + the four UNGATED small/analyses
+classes: second-instance determinism, the console-report + `_up` pin, the `_down` scope, and the dense rn-series
+consistency).
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestLMWorkerAnalytics` (rlm_02; setUp: the SKIP_REGAB_DB gate FIRST (idiom — the setUp moves through the whole 14-level chain to VALIDATE on a fresh base dir, so the live regab DB is required); the stdout patcher; `TemporaryDirectory` created FIRST; the `WORKSPACE_ROOT`-anchored rlm_02.json; `move_to_step('VALIDATE')` → step 14; defensive tearDown) | 4 | `test_analytics_report_goldens`: pre-state — `analytics_report` + `train_metrics` + `train_dense_metrics` all None (pre-declared on LMContext but unset); `move_to_step('ANALYTICS')` → step 15 / worker "ANALYTICS"; the 7-key dict pinned (5 float metrics via assert_close; the f32-quantized train_loss and train_samples exact; rlm_02, bid [6,7], 199952 samples — the goldens in the module doc) + the 4-key dense dict pinned (assert_close; the ints exact; dense == compressed up to the f32 `w_dense` rounding); the console report: the title, "Total Parameters (W) : 2,981", "Dense Parameters (K) : 6,588", the Loss data row (the 7.1250e-03 / 7.1223e-03 / 7.0079e-03 cells), the Population line "RMSE 26.41 MAE 21.73 Loss 2.0437e-02", "Generalization Gap (RMSE) : -0.13", "Substitution Delta (RMSE) : -0.00" (f32 rounding, not substitution), NO "Creation Date", NO "PATTERN FEATURE" (header-only); the file report: exists at `base_dir/model_analytics_report.txt`, the Creation Date + the empty MOBILITY section, the EDGE (fid=0) + DIAG3 (fid=1) pattern headers, exactly ONE "(Table rows omitted" line (DIAG3 — EDGE is in the fixture's `detailed_report`), the SU-off pins (rlm_02 has no su_analysis section — the default FALSE — so NO "PROBABILITY" column, NO "SU Sample Consistency" line) + the no-intercept pin (rlm_02 has NO intercept — NO "INTERCEPT:" section), the date-masked sha3_256 golden `e0d3d22ab116b3381e79802bafdfdb418da84e72bd14cb3e79550d2a25b4a6f6` (the `Config SHA3-256` line too, the hex masked in the golden); the captured logs: "Generating model analytics report...", "Computing metrics on the training set...", "Analytics report saved to ", NO "PATTERN FEATURE". `test_second_instance_deterministic`: a 2nd `LogisticModel` on the SAME base dir moved to ANALYTICS: exactly 6 "Cache successfully loaded and validated" lines (the 6 cache_manager levels hit; the CONFIG / OPTIMIZE flows are their own), NO "Extracted" + NO "established successfully" (the DB was NOT re-queried / re-connected), identical `train_metrics` / `train_dense_metrics` / `analytics_report` (the ANALYTICS recompute is deterministic). `test_train_dense_rn_series`: the published `train_dense_rn` series pinned (the ndarray of shape (199952,); mean(|rn|) == the train_dense_mae_y golden — the independent cross-check of the series). `test_down_clears_analytics_attributes`: back to VALIDATE (step 14) clears all four (`train_metrics` + `train_dense_metrics` + `analytics_report` + `train_dense_rn`, all None) while the report FILE survives (the base_dir artifact, the `_down` does not unlink it). |
+| `TestLMWorkerAnalytics` (rlm_02; setUp: the SKIP_REGAB_DB gate FIRST (idiom — the setUp moves through the whole 14-level chain to VALIDATE on a fresh base dir, so the live regab DB is required); the stdout patcher; `TemporaryDirectory` created FIRST; the `WORKSPACE_ROOT`-anchored rlm_02.json; `move_to_step('VALIDATE')` → step 14; defensive tearDown) | 4 | `test_analytics_report_goldens`: pre-state — `analytics_report` + `train_metrics` + `train_dense_metrics` all None (pre-declared on LMContext but unset); `move_to_step('ANALYTICS')` → step 15 / worker "ANALYTICS"; the 7-key dict pinned (5 float metrics via assert_close; the f32-quantized train_loss and train_samples exact; rlm_02, bid [6,7], 199952 samples — the goldens in the module doc) + the 4-key dense dict pinned (assert_close; the ints exact; dense == compressed up to the f32 `w_dense` rounding); the console report: the title, "Total Parameters (W) : 2,981", "Dense Parameters (K) : 6,588", the Loss data row (the 7.1250e-03 / 7.1223e-03 / 7.0079e-03 cells), the Population line "RMSE 26.41 MAE 21.73 Loss 2.0437e-02", "Generalization Gap (RMSE) : -0.13", "Substitution Delta (RMSE) : -0.00" (f32 rounding, not substitution), NO "Creation Date", NO "PATTERN FEATURE" (header-only); the file report: exists at `base_dir/model_analytics_report.txt`, the Creation Date + the empty MOBILITY section, the EDGE (fid=0) + DIAG3 (fid=1) pattern headers, exactly ONE "(Table rows omitted" line (DIAG3 — EDGE is in the fixture's `detailed_report`), the SU-off pins (rlm_02 has no su_analysis section — the default FALSE — so NO "PROBABILITY" column, NO "SU Sample Consistency" line) + the no-intercept pin (rlm_02 has NO intercept — NO "INTERCEPT:" section), the date-masked sha3_256 golden `e0d3d22ab116b3381e79802bafdfdb418da84e72bd14cb3e79550d2a25b4a6f6` (the `Config SHA3-256` line too, the hex masked in the golden); the captured logs: "Generating model analytics report...", "Computing metrics on the training set...", "Analytics report saved to ", NO "PATTERN FEATURE". `test_second_instance_deterministic`: a 2nd `LogisticModel` on the SAME base dir moved to ANALYTICS: exactly 6 "Cache successfully loaded and validated" lines (the 6 cache_manager levels hit; the CONFIG / OPTIMIZE flows are their own), NO "Extracted" + NO "established successfully" (the DB was NOT re-queried / re-connected), identical `train_metrics` / `train_dense_metrics` / `analytics_report` (the ANALYTICS recompute is deterministic). `test_train_dense_rn_series`: the published `train_dense_rn` series pinned (the ndarray of shape (199952,); mean(\|rn\|) == the train_dense_mae_y golden — the independent cross-check of the series). `test_down_clears_analytics_attributes`: back to VALIDATE (step 14) clears all four (`train_metrics` + `train_dense_metrics` + `analytics_report` + `train_dense_rn`, all None) while the report FILE survives (the base_dir artifact, the `_down` does not unlink it). |
 | `TestLMWorkerAnalyticsMobility` (rlm_01 — the ONLY fixture that exercises the mobility table helper end-to-end; `analytics.detailed_report = ["DIAG3", "LMC"]`) | 1 | `test_mobility_and_pattern_tables`: first run to ANALYTICS; the rlm_01 7-metric goldens (bid [7], 10 samples — the 10-sample model converges to interpolation, CONVERGED_MIN_GRAD, 16 iters) + the 4-key dense dict pinned (the 3 floats via assert_close, the int train_dense_samples exact) (cut 2, 5/10 training positions touch IC configs: train_dense_mae_y 1.854193878173828, train_dense_rmse_y 3.3556084739848866, train_dense_loss 0.0003036324051208794, train_dense_samples 10); the file report: "MOBILITY FEATURE: LMC (fid=1)" (the 65-row table), "PATTERN FEATURE: DIAG3 (fid=2)", "PATTERN FEATURE: CORE (fid=3)", exactly ONE omitted-rows line (CORE), the SU-off pins (rlm_01 has no su_analysis section — NO "PROBABILITY", NO "SU Sample Consistency"), the rlm_01 date-masked sha3_256 golden `176a80b5d3d70549c62c12be127982ac7baaed60281ebc542bd457c1d3670162` (rlm_01 HAS an intercept — the golden now includes the INTERCEPT section) (the `Config SHA3-256` line too, the hex masked in the golden); the logs: "Optimization Status : CONVERGED_MIN_GRAD (16 iters)" + "Generalization Gap (RMSE) : 23.87" (dense-vs-dense: vld_rmse 27.22 − train_dense_rmse 3.36) + "Substitution Delta (RMSE) : 3.36" (the true compressed-vs-dense cost: 3.36 vs the compressed 0.00) |
 | `TestSuSampleColumns` (NO-DB — the mock ctx over the real rlm_00 campaign stopped at FEATURES, the idiom; the synthetic 2-code concentrated 100-position indexes (code 0 the first 50, code 1 the rest, every sub-variable), the complete synthetic wmap (freq 1 per configuration — every row STATUS C), the synthetic corpus marginal (3x the training counts, the observed support); the `_pooled_adherence` / `_expected_su_line` oracles re-derive the consistency line from the ctx, independently of the report) | 8 | `test_su_off_unchanged`: the tables None (the SU_ANALYSIS disabled) → no "PROBABILITY", no "SU Sample Consistency". `test_ok_consistent`: the 3x-match corpus (the hand-computed TV 0.0 / chi2 0.0 / p 1.0) → the "\| PROBABILITY \| SU_PROBABILITY \|" column pair + the 5 identical "TV 0.0000 chi2 0.0 (p 1.00e+00, merged 0) -> CONSISTENT" lines (the 2-code mock makes all 5 features identical) + the oracle LMC line. `test_ok_marginal`: the 9-count 0→1 LMC shift (the hand-computed TV 0.03, the chi2 9/47 + 9/53 = 0.3613 → p 5.48e-01) → the exact LMC line "TV 0.0300 chi2 0.4 (p 5.48e-01, merged 0) -> MARGINAL" + 1 MARGINAL / 4 CONSISTENT. `test_ok_deviating_inf_chi2`: the one-point LMC corpus mass (the DB observes codes the corpus never shows → the chi-square inf, the p 0; the hand-computed TV 0.5) → the exact LMC line "TV 0.5000 chi2 inf (p 0.00e+00, merged 1) -> DEVIATING" + 1 DEVIATING / 4 CONSISTENT. `test_too_small`: the corpus 3 < 2x the training 100 → the "N/A (SU corpus too small: 3 < 2x training 100)" note, no columns, no verdict. `test_probability_values`: the column values re-derived — the LMC header line (the mobility layout), the exact PROBABILITY cell (100/n_conf%, the wmap freq 1 per row) + the SU_PROBABILITY cell (the 3x corpus share), the 65 LMC rows parsed, the PROBABILITY column summing to 100% within the 3-decimal rounding band (the n_conf × 0.0005 = 0.0325 band, delta 0.05). `test_intercept_section_present`: the rlm_00 feature set has an intercept → the report carries the "INTERCEPT:" section (before the MOBILITY details) with the single Weight line (4 decimals, re-derived from the ctx). `test_intercept_section_absent`: the no-intercept branch (the mock's `fset.intercept` set to None — the rlm_02 shape, exercised NO-DB) → no "INTERCEPT:" section. |
 | `TestSuSampleEndToEnd` (rlm_00 — the REAL pipeline: the 10,000-position seeded corpus + the 200 training positions (bid [8]); the db_gate FIRST (D-532: the default tier); the stdout patcher; `TemporaryDirectory` under `CUSTOM_TMP_BASE` created FIRST; `move_to_step('VALIDATE')` → step 14; defensive tearDown) | 1 | `test_su_columns_real_corpus`: the corpus 10,000 is NOT under 2x the training 200 → the "\| PROBABILITY \| SU_PROBABILITY \|" columns + exactly 5 "SU Sample Consistency" lines (one per feature) in the file report — each line RE-DERIVED in the test from the ctx (the real corpus marginal pooled over the feature's instance columns vs the real `hlp_indexes.indexes`, the `hlp_anova_adherence` kernel, the TV verdict bands) and asserted in the report (the LMC live line: "TV 0.0827 chi2 14.5 (p 1.53e-01, merged 11) -> DEVIATING" — the 200-position training deviates from the random-play baseline; the EDGE live line: "TV 0.5226 chi2 inf (p 0.00e+00, merged 2347) -> DEVIATING"); + the rlm_00 INTERCEPT section pin (the "INTERCEPT:" title before the MOBILITY details + the single Weight line, 4 decimals, re-derived from the ctx). |
@@ -22,29 +22,28 @@ rn-series consistency).
 
 ## Goldens pinned
 
-- The two file-report masks: rlm_02
-  `e0d3d22ab116b3381e79802bafdfdb418da84e72bd14cb3e79550d2a25b4a6f6` + rlm_01
+- The two file-report masks: rlm_02 `e0d3d22ab116b3381e79802bafdfdb418da84e72bd14cb3e79550d2a25b4a6f6` + rlm_01
   `176a80b5d3d70549c62c12be127982ac7baaed60281ebc542bd457c1d3670162` (the `_masked_report_hash` helper: the file embeds
   `datetime.now()` — the Creation Date line — and a `Config SHA3-256` fingerprint that embeds the run's `base_dir`, so
-  the golden is the sha3_256 of the text with the date regex-masked to "DATE" and the config hex to "HASH"; every
-  other byte is deterministic). Both hashes cover the full report layout (the Omega-Squared line after the
-  Eta-Squared line): rlm_02 has no su_analysis section (the default FALSE — the SU-off branch) and no intercept (no
-  INTERCEPT section); rlm_01 has the SU-off layout + the INTERCEPT section.
+  the golden is the sha3_256 of the text with the date regex-masked to "DATE" and the config hex to "HASH"; every other
+  byte is deterministic). Both hashes cover the full report layout (the Omega-Squared line after the Eta-Squared line):
+  rlm_02 has no su_analysis section (the default FALSE — the SU-off branch) and no intercept (no INTERCEPT section);
+  rlm_01 has the SU-off layout + the INTERCEPT section.
 - The rlm_02 7-metric + 4-key dense goldens and the rlm_01 7-metric + 4-key dense goldens (the module doc's live
   invariants).
-- The NO-DB SU goldens (hand-computed): the TV / chi2 / p / merged values of the 3 corpus scenarios (the 0.0 / 0.03 /
-  0.5 TV trio, the chi2 0.0 / 0.3613 / inf, the p 1.0 / 5.48e-01 / 0.0) + the verdict counts (5 CONSISTENT /
-  1 MARGINAL + 4 CONSISTENT / 1 DEVIATING + 4 CONSISTENT) + the too-small note string.
-- The NO-DB INTERCEPT branch goldens: the present branch (the mock rlm_00 ctx — the "INTERCEPT:" section before
-  the MOBILITY details + the single Weight line, re-derived from the ctx) and the absent branch (`fset.intercept` set
-  to None — no "INTERCEPT:" section).
+- The NO-DB SU goldens (hand-computed): the TV / chi2 / p / merged values of the 3 corpus scenarios (the 0.0 / 0.03
+  / 0.5 TV trio, the chi2 0.0 / 0.3613 / inf, the p 1.0 / 5.48e-01 / 0.0) + the verdict counts (5 CONSISTENT / 1
+  MARGINAL + 4 CONSISTENT / 1 DEVIATING + 4 CONSISTENT) + the too-small note string.
+- The NO-DB INTERCEPT branch goldens: the present branch (the mock rlm_00 ctx — the "INTERCEPT:" section before the
+  MOBILITY details + the single Weight line, re-derived from the ctx) and the absent branch (`fset.intercept` set to
+  None — no "INTERCEPT:" section).
 
 ## Conventions
 
-- The DB-gate idiom is FIRST in setUp (before the stdout patch / tmp dir): `db_long_gate` (SKIP_REGAB_DB + LONG) on
-  the `TestLMWorkerAnalytics` worker class, `db_gate` (SKIP_REGAB_DB only, the D-532 default tier) on the other three —
-  in the DB-gated classes; the NO-DB / UNGATED classes (`TestSuSampleColumns` + the four small/analyses classes) have
-  NO gate (the mock ctx, the idiom: the real facade run to FEATURES, no parallel loader — the second-instance class
+- The DB-gate idiom is FIRST in setUp (before the stdout patch / tmp dir): `db_long_gate` (SKIP_REGAB_DB + LONG) on the
+  `TestLMWorkerAnalytics` worker class, `db_gate` (SKIP_REGAB_DB only, the D-532 default tier) on the other three — in
+  the DB-gated classes; the NO-DB / UNGATED classes (`TestSuSampleColumns` + the four small/analyses classes) have NO
+  gate (the mock ctx, the idiom: the real facade run to FEATURES, no parallel loader — the second-instance class
   pre-seeds the two DB cache slots in memory so no DB is ever touched).
 - The float64 metric goldens are compared with assert_close (test/reversi/closecheck.py, rel 1e-9 / abs 1e-12): the
   np.dot reductions over up to ~2M f64 terms run through the multi-threaded OpenBLAS ddot (scipy 0.3.34, DYNAMIC_ARCH
@@ -54,9 +53,9 @@ rn-series consistency).
   by the rlmwf checksum + sha3 flows).
 - The 6-hit cache count mirrors the VALIDATE suite's count — ANALYTICS adds no cache file (the rlmwf_15 slot stays
   unused).
-- The `_MockCtx` synthetic data: the 2-code concentration (code 0 the first 50 of 100 positions, code 1 the rest,
-  every sub-variable) keeps the hand-computable TV / chi2 algebra exact (the per-sub-variable counts {0: 50, 1: 50})
-  while the full `feature_blocks` layout (the 6 rlm_00 features incl. the INTERCEPT slot) exercises the real
+- The `_MockCtx` synthetic data: the 2-code concentration (code 0 the first 50 of 100 positions, code 1 the rest, every
+  sub-variable) keeps the hand-computable TV / chi2 algebra exact (the per-sub-variable counts {0: 50, 1: 50}) while the
+  full `feature_blocks` layout (the 6 rlm_00 features incl. the INTERCEPT slot) exercises the real
   `iwmap_feature_offset` construction (the 7-element offset array, the 6902-slot dense layout).
 
 ## Integration
@@ -65,9 +64,10 @@ rn-series consistency).
   no other golden.
 - The dense-metric goldens and the report pins are pinned by this file: 14 positive line pins (7 console-report, 4
   rlm_02 file-report, 3 rlm_01 file-report), the 2 exactly-ONE "(Table rows omitted" counts, the 2 date-masked
-  file-report hashes, and 4 negative assertNotIn pins (console: no Creation Date, no PATTERN FEATURE; rlm_02 file:
-  no MOBILITY FEATURE:; rlm_02 logs: no PATTERN FEATURE) + the 4 SU-off assertNotIn pins (rlm_02 + rlm_01 file:
-  no "PROBABILITY", no "SU Sample Consistency") + the train_dense_rn series pin (mean(|rn|) == the train_dense_mae_y golden).
+  file-report hashes, and 4 negative assertNotIn pins (console: no Creation Date, no PATTERN FEATURE; rlm_02 file: no
+  MOBILITY FEATURE:; rlm_02 logs: no PATTERN FEATURE) + the 4 SU-off assertNotIn pins (rlm_02 + rlm_01 file: no
+  "PROBABILITY", no "SU Sample Consistency") + the train_dense_rn series pin (mean(\|rn\|) == the train_dense_mae_y
+  golden).
 - The SU sample columns consume the `ctx.su_analysis_tables` publication (the SU_ANALYSIS level, the wrk/hlp split) —
-  this suite is the second consumer after ANOVA (the `hlp_anova_adherence` kernel is the shared single source of
-  the two levels).
+  this suite is the second consumer after ANOVA (the `hlp_anova_adherence` kernel is the shared single source of the two
+  levels).
