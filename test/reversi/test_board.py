@@ -4091,11 +4091,11 @@ class TestGamePosition(unittest.TestCase):
         self.assertEqual(game_position_to_str(game_position_from_str(s)), s)
 
 
-class TestPositionMakeMoveGpdbParity(unittest.TestCase):
+class TestPositionMakeMoveGpdb(unittest.TestCase):
     """
-    The make_move parity on the legacy gpdb corpus: the four make-move-test-case-{a..d} before/after
-    pairs of gpdb-sample-games.txt (the C make_move test corpus) — the before position + the
-    documented move must reproduce the after position exactly.
+    position_make_move on the four documented mid-game positions of the gpdb-sample-games.txt
+    fixture: for each before position, the documented move is legal, and executing it must
+    reproduce the expected after position exactly (the mover / opponent fields).
     """
 
     FIXTURE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'

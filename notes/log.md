@@ -104,5 +104,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   make-move corpus (the four make-move-test-case-{a..d} before/after pairs of gpdb-sample-games.txt, the moves D4 / D4 /
   D4 / B4 pinned to the case table and to the fixture's own descriptions) — all 4 pass at first run. Placement: in
   test\_board (the SUT dependency stays board.py alone — the `_record` helper does minimal fixture access, the
-  conversion is `game_position_from_str`; NOT a dedicated file, NOT the gpdb test module). (D-650)
+- test/reversi/test\_board.py + docs/test/reversi/test\_board.md — forward correction of the D-650 class (the user's
+  call): RENAMED `TestPositionMakeMoveGpdbParity` -> `TestPositionMakeMoveGpdb`, the docstring and the area G line
+  rewritten to state what the test does — the "parity with the C" framing was a category error (`make_move` agreeing
+  with the C is the rules of the game, not a pin; the fixture supplies realistic mid-game positions for the contract
+  test); test docstrings state what the code does, never its history. (D-651)
 - Next: the user's supervision of the step-1 work (no commits made this session so far), then the MULTI-PLY step 2.

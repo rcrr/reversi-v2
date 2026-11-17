@@ -217,3 +217,14 @@ D-650 | 2026-11-17 | The `make_move` parity class joins `test\_board.py`: `TestP
          alone; the gpdb format validation stays the exclusive domain of `test\_game\_position\_database`. Precedent:
          `TestPositionHashLegacyParity` (the FFO-12 CSV parity in the same file). All 4 cases pass at first run — the v2
          `position_make_move` reproduces the C corpus bit-exactly.
+
+D-651 | 2026-11-17 | Forward correction of the D-650 class (the user's call): the test class is RENAMED
+         `TestPositionMakeMoveGpdbParity` -> `TestPositionMakeMoveGpdb`, and its docstring (and the test-doc area G
+         line) are rewritten to state what the test DOES. The "parity with the legacy C" framing was a CATEGORY ERROR:
+         `position_make_move` implementing the game rules is equal to the C implementation BY DEFINITION (the rules of
+         the game) — there is no arbitrary value to pin, so "parity" names a non-test. The fixture's role is to supply
+         four realistic mid-game before positions + the documented move, against which the `make_move` CONTRACT is
+         checked (the move is legal; executing it reproduces the expected after position). House rule reaffirmed for
+         test docstrings: they state what the code does — never its history or provenance ("the C … corpus", "legacy
+         …"); the history lives in the journal and the decisions log, which the D-650 entry and commit keep verbatim.
+         The suite counts are unchanged (4 tests).
