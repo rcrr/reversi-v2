@@ -96,6 +96,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   module at its canonical run\_utests.sh position (after test\_board). Self-inflicted fix, disclosed: the first
   loader draft dropped the "entry is new" branch (0 entries loaded) — caught by the fixture test, repaired
   forward. (D-648)
+- test/reversi/data/gpdb-ffo.txt + gpdb-sample-games.txt — the two legacy gpdb fixtures join the repo as VERBATIM
+  copies (md5-identical, the original names) in the fixture zone (the user's call after the placement discussion:
+  `test/reversi/data/`, NOT a new top-level `db/` zone — a zone without a runtime mandate; the FFO corpus is the
+  cross-validation surface of the future ENDGAME-SOLVER port). (D-649)
 - Suite: 1187 → 1223, GREEN 1223/0/88 (the default tier via the wsutils measurement wrapper; the LONG=1
   suite\_audit gate measurement re-run as well).
 - Next: the user's supervision of the step-1 work (no commits made this session so far), then the MULTI-PLY

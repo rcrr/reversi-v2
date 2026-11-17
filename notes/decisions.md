@@ -191,3 +191,14 @@ D-648 | 2026-11-17 | MULTI-PLY campaign, step 1 (c): the tests + the fixture + t
          wrong-player records, not two — the first read of the fixture had missed the last two lines). The module joins
          `run\_utests.sh` at its canonical position (section 1, immediately after `test\_board`). Suite: 1187 → 1223
          tests, GREEN 1223/0/88 (the default tier + the LONG=1 wrapper measurement).
+
+D-649 | 2026-11-17 | The two legacy gpdb fixtures join the repo (the user's call, after the placement discussion):
+         `gpdb-ffo.txt` (19.5 KB, 368 lines — the FFO-12 opening corpus; the natural cross-validation surface of the
+         future ENDGAME-SOLVER port, the C `endgame_solver` Makefile targets point at it) and `gpdb-sample-games.txt`
+         (46 KB, 1037 lines — the C solver / perf-verification corpus) land in `test/reversi/data/` as VERBATIM copies
+         (md5-identical, the original names kept). Placement ruling: the fixture zone, whose bookkeeping already exists
+         (the overview Test-data bullets, the mirror-doc exemption of docs\_rules §7) — `gpdb-ffo.txt` is the direct
+         sibling of the `ffo_12_log_sample.csv` parity fixture. A top-level `db/` zone is NOT opened: it would be a zone
+         without a mandate (nothing in v2 reads databases at runtime — the consumers are the tests and the probes), and
+         a zone opening is a structural call that deserves a real consumer (YAGNI). If a runtime-data zone ever becomes
+         needed, the files migrate under a dedicated decision.

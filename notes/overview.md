@@ -202,6 +202,10 @@ Test data (test/reversi/data/):
 
 - `ffo_12_log_sample.csv` — the FFO-12 legacy C solve-log sample (the `position_hash` parity fixture, the deterministic
   1002-row stride — 1003 lines incl. the header)
+- `gpdb-ffo.txt` — the legacy C FFO-12 opening corpus verbatim (368 lines; the future ENDGAME-SOLVER port's
+  cross-validation surface — the C `endgame_solver` Makefile targets point at it)
+- `gpdb-sample-games.txt` — the legacy C sample-games corpus verbatim (1037 lines; the C solver / perf-verification
+  input)
 - `gpdb-test-db.txt` — the legacy C game-position-database test file verbatim (the gpdb loader fixture, the
   `gpdb_verify` cross-validation surface: 6 entries + 11 documented syntax errors)
 - `prng_golden.txt` — the committed PRNG golden (the 18436 lines, the 20 sections)

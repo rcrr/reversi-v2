@@ -1,0 +1,1037 @@
+# gpdb-sample-games
+#
+# The record is separated by semicolons. Char ';'.
+# Everything following a dash is discarted. Char '#'.
+# The record must have four fields, it can have any length, and it must stay on one line.
+# field #1: Game Position id.
+#           Must be unique in the database.
+#           It is case sensitive.
+# field #2: Board.
+#           Must be 64 characters.
+#           Accepted characters are '.' for empty squares, 'b' for black ones, and 'w' for whites.
+# field #3: Player.
+#           Must be one character, 'b' for black player, and 'w' for white one.
+# field #4: Description.
+#           Can be long at will. Any character is allowed except '#', and ';' that terminates the field.
+#
+# After the fourth field anything is allowed and is not processed.
+# Applying the stated rules, lines must be a validated record or must start with a dash (#) char. No other variation is allowed.
+#
+# The input file is read complitely, then rows are validated.
+# All the offending rows generate a log entry describing the violation, the valid rows are loaded in the db.
+#
+#
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  . . . . . . . . 
+# 4  . . . O @ . . . 
+# 5  . . . O @ @ . . 
+# 6  . . . O @ O . . 
+# 7  . . . . O . . . 
+# 8  . . . . . O . . 
+# Player to move: BLACK
+#
+#          |1       2       3       4       5       6       7       8       |
+#          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+an-instance;...........................wb......wbb.....wbw......w........w..;b;A generic instance;
+#
+#
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  . . . . . . . . 
+# 4  . . . . . . . . 
+# 5  . . . . . . . . 
+# 6  . . . . . . . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#    |1       2       3       4       5       6       7       8       |
+#    |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+empty;................................................................;b;The empty position, black to move;
+#
+#
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  . . . . . . . . 
+# 4  . . . O @ . . . 
+# 5  . . . @ O . . . 
+# 6  . . . . . . . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#      |1       2       3       4       5       6       7       8       |
+#      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+initial;...........................wb......bw...........................;b;The initial position;
+#
+#
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  . . . @ . . . . 
+# 4  . . . @ @ . . . 
+# 5  . . . @ O . . . 
+# 6  . . . . . . . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#            |1       2       3       4       5       6       7       8       |
+#            |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+first-move-d3;...................b.......bb......bw...........................;w;First move D3;
+#
+#
+#
+#
+#
+#    a b c d e f g h 
+# 1  O @ . @ . O . . 
+# 2  @ @ @ @ @ @ @ O 
+# 3  . @ O O @ @ O O 
+# 4  . @ O @ O O O O 
+# 5  . @ O @ O O O O 
+# 6  . @ O @ @ O @ O 
+# 7  . @ O @ @ @ @ . 
+# 8  O O O O O O @ O 
+# Player to move: BLACK
+#
+#                |1       2       3       4       5       6       7       8       |
+#                |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+black-has-to-pass;wb.b.w..bbbbbbbw.bwwbbww.bwbwwww.bwbwwww.bwbbwbw.bwbbbb.wwwwwwbw;b;The black player has to pass;
+#
+#
+#
+#
+#
+# The white player has to move, and has two legal chances:
+#   - C3 that leads to the early-game-bc3-10-moves board
+#   - C6 that leads to the early-game-bc6-10-moves board
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . . @ @ O O . 
+# 4  . . . @ @ . . . 
+# 5  . . . @ @ . . . 
+# 6  . . . . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-b-9-moves;...bbb......b......bbww....bb......bb.......b...................;w;The board after nine moves of a generic game;
+#
+#
+#
+#
+#
+# The board is obtained taking as baseline the early-game-b-9-moves board and executing the move C3.
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . O O O O O . 
+# 4  . . . @ @ . . . 
+# 5  . . . @ @ . . . 
+# 6  . . . . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                      |1       2       3       4       5       6       7       8       |
+#                      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-bc3-10-moves;...bbb......b.....wwwww....bb......bb.......b...................;b;The board after ten moves of a generic game;
+#
+#
+#
+#
+#
+# The board is obtained taking as baseline the early-game-b-9-moves board and executing the move C6.
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . . @ @ O O . 
+# 4  . . . @ O . . . 
+# 5  . . . O @ . . . 
+# 6  . . O . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                      |1       2       3       4       5       6       7       8       |
+#                      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-bc6-10-moves;...bbb......b......bbww....bw......wb.....w.b...................;b;The board after ten moves of a generic game;
+#
+#
+#
+#
+#
+# The board after twelve moves of a generic game.
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  O @ @ @ . . O . 
+# 4  . O . O @ O . . 
+# 5  . O O @ O . . . 
+# 6  . . @ @ . O . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                    |1       2       3       4       5       6       7       8       |
+#                    |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-c-12-moves;................wbbb..w..w.wbw...wwbw.....bb.w..................;b;The board after twelve moves of a generic game;
+#
+#
+#
+#
+#
+# A final position board. All sixtyfour squares are occupied by a player. The black counts 37 discs, while the white 27.
+#
+#    a b c d e f g h 
+# 1  O O O O O @ @ @ 
+# 2  O O O @ @ @ @ @ 
+# 3  O O O @ @ @ O @ 
+# 4  O O @ O @ @ O @ 
+# 5  @ @ O @ O @ O @ 
+# 6  @ O @ O @ O @ @ 
+# 7  @ @ @ @ @ @ O @ 
+# 8  @ @ @ @ O O O O  
+# Player to move: BLACK
+#
+#            |1       2       3       4       5       6       7       8       |
+#            |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+final-b37-w27;wwwwwbbbwwwbbbbbwwwbbbwbwwbwbbwbbbwbwbwbbwbwbwbbbbbbbbwbbbbbwwww;b;A final position, all square filled.;
+#
+#
+#
+#
+###################################################################################
+# Entries for testing game_position_make_move function.
+# Game positions come in pairs:
+# - make-move-test-case-x-before is a game position configuration
+# - make-move-test-case-x-after is the expected configuration after a defined move
+###################################################################################
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . O O O O O . . 
+# 3  . O @ @ @ O . . 
+# 4  . O @ . @ O . . 
+# 5  . O @ @ @ O . . 
+# 6  . O O O O O . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                           |1       2       3       4       5       6       7       8       |
+#                           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-a-before;.........wwwww...wbbbw...wb.bw...wbbbw...wwwww..................;w;Test case MAKE MOVE A: before the move;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . O O O O O . . 
+# 3  . O O O O O . . 
+# 4  . O O O O O . . 
+# 5  . O O O O O . . 
+# 6  . O O O O O . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                          |1       2       3       4       5       6       7       8       |
+#                          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-a-after;.........wwwww...wwwww...wwwww...wwwww...wwwww..................;b;Test case MAKE MOVE A: after the d4 move;
+#
+#
+#
+#    a b c d e f g h
+# 1  O O O O O O O .
+# 2  O @ @ @ @ @ O .
+# 3  O @ @ @ @ @ O .
+# 4  O @ @ . @ @ O .
+# 5  O @ @ @ @ @ O .
+# 6  O @ @ @ @ @ O .
+# 7  O O O O O O O .
+# 8  . . . . . . . .
+# Player to move: WHITE
+#
+#                           |1       2       3       4       5       6       7       8       |
+#                           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-b-before;wwwwwww.wbbbbbw.wbbbbbw.wbb.bbw.wbbbbbw.wbbbbbw.wwwwwww.........;w;Test case MAKE MOVE B: before the move;
+#
+#
+#
+#    a b c d e f g h
+# 1  O O O O O O O .
+# 2  O O @ O @ O O .
+# 3  O @ O O O @ O .
+# 4  O O O O O O O .
+# 5  O @ O O O @ O .
+# 6  O O @ O @ O O .
+# 7  O O O O O O O .
+# 8 . . . . . . . .
+# Player to move: BLACK
+#
+#                          |1       2       3       4       5       6       7       8       |
+#                          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-b-after;wwwwwww.wwbwbww.wbwwwbw.wwwwwww.wbwwwbw.wwbwbww.wwwwwww.........;b;Test case MAKE MOVE B: after the d4 move;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ @ @ @ @ @ @ O
+# 2  @ @ @ @ @ @ @ O
+# 3  @ @ @ @ @ @ @ O
+# 4  @ @ @ . @ @ @ O
+# 5  @ @ @ @ @ @ @ O
+# 6  @ @ @ @ @ @ @ O
+# 7  @ @ @ @ @ @ @ O
+# 8  O O O O O O O O
+# Player to move: WHITE
+#
+#                           |1       2       3       4       5       6       7       8       |
+#                           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-c-before;bbbbbbbwbbbbbbbwbbbbbbbwbbb.bbbwbbbbbbbwbbbbbbbwbbbbbbbwwwwwwwww;w;Test case MAKE MOVE C: before the move;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ @ @ @ @ @ @ O
+# 2  @ @ @ @ @ @ @ O
+# 3  @ @ @ @ @ @ @ O
+# 4  @ @ @ O O O O O
+# 5  @ @ @ O O @ @ O
+# 6  @ @ @ O @ O @ O
+# 7  @ @ @ O @ @ O O
+# 8  O O O O O O O O
+# Player to move: BLACK
+#
+#                          |1       2       3       4       5       6       7       8       |
+#                          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-c-after;bbbbbbbwbbbbbbbwbbbbbbbwbbbwwwwwbbbwwbbwbbbwbwbwbbbwbbwwwwwwwwww;b;Test case MAKE MOVE C: after the d4 move;
+#
+#
+#
+#    a b c d e f g h
+# 1  . @ . . O . . .
+# 2  . O . O . . . .
+# 3  @ @ @ . . . . .
+# 4  @ . @ . O . . .
+# 5  @ @ @ . . . . .
+# 6  . O . @ . . . .
+# 7  . @ . . O . . .
+# 8  . O . . . . . .
+# Player to move: WHITE
+#
+#                           |1       2       3       4       5       6       7       8       |
+#                           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-d-before;.b..w....w.w....bbb.....b.b.w...bbb......w.b.....b..w....w......;w;Test case MAKE MOVE D: before the move;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . @ . . O . . .
+# 2  . O . O . . . .
+# 3  @ O O . . . . .
+# 4  @ O @ . O . . .
+# 5  @ O O . . . . .
+# 6  . O . O . . . .
+# 7  . @ . . O . . .
+# 8  . O . . . . . .
+# Player to move: BLACK
+#
+#                          |1       2       3       4       5       6       7       8       |
+#                          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-d-after;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;b;Test case MAKE MOVE D: after the b4 move;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O O O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  . O @ O O O @ O 
+# 5  O @ @ @ O O @ O 
+# 6  . . @ O @ O O O 
+# 7  . @ @ @ O O O O 
+# 8  . O O O O O @ . 
+# Player to move: BLACK
+#
+#                |1       2       3       4       5       6       7       8       |
+#                |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified;..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwww.wwwwwb.;b;From position ffo-01 executing two moves, A8 wins +18;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O O O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  . O @ O O O @ O 
+# 5  O @ @ @ O O @ O 
+# 6  . . @ O @ O O O 
+# 7  . @ @ @ O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-1;..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwwwbbbbbbb.;w;From position ffo-01-simplified executing A8;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O O O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  . O O O O O @ O 
+# 5  O O @ @ O O @ O 
+# 6  O . @ O @ O O O 
+# 7  . @ @ @ O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: BLACK
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-2;..bbbbb..wwwbb.w.wwwbbww.wwwwwbwwwbbwwbww.bwbwww.bbbwwwwbbbbbbb.;b;From position ffo-01-simplified-1 executing A6;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O @ O @ @ . O 
+# 3  . @ O O @ @ O O 
+# 4  @ @ @ @ @ @ @ O 
+# 5  O @ @ @ O O @ O 
+# 6  O . @ O @ O O O 
+# 7  . @ @ @ O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-3;..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbww.bwbwww.bbbwwwwbbbbbbb.;w;From position ffo-01-simplified-2 executing A4;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O @ O @ @ . O 
+# 3  . @ O O @ @ O O 
+# 4  @ @ @ @ @ @ @ O 
+# 5  O @ @ @ O O @ O 
+# 6  O . @ O @ O O O 
+# 7  O O O O O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: BLACK
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-4;..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbww.bwbwwwwwwwwwwwbbbbbbb.;b;From position ffo-01-simplified-3 executing A7;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O @ O @ @ . O 
+# 3  . @ O O @ @ O O 
+# 4  @ @ @ @ @ @ @ O 
+# 5  O @ @ @ O O @ O 
+# 6  O @ @ O @ O O O 
+# 7  O @ @ O O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-5;..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbwwbbwbwwwwbbwwwwwbbbbbbb.;w;From position ffo-01-simplified-4 executing B6;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  O O @ O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  @ @ O @ @ @ @ O 
+# 5  O @ @ O O O @ O 
+# 6  O @ @ O O O O O 
+# 7  O @ @ O O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: BLACK
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-6;..bbbbb.wwbwbb.w.wwwbbwwbbwbbbbwwbbwwwbwwbbwwwwwwbbwwwwwbbbbbbb.;b;From position ffo-01-simplified-5 executing A2;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  O O @ O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  @ @ O @ @ @ @ O 
+# 5  O @ @ O @ O @ O 
+# 6  O @ @ O O @ O O 
+# 7  O @ @ O O O @ O 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-7;..bbbbb.wwbwbb.w.wwwbbwwbbwbbbbwwbbwbwbwwbbwwbwwwbbwwwbwbbbbbbbb;w;From position ffo-01-simplified-6 executing H8;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  O O @ O @ @ . O 
+# 3  O O O O @ @ O O 
+# 4  O O O @ @ @ @ O 
+# 5  O @ O O @ O @ O 
+# 6  O @ @ O O @ O O 
+# 7  O @ @ O O O @ O 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: BLACK
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-8;..bbbbb.wwbwbb.wwwwwbbwwwwwbbbbwwbwwbwbwwbbwwbwwwbbwwwbwbbbbbbbb;b;From position ffo-01-simplified-7 executing A3;
+#
+#
+#
+#    a b c d e f g h 
+# 1  @ . @ @ @ @ @ . 
+# 2  @ @ @ O @ @ . O 
+# 3  @ O @ O @ @ O O 
+# 4  @ O O @ @ @ @ O 
+# 5  @ @ O O @ O @ O 
+# 6  @ @ @ O O @ O O 
+# 7  @ @ @ O O O @ O 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-9;b.bbbbb.bbbwbb.wbwbwbbwwbwwbbbbwbbwwbwbwbbbwwbwwbbbwwwbwbbbbbbbb;w;From position ffo-01-simplified-8 executing A1;
+#
+#
+#
+#    a b c d e f g h 
+# 1  @ O @ @ @ @ @ . 
+# 2  @ O O O @ @ . O 
+# 3  @ O @ O @ @ O O 
+# 4  @ O O @ @ @ @ O 
+# 5  @ @ O O @ O @ O 
+# 6  @ @ @ O O @ O O 
+# 7  @ @ @ O O O @ O 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: BLACK
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-10;bwbbbbb.bwwwbb.wbwbwbbwwbwwbbbbwbbwwbwbwbbbwwbwwbbbwwwbwbbbbbbbb;b;From position ffo-01-simplified-9 executing B1;
+#
+#
+#
+#    a b c d e f g h 
+# 1  @ O @ @ @ @ @ @ 
+# 2  @ O O O @ @ . @ 
+# 3  @ O @ O @ @ O @ 
+# 4  @ O O @ @ @ @ @ 
+# 5  @ @ O O @ O @ @ 
+# 6  @ @ @ O O @ O @ 
+# 7  @ @ @ O O O @ @ 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: WHITE
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-11;bwbbbbbbbwwwbb.bbwbwbbwbbwwbbbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb;w;From position ffo-01-simplified-10 executing H1;
+#
+#
+#
+#    a b c d e f g h 
+# 1  @ O @ @ @ @ @ @ 
+# 2  @ O O O O O O @ 
+# 3  @ O @ O @ O O @ 
+# 4  @ O O @ O @ @ @ 
+# 5  @ @ O O @ O @ @ 
+# 6  @ @ @ O O @ O @ 
+# 7  @ @ @ O O O @ @ 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: BLACK
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-12;bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb;b;From position ffo-01-simplified-11 executing G2;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ O . . . . . .
+# 2  . . . . . . . .
+# 3  @ O . . . . . .
+# 4  . . . . . . . .
+# 5  . . . . . . . .
+# 6  . . . . . . . .
+# 7  . . . . . . . .
+# 8  . . . . . . @ O
+# Player to move: BLACK
+#
+#         |1       2       3       4       5       6       7       8       |
+#         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+pve-test-a;bw..............bw............................................bw;b;C1 and C3 are two PV variants that lead to an outcome of 58;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ O . . . . . .
+# 2  . . . . . . . .
+# 3  @ O . . . . . .
+# 4  . . . . . . . .
+# 5  . . . . . . . .
+# 6  . . . . . . . .
+# 7  . . . . . . . .
+# 8  . . . . . . . .
+# Player to move: BLACK
+#
+#         |1       2       3       4       5       6       7       8       |
+#         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+pve-test-b;bw..............bw..............................................;b;C1 and C3 are two PV variants that lead to an outcome of 64;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ O . . . . . .
+# 2  . . . . . . . .
+# 3  @ O . . . . . .
+# 4  . . . . . . . .
+# 5  @ O . . . . . .
+# 6  . . . . . . @ O
+# 7  . . . . . . . .
+# 8  . . . . . . @ O
+# Player to move: BLACK
+#
+#         |1       2       3       4       5       6       7       8       |
+#         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+pve-test-c;bw..............bw..............bw............bw..............bw;b;C1, C3, and C5 are three PV variants that lead to an outcome of 52;
+#
+#
+# Reni-Rob 20150426
+#
+#                |1       2       3       4       5       6       7       8       |
+#                |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+reni-rob-20150426;..wwwwww..bbbbwwwwwwwwww..bbwwww..bbwbwwwwbwwwww..bbw.ww....w..w;b;Reni contro Rob;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ @ @ @ @ @ @ @
+# 2  @ @ @ @ @ @ @ .
+# 3  @ @ @ @ @ @ O @
+# 4  @ @ @ @ @ @ O .
+# 5  O O @ @ O @ O O
+# 6  . O O @ @ . . .
+# 7  . . O O O O O .
+# 8  . O O O O . . .
+# Player to move: WHITE
+#
+#                     |1       2       3       4       5       6       7       8       |
+#                     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+black-wins-by-wipe-out;bbbbbbbbbbbbbbb.bbbbbbwbbbbbbbw.wwbbwbww.wwbb.....wwwww..wwww...;w;White is forced to move in F6, then black wins by wipe out;
+#
+#
+#
+#    a b c d e f g h
+# 1  . . @ @ . @ . .
+# 2  O O O @ O O . .
+# 3  O O . @ @ . . .
+# 4  O O O O O O O .
+# 5  O O O O O O @ .
+# 6  O O O O O . O .
+# 7  O O O @ @ O . O
+# 8  @ . . . @ O O .
+# Player to move: BLACK
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-61906155;..bb.b..wwwbww..ww.bb...wwwwwww.wwwwwwb.wwwww.w.wwwbbw.wb...bww.;b;Black wins with a score of 62;
+#
+#
+#    a b c d e f g h
+# 1  . . . @ . @ @ .
+# 2  O @ . @ @ @ @ .
+# 3  . @ @ @ . @ @ O
+# 4  . @ @ @ @ @ O O
+# 5  . @ @ @ @ O @ O
+# 6  . . @ O @ @ @ .
+# 7  . . @ @ @ @ @ .
+# 8  . @ . @ @ @ @ .
+# Player to move: BLACK
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-46038578;...b.bb.wb.bbbb..bbb.bbw.bbbbbww.bbbbwbw..bwbbb...bbbbb..b.bbbb.;b;Black wins with a score of 50, outlier position in batch_id 3;
+#
+#
+#
+#    a b c d e f g h
+# 1  . . . @ @ . . .
+# 2  O . @ @ @ @ @ .
+# 3  O @ O O O @ @ .
+# 4  O O O O O @ @ O
+# 5  O . @ O O @ @ .
+# 6  . @ @ @ O O @ O
+# 7  . . . . O O O O
+# 8  . . . O O O O .
+# Player to move: BLACK
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-67394859;...bb...w.bbbbb.wbwwwbb.wwwwwbbww.bwwbb..bbbwwbw....wwww...wwww.;b;Black loses with a score of -62, the residual of A2050 is -3.876559e-01;
+#
+#
+#
+# In the WOC final Keisuke Fukuchi played Piyanat Aunchelee, World Champion 2016.
+# Keisuke won the final with 2,5-0,5 points. (35-29, 32-32 & 34-30).
+# They were three very close, high-level games.
+# See the video at: https://www.youtube.com/watch?v=HLW5Ms-gZAw
+# See the transcripts at: https://woc2018.worldothello.org/live/woc2018_round14.htm
+#
+# Firt game, Keisuke plays the black.
+# Empty count:  60  59  58  57  56  55  54  53  52  51  50  49  48  47  46  45  44  43  42  41  40  39  38  37  36  35  34  33  32  31  30  29  28  27  26  25  24  23  22  21  20  19  18  17  16  15  14  13  12  11  10  09  08  07  06  05  04  03  02  01
+# Player:        B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   B   W   W   B   
+# Game value:  ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... +06 +06 -06 +06 -06 +06 -06 +12 -10 +10 -06 +06 -06 +06 -06 +06  00  00 +02 -02 +02 -02 +04 -04 +06 -04 +08 +04 -04 +04 +04 +02 -02 +02 -02 +02 -02 -02 +06
+# Best move:    ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  D2  G6  D7  B6  D7  B4  H6  C2  A4  F8  B5  C2  F8  G8  F7  A5  A5  F1  B8  G7  A7  H6  B1  C1  F1  F1  H1  A1  C1  F1  H6  G1  H8  A8  H6  B7  C8  H2  H2
+# Played move:  F5  D6  C3  D3  C4  F4  F6  F3  G4  G3  E6  B3  F2  E3  E2  C5  C6  E7  C7  H4  G5  H5  G6  D2  B6  D7  B4  E1  E8  A4  D8  B5  C2  F8  G8  F7  A6  A5  A3  B8  G7  A7  H3  B1  D1  A2  G2  B2  A1  C1  H7  F1  G1  H8  A8  H6  B7  C8--H1  H2
+# Comment:      ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!  __  __  __  __  __   !   !  __   !  __  __  __  __  __  !!  __  !!  __  __  __   !  __   !   !   !  !!  __  __  !!  !!  __  __  __  __  __  __   !  __  
+#
+# The board represented is the final configuration.
+#
+#    a b c d e f g h
+# 1  @ @ @ @ @ @ @ O
+# 2  @ @ O O O @ @ @
+# 3  @ @ O O @ O @ @
+# 4  @ @ O O @ O @ O
+# 5  @ @ O @ O @ O O
+# 6  @ @ O @ @ O O O
+# 7  @ @ O @ @ O O O
+# 8  @ O O O O O O O
+# Player to move: BLACK
+#
+#
+# EC=24 best move A5, move A6 !!!!
+# BLACK to move, position woc18-FKvsAP-g1-24. Final outcome: best move=A5, position value=6, PV: A5 A3 D1 A6 H6 B8 H3 F1 H7 G2 G7 C1 B2 A2 A1 B1 G1 H8 C8 B7 A7 A8 -- H2 -- --
+# BLACK moves A6, leading to 0
+#
+# EC=23 best move A5, move A5
+#
+# EC=22 best move F1, move A3 !!!!
+# BLACK to move, position woc18-FKvsAP-g1-22. Final outcome: best move=F1, position value=0, PV: F1 B2 C1 D1 A1 A2 B1 A3 G7 G2 H6 B8 H1 G1 H3 H2 C8 H8 H7 B7 A8 A7 -- --
+# BLACK moves A3 leading to -2
+#
+# EC=21 best move B8, move B8
+#
+# EC=20 best move D1 or F1 or G7, move G7
+#
+# EC=19 best move A7, move A7
+#
+# EC=18 best move A8 or H6, move H3 !!
+# BLACK to move, position woc18-FKvsAP-g1-18. Final outcome: best move=A8, position value=-2, PV: A8 C8 B7 B1 D1 H8 F1 H6 H3 B2 H7 H2 A1 C1 G2 A2 -- H1 G1 -- --
+# BLACK moves H3 leading to -4
+#
+# EC=17 best move B1, move B1
+#
+# EC=16 best move A8 or C1, move D1
+# BLACK to move, position woc18-FKvsAP-g1-16. Final outcome: best move=A8, position value=-4, PV: A8 C8 B7 H8 C1 D1 G1 H2 F1 H1 G2 B2 H6 H7 A1 A2 -- --
+# BLACK moves D1 leading to -6
+#
+# EC=15 best move F1, move A2 !!
+# WHITE to move, position woc18-FKvsAP-g1-15. Final outcome: best move=F1, position value=6, PV: F1 A8 C8 H7 H6 G2 G1 H1 H2 B7 H8 -- B2 C1 A1 A2 -- --
+# WHITE moves A2 leading to +4
+#
+# EC=14 best move F1, move G2 !!
+# BLACK to move, position woc18-FKvsAP-g1-14. Final outcome: best move=F1, position value=-4, PV: F1 B2 H7 H6 C8 H8 A1 C1 A8 H2 G2 H1 G1 -- B7 -- --
+# BLACK moves G2 leading to -8
+#
+# EC=13 best move B7 or H1, move B2 !!!!!!
+# WHITE to move, position woc18-FKvsAP-g1-13. Final outcome: best move=B7, position value=8, PV: B7 F1 H1 G1 B2 H6 H8 C8 H7 A8 C1 A1 H2 -- --
+# WHITE moves B2 leading to -4
+#
+# EC=12 best move A1, move A1
+#
+# EC=11 best move C1, move C1
+#
+# EC=10 best move F1, move H7 !!!!!!
+# BLACK to move, position woc18-FKvsAP-g1-10. Final outcome: best move=F1, position value=4, PV: F1 H8 A8 H1 B7 C8 H6 G1 H2 H7 -- --
+# BLACK moves H7 leading to -4
+#
+# EC=9 best move H6, move F1 !!!!!!
+# WHITE to move, position woc18-FKvsAP-g1-09. Final outcome: best move=H6, position value=4, PV: H6 F1 H1 H2 G1 A8 C8 B7 H8 -- --
+# WHITE moves H6 leading to -2
+#
+# EC=8 best move G1, move G1
+#
+# EC=7 best move H8, move H8
+#
+# EC=6 best move A8, move A8
+#
+# EC=5 best move H6, move H6
+#
+# EC=4 best move B7, move B7
+#
+# EC=3 best move C8, move C8
+#
+# EC=2 best move H2, move H1 !!
+# WHITE to move, position woc18-FKvsAP-g1-02. Final outcome: best move=H2, position value=-2, PV: H2 H1 -- -- 
+# WHITE moves H1 leading to -6
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-60;...........................wb......bw...........................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 60 EC;
+woc18-FKvsAP-g1-59;...........................wb......bbb..........................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 59 EC;
+woc18-FKvsAP-g1-58;...........................wb......wbb.....w....................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 58 EC;
+woc18-FKvsAP-g1-57;..................b........bb......wbb.....w....................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 57 EC;
+woc18-FKvsAP-g1-56;..................bw.......wb......wbb.....w....................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 56 EC;
+woc18-FKvsAP-g1-55;..................bw......bbb......wbb.....w....................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 55 EC;
+woc18-FKvsAP-g1-54;..................bw......bbbw.....wwb.....w....................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 54 EC;
+woc18-FKvsAP-g1-53;..................bw......bbbw.....wbb.....w.b..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 53 EC;
+woc18-FKvsAP-g1-52;..................bw.w....bbww.....wbb.....w.b..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 52 EC;
+woc18-FKvsAP-g1-51;..................bw.w....bbbbb....wbb.....w.b..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 51 EC;
+woc18-FKvsAP-g1-50;..................bw.ww...bbbwb....wwb.....w.b..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 50 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-49;..................bw.ww...bbbwb....bbb.....wbb..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 49 EC;
+woc18-FKvsAP-g1-48;.................www.ww...bbbwb....bbb.....wbb..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 48 EC;
+woc18-FKvsAP-g1-47;.............b...www.bw...bbbbb....bbb.....wbb..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 47 EC;
+woc18-FKvsAP-g1-46;.............b...wwwwww...bbbbb....bbb.....wbb..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 46 EC;
+woc18-FKvsAP-g1-45;............bb...wwbbbw...bbbbb....bbb.....wbb..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 45 EC;
+woc18-FKvsAP-g1-44;............bb...wwbbbw...wbbbb...wbbb.....wbb..................;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 44 EC;
+woc18-FKvsAP-g1-43;............bb...wwbbbw...wbbbb...wbbb....bbbb..................;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 43 EC;
+woc18-FKvsAP-g1-42;............bb...wwbbbw...wbbbb...wbbb....bwbb......w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 42 EC;
+woc18-FKvsAP-g1-41;............bb...wwbbbw...wbbbb...wbbb....bbbb....b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 41 EC;
+woc18-FKvsAP-g1-40;............bb...wwbbbw...wwwwww..wbbb....bbbb....b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 40 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-39;............bb...wwbbbw...wwwbww..wbbbb...bbbb....b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 39 EC;
+woc18-FKvsAP-g1-38;............bb...wwbbbw...wwwbww..wwwwww..bbbb....b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 38 EC - g6  +6;
+woc18-FKvsAP-g1-37;............bb...wwbbbw...wwbbww..wwwbww..bbbbb...b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 37 EC - d7  -6;
+woc18-FKvsAP-g1-36;...........wbb...wwwwbw...wwbwww..wwwbww..bbbbb...b.w...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 36 EC - b6  +6;
+woc18-FKvsAP-g1-35;...........wbb...wwwbbw...wbbwww..bwwbww.bbbbbb...b.w...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 35 EC - d7  -6;
+woc18-FKvsAP-g1-34;...........wbb...wwwbbw...wbbwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 34 EC - b4  +6;
+woc18-FKvsAP-g1-33;...........wbb...wwwbbw..bbbbwww..bwwwww.bbwwbb...bww...........;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 33 EC - h6  -6;
+woc18-FKvsAP-g1-32;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bww...........;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 32 EC - c2 +12;
+woc18-FKvsAP-g1-31;....w......www...wwwwbw..bbbwwww..bwwwww.bbwwbb...bbw.......b...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 31 EC - Legal move count: 15 - best move = A4, position value = -10;
+woc18-FKvsAP-g1-30;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbw.......b...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 30 EC - Legal move count: 12 - best move = F8, position value =  10;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-29;....w......www...wwwwbw.wwwwwwww..bwwwww.bbwwbb...bbb......bb...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 29 EC - Legal move count: 12 - best move = B5, position value =  -6;
+woc18-FKvsAP-g1-28;....w......www...wwwwbw.wwwwwwww.wwwwwww.bbwwbb...bbb......bb...;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 28 EC - Legal move count:  9 - best move = C2, position value =   6;
+woc18-FKvsAP-g1-27;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbb......bb...;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 27 EC - Legal move count: 12 - best move = F8, position value =  -6;
+woc18-FKvsAP-g1-26;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbw..;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 26 EC - Legal move count: 13 - best move = G8, position value =   6;
+woc18-FKvsAP-g1-25;....w.....bwww...wbbwbw.wwbwbwww.wbwwbww.bbwwbb...bbw......bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 25 EC - Legal move count: 11 - best move = F7, position value =  -6;
+woc18-FKvsAP-g1-24;....w.....bwww...wbbwbw.wwbwbwww.wbwwwww.bbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 24 EC - Legal move count: 14 - best move = A5, position value =   6;
+woc18-FKvsAP-g1-23;....w.....bwww...wbbwbw.wwbwbwww.bbwwwwwbbbwwww...bbww.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 23 EC - Legal move count:  9 - best move = A5, position value =   0;
+woc18-FKvsAP-g1-22;....w.....bwww...wbbwbw.wwbwbwwwwwwwwwwwbbbwwww...bbww.....bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 22 EC - Legal move count: 12 - [Index:Move:Value]: [00:F1:+00] [01:G1:-02] [02:A3:-02] [03:G7:-02] [04:D1:-04] [05:H6:-04] [06:H2:-06] [07:H3:-06] [08:H7:-12] [09:B2:-18] [10:A2:-20] [11:G2:-28];
+woc18-FKvsAP-g1-21;....w.....bwww..bbbbwbw.bbbwbwwwbwbwwwwwbbbbwww...bbbw.....bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 21 EC;
+woc18-FKvsAP-g1-20;....w.....bwww..bbbbwbw.bbbwbwwwbwbwwwwwbbbwwww...wbbw...w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 20 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-19;....w.....bwww..bbbbwbw.bbbbbwwwbwbwbwwwbbbwwbw...wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 19 EC;
+woc18-FKvsAP-g1-18;....w.....bwww..bbbbwbw.bbbwbwwwbwwwbwwwbwbwwbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 18 EC;
+woc18-FKvsAP-g1-17;....w.....bwww..bbbbwbbbbbbwbwbwbwwwbbwwbwbwbbw.w.wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 17 EC;
+woc18-FKvsAP-g1-16;.w..w.....wwww..bbbwwbbbbbbwwwbwbwwwbwwwbwbwbbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 16 EC;
+woc18-FKvsAP-g1-15;.w.bw.....bbbw..bbbbwbbbbbbbwwbwbwwbbwwwbwbbbbw.w.wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 15 EC;
+woc18-FKvsAP-g1-14;.w.bw...w.bbbw..wbbbwbbbwbbbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 14 EC;
+woc18-FKvsAP-g1-13;.w.bw...w.bbbbb.wbbbwbbbwbbbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 13 EC;
+woc18-FKvsAP-g1-12;.w.bw...wwbbbbb.wwbbwbbbwwbbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 12 EC;
+woc18-FKvsAP-g1-11;bw.bw...wbbbbbb.wwbbwbbbwwbbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 11 EC;
+woc18-FKvsAP-g1-10;bwwww...wwwwbbb.wwwbwbbbwwwbwwbwwwwbbwwwwwbbbbw.w.wbbbb..w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 10 EC;
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-FKvsAP-g1-09;bwwww...wwwwbbb.wwwbwbbbwwwbbwbwwwwbbbwwwwbbbbb.w.wbbbbb.w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 09 EC;
+woc18-FKvsAP-g1-08;bwwwww..wwwwwwb.wwwwwwbbwwwbbwbwwwwbbbwwwwbbbbb.w.wbbbbb.w.bbbb.;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 08 EC;
+woc18-FKvsAP-g1-07;bbbbbbb.wwwwwbb.wwwwbwbbwwwbbwbwwwwbbbwwwwbbbbb.w.wbbbbb.w.bbbb.;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 07 EC;
+woc18-FKvsAP-g1-06;bbbbbbb.wwwwwbb.wwwwbwbbwwwwbwbwwwwbwbwwwwbbbwb.w.wbbbwb.w.bbbbw;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 06 EC;
+woc18-FKvsAP-g1-05;bbbbbbb.bwwwwbb.bwwwbwbbbwwwbwbwbwwbwbwwbwbbbwb.b.wbbbwbbw.bbbbw;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 05 EC;
+woc18-FKvsAP-g1-04;bbbbbbb.bwwwwbb.bwwwbwbbbwwwbwbwbwwbwbwwbwbbbwwwb.wbbbwwbw.bbbbw;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 04 EC;
+woc18-FKvsAP-g1-03;bbbbbbb.bbwwwbb.bbwwbwbbbbwwbwbwbbwbwbwwbbbbbwwwbbbbbbwwbw.bbbbw;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 03 EC;
+woc18-FKvsAP-g1-02;bbbbbbb.bbwwwbb.bbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 02 EC;
+woc18-FKvsAP-g1-01;bbbbbbbwbbwwwbw.bbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;b;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 01 EC;
+woc18-FKvsAP-g1-00;bbbbbbbwbbwwwbbbbbwwbwbbbbwwbwbwbbwbwbwwbbwbbwwwbbwbbbwwbwwwwwww;w;WOC18 Final Game 1 - Fukuchi Keisuke vs Aunchulee Piyanat - 00 EC;
+#
+#
+#
+# Second game, Piyanat plays the black.
+# F5 D6 C3 D3 C4 F4 F6 F3 E6 E7 F7 C5 B6 G6 G5 C6 E8 B5 E3 G3 G4 F2 H5 H4 D7 C7 D8 E2 D2 H6 B3 B4 A4 A5 A6 C1 G7 A3 A2 B7 C2 B1 D1 E1 B2 B8 G1 F8 H8 H7 H3 A1 F1 C8 G8 H1 A8 A7 G2 H2
+# The board represented is the final configuration.
+#
+#    a b c d e f g h
+# 1  O O O O O O O O
+# 2  O O @ @ @ @ @ @
+# 3  O @ O @ @ O @ @
+# 4  O O @ O O O @ @
+# 5  O O O O O @ @ @
+# 6  O O O O @ O @ @
+# 7  O O O @ O @ @ @
+# 8  @ @ @ @ @ @ @ @
+# Player to move: WHITE
+#
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-APvsFK-g2-22;..w........www..wwwwwww.bwbbwwwwbbwbbbwwbbbwbbww..bbbbb....bb...;b;WOC18 Final Game 2 - Aunchulee Piyanat vs Fukuchi Keisuke - 22 EC - Legal move count: 11 - [Index:Move:Value]: [00:A2:+02] [01:H3:-04] [02:C2:-06] [03:D1:-10] [04:H7:-12] [05:G1:-14] [06:B2:-16] [07:H2:-16] [08:E1:-22] [09:F1:-24] [10:G2:-38];
+#
+#
+#
+#
+# Third game, Piyanat plays the black.
+# F5 D6 C3 D3 C4 F4 F6 F3 E6 E7 F7 C5 B6 G6 G5 C6 E8 B5 D2 E3 H5 E2 B3 B4 C2 D1 A4 A6 A5 A3 G4 G3 C7 C8 D7 D8 B8 F8 G8 H3 H4 C1 H2 G7 F2 B7 E1 H7 A8 A7 B2 A1 B1 A2 H8 G1 H6 F1 G2 H1
+# The board represented is the final configuration.
+#
+#    a b c d e f g h
+# 1  O O O O O O O O
+# 2  O @ @ @ @ @ O @
+# 3  O O @ O O O @ @
+# 4  O @ O O O @ @ @
+# 5  O @ O O @ O @ @
+# 6  O O O O O @ @ @
+# 7  O O O O O O @ @
+# 8  @ @ @ @ @ @ @ @
+# Player to move: WHITE
+#
+#
+#                 |1       2       3       4       5       6       7       8       |
+#                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+woc18-APvsFK-g3-22;...w......bww...wwwwwww.wwwwbwb.wbwwwbbbwwbwbwb...wwww...bbbbw..;b;WOC18 Final Game 3 - Aunchulee Piyanat vs Fukuchi Keisuke - 22 EC - Legal move count: 10 - [Index:Move:Value]: [00:G8:+00] [01:E1:-16] [02:H2:-16] [03:F1:-18] [04:B2:-18] [05:C1:-22] [06:F2:-24] [07:G2:-28] [08:A2:-32] [09:B7:-36];
+#
+#
+#
+#
+#
+#
+#
+#
+#   seq    | game_position_pp_mop  | game_value | legal_move_count 
+#----------+-----------------------+------------+------------------
+# 25774684 |    a b c d e f g h   +|        -64 |                5
+#          | 1  O O O O O O O O   +|            | 
+#          | 2  O O O O O @ . .   +|            | 
+#          | 3  O @ @ @ O @ @ @   +|            | 
+#          | 4  O @ . @ O @ @ @   +|            | 
+#          | 5  O O O @ O @ . @   +|            | 
+#          | 6  O O O O O . . .   +|            | 
+#          | 7  O @ . O . . . .   +|            | 
+#          | 8  O O O . O . . .   +|            | 
+#          | Player to move: BLACK |            | 
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-25774684;wwwwwwwwwwwwwb..wbbbwbbbwb.bwbbbwwwbwb.bwwwww...wb.w....www.w...;b;REGAB database entry 25774684 - black loses -64;
+#
+#
+#
+#   seq    | game_position_pp_mop  | game_value | legal_move_count 
+#----------+-----------------------+------------+------------------
+# 47320341 |    a b c d e f g h   +|         64 |               10
+#          | 1  . @ @ @ @ @ O .   +|            | 
+#          | 2  O O O O O O O .   +|            | 
+#          | 3  O @ O @ @ O . .   +|            | 
+#          | 4  O @ @ @ O O O @   +|            | 
+#          | 5  O @ @ O O O O @   +|            | 
+#          | 6  @ @ O . O O O @   +|            | 
+#          | 7  . . . O O O O .   +|            | 
+#          | 8  . . . O O . . .   +|            | 
+#          | Player to move: BLACK |            | 
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-47320341;.bbbbbw.wwwwwww.wbwbbw..wbbbwwwbwbbwwwwbbbw.wwwb...wwww....ww...;b;REGAB database entry 47320341 - black wins +64;
+#
+#
+#
+#    seq    | empty_count | game_position_pp_mop  | best_move | game_value | legal_move_count 
+#-----------+-------------+-----------------------+-----------+------------+------------------
+# 295575197 |          23 |    a b c d e f g h   +| H8        |         54 |               18
+#           |             | 1  O . . . . O . .   +|           |            | 
+#           |             | 2  . O . O O O . .   +|           |            | 
+#           |             | 3  . O O O O O O .   +|           |            | 
+#           |             | 4  . O @ O @ O . .   +|           |            | 
+#           |             | 5  . O @ @ O O O O   +|           |            | 
+#           |             | 6  . O @ @ O O O .   +|           |            | 
+#           |             | 7  . O O O O @ O .   +|           |            | 
+#           |             | 8  . O . O O @ O .   +|           |            | 
+#           |             | Player to move: BLACK |           |            | 
+#
+# This is a very hard position. The RGLM solver had to expand 341,126,551,008 nodes to solve it.
+#
+# ES solver : [ node_count = 613,002,366,577 , leaf_count = 120,635,270,970 ]
+# Final outcome: best move=H8, position value=54
+# Time: 441m29.962s
+#
+# GVE solver : [ node_count = 100,422,523,895 , leaf_count = 19,238,774,258 ]
+# Final outcome: best move=H8, position value=54
+# Time: 75m9.849s
+#
+#               |1       2       3       4       5       6       7       8       |
+#               |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-295575197;w....w...w.www...wwwwww..wbwbw...wbbwwww.wbbwww..wwwwbw..w.wwbw.;b;REGAB database entry 295575197 - black wins +54, best move H8;
+#
+#
+#
+#    seq    | empty_count | game_position_pp_mop  | best_move | game_value | legal_move_count 
+#-----------+-------------+-----------------------+-----------+------------+------------------
+# 286132585 |          23 |    a b c d e f g h   +| A8        |          0 |               12
+#           |             | 1  . . O O O @ . .   +|           |            | 
+#           |             | 2  . . @ @ @ @ O .   +|           |            | 
+#           |             | 3  . . @ @ O @ O .   +|           |            | 
+#           |             | 4  . @ . O O O O O   +|           |            | 
+#           |             | 5  . @ O O @ O @ .   +|           |            | 
+#           |             | 6  @ O @ @ O O . @   +|           |            | 
+#           |             | 7  O @ @ O . O . .   +|           |            | 
+#           |             | 8  . @ @ O . . . .   +|           |            | 
+#           |             | Player to move: WHITE |           |            | 
+#
+#
+#               |1       2       3       4       5       6       7       8       |
+#               |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+sample-286132585;..wwwb....bbbbw...bbwbw..b.wwwww.bwwbwb.bwbbww.bwbbw.w...bbw....;w;REGAB database entry 286132585 - draw, best move A8;
+#
+#
+#                       |1       2       3       4       5       6       7       8       |
+#                       |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+game_end_must-pass-24-ec;wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwb........................;b;Used to test for a bug in GVE when first move is a PASS must give -64;
+#
+#
+#             |1       2       3       4       5       6       7       8       |
+#             |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+todays-problem;..wb..bwb.bbbbbwbwwwwwbwbwwwwwbwbwwbbbww.wwwwbbw..wwwwbw..wwwwwb;b;Today's Problem 2022-04-03 - Plack to play and win;
