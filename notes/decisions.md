@@ -167,3 +167,15 @@ D-646 | 2026-11-17 | MULTI-PLY campaign, step 1 (a): the GamePosition entity in 
          over the field views, dual scalar/array), and the 65-char string form `game_position_from_str` /
          `game_position_to_str` (the port of the C `game_position_x_from_string` / `_to_string`, with the confirmed v2
          pivot: the result is the RELATIVE view — the mover / opponent follow the player).
+
+D-647 | 2026-11-17 | MULTI-PLY campaign, step 1 (b): the new module `src/reversi/game_position_database.py` — the v2
+         port of the legacy C `game_position_db` (the user's step-1 goal: read a game position from a text file): the
+         same record format (`id;board;player;description;`, the `#` comments, the trailing-garbage rule), the same six
+         syntax-error classes (`GpdbErrorType`, the C `gpdb_syntax_err_type_t`), the same 0-based line numbering, and
+         the same loader policy flag trio with the C defaults (`duplicates_are_errors=True`, `replace_duplicates=False`,
+         `stop_on_error=False`). The parse (`_parse_record`) mirrors the C `gpdb_parse_line`; the load loop is a plain
+         per-line call of the public `game_position_from_str` on the 65-char board+player string — the single source of
+         the string→GamePosition conversion stays in `board.py` (no duplicated parsing logic), and a vectorized bulk
+         path is deliberately NOT built (the databases are small: the test / POC use, the user's 8.4). The
+         `GamePositionDatabase` container keeps the C dictionary contract (the id key, the insertion order, the `find` /
+         `add_or_replace` / `len` / iteration, the `positions` property stacking a 1-D `GamePositionArray`).
