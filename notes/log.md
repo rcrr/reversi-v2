@@ -70,3 +70,33 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   suite is 52 modules, all green, the notes lint and the docs audit stand at their disclosed residue). The audit
   report (notes/analyses/rules\_compliance\_audit\_2026-11-15.md) joins the repo with this close. Next session: the
   project's campaign list stands (the overview Next steps, the MULTI-PLY first).
+
+## 2026-11-17 — session 129 (MULTI-PLY campaign — step 1: the GamePosition entity + the gpdb reader)
+
+- The design discussion (the user's "riflettiamo" phase) settles the step-1 contract: `GamePosition` = the
+  structured dtype built from `Position`'s own `descr` + the `player` field (the "Position + player" contract by
+  construction); `Player` = uint8 (0/1, the C values); the 65-char string form (64 board chars [bw.] + 1 player
+  char, NO separator) is always and only a GamePosition — the legacy C `game_position_x_from_string` / `_to_string`
+  scope (the user's 8.2 correction: no separate `bitboards_from_board_str` in `board.py`); the v2 relative-view
+  pivot (mover / opponent / player, consistent with the REGAB DB design; the player is the absolute anchor for
+  history-less mid-game positions, superfluous to the ML features); the C loader flag trio mirrored with defaults;
+  the file-format layer in the new module, the string↔GP conversion in `board.py`.
+- src/reversi/board.py — the GamePosition entity: `Player` + `PLAYER_BLACK` / `PLAYER_WHITE` + `PlayerArray`, the
+  `GamePosition` dtype, the `GamePositionField` / `GamePositionArray` pydantic hints, `make_game_position` +
+  `make_game_position_from_position`, `game_position_blacks` / `game_position_whites`, `game_position_from_str` /
+  `game_position_to_str` (+ the 13 `__all__` names, the docstring bullet). (D-646)
+- src/reversi/game\_position\_database.py — the new module: the gpdb record format port (the `GpdbErrorType` six
+  classes, the `GpdbSyntaxError`, the `GpdbEntry` dataclass, the `GamePositionDatabase` container, the
+  `load_game_position_database` with the C flag trio; the parse mirrors the C `gpdb_parse_line`, the load loop
+  composes the public `game_position_from_str`). (D-647)
+- The tests + the fixture + the runner: the `TestGamePosition` class (14 tests) in test\_board.py; the new
+  test/reversi/test\_game\_position\_database.py (22 tests); the VERBATIM legacy fixture
+  test/reversi/data/gpdb-test-db.txt (md5-identical; the C `gpdb_verify` cross-validation surface — 6 entries +
+  11 errors, the exact (line, type) sequence pinned, the string round trip against the file's own records); the
+  module at its canonical run\_utests.sh position (after test\_board). Self-inflicted fix, disclosed: the first
+  loader draft dropped the "entry is new" branch (0 entries loaded) — caught by the fixture test, repaired
+  forward. (D-648)
+- Suite: 1187 → 1223, GREEN 1223/0/88 (the default tier via the wsutils measurement wrapper; the LONG=1
+  suite\_audit gate measurement re-run as well).
+- Next: the user's supervision of the step-1 work (no commits made this session so far), then the MULTI-PLY
+  step 2.

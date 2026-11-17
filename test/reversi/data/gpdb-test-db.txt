@@ -1,0 +1,68 @@
+# gpdb-test-db
+#
+# The record is separated by semicolons. Char ';'.
+# Everything following a dash is discarted. Char '#'.
+# The record must have four fields, it can have any length, and it must stay on one line.
+# field #1: Game Position id.
+#           Must be unique in the database.
+#           It is case sensitive.
+# field #2: Board.
+#           Must be 64 characters.
+#           Accepted characters are '.' for empty squares, 'b' for black ones, and 'w' for whites.
+# field #3: Player.
+#           Must be one character, 'b' for black player, and 'w' for white one.
+# field #4: Description.
+#           Can be long at will. Any character is allowed except '#', and ';' that terminates the field.
+#
+# After the fourth field anything is allowed and is not processed.
+# Applying the stated rules, lines must be a validated record or must start with a dash (#) char. No other variation is allowed.
+#
+# The input file is read complitely, then rows are validated.
+# All the offending rows generate a log entry describing the violation, the vald rows are loaded in the db.
+#
+#
+#
+# The db has 6 entries.
+# The log of errors has 11 items.
+# Adding or changing entries or errors REQUIRES that the game_position_db_test unit suite has to be updated. 
+#
+#
+#
+test-one;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;Test position number one;
+test-two;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number two; # This is a comment ...
+#
+#
+#
+test-wrong;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;.;Test wrong position;
+#
+#
+#
+duplicate-entry;................................................................;w;Test inserting a position twice: first time;
+duplicate-entry;b...............................................................;b;Test inserting a position twice: second time;
+#
+#
+#
+all-black;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;b;A full black board;
+all-white;wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww;w;A full white board;
+all-empty;................................................................;b;An empy board, black has to move;
+#
+#
+#
+incomplete-entry-a
+incomplete-entry-b;
+incomplete-entry-c;................................................................;
+incomplete-entry-d;................................................................;b;
+#
+#
+#
+sixty-square-board;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;b;A board having only 60 squares;
+#
+#
+#
+wrong-square;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbxbbbbbbbbbb;b;A board having a wrong char;
+#
+#
+#
+wrong-player-a;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;c;An entry having a wrong player;
+wrong-player-b;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;;An entry having a wrong player;
+wrong-player-c;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;bb;An entry having a wrong player;

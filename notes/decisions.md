@@ -179,3 +179,15 @@ D-647 | 2026-11-17 | MULTI-PLY campaign, step 1 (b): the new module `src/reversi
          path is deliberately NOT built (the databases are small: the test / POC use, the user's 8.4). The
          `GamePositionDatabase` container keeps the C dictionary contract (the id key, the insertion order, the `find` /
          `add_or_replace` / `len` / iteration, the `positions` property stacking a 1-D `GamePositionArray`).
+
+D-648 | 2026-11-17 | MULTI-PLY campaign, step 1 (c): the tests + the fixture + the runner. `test_board.py` gains the
+         `TestGamePosition` class (14 tests: the dtype layout — names / types / offsets / the itemsize 17 / the
+         Position-prefix equality — the player constants, the two constructors incl. the shape-mismatch ValueError, the
+         absolute-colour accessors scalar + array, the C doc-sample string value, the four ValueError cases, the round
+         trip). The new `test/reversi/test\_game\_position\_database.py` (22 tests, 4 classes): the parse mirror (10),
+         the fixture load (6), the policy flags (4), the container (2). The fixture is the VERBATIM legacy
+         `db/gpdb-test-db.txt` (md5-identical copy) at `test/reversi/data/gpdb-test-db.txt` — it is the C `gpdb_verify`
+         cross-validation surface: 6 entries + 11 errors, the exact (line, type) sequence pinned (the file carries THREE
+         wrong-player records, not two — the first read of the fixture had missed the last two lines). The module joins
+         `run\_utests.sh` at its canonical position (section 1, immediately after `test\_board`). Suite: 1187 → 1223
+         tests, GREEN 1223/0/88 (the default tier + the LONG=1 wrapper measurement).

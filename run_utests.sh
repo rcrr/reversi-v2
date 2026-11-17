@@ -61,6 +61,7 @@ MODULES=(
     # 1 — board & pattern concepts
     test.reversi.test_index
     test.reversi.test_board
+    test.reversi.test_game_position_database
     test.reversi.test_random_game
     test.reversi.test_pattern
     test.reversi.test_mobility

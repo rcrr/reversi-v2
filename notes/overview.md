@@ -58,7 +58,8 @@ define the evaluation function.
 
 - The MULTI-PLY campaign: the current EF is zero-ply; develop the N-ply game expansion (the alpha-beta search over the
   EF) delivering an evaluation based on a game tree search; evaluate the statistical properties of the resulting
-  function.
+  function. Step 1 is in: the `GamePosition` entity in `board.py` (the Position + the player to move, the 65-char string
+  form) and the `game_position_database` reader (the gpdb text format, the C loader port).
 - The MOVE-PROB campaign: develop an algorithm that assigns each legal move a probability of being the best move (a
   distribution over the legal-move set); develop a statistical validation method for the assignment of these
   probabilities.
@@ -88,6 +89,7 @@ define the evaluation function.
 | src/reversi/base\_model.py | complete | [docs/src/reversi/base\_model.md](docs/src/reversi/base\_model.md) |
 | src/reversi/board.py | complete | [docs/src/reversi/board.md](docs/src/reversi/board.md) |
 | src/reversi/feature.py | complete | [docs/src/reversi/feature.md](docs/src/reversi/feature.md) |
+| src/reversi/game\_position\_database.py | complete | [docs/src/reversi/game\_position\_database.md](docs/src/reversi/game\_position\_database.md) |
 | src/reversi/index.py | complete | [docs/src/reversi/index.md](docs/src/reversi/index.md) |
 | src/reversi/lm/client.py | complete | [docs/src/reversi/lm/client.md](docs/src/reversi/lm/client.md) |
 | src/reversi/lm/hlp\_analytics.py | complete | [docs/src/reversi/lm/hlp\_analytics.md](docs/src/reversi/lm/hlp\_analytics.md) |
@@ -180,8 +182,9 @@ define the evaluation function.
 | test/reversi/paths.py | complete | 0/0/0/0/0 | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_base\_model.py | complete | 9/0/0/0/0 | [docs/test/reversi/test\_base\_model.md](docs/test/reversi/test\_base\_model.md) |
-| test/reversi/test\_board.py | complete | 308/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
+| test/reversi/test\_board.py | complete | 322/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
+| test/reversi/test\_game\_position\_database.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_game\_position\_database.md](docs/test/reversi/test\_game\_position\_database.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |
 | test/reversi/test\_mobility.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
 | test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
@@ -199,6 +202,8 @@ Test data (test/reversi/data/):
 
 - `ffo_12_log_sample.csv` — the FFO-12 legacy C solve-log sample (the `position_hash` parity fixture, the deterministic
   1002-row stride — 1003 lines incl. the header)
+- `gpdb-test-db.txt` — the legacy C game-position-database test file verbatim (the gpdb loader fixture, the
+  `gpdb_verify` cross-validation surface: 6 entries + 11 documented syntax errors)
 - `prng_golden.txt` — the committed PRNG golden (the 18436 lines, the 20 sections)
 - `rlm_00.json` — the JSON5 unit-test config (the base rlm\_00 fixture of the NO-DB mock-ctx suites)
 - `rlm_01.json` — the unit-test config (the Design Matrix data structure)
