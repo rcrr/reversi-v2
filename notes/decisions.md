@@ -202,3 +202,18 @@ D-649 | 2026-11-17 | The two legacy gpdb fixtures join the repo (the user's call
          without a mandate (nothing in v2 reads databases at runtime — the consumers are the tests and the probes), and
          a zone opening is a structural call that deserves a real consumer (YAGNI). If a runtime-data zone ever becomes
          needed, the files migrate under a dedicated decision.
+
+D-650 | 2026-11-17 | The `make_move` parity class joins `test\_board.py`: `TestPositionMakeMoveGpdbParity` (4 tests)
+         validates `position_make_move` against the C make-move corpus — the four make-move-test-case-{a..d}
+         before/after pairs of the `gpdb-sample-games.txt` fixture (the move is the one named by the after record's
+         description, pinned to the case table D4 / D4 / D4 / B4): the before position + the move must be legal and must
+         reproduce the after position's mover / opponent exactly. PLACEMENT RULING (the user's question, after the
+         dependency concern): the class lives in `test\_board.py` — NOT a dedicated test file (4 tests do not carry a
+         new module + mirror doc + overview row + runner slot, and board's contracts stay in one place), NOT
+         `test\_game\_position\_database.py` (the assert is a `make_move` contract, not a reader contract — the other
+         placement would invert the direction). The dependency the concern targeted arises only if the test used the
+         gpdb LOADER: the `_record` helper does minimal fixture access (the id line, the field split) and the string ->
+         GamePosition conversion is `game_position_from_str` (board.py — the SUT), so the test depends on board.py
+         alone; the gpdb format validation stays the exclusive domain of `test\_game\_position\_database`. Precedent:
+         `TestPositionHashLegacyParity` (the FFO-12 CSV parity in the same file). All 4 cases pass at first run — the v2
+         `position_make_move` reproduces the C corpus bit-exactly.

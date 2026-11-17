@@ -4089,3 +4089,52 @@ class TestGamePosition(unittest.TestCase):
     def test_from_str_to_str_round_trip(self):
         s = "bbbbbbbbwwwwwwww........................................wwwwwwwww"
         self.assertEqual(game_position_to_str(game_position_from_str(s)), s)
+
+
+class TestPositionMakeMoveGpdbParity(unittest.TestCase):
+    """
+    The make_move parity on the legacy gpdb corpus: the four make-move-test-case-{a..d} before/after
+    pairs of gpdb-sample-games.txt (the C make_move test corpus) — the before position + the
+    documented move must reproduce the after position exactly.
+    """
+
+    FIXTURE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
+
+    # The case letter -> the move named by the after record's description.
+    CASES = {'a': 'D4', 'b': 'D4', 'c': 'D4', 'd': 'B4'}
+
+    def _record(self, entry_id):
+        # Minimal fixture access: id -> (the 65-char board+player string, the description). The
+        # string -> GamePosition conversion is game_position_from_str (board.py — the SUT): no
+        # dependency on the gpdb module.
+        for line in self.FIXTURE.read_text().splitlines():
+            if line.startswith(entry_id + ';'):
+                parts = line.split(';')
+                return parts[1] + parts[2], parts[3]
+        raise AssertionError(f'{entry_id} not found in the fixture')
+
+    def _check_case(self, letter):
+        before_s, _ = self._record(f'make-move-test-case-{letter}-before')
+        after_s, after_desc = self._record(f'make-move-test-case-{letter}-after')
+        move_name = self.CASES[letter]
+        # The fixture's own documentation names the move — pin the agreement.
+        self.assertIn(move_name.lower(), after_desc.lower())
+        before = game_position_from_str(before_s)
+        after = game_position_from_str(after_s)
+        move = Move(square_from_str(move_name))
+        self.assertTrue(position_is_move_legal(before, move))
+        result = position_make_move(before, move)
+        self.assertEqual(result['mover'], after['mover'])
+        self.assertEqual(result['opponent'], after['opponent'])
+
+    def test_case_a(self):
+        self._check_case('a')
+
+    def test_case_b(self):
+        self._check_case('b')
+
+    def test_case_c(self):
+        self._check_case('c')
+
+    def test_case_d(self):
+        self._check_case('d')
