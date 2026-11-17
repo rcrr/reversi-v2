@@ -267,3 +267,11 @@ D-654 | 2026-11-17 | The endgame solver trace: the `NodeRecord` (the frozen data
          incrementally, by the user's call: each future field (the first candidates: `is_leaf`, `empty_count`, the
          legal-move set) joins with its documented reason; the C-internal columns (the Zobrist hashes, the absolute
          bitboards) never enter the v2 record.
+
+D-655 | 2026-11-17 | Two API polishes to the endgame solver, per the user's review: (1)
+         `SolverResult.final_game_position` is annotated `GamePositionField` (the house scalar alias of board.py,
+         `Annotated[np.void, SkipValidation]`) instead of the bare `np.void` — the same underlying type, the annotation
+         keeps the entity connection and matches the board.py public signatures; (2) the `NodeRecord` move fields drop
+         the `| None` and use the domain sentinel codes: `parent_move` is `MOVE_UN` at the root, `best_move` is
+         `MOVE_NA` at a leaf and `MOVE_PA` at a pass node — every node carries a `Move`, mirroring the C log `UN` / `NA`
+         / `--` columns directly. The 11 tests stay green (the trace mapping now goes through `move_to_str`).

@@ -57,8 +57,8 @@ part of the record):
 | `call_id` | `CALL_ID` | the node's id in the search: 1 at the root, assigned in visit order |
 | `level` | `CALL_LEVEL` | the depth in the tree: 1 at the root |
 | `player` | `PLAYER` | the absolute player to move at the node |
-| `parent_move` | `PARENT_MOVE` | the move that led to the node: `None` at the root, the pass for a pass node |
-| `best_move` | `T_BEST_MOVE` | the node's best move: `None` at a leaf, the pass at a pass node |
+| `parent_move` | `PARENT_MOVE` | the move that led to the node: the `MOVE_UN` sentinel at the root, the `MOVE_PA` sentinel for a pass node |
+| `best_move` | `T_BEST_MOVE` | the node's best move: the `MOVE_NA` sentinel at a leaf, the `MOVE_PA` sentinel at a pass node |
 | `value` | `T_ALPHA` | the node's value from the point of view of the player to move there |
 
 The first version keeps only the fields needed to cross-validate the solution line and the
@@ -72,9 +72,9 @@ from typing import Callable
 import numpy as np
 from pydantic import ConfigDict, validate_call
 
-from reversi.board import (MOVE_PA, GamePosition, Move, Player, PositionField,
-                           make_game_position, make_position, position_final_value,
-                           position_legal_moves, position_make_move)
+from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, GamePosition, GamePositionField,
+                           Move, Player, PositionField, make_game_position, make_position,
+                           position_final_value, position_legal_moves, position_make_move)
 
 
 __all__ = ['NodeRecord', 'SolverResult', 'minimax_solve']
@@ -88,8 +88,8 @@ class NodeRecord:
     call_id: int
     level: int
     player: Player
-    parent_move: Move | None
-    best_move: Move | None
+    parent_move: Move
+    best_move: Move
     value: int
 
 
@@ -100,7 +100,7 @@ class SolverResult:
     move at the root, the terminal game position of the best line, and the search counters.
     """
     game_value: np.int8
-    final_game_position: np.void
+    final_game_position: GamePositionField
     nodes: int
     leafs: int
 
@@ -124,7 +124,7 @@ def minimax_solve(gp: GamePosition,
     leafs = 0
     call_count = 0
 
-    def search(p: PositionField, player: Player, level: int, parent_move: Move | None):
+    def search(p: PositionField, player: Player, level: int, parent_move: Move):
         # p: the position (the mover / opponent fields), player: the absolute player to move.
         nonlocal nodes, leafs, call_count
         nodes += 1
@@ -140,7 +140,7 @@ def minimax_solve(gp: GamePosition,
                 leafs += 1
                 value = position_final_value(p)
                 if log is not None:
-                    log(NodeRecord(call_id, level, player, parent_move, None, int(value)))
+                    log(NodeRecord(call_id, level, player, parent_move, MOVE_NA, int(value)))
                 return value, make_game_position(p['mover'], p['opponent'], player)
             # A pass: a further node (the same board, the other player to move), and the value
             # comes back negated, as at every ply.
@@ -163,6 +163,6 @@ def minimax_solve(gp: GamePosition,
             log(NodeRecord(call_id, level, player, parent_move, best_move, int(best_value)))
         return best_value, best_final
 
-    value, final = search(make_position(gp['mover'], gp['opponent']), gp['player'], 1, None)
+    value, final = search(make_position(gp['mover'], gp['opponent']), gp['player'], 1, MOVE_UN)
     return SolverResult(game_value=np.int8(value), final_game_position=final,
                         nodes=nodes, leafs=leafs)

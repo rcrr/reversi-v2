@@ -120,5 +120,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    callback of `minimax_solve` (one record per node, emitted at the node's exit); the pass is now a real recursive node;
    the C game-tree log of ffo-01-simplified-8 becomes the `es_log_ffo-01-simplified-8.csv` fixture; the new trace test
    compares 46/46 records one to one with the log.
- - Next: the user's supervision of the endgame-solver step (no commits made this session so far), then the MULTI-PLY
-   step 2.
+ - endgame\_solver API polish (D-655): `SolverResult.final_game_position` is annotated `GamePositionField` (the house
+   scalar alias) and the `NodeRecord` move fields use the sentinel codes `MOVE_UN` / `MOVE_NA` / `MOVE_PA` instead of
+   `None`.
+ - Next: the user's further instructions on the endgame-solver step (no commits made this session so far), then the
+   MULTI-PLY step 2.

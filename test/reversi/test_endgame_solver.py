@@ -184,10 +184,8 @@ class TestMinimaxSolveFixture(unittest.TestCase):
         self.assertEqual(len(records), len(c_rows))
         for rec, row in zip(records, c_rows):
             got = (rec.call_id, rec.level, int(rec.player),
-                   'UN' if rec.parent_move is None
-                   else ('--' if rec.parent_move == MOVE_PA else move_to_str(rec.parent_move)),
-                   'NA' if rec.best_move is None
-                   else ('--' if rec.best_move == MOVE_PA else move_to_str(rec.best_move)),
+                   '--' if rec.parent_move == MOVE_PA else move_to_str(rec.parent_move),
+                   '--' if rec.best_move == MOVE_PA else move_to_str(rec.best_move),
                    rec.value)
             exp = (int(row[col['CALL_ID']]), int(row[col['CALL_LEVEL']]), int(row[col['PLAYER']]),
                    row[col['PARENT_MOVE']], row[col['T_BEST_MOVE']], int(row[col['T_ALPHA']]))
