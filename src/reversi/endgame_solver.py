@@ -43,9 +43,31 @@ endgame_solver - the scalar exact endgame solver.
 
 `nodes` counts every position visited (the root and the leaves included); `leafs` counts the
 terminal positions evaluated.
+
+The trace
+---------
+
+`minimax_solve` accepts an optional `log` callback: one `NodeRecord` per visited node, emitted
+at the node's exit. The record is the projection of the legacy C game-tree log columns that the
+Python solver owns (the C-internal columns — the Zobrist hash, the absolute colours — are not
+part of the record):
+
+| field | C log column | why / where |
+|---|---|---|
+| `call_id` | `CALL_ID` | the node's id in the search: 1 at the root, assigned in visit order |
+| `level` | `CALL_LEVEL` | the depth in the tree: 1 at the root |
+| `player` | `PLAYER` | the absolute player to move at the node |
+| `parent_move` | `PARENT_MOVE` | the move that led to the node: `None` at the root, the pass for a pass node |
+| `best_move` | `T_BEST_MOVE` | the node's best move: `None` at a leaf, the pass at a pass node |
+| `value` | `T_ALPHA` | the node's value from the point of view of the player to move there |
+
+The first version keeps only the fields needed to cross-validate the solution line and the
+search shape; further fields (the leaf / empties / legal-move details) are added incrementally,
+each with its own why/where row.
 """
 
 from dataclasses import dataclass
+from typing import Callable
 
 import numpy as np
 from pydantic import ConfigDict, validate_call
@@ -55,7 +77,20 @@ from reversi.board import (MOVE_PA, GamePosition, Move, Player, PositionField,
                            position_legal_moves, position_make_move)
 
 
-__all__ = ['SolverResult', 'minimax_solve']
+__all__ = ['NodeRecord', 'SolverResult', 'minimax_solve']
+
+
+@dataclass(frozen=True)
+class NodeRecord:
+    """
+    One visited node of the search, as traced (see the module docstring for the field table).
+    """
+    call_id: int
+    level: int
+    player: Player
+    parent_move: Move | None
+    best_move: Move | None
+    value: int
 
 
 @dataclass(frozen=True)
@@ -71,27 +106,31 @@ class SolverResult:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def minimax_solve(gp: GamePosition) -> SolverResult:
+def minimax_solve(gp: GamePosition,
+                  log: Callable[[NodeRecord], None] | None = None) -> SolverResult:
     """
-    Solve the endgame exactly with a depth-first minimax (see the module docstring for the search
-    contract) and return the game value, the final game position of the best line, and the node /
-    leaf counts.
+    Solve the endgame exactly with a depth-first minimax (see the module docstring for the
+    search contract) and return the game value, the final game position of the best line, and
+    the node / leaf counts.
 
     Args:
         gp: the game position to solve (scalar only).
+        log: optional callback receiving one NodeRecord per visited node, at the node's exit.
 
     Returns:
         The SolverResult of the search.
     """
     nodes = 0
     leafs = 0
+    call_count = 0
 
-    def search(p: PositionField, player: Player):
+    def search(p: PositionField, player: Player, level: int, parent_move: Move | None):
         # p: the position (the mover / opponent fields), player: the absolute player to move.
-        nonlocal nodes, leafs
+        nonlocal nodes, leafs, call_count
         nodes += 1
+        call_count += 1
+        call_id = call_count
         legal = position_legal_moves(p)
-        passing = False
         if not legal:
             # The mover has no legal move: is the game over, or does the turn pass?
             p_pass = position_make_move(p, MOVE_PA)
@@ -99,24 +138,31 @@ def minimax_solve(gp: GamePosition) -> SolverResult:
             if not legal_pass:
                 # A leaf: neither player has a legal move (one node, no pass).
                 leafs += 1
-                return (position_final_value(p),
-                        make_game_position(p['mover'], p['opponent'], player))
-            # The pass: a further node (the same board, the other player to move), and the value
+                value = position_final_value(p)
+                if log is not None:
+                    log(NodeRecord(call_id, level, player, parent_move, None, int(value)))
+                return value, make_game_position(p['mover'], p['opponent'], player)
+            # A pass: a further node (the same board, the other player to move), and the value
             # comes back negated, as at every ply.
-            p, player = p_pass, 1 - player
-            nodes += 1
-            legal = legal_pass
-            passing = True
+            value, final = search(p_pass, 1 - player, level + 1, MOVE_PA)
+            value = -value
+            if log is not None:
+                log(NodeRecord(call_id, level, player, parent_move, MOVE_PA, int(value)))
+            return value, final
         best_value = None
+        best_move: Move | None = None
         best_final = None
         for sq in range(64):
             if (legal >> sq) & 1:
-                value, final = search(position_make_move(p, Move(sq)), 1 - player)
+                value, final = search(position_make_move(p, Move(sq)), 1 - player, level + 1,
+                                      Move(sq))
                 value = -value
                 if best_value is None or value > best_value:
-                    best_value, best_final = value, final
-        return (-best_value if passing else best_value), best_final
+                    best_value, best_move, best_final = value, Move(sq), final
+        if log is not None:
+            log(NodeRecord(call_id, level, player, parent_move, best_move, int(best_value)))
+        return best_value, best_final
 
-    value, final = search(make_position(gp['mover'], gp['opponent']), gp['player'])
+    value, final = search(make_position(gp['mover'], gp['opponent']), gp['player'], 1, None)
     return SolverResult(game_value=np.int8(value), final_game_position=final,
                         nodes=nodes, leafs=leafs)

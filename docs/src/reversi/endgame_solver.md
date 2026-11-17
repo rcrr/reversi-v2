@@ -9,7 +9,8 @@ The 2 `__all__` names.
 | name | contract |
 |---|---|
 | `SolverResult` | the frozen dataclass `(game_value, final_game_position, nodes, leafs)`: the value is an `np.int8` (the vectorized future's type, kept here for conformance), the final position is a GamePosition scalar |
-| `minimax_solve(gp) -> SolverResult` | the depth-first minimax over the game tree of the GamePosition scalar `gp` (see Architecture for the search contract) |
+| `NodeRecord` | the frozen dataclass of one traced node: `call_id`, `level`, `player`, `parent_move`, `best_move`, `value` (see The trace) |
+| `minimax_solve(gp, log=None) -> SolverResult` | the depth-first minimax over the game tree of the GamePosition scalar `gp` (see Architecture for the search contract); the optional `log` callback receives one NodeRecord per visited node, at the node's exit |
 
 ## Architecture
 
@@ -26,6 +27,24 @@ The 2 `__all__` names.
 - **The leaf value** is `position_final_value` (board.py, the WOF scoring: the empty squares are assigned to the
   winner, a draw is 0 — with or without empty squares).
 
+## The trace
+
+`minimax_solve` accepts an optional `log` callback: one `NodeRecord` per visited node, emitted at the node's exit.
+The record is the projection of the legacy C game-tree log columns that the Python solver owns (the C-internal
+columns — the Zobrist hash, the absolute colours — are not part of the record):
+
+| field | C log column | why / where |
+|---|---|---|
+| `call_id` | `CALL_ID` | the node's id in the search: 1 at the root, assigned in visit order |
+| `level` | `CALL_LEVEL` | the depth in the tree: 1 at the root |
+| `player` | `PLAYER` | the absolute player to move at the node |
+| `parent_move` | `PARENT_MOVE` | the move that led to the node: `None` at the root, the pass for a pass node |
+| `best_move` | `T_BEST_MOVE` | the node's best move: `None` at a leaf, the pass at a pass node |
+| `value` | `T_ALPHA` | the node's value from the point of view of the player to move there |
+
+The first version keeps only the fields needed to cross-validate the solution line and the search shape; further
+fields (the leaf / empties / legal-move details) are added incrementally, each with its own why/where row.
+
 ## Verified invariants
 
 - The search contract on hand-built endgames (the full-board terminals from both perspectives, the draw, the
@@ -34,6 +53,8 @@ The 2 `__all__` names.
 - The exact solution of the `ffo-01-simplified-8` fixture position (the value 18, the final position, the 46 nodes
   / 15 leaves, the A1-B1-H1-G2 solution line) — `test_endgame_solver::TestMinimaxSolveFixture`.
 - The result container (the fields, the frozen behaviour) — `test_endgame_solver::TestSolverResult`.
+- The node-by-node trace of the `ffo-01-simplified-8` solution: the 46 records match the C game-tree log one to
+  one — `test_endgame_solver::TestMinimaxSolveFixture::test_ffo_01_simplified_8_trace`.
 
 ## Open issues
 

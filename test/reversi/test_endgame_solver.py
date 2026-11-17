@@ -144,6 +144,7 @@ class TestMinimaxSolveFixture(unittest.TestCase):
     """
 
     DB_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
+    LOG_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'es_log_ffo-01-simplified-8.csv'
 
     @classmethod
     def setUpClass(cls):
@@ -164,3 +165,30 @@ class TestMinimaxSolveFixture(unittest.TestCase):
             p = make_game_position_from_position(
                 position_make_move(p, square_from_str(name)), np.uint8(1 - int(p['player'])))
         self.assertEqual(game_position_to_str(p), game_position_to_str(r.final_game_position))
+
+    def test_ffo_01_simplified_8_trace(self):
+        # The trace of the search (one NodeRecord per visited node, emitted when the node's
+        # search completes) reproduces the C game-tree log record by record, on the six
+        # comparable columns (the call id, the level, the player, the parent move, the best
+        # move, the value).
+        entry = self.db.find('ffo-01-simplified-8')
+        self.assertIsNotNone(entry)
+        records = []
+        minimax_solve(entry.position, log=records.append)
+        records.sort(key=lambda r: r.call_id)
+
+        lines = [l for l in self.LOG_FILE.read_text().splitlines() if l.strip()]
+        col = {name: i for i, name in enumerate(lines[0].split(';'))}
+        c_rows = sorted((l.split(';') for l in lines[1:]), key=lambda r: int(r[col['CALL_ID']]))
+
+        self.assertEqual(len(records), len(c_rows))
+        for rec, row in zip(records, c_rows):
+            got = (rec.call_id, rec.level, int(rec.player),
+                   'UN' if rec.parent_move is None
+                   else ('--' if rec.parent_move == MOVE_PA else move_to_str(rec.parent_move)),
+                   'NA' if rec.best_move is None
+                   else ('--' if rec.best_move == MOVE_PA else move_to_str(rec.best_move)),
+                   rec.value)
+            exp = (int(row[col['CALL_ID']]), int(row[col['CALL_LEVEL']]), int(row[col['PLAYER']]),
+                   row[col['PARENT_MOVE']], row[col['T_BEST_MOVE']], int(row[col['T_ALPHA']]))
+            self.assertEqual(got, exp, f"node {rec.call_id}")

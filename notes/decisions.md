@@ -254,3 +254,16 @@ D-653 | 2026-11-17 | The `test_endgame_solver` suite (3 classes / 10 tests) + th
          for this — value 18, 46 nodes, 15 leaves, the final string, and the A1-B1-H1-G2 solution line ending at the
          final position; every component cross-validated against the legacy C `endgame_solver -s minimax` oracle, whose
          game-tree log decoded the reference final position and the solution line).
+
+D-654 | 2026-11-17 | The endgame solver trace: the `NodeRecord` (the frozen dataclass of the first trace version —
+         `call_id`, `level`, `player`, `parent_move`, `best_move`, `value`, each one matching a comparable column of the
+         C game-tree log) and the optional `log` callback of `minimax_solve` (invoked once per visited node, when the
+         search of the node completes — the same entry / exit discipline of the C log). The pass becomes a real
+         recursive node (it was inlined in the caller's frame), so that every node, passes included, emits exactly one
+         record; the search results are unchanged (the ten pre-existing tests stay green). The C game-tree log of the
+         ffo-01-simplified-8 fixture position becomes a test data file
+         (`test/reversi/data/es_log_ffo-01-simplified-8.csv`, regenerated cleanly from the C oracle) and the new trace
+         test compares the 46 v2 records with the 46 log rows one to one on the six columns. The fields grow
+         incrementally, by the user's call: each future field (the first candidates: `is_leaf`, `empty_count`, the
+         legal-move set) joins with its documented reason; the C-internal columns (the Zobrist hashes, the absolute
+         bitboards) never enter the v2 record.

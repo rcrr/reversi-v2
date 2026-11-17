@@ -116,5 +116,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
  - test/reversi/test\_endgame\_solver.py + run\_utests.sh — 10 tests: the result container, the seven hand-built
    micro-endgames, and the ffo-01-simplified-8 fixture loaded through the gpdb module (value 18 / 46 nodes / 15 leaves /
    the final position / the A1-B1-H1-G2 solution line — cross-validated against the C oracle). (D-653)
+ - endgame\_solver trace (D-654): the `NodeRecord` (the six fields of the first trace version) + the optional `log`
+   callback of `minimax_solve` (one record per node, emitted at the node's exit); the pass is now a real recursive node;
+   the C game-tree log of ffo-01-simplified-8 becomes the `es_log_ffo-01-simplified-8.csv` fixture; the new trace test
+   compares 46/46 records one to one with the log.
  - Next: the user's supervision of the endgame-solver step (no commits made this session so far), then the MULTI-PLY
    step 2.
