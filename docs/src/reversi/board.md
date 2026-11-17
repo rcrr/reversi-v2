@@ -4,7 +4,7 @@ The board domain model of the Reversi engine: squares, moves, bitboards, positio
 
 ## API
 
-The 74 `__all__` names. Dual contract throughout: scalar in → scalar out, any-shape array in → same-shape array out,
+The 87 `__all__` names. Dual contract throughout: scalar in → scalar out, any-shape array in → same-shape array out,
 unless stated.
 
 | family | name | contract |
@@ -72,6 +72,18 @@ unless stated.
 | Position | `position_ro000` / `position_ro090` / `position_ro180` / `position_ro270` / `position_fvert` / `position_fh1a8` / `position_fhori` / `position_fa1h8` | the 8 per-field D8 transforms; `position_ro000` returns a copy |
 | Position | `position_transformations(p) -> PositionArray` | all 8, same slot order as the bitboards |
 | Position | `position_anti_transformations(p) -> PositionArray` | all 8 inverses (slots 1/3 swapped) |
+| Player | `Player` | type alias `np.uint8` — the player to move (the absolute colour of the mover) |
+| Player | `PLAYER_BLACK` / `PLAYER_WHITE` | the player constants (0 / 1, the legacy C values) |
+| Player | `PlayerArray` | annotated uint8 array (reuses the square validator) |
+| GamePosition | `GamePosition` | the numpy structured dtype `[('mover', u64), ('opponent', u64), ('player', u8)]` — built from `Position`'s own `descr` with the player field appended (the first 16 bytes of every element are exactly a `Position`; itemsize 17, no end-of-struct padding) |
+| GamePosition | `GamePositionField` | `Annotated[np.void, SkipValidation]` — the scalar |
+| GamePosition | `GamePositionArray` | annotated array; strict `GamePosition` dtype |
+| GamePosition | `make_game_position(mover, opponent, player) -> np.void \| ndarray` | the GamePosition twin of `make_position`: scalar / any-shape array; fresh buffer, the three fields stored, inputs copied; shape mismatch → ValueError |
+| GamePosition | `make_game_position_from_position(position, player) -> np.void \| ndarray` | the convenience constructor: the Position's mover / opponent kept, the player appended |
+| GamePosition | `game_position_blacks(gp) -> Bitboard \| BitboardArray` | the absolute-colour view: `np.where(player == BLACK, mover, opponent)` (the array path) |
+| GamePosition | `game_position_whites(gp) -> Bitboard \| BitboardArray` | the mirror of `game_position_blacks` |
+| GamePosition | `game_position_from_str(s: str) -> GamePositionField` | the 65-char form: 64 board chars (char i = square i, [bw.]) + 1 player char [bw]; the RESULT IS THE RELATIVE VIEW (the mover / opponent follow the player); ValueError on length / charset; scalar only |
+| GamePosition | `game_position_to_str(gp) -> str` | the inverse 65-char form; a double-held square prints 'b' (the blacks checked first, the C convention); scalar only |
 
 ## Architecture
 
@@ -83,6 +95,8 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
  Bitboard (uint64, bit i = square i)  Move utils
         \
  Position (structured dtype: mover + opponent, u64 each)
+         \
+  GamePosition (Position + the player to move, u8)
         \
  game ops: legal moves, flips, make_move, WOFC scoring, D8
 ```
@@ -106,6 +120,11 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   `PositionField` (the np.void scalar).
 - **Zero-copy discipline** — `make_position` allocates a fresh interleaved (…,2) block, copies the inputs in (never
   aliased), returns a `.view(Position)` of that block; the signed-int converters return views (documented aliasing).
+- **GamePosition** — the structured dtype is derived from `Position`'s own `descr` with the player field appended, so
+  the "Position + player" contract holds by construction; the field views `gp['mover']` / `gp['opponent']` /
+  `gp['player']` are zero-copy and are the face the vectorized functions and the numba kernels see (the kernels keep
+  their plain-array signatures); the 65-char string form is the legacy C `game_position_x_from_string` / `_to_string`
+  port, with the v2 relative-view pivot (the parse swaps the absolute colours to follow the player).
 - **Kogge-Stone legal moves** — 4 directions × 2 senses with precomputed boundary masks (`_mask_l`/`_mask_r`: +1→column
   a, +7→column h, +8→none, +9→column a, and the mirrors) and 1/2/4 slide tables; generator/propagator: `p &= (p << k)`
   kills propagation at the first non-opponent cell (a run broken by an empty square yields no false move); the final
@@ -167,6 +186,12 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - The per-lane primitives (`legal_moves_of` / `flips_of_move`) and the counts
   (`bitboard_count` / `position_empty_count`) — `test_board::TestNumbaPrimitives` / `TestBitboardCount` /
   `TestPositionEmptyCount`.
+- The GamePosition dtype layout (the Position prefix + the u8 player; the itemsize 17) and the two constructors
+  (scalar / array / the shape-mismatch ValueError) — `test_board::TestGamePosition::test_dtype_layout` /
+  `test_make_*`.
+- The absolute-colour accessors and the 65-char string form (the C doc sample value, the relative-view swap, the
+  four ValueError cases, the round trip) — `test_board::TestGamePosition::test_blacks_whites_*` /
+  `test_from_str*` / `test_to_str`.
 
 
 ## Open issues

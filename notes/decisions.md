@@ -152,3 +152,18 @@ D-645 | 2026-11-15 | The 6 missing test mirrors are CREATED (the user's call: br
          files table (the suite is now 52 modules, all green); the 6 join the run\_utests.sh MODULES array in pipeline
          order (each data module immediately before its worker). The audit's "6 src modules without a test mirror"
          finding (the R-310 question) is RESOLVED — no rule amendment needed.
+
+D-646 | 2026-11-17 | MULTI-PLY campaign, step 1 (a): the GamePosition entity in `src/reversi/board.py` (the user's spec,
+         ratified in the session design discussion): `Player` = np.uint8 with `PLAYER_BLACK` = 0 / `PLAYER_WHITE` = 1
+         (the legacy C values); `GamePosition` = the structured dtype built from `Position`'s own `descr` with the
+         player field appended — the "Position + player" contract holds by construction (the first 16 bytes of every
+         element are exactly a `Position`). DISCLOSURE (a self-correction of the pre-implementation discussion): the
+         itemsize is 17, NOT 24 — NumPy applies NO end-of-struct padding (the C struct pads to 24); the field offsets
+         are 0/8/16 in both, the v2 layout is simply 7 bytes more compact, and the odd elements' u64 fields sit at
+         unaligned addresses — harmless on the x86 platform (R-410) and invisible through the zero-copy field views that
+         are the kernel-facing contract. The public surface: `make_game_position` (the `make_position` twin: scalar
+         np.void / any-shape array, fresh buffer, the three field stores), `make_game_position_from_position` (the
+         bootstrap convenience), `game_position_blacks` / `game_position_whites` (the absolute-colour view: `np.where`
+         over the field views, dual scalar/array), and the 65-char string form `game_position_from_str` /
+         `game_position_to_str` (the port of the C `game_position_x_from_string` / `_to_string`, with the confirmed v2
+         pivot: the result is the RELATIVE view — the mover / opponent follow the player).

@@ -41,6 +41,10 @@ Design choices --------------
 public function takes a scalar or an array of any shape and
   returns the same shape; legal_moves / position_flips / position_make_move are the strict dual
   (mixed kinds rejected).
+* **GamePosition**: a Position (mover / opponent) plus the player to move (the absolute colour of
+  the mover, the uint8 PLAYER_BLACK / PLAYER_WHITE): the structured dtype built from Position's own
+  field list with the player field appended; its 65-character string form is the 64 board chars
+  [bw.] + the player char.
 * **Numba hot path**: the batch kernels are njit(prange); the per-lane primitives
   (legal_moves_of, flips_of_move, the 4 reflection impls, the Zobrist fold) are public njit,
   inlined into the kernels and into the numba compositions of the other modules.
@@ -85,6 +89,11 @@ __all__ = ['Square', 'SquareArray',
            'Position', 'PositionField', 'PositionArray',
            'position_collisions', 'position_check_collisions', 'position_empty_count',
            'make_position', 'initial_game_position', 'position_eq',
+           'Player', 'PLAYER_BLACK', 'PLAYER_WHITE', 'PlayerArray',
+           'GamePosition', 'GamePositionField', 'GamePositionArray',
+           'make_game_position', 'make_game_position_from_position',
+           'game_position_blacks', 'game_position_whites',
+           'game_position_from_str', 'game_position_to_str',
            'position_print', 'position_empties',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
            'position_flips', 'position_make_move', 'position_count_difference',
@@ -178,6 +187,34 @@ def validate_position_array(v: any) -> any:
 PositionArray = Annotated[npt.NDArray[any], BeforeValidator(validate_position_array)]
 
 
+#: The player to move, as a uint8 scalar (the absolute colour of the mover).
+Player: TypeAlias = np.uint8
+
+#: The two player constants (the legacy C BLACK_PLAYER / WHITE_PLAYER values).
+PLAYER_BLACK: Player = Player(0)
+PLAYER_WHITE: Player = Player(1)
+
+# A Pydantic-compatible type hint for Player (np.uint8) arrays (the shared uint8 gate, as MoveArray).
+PlayerArray = Annotated[npt.NDArray[np.uint8], BeforeValidator(validate_square_array)]
+
+
+#: A game position is a Position (mover / opponent) plus the player to move: the structured native
+#: NumPy dtype built from Position's own field list with the player field appended — the first 16
+#: bytes of every element are exactly a Position (itemsize 17: the 16 Position bytes + the 1 player
+#: byte; NumPy applies no end-of-struct padding, unlike the C struct).
+GamePosition = np.dtype(list(Position.descr) + [('player', Player)])
+GamePositionField = Annotated[np.void, SkipValidation[Any]]
+
+
+def validate_game_position_array(v: any) -> any:
+    """Validates that a numpy array strictly uses the GamePosition structured dtype."""
+    if isinstance(v, np.ndarray) and v.dtype != GamePosition:
+        raise ValueError(f"Array dtype must be {GamePosition}, got {v.dtype}")
+    return v
+
+GamePositionArray = Annotated[npt.NDArray[any], BeforeValidator(validate_game_position_array)]
+
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def make_position(mover: Union[Bitboard, np.ndarray, List],
                   opponent: Union[Bitboard, np.ndarray, List]
@@ -234,6 +271,75 @@ def make_position(mover: Union[Bitboard, np.ndarray, List],
     # SCALAR CASE
     return np.void((mover, opponent), dtype=Position)
 
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def make_game_position(mover: Union[Bitboard, np.ndarray, List],
+                       opponent: Union[Bitboard, np.ndarray, List],
+                       player: Union[Player, np.ndarray, List]
+                       ) -> Union[np.void, np.ndarray]:
+    """
+    Create a GamePosition scalar, or a GamePositionArray of any shape.
+
+    Scalar inputs give a single GamePosition scalar (a np.void); lists or arrays of the same shape
+    give a GamePositionArray of that shape. The inputs are copied into a fresh buffer: the result
+    never aliases them.
+
+    Args:
+        mover: the mover discs (scalar or array).
+        opponent: the opponent discs (same kind, same shape).
+        player: the player to move (same kind, same shape).
+
+    Returns:
+        The GamePosition scalar, or the GamePositionArray of the input shape.
+
+    Raises:
+        ValueError: the three array shapes differ.
+    """
+    # ARRAY / LIST / MULTI-DIMENSIONAL CASE
+    if isinstance(mover, (np.ndarray, list)) or isinstance(opponent, (np.ndarray, list)) \
+            or isinstance(player, (np.ndarray, list)):
+        m_arr = np.asarray(mover, dtype=Bitboard)
+        o_arr = np.asarray(opponent, dtype=Bitboard)
+        p_arr = np.asarray(player, dtype=Player)
+
+        if not (m_arr.shape == o_arr.shape == p_arr.shape):
+            raise ValueError(
+                f"Shape mismatch: 'mover' has shape {m_arr.shape}, 'opponent' has shape "
+                f"{o_arr.shape}, 'player' has shape {p_arr.shape} — all three must match."
+            )
+
+        out = np.empty(m_arr.shape, dtype=GamePosition)
+        out['mover'] = m_arr
+        out['opponent'] = o_arr
+        out['player'] = p_arr
+        return out
+
+    # SCALAR CASE
+    return np.void((mover, opponent, player), dtype=GamePosition)
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def make_game_position_from_position(position: PositionField | PositionArray,
+                                     player: Player | PlayerArray
+                                     ) -> Union[np.void, np.ndarray]:
+    """
+    Create a GamePosition from an existing Position and the player to move.
+
+    The convenience constructor over make_game_position: the Position's mover / opponent fields are
+    kept and the player (the absolute colour of the mover) is appended. Scalar and array, exactly
+    as make_game_position.
+
+    Args:
+        position: the position (scalar or array).
+        player: the player to move (scalar, or an array of the position's shape).
+
+    Returns:
+        The GamePosition scalar, or the GamePositionArray of the position's shape.
+
+    Raises:
+        ValueError: the player array shape differs from the position array shape.
+    """
+    return make_game_position(position['mover'], position['opponent'], player)
 
 
 #: Square methods.
@@ -2040,3 +2146,100 @@ def position_anti_transformations(p: PositionField | PositionArray) -> PositionA
     mtrs = bitboard_anti_transformations(p['mover'])
     otrs = bitboard_anti_transformations(p['opponent'])
     return make_position(mtrs, otrs)
+
+
+#: GamePosition methods.
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_blacks(gp: GamePositionField | GamePositionArray) -> Bitboard | BitboardArray:
+    """
+    Return the black discs of the game position (the absolute-colour view).
+
+    The blacks are the mover discs when the player to move is black, the opponent discs otherwise.
+    Works on scalar and array inputs of any shape (the output keeps the input kind).
+
+    Args:
+        gp: the game position.
+    """
+    if isinstance(gp, np.ndarray):
+        return np.where(gp['player'] == PLAYER_BLACK, gp['mover'], gp['opponent'])
+    return gp['mover'] if gp['player'] == PLAYER_BLACK else gp['opponent']
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_whites(gp: GamePositionField | GamePositionArray) -> Bitboard | BitboardArray:
+    """
+    Return the white discs of the game position (the absolute-colour view).
+
+    The whites are the mover discs when the player to move is white, the opponent discs otherwise.
+    Works on scalar and array inputs of any shape (the output keeps the input kind).
+
+    Args:
+        gp: the game position.
+    """
+    if isinstance(gp, np.ndarray):
+        return np.where(gp['player'] == PLAYER_WHITE, gp['mover'], gp['opponent'])
+    return gp['mover'] if gp['player'] == PLAYER_WHITE else gp['opponent']
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_from_str(s: str) -> GamePositionField:
+    """
+    Create a GamePosition from its 65-character string form.
+
+    The string is the 64 board characters (character i is square i, row-major A1..H8: '.' empty,
+    'b' black, 'w' white) followed by the one player character ('b' / 'w'). The result is the
+    RELATIVE view: the mover / opponent fields follow the player (black to move -> mover = blacks).
+
+    Args:
+        s: the 65-character string.
+
+    Raises:
+        ValueError: the string is not 65 characters long, a board character is outside the set
+        [bw.], or the player character is outside the set [bw].
+    """
+    if len(s) != 65:
+        raise ValueError(f"The game position string must be 65 characters, got {len(s)}.")
+    board, player_char = s[:64], s[64]
+    if player_char not in 'bw':
+        raise ValueError(f"The player character must be 'b' or 'w', got {player_char!r}.")
+    blacks = Bitboard(0)
+    whites = Bitboard(0)
+    for i, c in enumerate(board):
+        if c == 'b':
+            blacks |= Bitboard(1) << i
+        elif c == 'w':
+            whites |= Bitboard(1) << i
+        elif c != '.':
+            raise ValueError(
+                f"Board characters must be in the set [bw.], got {c!r} at square {square_to_str(i)}."
+            )
+    player = PLAYER_BLACK if player_char == 'b' else PLAYER_WHITE
+    if player == PLAYER_BLACK:
+        return make_game_position(blacks, whites, player)
+    return make_game_position(whites, blacks, player)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_to_str(gp: GamePositionField) -> str:
+    """
+    Return the 65-character string form of the game position.
+
+    The 64 board characters (row-major A1..H8, '.' / 'b' / 'w') followed by the one player
+    character ('b' / 'w'). The inverse of game_position_from_str. A square held by both players
+    prints 'b' (the blacks are checked first, the same convention as the C game_position_x_to_string).
+
+    Args:
+        gp: the game position (scalar only).
+    """
+    blacks = game_position_blacks(gp)
+    whites = game_position_whites(gp)
+    chars = []
+    sq = Bitboard(1)
+    for _ in range(64):
+        if sq & blacks:
+            chars.append('b')
+        elif sq & whites:
+            chars.append('w')
+        else:
+            chars.append('.')
+        sq <<= 1
+    chars.append('b' if gp['player'] == PLAYER_BLACK else 'w')
+    return ''.join(chars)

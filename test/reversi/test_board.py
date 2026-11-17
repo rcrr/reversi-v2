@@ -3976,3 +3976,116 @@ class TestNumbaPrimitives(unittest.TestCase):
             flips_exp, _ = position_flips(igp, mv)
             self.assertEqual(flips_of_move(igp['mover'], igp['opponent'], mv),
                              flips_exp)
+
+
+class TestGamePosition(unittest.TestCase):
+    """
+    The GamePosition entity: the structured dtype (a Position plus the player to move), the two
+    constructors, the absolute-colour accessors, and the 65-character string form.
+    """
+
+    def test_dtype_layout(self):
+        # The field names, types and offsets: Position's own prefix + the u8 player; the itemsize
+        # is 17 (NumPy applies no end-of-struct padding).
+        self.assertEqual(GamePosition.names, ('mover', 'opponent', 'player'))
+        self.assertEqual(GamePosition.fields['mover'][0], np.dtype(np.uint64))
+        self.assertEqual(GamePosition.fields['opponent'][0], np.dtype(np.uint64))
+        self.assertEqual(GamePosition.fields['player'][0], np.dtype(np.uint8))
+        self.assertEqual(GamePosition.fields['mover'][1], 0)
+        self.assertEqual(GamePosition.fields['opponent'][1], 8)
+        self.assertEqual(GamePosition.fields['player'][1], 16)
+        self.assertEqual(GamePosition.itemsize, 17)
+        # The first two fields are exactly a Position.
+        self.assertEqual(np.dtype(GamePosition.descr[:2]), Position)
+
+    def test_player_constants(self):
+        self.assertEqual(PLAYER_BLACK, np.uint8(0))
+        self.assertEqual(PLAYER_WHITE, np.uint8(1))
+
+    def test_make_scalar(self):
+        gp = make_game_position(Bitboard(0x11), Bitboard(0x22), PLAYER_BLACK)
+        self.assertIsInstance(gp, np.void)
+        self.assertEqual(gp.dtype, GamePosition)
+        self.assertEqual(gp['mover'], Bitboard(0x11))
+        self.assertEqual(gp['opponent'], Bitboard(0x22))
+        self.assertEqual(gp['player'], PLAYER_BLACK)
+
+    def test_make_array(self):
+        gps = make_game_position(np.array([1, 2], dtype=np.uint64),
+                                 np.array([3, 4], dtype=np.uint64),
+                                 np.array([0, 1], dtype=np.uint8))
+        self.assertEqual(gps.dtype, GamePosition)
+        self.assertEqual(gps.shape, (2,))
+        nptest.assert_array_equal(gps['mover'], np.array([1, 2], dtype=np.uint64))
+        nptest.assert_array_equal(gps['opponent'], np.array([3, 4], dtype=np.uint64))
+        nptest.assert_array_equal(gps['player'], np.array([0, 1], dtype=np.uint8))
+
+    def test_make_shape_mismatch_raises(self):
+        with self.assertRaises(ValueError):
+            make_game_position(np.array([1, 2], dtype=np.uint64),
+                               np.array([3], dtype=np.uint64),
+                               np.array([0, 1], dtype=np.uint8))
+
+    def test_make_from_position_scalar(self):
+        p = make_position(Bitboard(0x11), Bitboard(0x22))
+        gp = make_game_position_from_position(p, PLAYER_WHITE)
+        self.assertEqual(gp['mover'], Bitboard(0x11))
+        self.assertEqual(gp['opponent'], Bitboard(0x22))
+        self.assertEqual(gp['player'], PLAYER_WHITE)
+
+    def test_make_from_position_array(self):
+        p = make_position(np.array([1, 2], dtype=np.uint64),
+                          np.array([3, 4], dtype=np.uint64))
+        gps = make_game_position_from_position(p, np.array([0, 1], dtype=np.uint8))
+        self.assertEqual(gps.dtype, GamePosition)
+        nptest.assert_array_equal(gps['mover'], np.array([1, 2], dtype=np.uint64))
+        nptest.assert_array_equal(gps['player'], np.array([0, 1], dtype=np.uint8))
+
+    def test_blacks_whites_scalar(self):
+        gp_b = make_game_position(Bitboard(0x11), Bitboard(0x22), PLAYER_BLACK)
+        gp_w = make_game_position(Bitboard(0x11), Bitboard(0x22), PLAYER_WHITE)
+        self.assertEqual(game_position_blacks(gp_b), Bitboard(0x11))
+        self.assertEqual(game_position_whites(gp_b), Bitboard(0x22))
+        self.assertEqual(game_position_blacks(gp_w), Bitboard(0x22))
+        self.assertEqual(game_position_whites(gp_w), Bitboard(0x11))
+
+    def test_blacks_whites_array(self):
+        gps = make_game_position(np.array([1, 2], dtype=np.uint64),
+                                 np.array([3, 4], dtype=np.uint64),
+                                 np.array([0, 1], dtype=np.uint8))
+        nptest.assert_array_equal(game_position_blacks(gps), np.array([1, 4], dtype=np.uint64))
+        nptest.assert_array_equal(game_position_whites(gps), np.array([3, 2], dtype=np.uint64))
+
+    def test_from_str(self):
+        # The C doc sample: 8 blacks on row 1, 8 whites on row 2 + 7 on row 8, white to move —
+        # in the v2 relative view the mover is the whites.
+        s = "bbbbbbbbwwwwwwww........................................wwwwwwwww"
+        self.assertEqual(len(s), 65)
+        gp = game_position_from_str(s)
+        self.assertEqual(gp['mover'], Bitboard(0xFF0000000000FF00))
+        self.assertEqual(gp['opponent'], Bitboard(0x00000000000000FF))
+        self.assertEqual(gp['player'], PLAYER_WHITE)
+
+    def test_from_str_black_to_move(self):
+        gp = game_position_from_str("bbbbbbbb" + "." * 56 + "b")
+        self.assertEqual(gp['mover'], Bitboard(0xFF))
+        self.assertEqual(gp['opponent'], Bitboard(0))
+        self.assertEqual(gp['player'], PLAYER_BLACK)
+
+    def test_from_str_errors(self):
+        with self.assertRaises(ValueError):
+            game_position_from_str("x" * 64 + "b")  # 64 chars: not 65
+        with self.assertRaises(ValueError):
+            game_position_from_str("b" * 65 + "b")  # 66 chars
+        with self.assertRaises(ValueError):
+            game_position_from_str("c" + "." * 64 + "b")  # a board char outside [bw.]
+        with self.assertRaises(ValueError):
+            game_position_from_str("." * 64 + "c")  # a player char outside [bw]
+
+    def test_to_str(self):
+        gp = make_game_position(Bitboard(0xFF), Bitboard(0xFF00), PLAYER_BLACK)
+        self.assertEqual(game_position_to_str(gp), "bbbbbbbbwwwwwwww" + "." * 48 + "b")
+
+    def test_from_str_to_str_round_trip(self):
+        s = "bbbbbbbbwwwwwwww........................................wwwwwwwww"
+        self.assertEqual(game_position_to_str(game_position_from_str(s)), s)
