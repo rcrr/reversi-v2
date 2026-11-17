@@ -109,4 +109,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   rewritten to state what the test does — the "parity with the C" framing was a category error (`make_move` agreeing
   with the C is the rules of the game, not a pin; the fixture supplies realistic mid-game positions for the contract
   test); test docstrings state what the code does, never its history. (D-651)
-- Next: the user's supervision of the step-1 work (no commits made this session so far), then the MULTI-PLY step 2.
+ - src/reversi/endgame\_solver.py — the scalar exact endgame solver: `minimax_solve` (the DFS minimax, the static A1..H8
+   move order, the strict comparison, the relative values by sign flip, the WOF leaf value from board.py, the terminal
+   check preceding the pass) + the frozen `SolverResult` (the np.int8 game value). Verified node by node against the C
+   game-tree log. (D-652)
+ - Next: the user's supervision of the step-1 work (no commits made this session so far), then the MULTI-PLY step 2.

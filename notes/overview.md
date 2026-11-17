@@ -64,8 +64,8 @@ define the evaluation function.
   distribution over the legal-move set); develop a statistical validation method for the assignment of these
   probabilities.
 - The ENDGAME-SOLVER campaign: port the endgame\_solver program (the ANSI C code of the legacy Reversi repository) into
-  reversi-v2 — a feature-by-feature analysis (some features to be dropped, some preserved), then the porting scope plan,
-  the implementation plan, and the port implementation.
+  reversi-v2. The scalar `minimax_solve` is in (the depth-first minimax, the static A1..H8 move order, the WOF leaf
+  value — cross-validated on the ffo-01-simplified-8 fixture); next: the alpha-beta solver, then the vectorized phase.
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python
@@ -88,6 +88,7 @@ define the evaluation function.
 | --- | --- | --- |
 | src/reversi/base\_model.py | complete | [docs/src/reversi/base\_model.md](docs/src/reversi/base\_model.md) |
 | src/reversi/board.py | complete | [docs/src/reversi/board.md](docs/src/reversi/board.md) |
+| src/reversi/endgame\_solver.py | complete | [docs/src/reversi/endgame\_solver.md](docs/src/reversi/endgame\_solver.md) |
 | src/reversi/feature.py | complete | [docs/src/reversi/feature.md](docs/src/reversi/feature.md) |
 | src/reversi/game\_position\_database.py | complete | [docs/src/reversi/game\_position\_database.md](docs/src/reversi/game\_position\_database.md) |
 | src/reversi/index.py | complete | [docs/src/reversi/index.md](docs/src/reversi/index.md) |

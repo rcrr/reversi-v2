@@ -228,3 +228,19 @@ D-651 | 2026-11-17 | Forward correction of the D-650 class (the user's call): th
          test docstrings: they state what the code does — never its history or provenance ("the C … corpus", "legacy
          …"); the history lives in the journal and the decisions log, which the D-650 entry and commit keep verbatim.
          The suite counts are unchanged (4 tests).
+
+D-652 | 2026-11-17 | The `endgame_solver` module: the scalar exact endgame solver (the first step of the ENDGAME-SOLVER
+         campaign). `minimax_solve(gp)` — the depth-first minimax over the game tree of a GamePosition: the legal moves
+         are explored in the static square order A1..H8 (verified to be the same order the C minimax uses — the C
+         `gts_generate_moves` scans the legal-move bitset LSB-first and the minimax path carries no mobility sort, which
+         exists only in the exact-solver / alpha-beta framework); the comparison is strict, so an equal-value tie keeps
+         the first static move; the child's value is sign-flipped at every ply (relative view: the result is seen from
+         the player to move at the root); the WOF leaf value reuses `position_final_value` from board.py (the empty
+         squares go to the winner, a draw is 0 with or without empty squares — the user's ruling). The pass semantics
+         (verified node by node against the C game-tree log): the terminal check PRECEDES the pass — a position where
+         neither player can move is a one-node leaf; otherwise the pass is a further node and the value comes back
+         negated. `nodes` counts every position visited (root and leaves included); `leafs` counts the terminals
+         evaluated. `SolverResult` is a frozen dataclass (the `game_value`: np.int8 — already int8 in the scalar phase,
+         for conformance with the future vectorized API; `final_game_position`; nodes; leafs), to be shared with the
+         future `alpha_beta`. Pure Python recursion: the scalar phase, the vectorized numba phase is the next campaign
+         step.
