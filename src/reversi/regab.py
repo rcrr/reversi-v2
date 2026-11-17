@@ -30,18 +30,18 @@ from __future__ import annotations
 from reversi.board import (Bitboard, PositionArray,
                          make_position)
 
+from reversi.endgame_solver import GameValue, GameValueArray
 from reversi.tools import binio
 
 import psycopg2 as pg
 import pandas as pd
 import numpy as np
-import numpy.typing as npt
 import hashlib
 import inspect
 import re
 
 from pathlib import Path
-from typing import TypeAlias, Union, List, Annotated, Tuple, Any
+from typing import Union, List, Annotated, Tuple, Any
 from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
 from pydantic.fields import FieldInfo
 from contextvars import ContextVar
@@ -59,19 +59,6 @@ __all__ = ['GameValue', 'GameValueArray',
            'regab_load_data_set_from_file',
            'regab_store_data_set_to_file']
 
-
-
-#: Represents a reversi game value from -64 to +64 as an numpy.int8 scalar.
-GameValue: TypeAlias = np.int8
-
-def _validate_game_value_array(v: Any) -> Any:
-    """Validator to ensure a numpy array strictly uses int8 dtype."""
-    if isinstance(v, np.ndarray) and v.dtype != np.int8:
-        raise ValueError(f"Array dtype must be int8, got {v.dtype}")
-    return v
-
-# A Pydantic-compatible type hint for GameValue (np.int8) arrays.
-GameValueArray = Annotated[npt.NDArray[np.int8], BeforeValidator(_validate_game_value_array)]
 
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 

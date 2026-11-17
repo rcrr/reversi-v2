@@ -45,6 +45,7 @@ import numpy as np
 
 from reversi.board import *
 from reversi.endgame_solver import *
+from reversi.endgame_solver import _validate_game_value_array
 from reversi.game_position_database import load_game_position_database
 
 from test.reversi.paths import WORKSPACE_ROOT
@@ -69,6 +70,23 @@ class TestSolverResult(unittest.TestCase):
                          nodes=1, leafs=1)
         with self.assertRaises(dataclasses.FrozenInstanceError):
             r.nodes = 2
+
+
+class TestGameValueArrayValidator(unittest.TestCase):
+    """
+    The int8-dtype contract of the GameValueArray validator.
+    """
+
+    def test_int8_array_passes(self):
+        a = np.array([4, -6], dtype=np.int8)
+        self.assertIs(_validate_game_value_array(a), a)
+
+    def test_non_int8_array_raises(self):
+        with self.assertRaises(ValueError):
+            _validate_game_value_array(np.array([4, 6]))
+
+    def test_non_array_passes(self):
+        self.assertEqual(_validate_game_value_array([4, 6]), [4, 6])
 
 
 class TestMinimaxSolveMicro(unittest.TestCase):

@@ -8,6 +8,8 @@ The 2 `__all__` names.
 
 | name | contract |
 |---|---|
+| `GameValue` | the game-value type: `np.int8` (a value from -64 to +64) — defined here, the solver is the producer of game values; `regab.py` imports it from this module |
+| `GameValueArray` | the pydantic-validated `NDArray[np.int8]` game-value array type (the int8-dtype `BeforeValidator`) — defined here with `GameValue` |
 | `NodeRecord` | the frozen dataclass `(call_id, level, player, parent_move, best_move, value)` — one visited node of the search, as emitted to the `log` callback (see The trace); the move fields are never `None` (the sentinel codes `MOVE_UN` / `MOVE_NA` / `MOVE_PA` express the absences) |
 | `SolverResult` | the frozen dataclass `(game_value, final_game_position, nodes, leafs)`: the value is an `np.int8` (the vectorized future's type, kept here for conformance), the final position is a GamePosition scalar (`GamePositionField`) |
 | `minimax_solve(gp, log=None) -> SolverResult` | the depth-first minimax over the game tree of the GamePosition scalar `gp` (see Architecture for the search contract); `log` is an optional callable invoked once per visited node, with the `NodeRecord` of the node, when the search of the node completes |
@@ -59,6 +61,9 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
   game-tree log record by record, on the six comparable columns —
   `test_endgame_solver::TestMinimaxSolveFixture` (the trace test).
 - The result container (the fields, the frozen behaviour) — `test_endgame_solver::TestSolverResult`.
+- The int8-dtype contract of the `GameValueArray` validator —
+  `test_endgame_solver::TestGameValueArrayValidator` (together with the tests above, they cover the
+  module at 100% of the statements and branches).
 
 ## Open issues
 
@@ -76,4 +81,5 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 - Consumes: `board.py` (`position_legal_moves`, `position_make_move`, `position_final_value`,
   `make_position`, `make_game_position`, the `Move` / `Player` types, `MOVE_PA`).
 - Consumed by: the test suite; the future `alpha_beta` solver (the shared `SolverResult`); the ENDGAME-SOLVER
-  campaign (the `gpdb-ffo.txt` corpus is the cross-validation surface).
+  campaign (the `gpdb-ffo.txt` corpus is the cross-validation surface); `regab.py` (the `GameValue` /
+  `GameValueArray` types — the database stores the values the solver produces).

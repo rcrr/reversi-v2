@@ -8,7 +8,7 @@ levels.
 
 | name | contract |
 |---|---|
-| `GameValue = np.int8` / `GameValueArray` | The game-value types (-64 to +64); `GameValueArray` is the pydantic-validated `NDArray[np.int8]` |
+| `GameValue` / `GameValueArray` | The game-value types (-64 to +64) — imported from `endgame_solver` (the producer of game values) and re-exported by this module |
 | `RegabDBConnection(dbname, user, host, port, password, activate_conn=True)` | Wraps a `psycopg2` connection; `__init__`, `activate_conn`, `close` (the `if self.conn` guard prevents most double-close); sets `search_path` to `reversi` |
 | `regab_gp_as_df(rc, bid, status, ec, *, limit, where, fields)` | Queries `regab_prng_gp`, returns a `pd.DataFrame`; the double-decorated entry point (below); `where` is `WhereArgument`-guarded |
 | `RegabDataSet(rc, bid, status, ec, df_mogv)` | A dataset: connection params + a 3-column DataFrame (mover int64, opponent int64, game_value int8); `__init__`; `generate_positions_and_game_values` (reinterprets the int64 columns as `Bitboard` via `.view`, no data loss); `compute_sha3_256_hash` (over the column `tobytes()` in insertion order mover→opponent→game_value, implicit but deterministic) |
@@ -24,7 +24,8 @@ The on-disk format (binio-framed): header `"RegabDataSet binary data file"` / ve
 
 ## Architecture
 
-- Types: `GameValue` + the `GameValueArray` BeforeValidator.
+- Types: `GameValue` / `GameValueArray` — imported from `endgame_solver` (the solver is the producer of
+  game values; the REGAB database stores them), re-exported in the `__all__`.
 - Connection: `RegabDBConnection` — the psycopg2 wrapper with the `reversi` search path.
 - The ContextVar bridge: `rc_context`; `_validate_db_fields` does the DB-backed column check (deferred — the
   `SELECT ... LIMIT 0` colnames query runs only when `fields_input` is actually a string or list);
@@ -81,6 +82,8 @@ None.
 
 ## Integration
 
+- Consumes: `endgame_solver` (`GameValue` / `GameValueArray` — the game-value types; the REGAB database is built
+  by solving endgames with the solver).
 - The POSITIONS level: `wrk_positions` builds the 5-arg `RegabDBConnection` from
   `ctx.cfg.regab_data_set.regab_db_connection` (port + password take effect), extracts via
   `regab_extract_data_set_from_db`, and wires `regab_load_data_set_from_file(path, checksum=False)` /

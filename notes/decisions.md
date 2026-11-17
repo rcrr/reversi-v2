@@ -275,3 +275,19 @@ D-655 | 2026-11-17 | Two API polishes to the endgame solver, per the user's revi
          the `| None` and use the domain sentinel codes: `parent_move` is `MOVE_UN` at the root, `best_move` is
          `MOVE_NA` at a leaf and `MOVE_PA` at a pass node — every node carries a `Move`, mirroring the C log `UN` / `NA`
          / `--` columns directly. The 11 tests stay green (the trace mapping now goes through `move_to_str`).
+
+D-656 | 2026-11-17 | The game-value types moved from regab.py to `endgame_solver.py`, by the user's decision:
+         `GameValue` (the `TypeAlias = np.int8`), `_validate_game_value_array`, and `GameValueArray` (the
+         pydantic-validated `NDArray` built on the alias) are now defined in `endgame_solver`, which exports both names.
+         Rationale: the endgame solver is the PRODUCER of the game values (it solves the endgames) and the REGAB
+         database is the persistence layer of the solved games — the types live with the producer, the consumer imports
+         them; the move is also required by the future, the endgame solver going 100% vectorized will need
+         `GameValueArray` on the solver side. regab.py imports both names from `endgame_solver` and re-exports them in
+         its `__all__` (its public surface is unchanged, `test_regab.py`'s `from reversi.regab import GameValue` keeps
+         working untouched). The only references in the workspace are the two files (verified by a full-tree grep); no
+         circular import (`endgame_solver` imports from board only). `SolverResult.game_value` is annotated `GameValue`.
+         The now-unneeded `TypeAlias` and `numpy.typing` imports were dropped from regab.py (`BeforeValidator` stays, it
+         is also used by `BidArgument`). Zero behaviour change (the same alias object, the same validator). The
+         validator gained three direct tests in the endgame suite (`TestGameValueArrayValidator`: the int8 array passes
+         by identity, the non-int8 array raises, the non-array input passes), which bring the module to 100% of the
+         statements and branches under its own suite (measured with `coverage`, installed in the venv for this).

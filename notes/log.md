@@ -123,5 +123,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
  - endgame\_solver API polish (D-655): `SolverResult.final_game_position` is annotated `GamePositionField` (the house
    scalar alias) and the `NodeRecord` move fields use the sentinel codes `MOVE_UN` / `MOVE_NA` / `MOVE_PA` instead of
    `None`.
+ - The game-value types moved from `regab.py` to `endgame_solver.py` (D-656): `GameValue` + `GameValueArray` + the
+   validator are now defined at the producer (the solver, going 100% vectorized); `regab.py` imports and re-exports them
+   (its public surface unchanged); `SolverResult.game_value` is annotated `GameValue`; the validator gains three direct
+   tests (`TestGameValueArrayValidator`) — the module is now 100% statement / branch covered by its own suite
+   (`coverage` 7.17.3, installed in the venv).
  - Next: the user's further instructions on the endgame-solver step (no commits made this session so far), then the
    MULTI-PLY step 2.
