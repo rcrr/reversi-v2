@@ -244,3 +244,13 @@ D-652 | 2026-11-17 | The `endgame_solver` module: the scalar exact endgame solve
          for conformance with the future vectorized API; `final_game_position`; nodes; leafs), to be shared with the
          future `alpha_beta`. Pure Python recursion: the scalar phase, the vectorized numba phase is the next campaign
          step.
+
+D-653 | 2026-11-17 | The `test_endgame_solver` suite (3 classes / 10 tests) + the runner slot (section 1, after
+         test\_feature): TestSolverResult (the fields, the frozen behaviour), TestMinimaxSolveMicro (seven hand-built
+         endgames, each pinning (value, final position, nodes, leafs): the full board from both perspectives, the
+         full-board draw, the draw-with-48-empties-is-zero WOF case, the single-empties forced move, the equal-value tie
+         keeping the first static move, the pass at the root), TestMinimaxSolveFixture (the ffo-01-simplified-8 position
+         of gpdb-sample-games.txt, LOADED WITH THE GPDB MODULE — the user's explicit instruction, the module was written
+         for this — value 18, 46 nodes, 15 leaves, the final string, and the A1-B1-H1-G2 solution line ending at the
+         final position; every component cross-validated against the legacy C `endgame_solver -s minimax` oracle, whose
+         game-tree log decoded the reference final position and the solution line).

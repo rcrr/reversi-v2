@@ -113,4 +113,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    move order, the strict comparison, the relative values by sign flip, the WOF leaf value from board.py, the terminal
    check preceding the pass) + the frozen `SolverResult` (the np.int8 game value). Verified node by node against the C
    game-tree log. (D-652)
- - Next: the user's supervision of the step-1 work (no commits made this session so far), then the MULTI-PLY step 2.
+ - test/reversi/test\_endgame\_solver.py + run\_utests.sh — 10 tests: the result container, the seven hand-built
+   micro-endgames, and the ffo-01-simplified-8 fixture loaded through the gpdb module (value 18 / 46 nodes / 15 leaves /
+   the final position / the A1-B1-H1-G2 solution line — cross-validated against the C oracle). (D-653)
+ - Next: the user's supervision of the endgame-solver step (no commits made this session so far), then the MULTI-PLY
+   step 2.

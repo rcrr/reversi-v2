@@ -66,6 +66,7 @@ MODULES=(
     test.reversi.test_pattern
     test.reversi.test_mobility
     test.reversi.test_feature
+    test.reversi.test_endgame_solver
     # 2 — infrastructure
     test.reversi.tools.test_cache_manager
     test.reversi.tools.test_state_machine
