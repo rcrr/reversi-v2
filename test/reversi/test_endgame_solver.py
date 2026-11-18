@@ -156,46 +156,67 @@ class TestMinimaxSolveMicro(unittest.TestCase):
 
 class TestMinimaxSolveFixture(unittest.TestCase):
     """
-    minimax_solve on the gpdb-sample-games.txt corpus (loaded with the gpdb module): the
-    solution reproduces the reference exactly (the value, the final position, the node / leaf
-    counts).
+    minimax_solve on the ffo-01-simplified series of the gpdb-sample-games.txt corpus (loaded with
+    the gpdb module): each case reproduces the C reference exactly (the value, the node / leaf
+    counts, the final position), and the search trace reproduces the C game-tree log record by
+    record.
     """
 
     DB_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
-    LOG_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'es_log_ffo-01-simplified-8.csv'
+    LOG_DIR = WORKSPACE_ROOT / 'test' / 'reversi' / 'data'
+
+    # The case -> the expected result: the game value, the node count, the leaf count, the final
+    # position string, the solution line.
+    CASES = {
+        4: (18, 20040, 6201,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        5: (-18, 2256, 644,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        6: (18, 519, 153,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        7: (-18, 142, 44,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('A3', 'A1', 'B1', 'H1', 'G2')),
+        8: (18, 46, 15,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('A1', 'B1', 'H1', 'G2')),
+    }
 
     @classmethod
     def setUpClass(cls):
         cls.db, _ = load_game_position_database(cls.DB_FILE)
 
-    def test_ffo_01_simplified_8(self):
-        entry = self.db.find('ffo-01-simplified-8')
+    def _solve_case(self, n):
+        value, nodes, leafs, final, line = self.CASES[n]
+        entry = self.db.find(f'ffo-01-simplified-{n}')
         self.assertIsNotNone(entry)
         r = minimax_solve(entry.position)
-        self.assertEqual(int(r.game_value), 18)
-        self.assertEqual(r.nodes, 46)
-        self.assertEqual(r.leafs, 15)
-        self.assertEqual(game_position_to_str(r.final_game_position),
-                         'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b')
-        # The solution line (A1, B1, H1, G2) ends at the final position.
+        self.assertEqual(int(r.game_value), value)
+        self.assertEqual(r.nodes, nodes)
+        self.assertEqual(r.leafs, leafs)
+        self.assertEqual(game_position_to_str(r.final_game_position), final)
+        # Playing the solution line from the starting position arrives at the final position.
         p = entry.position
-        for name in ('A1', 'B1', 'H1', 'G2'):
-            p = make_game_position_from_position(
-                position_make_move(p, square_from_str(name)), np.uint8(1 - int(p['player'])))
-        self.assertEqual(game_position_to_str(p), game_position_to_str(r.final_game_position))
+        for name in line:
+            p = game_position_make_move(p, Move(square_from_str(name)))
+        self.assertEqual(game_position_to_str(p), final)
 
-    def test_ffo_01_simplified_8_trace(self):
+    def _trace_case(self, n):
         # The trace of the search (one NodeRecord per visited node, emitted when the node's
         # search completes) reproduces the C game-tree log record by record, on the six
         # comparable columns (the call id, the level, the player, the parent move, the best
         # move, the value).
-        entry = self.db.find('ffo-01-simplified-8')
+        entry = self.db.find(f'ffo-01-simplified-{n}')
         self.assertIsNotNone(entry)
         records = []
         minimax_solve(entry.position, log=records.append)
         records.sort(key=lambda r: r.call_id)
 
-        lines = [l for l in self.LOG_FILE.read_text().splitlines() if l.strip()]
+        log_file = self.LOG_DIR / f'es_log_ffo-01-simplified-{n}.csv'
+        lines = [l for l in log_file.read_text().splitlines() if l.strip()]
         col = {name: i for i, name in enumerate(lines[0].split(';'))}
         c_rows = sorted((l.split(';') for l in lines[1:]), key=lambda r: int(r[col['CALL_ID']]))
 
@@ -208,3 +229,33 @@ class TestMinimaxSolveFixture(unittest.TestCase):
             exp = (int(row[col['CALL_ID']]), int(row[col['CALL_LEVEL']]), int(row[col['PLAYER']]),
                    row[col['PARENT_MOVE']], row[col['T_BEST_MOVE']], int(row[col['T_ALPHA']]))
             self.assertEqual(got, exp, f"node {rec.call_id}")
+
+    def test_ffo_01_simplified_4(self):
+        self._solve_case(4)
+
+    def test_ffo_01_simplified_4_trace(self):
+        self._trace_case(4)
+
+    def test_ffo_01_simplified_5(self):
+        self._solve_case(5)
+
+    def test_ffo_01_simplified_5_trace(self):
+        self._trace_case(5)
+
+    def test_ffo_01_simplified_6(self):
+        self._solve_case(6)
+
+    def test_ffo_01_simplified_6_trace(self):
+        self._trace_case(6)
+
+    def test_ffo_01_simplified_7(self):
+        self._solve_case(7)
+
+    def test_ffo_01_simplified_7_trace(self):
+        self._trace_case(7)
+
+    def test_ffo_01_simplified_8(self):
+        self._solve_case(8)
+
+    def test_ffo_01_simplified_8_trace(self):
+        self._trace_case(8)

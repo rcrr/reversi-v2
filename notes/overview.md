@@ -65,8 +65,11 @@ define the evaluation function.
   probabilities.
 - The ENDGAME-SOLVER campaign: port the endgame\_solver program (the ANSI C code of the legacy Reversi repository) into
   reversi-v2. The scalar `minimax_solve` is in (the depth-first minimax, the static A1..H8 move order, the WOF leaf
-  value, the node-by-node trace — cross-validated on the ffo-01-simplified-8 fixture, record by record against the C
-  game-tree log); next: the alpha-beta solver, then the vectorized phase.
+  value, the node-by-node trace) and the game tree is GamePosition-only (the user's field decision: the search
+  composes the three GamePosition-level tools of board.py, the `bitboard_bsf` bit-scan move iteration, the
+  out-of-range accumulation) — cross-validated on the ffo-01-simplified 4–8 series, record by record against the C
+  game-tree logs; next: the numba-compiled scalar search (the 20k-node case 4 is the target of measure), then the
+  alpha-beta solver, then the vectorized phase.
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python
@@ -184,8 +187,8 @@ define the evaluation function.
 | test/reversi/paths.py | complete | 0/0/0/0/0 | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_base\_model.py | complete | 9/0/0/0/0 | [docs/test/reversi/test\_base\_model.md](docs/test/reversi/test\_base\_model.md) |
-| test/reversi/test\_board.py | complete | 326/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
-| test/reversi/test\_endgame\_solver.py | complete | 14/0/0/0/0 | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
+| test/reversi/test\_board.py | complete | 339/0/18/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
+| test/reversi/test\_endgame\_solver.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_game\_position\_database.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_game\_position\_database.md](docs/test/reversi/test\_game\_position\_database.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |
@@ -203,8 +206,9 @@ define the evaluation function.
 
 Test data (test/reversi/data/):
 
-- `es_log_ffo-01-simplified-8.csv` — the legacy C minimax game-tree log of the ffo-01-simplified-8 fixture position (46
-  calls + the header; the node-by-node trace cross-validation surface of the endgame solver)
+- `es_log_ffo-01-simplified-{4..8}.csv` — the legacy C minimax game-tree logs of the ffo-01-simplified 4–8 fixture
+  positions (the 20040/2256/519/142/46 calls + the header; the node-by-node trace cross-validation surface of the
+  endgame solver)
 - `ffo_12_log_sample.csv` — the FFO-12 legacy C solve-log sample (the `position_hash` parity fixture, the deterministic
   1002-row stride — 1003 lines incl. the header)
 - `gpdb-ffo.txt` — the legacy C FFO-12 opening corpus verbatim (368 lines; the future ENDGAME-SOLVER port's

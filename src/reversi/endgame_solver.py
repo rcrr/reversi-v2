@@ -77,11 +77,12 @@ import numpy.typing as npt
 from pydantic import BeforeValidator, ConfigDict, validate_call
 
 from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, GamePosition, GamePositionField, Move,
-                           Player, PositionField, make_game_position, make_position,
-                           position_final_value, position_legal_moves, position_make_move)
+                           Player, bitboard_bsf, game_position_final_value,
+                           game_position_legal_moves, game_position_make_move)
 
 
-__all__ = ['GameValue', 'GameValueArray', 'NodeRecord', 'SolverResult', 'minimax_solve']
+__all__ = ['OUT_OF_RANGE_DEFEAT_SCORE', 'GameValue', 'GameValueArray', 'NodeRecord',
+           'SolverResult', 'minimax_solve']
 
 
 #: Represents a reversi game value from -64 to +64 as an numpy.int8 scalar.
@@ -95,6 +96,11 @@ def _validate_game_value_array(v: Any) -> Any:
 
 # A Pydantic-compatible type hint for GameValue (np.int8) arrays.
 GameValueArray = Annotated[npt.NDArray[GameValue], BeforeValidator(_validate_game_value_array)]
+
+#: The out-of-range sentinel of the best-value accumulation (the C out_of_range_defeat_score): just
+#: outside the game-value range [-64, 64], so the first child value always wins the strict
+#: comparison and the no-move-yet state needs no test.
+OUT_OF_RANGE_DEFEAT_SCORE = -66
 
 
 @dataclass(frozen=True)
@@ -143,47 +149,41 @@ def minimax_solve(gp: GamePosition, log: Callable[[NodeRecord], None] | None = N
     """
     nodes = 0
     leafs = 0
-    call_count = 0
 
-    def search(p: PositionField, player: Player, level: int, parent_move: Move):
-        # p: the position (the mover / opponent fields), player: the absolute player to move.
-        nonlocal nodes, leafs, call_count
+    def search(gp: GamePosition, level: int, parent_move: Move) -> tuple[int, GamePositionField]:
+        level += 1
+        nonlocal nodes, leafs
         nodes += 1
-        call_count += 1
-        call_id = call_count
-        legal = position_legal_moves(p)
+        call_id = nodes
+        legal = game_position_legal_moves(gp)
         if not legal:
-            # The mover has no legal move: is the game over, or does the turn pass?
-            p_pass = position_make_move(p, MOVE_PA)
-            legal_pass = position_legal_moves(p_pass)
-            if not legal_pass:
-                # A leaf: neither player has a legal move (one node, no pass).
+            gp_pass = game_position_make_move(gp, MOVE_PA)
+            if not game_position_legal_moves(gp_pass):
                 leafs += 1
-                value = position_final_value(p)
+                value = game_position_final_value(gp)
                 if log is not None:
-                    log(NodeRecord(call_id, level, player, parent_move, MOVE_NA, int(value)))
-                return value, make_game_position(p['mover'], p['opponent'], player)
-            # The pass: a further node (the same board, the other player to move), searched as a
-            # node of its own; the value comes back negated, as at every ply.
-            value, final = search(p_pass, 1 - player, level + 1, MOVE_PA)
+                    log(NodeRecord(call_id, level, gp['player'], parent_move, MOVE_NA, value))
+                return value, gp
+            value, final = search(gp_pass, level, MOVE_PA)
             value = -value
             if log is not None:
-                log(NodeRecord(call_id, level, player, parent_move, MOVE_PA, value))
+                log(NodeRecord(call_id, level, gp['player'], parent_move, MOVE_PA, value))
             return value, final
-        best_value = None
-        best_move = None
-        best_final = None
-        for sq in range(64):
-            if (legal >> sq) & 1:
-                value, final = search(position_make_move(p, Move(sq)), 1 - player,
-                                      level + 1, Move(sq))
-                value = -value
-                if best_value is None or value > best_value:
-                    best_value, best_move, best_final = value, Move(sq), final
+        best_value = OUT_OF_RANGE_DEFEAT_SCORE
+        best_move = MOVE_NA
+        best_final = gp
+        moves = legal
+        while moves:
+            sq = bitboard_bsf(moves)
+            moves &= moves - 1
+            value, final = search(game_position_make_move(gp, Move(sq)), level, Move(sq))
+            value = -value
+            if value > best_value:
+                best_value, best_move, best_final = value, Move(sq), final
         if log is not None:
-            log(NodeRecord(call_id, level, player, parent_move, best_move, best_value))
+            log(NodeRecord(call_id, level, gp['player'], parent_move, best_move, best_value))
         return best_value, best_final
 
-    value, final = search(make_position(gp['mover'], gp['opponent']), gp['player'], 1, MOVE_UN)
+    value, final = search(gp, 0, MOVE_UN)
     return SolverResult(game_value=GameValue(value), final_game_position=final,
                         nodes=nodes, leafs=leafs)

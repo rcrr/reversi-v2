@@ -645,6 +645,28 @@ class TestBitboardBsr(unittest.TestCase):
         with self.assertRaises(ValidationError):
             bitboard_bsr(arr_signed)
 
+class TestBitboardBsf(unittest.TestCase):
+
+    def test_scalar_bsf_high_bits(self):
+        """Precisely identify the lowest set bit, including near the 64-bit boundary, and return int."""
+        res_0 = bitboard_bsf(Bitboard(0))
+        res_1 = bitboard_bsf(Bitboard(1))
+        res_32 = bitboard_bsf(Bitboard(1 << 32))
+        res_63 = bitboard_bsf(Bitboard(1 << 63))
+        res_max = bitboard_bsf(Bitboard(0xFFFFFFFFFFFFFFFF))
+
+        self.assertEqual(res_0, -1)
+        self.assertEqual(res_1, 0)
+        self.assertEqual(res_32, 32)
+        self.assertEqual(res_63, 63)
+        self.assertEqual(res_max, 0)
+
+    def test_scalar_bsf_lowest_of_many(self):
+        # With several bits set, the lowest index wins (the ascending iteration order of the solver).
+        self.assertEqual(bitboard_bsf(Bitboard(0x3FFFFFFFF)), 0)
+        self.assertEqual(bitboard_bsf(Bitboard(0x4000000000000002)), 1)
+        self.assertEqual(bitboard_bsf(Bitboard(0x8000000000000000)), 63)
+
 class TestBitboardPrint(unittest.TestCase):
 
     def test_bitboard_print_output(self):
@@ -4089,6 +4111,146 @@ class TestGamePosition(unittest.TestCase):
     def test_from_str_to_str_round_trip(self):
         s = "bbbbbbbbwwwwwwww........................................wwwwwwwww"
         self.assertEqual(game_position_to_str(game_position_from_str(s)), s)
+
+    def test_make_move_scalar(self):
+        gp = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        out = game_position_make_move(gp, np.uint8(0))
+        # The turn passes: the mover / opponent fields rotate, the player flips.
+        self.assertEqual(game_position_to_str(out),
+                         'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' + 'wwwwwwwwwwwwwwwwwwwwwwwwwwwwww' + 'w')
+        self.assertEqual(int(out['mover']), 0xFFFFFFFC00000000)
+        self.assertEqual(int(out['opponent']), 0x3FFFFFFFF)
+        self.assertEqual(int(out['player']), PLAYER_WHITE)
+
+    def test_make_move_pass(self):
+        gp = game_position_from_str('bbbbbbbb' + 'bbbbbbbb' + '.bbbwwww' + 'bbwwwwww' + 'bbbbbbbb'
+                                    + 'wbbbbbbb' + 'bbbbbbbb' + 'wwwwwwbb' + 'b')
+        out = game_position_make_move(gp, np.uint8(MOVE_PA))
+        # The pass: the board is unchanged, the fields rotate, the player flips.
+        self.assertEqual(game_position_to_str(out),
+                         'bbbbbbbbbbbbbbbb.bbbwwwwbbwwwwwwbbbbbbbbwbbbbbbbbbbbbbbbwwwwwwbb' + 'w')
+        self.assertEqual(out['mover'], gp['opponent'])
+        self.assertEqual(out['opponent'], gp['mover'])
+        self.assertEqual(int(out['player']), 1 - int(gp['player']))
+
+    def test_make_move_scalar_out_of_range(self):
+        gp = game_position_from_str('bbbbbbbb' * 4 + 'wwwwwwww' * 4 + 'b')
+        with self.assertRaises(ValueError):
+            game_position_make_move(gp, np.uint8(65))
+
+    def test_make_move_array(self):
+        g1 = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        g3 = game_position_from_str('bbbbbbbb' + 'bbbbbbbb' + '.bbbwwww' + 'bbwwwwww' + 'bbbbbbbb'
+                                    + 'wbbbbbbb' + 'bbbbbbbb' + 'wwwwwwbb' + 'b')
+        gpa = np.array([g1, g3], dtype=g1.dtype)
+        mva = np.array([0, MOVE_PA], dtype=np.uint8)
+        out = game_position_make_move(gpa, mva)
+        self.assertEqual(out.shape, (2,))
+        self.assertEqual(out.dtype, g1.dtype)
+        self.assertEqual(game_position_to_str(out[0]),
+                         'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' + 'wwwwwwwwwwwwwwwwwwwwwwwwwwwwww' + 'w')
+        self.assertEqual(game_position_to_str(out[1]),
+                         'bbbbbbbbbbbbbbbb.bbbwwwwbbwwwwwwbbbbbbbbwbbbbbbbbbbbbbbbwwwwwwbb' + 'w')
+
+    def test_make_move_nd(self):
+        g1 = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        gpa = np.array([g1, g1], dtype=g1.dtype).reshape(2, 1)
+        mva = np.array([0, 0], dtype=np.uint8).reshape(2, 1)
+        out = game_position_make_move(gpa, mva)
+        self.assertEqual(out.shape, (2, 1))
+        self.assertEqual(game_position_to_str(out[0, 0]), game_position_to_str(out[1, 0]))
+
+    def test_legal_moves_scalar(self):
+        gp = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        lm = game_position_legal_moves(gp)
+        self.assertEqual(int(lm), 0x1)
+        self.assertEqual(lm, position_legal_moves(make_position(gp['mover'], gp['opponent'])))
+
+    def test_legal_moves_array(self):
+        g1 = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        g3 = game_position_from_str('bbbbbbbb' + 'bbbbbbbb' + '.bbbwwww' + 'bbwwwwww' + 'bbbbbbbb'
+                                    + 'wbbbbbbb' + 'bbbbbbbb' + 'wwwwwwbb' + 'b')
+        gpa = np.array([g1, g3], dtype=g1.dtype)
+        lma = game_position_legal_moves(gpa)
+        self.assertEqual(lma.shape, (2,))
+        self.assertEqual(lma.dtype, Bitboard)
+        self.assertEqual(int(lma[0]), 0x1)
+        self.assertEqual(int(lma[1]), 0x0)
+
+    def test_final_value_scalar(self):
+        # The WOF scoring from the player-to-move point of view: the win, the draw, and the
+        # draw-with-empties-is-zero.
+        full = game_position_from_str('bbbbbbbb' * 5 + 'wwwwwwww' * 3 + 'b')
+        self.assertEqual(game_position_final_value(full), 16)
+        draw = game_position_from_str('bbbbbbbb' * 4 + 'wwwwwwww' * 4 + 'b')
+        self.assertEqual(game_position_final_value(draw), 0)
+        draw_empties = game_position_from_str('bbbbbbbb' + '.' * 48 + 'wwwwwwww' + 'b')
+        self.assertEqual(game_position_final_value(draw_empties), 0)
+        # Parity with the position-level function.
+        one = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        self.assertEqual(game_position_final_value(one),
+                         position_final_value(make_position(one['mover'], one['opponent'])))
+
+    def test_final_value_array(self):
+        full = game_position_from_str('bbbbbbbb' * 5 + 'wwwwwwww' * 3 + 'b')
+        draw = game_position_from_str('bbbbbbbb' * 4 + 'wwwwwwww' * 4 + 'b')
+        gpa = np.array([full, draw], dtype=full.dtype)
+        fva = game_position_final_value(gpa)
+        self.assertEqual(fva.shape, (2,))
+        self.assertEqual(fva.dtype, np.int64)
+        self.assertEqual(list(fva), [16, 0])
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_make_move_1m(self):
+        size = 1_000_000
+        movers = np.full(size, 0x0000000000000001, dtype=Bitboard)
+        opponents = np.full(size, 0x0040201008040200, dtype=Bitboard)
+
+        positions = make_position(movers, opponents)
+        position_check_collisions(positions)
+        moves = np.full(size, np.uint8(63))
+        players = np.full(size, PLAYER_BLACK, dtype=np.uint8)
+        game_positions = make_game_position(movers, opponents, players)
+
+        # Warmup
+        game_position_make_move(game_positions[:10], moves[:10])
+
+        start = time.perf_counter()
+        updated = game_position_make_move(game_positions, moves)
+        end = time.perf_counter()
+
+        duration = end - start
+        print(f"\n[PERF game_position_make_move] Processed {size:,} boards in {duration:.4f}s"
+              f"({(size/duration):,.0f} boards/sec)")
+
+        nptest.assert_array_equal(updated['mover'], np.full(size, 0x0000000000000000, dtype=Bitboard))
+        nptest.assert_array_equal(updated['opponent'], np.full(size, 0x8040201008040201, dtype=Bitboard))
+        nptest.assert_array_equal(updated['player'], np.full(size, PLAYER_WHITE, dtype=np.uint8))
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_legal_moves_1m(self):
+        size = 1_000_000
+        movers = np.full(size, 0x0000000000000001, dtype=Bitboard)
+        opponents = np.full(size, 0x0040201008040200, dtype=Bitboard)
+
+        positions = make_position(movers, opponents)
+        position_check_collisions(positions)
+        players = np.full(size, PLAYER_BLACK, dtype=np.uint8)
+        game_positions = make_game_position(movers, opponents, players)
+
+        # Warmup
+        game_position_legal_moves(game_positions[:10])
+
+        start = time.perf_counter()
+        lms = game_position_legal_moves(game_positions)
+        end = time.perf_counter()
+
+        duration = end - start
+        print(f"\n[PERF game_position_legal_moves] Processed {size:,} boards in {duration:.4f}s"
+              f"({(size/duration):,.0f} boards/sec)")
+
+        expected_lms = np.full(size, 0x8000000000000000, dtype=Bitboard)
+        nptest.assert_array_equal(lms, expected_lms)
 
 
 class TestPositionMakeMoveGpdb(unittest.TestCase):

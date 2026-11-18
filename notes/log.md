@@ -130,3 +130,32 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    (`coverage` 7.17.3, installed in the venv).
  - Next: the user's further instructions on the endgame-solver step (no commits made this session so far), then the
    MULTI-PLY step 2.
+
+## 2026-11-18 — session 130 (ENDGAME-SOLVER — the GamePosition-only field decision + the generic fixture series 4–8)
+
+- The user's field decision closes the design of the search: the game tree uses `GamePosition` and ONLY `GamePosition`
+  (no `Position`, no `mover` / `opponent`, no standalone `player`); the elegance must be visible in the code and the
+  encapsulation must not cost performance (board.py exports the kernels — the public per-lane bitboard primitives —
+  for the future numba inlining).
+- src/reversi/board.py — the three GamePosition-level game-tree tools (`game_position_make_move` /
+  `game_position_legal_moves` / `game_position_final_value`: the private prange kernels compose the public
+  `flips_of_move` / `legal_moves_of` over the field views, the wrappers give the scalar/array contract) + `bitboard_bsf`
+  (the njit ascending twin of `bitboard_bsr`) + the private `_popcount` (numba has no `np.bitwise_count`). Numba
+  findings: no structured-scalar construction (the kernels work on three arrays, repacked with `make_game_position`);
+  the make_move kernel applies the orientation rotation of `position_make_move` (the first version kept the
+  orientation fixed and produced inconsistent game positions — caught by the parity smoke test). (D-657)
+- src/reversi/endgame_solver.py — the `search` rewritten GamePosition-only on the three tools, with the user's six
+  style notes: no comment lines; the root at level 0, the first statement `level += 1`; the return type in the
+  definition; no `int()` cast; the `range(64)` scan replaced by the `bitboard_bsf` loop; the `None` accumulators
+  replaced by the out-of-range initialisation (the new `OUT_OF_RANGE_DEFEAT_SCORE` = −66, the C constant). (D-657)
+- test/reversi/test_board.py — 339 tests: the nine game-tree-tool tests (scalar/array parity with the position-level
+  composition, the pass rotation, the out-of-range ValueError, the N-D shape) + the 1M-board PERF pair + the two
+  `bitboard_bsf` tests. (D-657)
+- test/reversi/test_endgame_solver.py + the four new C reference logs — the fixture test becomes the GENERIC case
+  test (`CASES` entry + two one-line methods per case); the series grows to ffo-01-simplified 4–8 (22 tests): the
+  references generated with the legacy toolchain (the C `endgame_solver -s minimax -l` + `read_game_tree_log`), the
+  solution lines and final positions walked from the log's HASH links (the case-4 transpositions follow the first
+  visit — the deterministic search gives the transposed visits the same best move, asserted). Suite runtime ~9 s
+  (the 20040-node case 4 dominates) — the LONG territory, the numba-compiled scalar search is the next step. (D-657)
+- Next: the numba-compiled scalar search on the same fixture series (the 20k-node case 4 is the target of measure),
+  then the alpha-beta solver, then the vectorized design.

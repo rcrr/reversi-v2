@@ -28,6 +28,7 @@ unless stated.
 | Bitboard | `bitboard_to_signed_int(bb) -> np.int64 \| NDArray` | the inverse (PostgreSQL storage path); the array result is a zero-copy view (shared buffer); arrays of any shape |
 | Bitboard | `bitboard_from_hex_str(h) -> Bitboard \| BitboardArray` | 16-char hex, no `0x` prefix, case-insensitive; the array path is `np.frompyfunc` (element-wise Python loop); arrays of any shape |
 | Bitboard | `bitboard_bsr(bb) -> int` | index of the most significant set bit (63..0); 0 → -1; scalar only |
+| Bitboard | `bitboard_bsf(bb) -> int` | index of the least significant set bit (0..63); 0 → -1; the njit twin of `bitboard_bsr` (the shift ladder compiles to bsf/ctz) — the per-lane primitive the endgame solver's move iteration calls |
 | Bitboard | `bitboard_count(bb) -> np.uint8 \| npt.NDArray[np.uint8]` | popcount via `np.bitwise_count`; dual scalar/array |
 | Bitboard | `legal_moves_of(mover, opponent) -> Bitboard` | the per-lane legal-move set — the njit domain wrapper over the private core `_kogge_stone_lms` (the same encapsulation pattern as `flips_of_move` / `_kogge_stone_mm`): the single source of the geometry, called per lane by the vectorized kernel and by the numba compositions (random_game's fused engine) |
 | Bitboard | `flips_of_move(mover, opponent, move) -> Bitboard` | the flip set of the single-bit move — the njit flip primitive (the Kogge-Stone core) for the numba compositions |
@@ -84,6 +85,9 @@ unless stated.
 | GamePosition | `game_position_whites(gp) -> Bitboard \| BitboardArray` | the mirror of `game_position_blacks` |
 | GamePosition | `game_position_from_str(s: str) -> GamePositionField` | the 65-char form: 64 board chars (char i = square i, [bw.]) + 1 player char [bw]; the RESULT IS THE RELATIVE VIEW (the mover / opponent follow the player); ValueError on length / charset; scalar only |
 | GamePosition | `game_position_to_str(gp) -> str` | the inverse 65-char form; a double-held square prints 'b' (the blacks checked first, the C convention); scalar only |
+| GamePosition | `game_position_make_move(gp, move) -> GamePositionField \| GamePositionArray` | the game-tree step: the `flips_of_move` composition over the position's field views; the turn passes — the mover / opponent fields rotate, the player flips; `MOVE_PA` is the pure rotation (the pass); dual scalar/array |
+| GamePosition | `game_position_legal_moves(gp) -> Bitboard \| BitboardArray` | the legal-move set of the player to move (the `legal_moves_of` composition over the field views); dual scalar/array |
+| GamePosition | `game_position_final_value(gp) -> int \| NDArray[int64]` | the WOF leaf value from the player-to-move point of view (the `position_final_value` scoring over the field views); dual scalar/array |
 
 ## Architecture
 

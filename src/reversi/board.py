@@ -78,7 +78,7 @@ __all__ = ['Square', 'SquareArray',
            'move_validate_range',
            'Bitboard', 'BitboardArray',
            'bitboard_from_signed_int', 'bitboard_to_signed_int', 'bitboard_from_hex_str',
-           'bitboard_bsr', 'bitboard_count',
+           'bitboard_bsr', 'bitboard_bsf', 'bitboard_count',
            'legal_moves_of', 'flips_of_move',
            'bitboard_transformations', 'bitboard_anti_transformations',  'bitboard_print',
            'bitboard_fa1h8', 'bitboard_fh1a8', 'bitboard_fhori', 'bitboard_fvert',
@@ -94,6 +94,7 @@ __all__ = ['Square', 'SquareArray',
            'make_game_position', 'make_game_position_from_position',
            'game_position_blacks', 'game_position_whites',
            'game_position_from_str', 'game_position_to_str',
+           'game_position_make_move', 'game_position_legal_moves', 'game_position_final_value',
            'position_print', 'position_empties',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
            'position_flips', 'position_make_move', 'position_count_difference',
@@ -573,6 +574,43 @@ def bitboard_bsr(bb: Bitboard) -> int:
     if n == 0:
         return -1
     return n.bit_length() - 1
+
+@nb.njit(inline='always', cache=True)
+def bitboard_bsf(bb: Bitboard) -> int:
+    """
+    Return the index of the least significant set bit (Bit Scan Forward).
+
+    The public per-lane primitive of the bit-scan family, the ascending twin of bitboard_bsr: the
+    single source the numba compositions of the other modules (the endgame solver move iteration)
+    call directly; the shift ladder compiles to the bsf/ctz instruction.
+
+    Args:
+        bb: the bitboard.
+
+    Returns:
+        int: 0 up to 63 for the lowest set bit; -1 for the empty bitboard.
+    """
+    if bb == 0:
+        return -1
+    n = 0
+    if (bb & 0x00000000FFFFFFFF) == 0:
+        n += 32
+        bb >>= 32
+    if (bb & 0x000000000000FFFF) == 0:
+        n += 16
+        bb >>= 16
+    if (bb & 0x00000000000000FF) == 0:
+        n += 8
+        bb >>= 8
+    if (bb & 0x000000000000000F) == 0:
+        n += 4
+        bb >>= 4
+    if (bb & 0x0000000000000003) == 0:
+        n += 2
+        bb >>= 2
+    if (bb & 0x0000000000000001) == 0:
+        n += 1
+    return n
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_count(bb: Bitboard | BitboardArray) -> np.uint8 | npt.NDArray[np.uint8]:
@@ -2243,3 +2281,190 @@ def game_position_to_str(gp: GamePositionField) -> str:
         sq <<= 1
     chars.append('b' if gp['player'] == PLAYER_BLACK else 'w')
     return ''.join(chars)
+
+
+# The GamePosition-level game-tree operations: the per-lane work composes the PUBLIC bitboard
+# primitives (flips_of_move / legal_moves_of) over the position's field views, so the numba
+# compositions of the other modules (the endgame solver game tree) inline the same single-source
+# kernels. The vectorized kernels run over 1-D batches; the public wrappers give the scalar/array
+# dual contract.
+
+#: Internal use function.
+@nb.njit(inline='always', cache=True)
+def _popcount(bb: Bitboard) -> int:
+    """
+    The popcount of a bitboard, in nopython form (numpy.bitwise_count is not numba-supported).
+    """
+    count = 0
+    while bb:
+        bb &= bb - Bitboard(1)
+        count += 1
+    return count
+@nb.njit(parallel=True, cache=True)
+def _vectorized_game_position_make_move(gps: np.ndarray, moves: np.ndarray) -> tuple:
+    """
+    Vectorized make-move over a 1-D batch of game positions: the board updated, the player
+    flipped. The move is a square (0..63) or MOVE_PA (the pass: the board is unchanged, the
+    player is flipped).
+
+    Args:
+        gps: the 1-D array of game positions.
+        moves: the 1-D array of move codes.
+
+    Returns:
+        tuple: the 1-D arrays of the updated movers, opponents, and players.
+    """
+    n = gps.shape[0]
+    out_movers = np.empty(n, dtype=Bitboard)
+    out_opponents = np.empty(n, dtype=Bitboard)
+    out_players = np.empty(n, dtype=Player)
+    for i in nb.prange(n):
+        if moves[i] == MOVE_PA:
+            out_movers[i] = gps[i]['opponent']
+            out_opponents[i] = gps[i]['mover']
+        else:
+            m = Bitboard(1) << Bitboard(moves[i])
+            flips = flips_of_move(gps[i]['mover'], gps[i]['opponent'], m)
+            # The turn passes: the mover's updated stones become the opponent's, the opponent's
+            # updated stones become the new mover's (the same orientation rotation as
+            # position_make_move).
+            out_movers[i] = gps[i]['opponent'] ^ flips
+            out_opponents[i] = gps[i]['mover'] ^ flips | m
+        out_players[i] = np.uint8(1 - gps[i]['player'])
+    return out_movers, out_opponents, out_players
+
+@nb.njit(parallel=True, cache=True)
+def _vectorized_game_position_legal_moves(gps: np.ndarray) -> np.ndarray:
+    """
+    Vectorized legal-move calculation over a 1-D batch of game positions.
+
+    Args:
+        gps: the 1-D array of game positions.
+
+    Returns:
+        np.ndarray: the 1-D array of legal-move bitboards.
+    """
+    n = gps.shape[0]
+    results = np.empty(n, dtype=Bitboard)
+    for i in nb.prange(n):
+        results[i] = legal_moves_of(gps[i]['mover'], gps[i]['opponent'])
+    return results
+
+@nb.njit(parallel=True, cache=True)
+def _vectorized_game_position_final_value(gps: np.ndarray) -> np.ndarray:
+    """
+    Vectorized end-of-game score over a 1-D batch of game positions: the disk difference, the
+    empty squares assigned to the player having most discs (a draw is 0), seen from the point of
+    view of the player to move.
+
+    Args:
+        gps: the 1-D array of game positions.
+
+    Returns:
+        np.ndarray: the 1-D int64 array of the scores.
+    """
+    n = gps.shape[0]
+    results = np.empty(n, dtype=np.int64)
+    for i in nb.prange(n):
+        mc = _popcount(gps[i]['mover'])
+        oc = _popcount(gps[i]['opponent'])
+        diff = mc - oc
+        if diff == 0:
+            results[i] = 0
+        else:
+            ec = __square_max_value__ - int(mc + oc)
+            if diff > 0:
+                results[i] = diff + ec
+            else:
+                results[i] = diff - ec
+    return results
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_make_move(gp: GamePositionField | GamePositionArray,
+                            move: Move | MoveArray) -> GamePositionField | GamePositionArray:
+    """
+    Execute a game move on a game position and return the updated game position: the board
+    updated, the player flipped.
+
+    The move is in the range A1..H8 (0..63) or 64 (PA, the pass: the board is unchanged, the
+    player is flipped). Any move code above 64 is a ValueError. As in position_make_move, the
+    legality of the square is the caller's responsibility (the solver passes only legal moves or
+    PA).
+
+    Dual scalar/array: scalar inputs give the scalar output; a GamePositionArray of any shape with
+    a same-shape uint8 MoveArray gives a GamePositionArray of that shape.
+
+    Args:
+        gp: the game position, scalar or array.
+        move: the move code, same kind and shape.
+
+    Raises:
+        TypeError: the arguments are of mixed kind (one scalar, one array).
+        ValueError: a move code above 64 (scalar or any array element).
+    """
+    if isinstance(gp, np.ndarray) and isinstance(move, np.ndarray):
+        if gp.shape != move.shape:
+            raise ValueError("The shapes of gp and move arrays must be the same.")
+        if (move > MOVE_PA).any():
+            raise ValueError(f"All moves in the array must be in the range [0..{int(MOVE_PA)}].")
+        if gp.ndim == 1:
+            # The 1-D fast path: the (possibly strided) arrays go straight to the kernel, no flatten copy.
+            out_movers, out_opponents, out_players = _vectorized_game_position_make_move(gp, move)
+            return make_game_position(out_movers, out_opponents, out_players)
+        # The N-D contract: the 1-D kernel over the flattened C-order views, the output reshaped
+        # back to the input shape.
+        out_movers, out_opponents, out_players = _vectorized_game_position_make_move(
+            gp.ravel(), move.ravel())
+        return make_game_position(out_movers.reshape(gp.shape), out_opponents.reshape(gp.shape),
+                                  out_players.reshape(gp.shape))
+    if isinstance(gp, np.void) and isinstance(move, np.uint8):
+        # Scalar path.
+        if move > MOVE_PA:
+            raise ValueError(f"Argument move {int(move)} is out of range [0..{int(MOVE_PA)}]")
+        g = np.array([gp])
+        m = np.array([move], dtype=np.uint8)
+        out_movers, out_opponents, out_players = _vectorized_game_position_make_move(g, m)
+        return make_game_position(out_movers[0], out_opponents[0], out_players[0])
+    raise TypeError("Inputs must be either both scalar or both arrays.")
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_legal_moves(gp: GamePositionField | GamePositionArray) -> Bitboard | BitboardArray:
+    """
+    Calculate the Reversi legal moves of one or more game positions.
+
+    Scalar GamePosition inputs give a scalar Bitboard. Array inputs of any shape give a Bitboard
+    array of that shape. Bare Python values are rejected by the validation gate.
+
+    Args:
+        gp: the game position, scalar or array.
+    """
+    if isinstance(gp, np.void):
+        return _vectorized_game_position_legal_moves(np.array([gp]))[0]
+    if gp.ndim == 1:
+        # The 1-D fast path: the (possibly strided) array goes straight to the kernel, no flatten copy.
+        return _vectorized_game_position_legal_moves(gp)
+    # The N-D contract: the 1-D kernel over the flattened C-order view, the output reshaped back
+    # to the input shape.
+    return _vectorized_game_position_legal_moves(gp.ravel()).reshape(gp.shape)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_final_value(gp: GamePositionField | GamePositionArray) -> int | npt.NDArray[np.int64]:
+    """
+    Return the end-of-game score of one or more game positions: the disk difference, the empty
+    squares assigned to the player having most discs (a draw is 0, with or without empty squares),
+    seen from the point of view of the player to move.
+
+    Scalar GamePosition inputs give a scalar int. Array inputs of any shape give an int64 array of
+    that shape.
+
+    Args:
+        gp: the game position, scalar or array.
+    """
+    if isinstance(gp, np.void):
+        return int(_vectorized_game_position_final_value(np.array([gp]))[0])
+    if gp.ndim == 1:
+        # The 1-D fast path: the (possibly strided) array goes straight to the kernel, no flatten copy.
+        return _vectorized_game_position_final_value(gp)
+    # The N-D contract: the 1-D kernel over the flattened C-order view, the output reshaped back
+    # to the input shape.
+    return _vectorized_game_position_final_value(gp.ravel()).reshape(gp.shape)

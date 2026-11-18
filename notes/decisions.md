@@ -291,3 +291,32 @@ D-656 | 2026-11-17 | The game-value types moved from regab.py to `endgame_solver
          validator gained three direct tests in the endgame suite (`TestGameValueArrayValidator`: the int8 array passes
          by identity, the non-int8 array raises, the non-array input passes), which bring the module to 100% of the
          statements and branches under its own suite (measured with `coverage`, installed in the venv for this).
+
+D-657 | 2026-11-18 | The game tree is GamePosition-only (the user's field decision): the solver code may use
+         `GamePosition` and ONLY `GamePosition` — no `Position`, no `mover` / `opponent` handling, no standalone
+         `player` in the search; the elegance must be VISIBLE in the code, and the encapsulation must not cost
+         performance (board.py exports the kernels for the future numba inlining). board.py gains the three
+         GamePosition-level game-tree tools — `game_position_make_move`, `game_position_legal_moves`,
+         `game_position_final_value` (each: a private prange kernel composing the PUBLIC bitboard primitives
+         `flips_of_move` / `legal_moves_of` over the position's field views + the public scalar/array wrapper) and
+         `bitboard_bsf` (the njit ascending twin of `bitboard_bsr`, the shift ladder compiles to bsf/ctz). Numba
+         constraints found on the way: numba cannot construct a structured scalar (the kernels work on three
+         bitboard / uint8 arrays, repacked with `make_game_position`) and `np.bitwise_count` is unsupported (the
+         private `_popcount`). `game_position_make_move` applies the same orientation rotation as
+         `position_make_move` (the turn passes: the mover / opponent fields rotate, the player flips; the pass is
+         the pure rotation). The solver `search` is rewritten on the three tools (no `Position` anywhere, the
+         `gp['player']` read inline in the trace emits, no `int()` cast) with the user's six style notes: no
+         comment lines, the root called at level 0 with the first statement `level += 1`, the return type in the
+         definition (`tuple[int, GamePositionField]`), the `for sq in range(64)` scan replaced by the `bitboard_bsf`
+         bit-scan loop, and the `None` accumulators replaced by the out-of-range initialisation (`best_value` = the
+         new `OUT_OF_RANGE_DEFEAT_SCORE` constant, −66, the C constant; `best_move` = `MOVE_NA`; `best_final` = `gp`)
+         so the strict comparison stands alone. The fixture test becomes the GENERIC case test: a `CASES` entry per
+         case (value, nodes, leafs, final position string, solution line) + two one-line methods, and the series
+         grows to ffo-01-simplified 4–8 — the four new C reference logs
+         (`es_log_ffo-01-simplified-{4,5,6,7}.csv`, generated with the legacy toolchain: the C `endgame_solver -s
+         minimax -l` + `read_game_tree_log`), the solution lines and final positions extracted by walking the log's
+         HASH links (the case-4 transpositions — the same parent / move visited twice — follow the first visit, the
+         deterministic search gives them the same best move, asserted). Tests: board 339 (the nine game-tree-tool
+         tests + the 1M-board PERF pair + the two `bitboard_bsf` tests), endgame 22 (the 5 solve + 5 trace cases,
+         20040/6201 the largest); the perf check shows the gp tools at the position-level throughput (the kernel
+         computes the same inlined primitives, the delta is the wrapper layer that the numba phase drops).

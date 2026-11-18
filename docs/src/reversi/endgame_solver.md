@@ -4,10 +4,11 @@ minimax and returns the game value, the terminal game position of the best line,
 
 ## API
 
-The 2 `__all__` names.
+The `__all__` names.
 
 | name | contract |
 |---|---|
+| `OUT_OF_RANGE_DEFEAT_SCORE` | the out-of-range sentinel of the best-value accumulation (−66, the C constant): just outside the game-value range, so the first child value always wins the strict comparison and the no-move-yet state needs no test |
 | `GameValue` | the game-value type: `np.int8` (a value from -64 to +64) — defined here, the solver is the producer of game values; `regab.py` imports it from this module |
 | `GameValueArray` | the pydantic-validated `NDArray[np.int8]` game-value array type (the int8-dtype `BeforeValidator`) — defined here with `GameValue` |
 | `NodeRecord` | the frozen dataclass `(call_id, level, player, parent_move, best_move, value)` — one visited node of the search, as emitted to the `log` callback (see The trace); the move fields are never `None` (the sentinel codes `MOVE_UN` / `MOVE_NA` / `MOVE_PA` express the absences) |
@@ -19,15 +20,19 @@ The 2 `__all__` names.
 - **The search** is a plain recursive DFS (the scalar phase — the vectorized / numba phase is a later step). Every
   visited position is a node: `nodes` counts the root and the leaves, `leafs` counts the terminal positions
   evaluated.
-- **The move order is static** (A1, A2, ..., H8): the legal-move bitset is scanned square by square in index
-  order. In a tie of equal values the first move in that order is kept (the comparison is strict).
+- **The move order is static** (A1, A2, ..., H8): the legal-move bitset is scanned with the `bitboard_bsf`
+  bit-scan (the ascending square order). In a tie of equal values the first move in that order is kept (the
+  comparison is strict).
 - **The values are relative**: the value of a child is negated at every ply, so the returned `game_value` is seen
   from the point of view of the player to move at the root (positive = that player wins the endgame).
 - **The pass**: a player with no legal move hands the turn to the opponent — a further node (the same board, the
   other player), with the value coming back negated. A position where NEITHER player has a legal move is a leaf
   (one node, no pass): the terminal check precedes the pass.
-- **The leaf value** is `position_final_value` (board.py, the WOF scoring: the empty squares are assigned to the
-  winner, a draw is 0 — with or without empty squares).
+- **The leaf value** is `game_position_final_value` (board.py, the WOF scoring: the empty squares are assigned to
+  the winner, a draw is 0 — with or without empty squares).
+- **The game tree is GamePosition-only**: the search composes the three GamePosition-level tools of board.py
+  (`game_position_legal_moves`, `game_position_make_move`, `game_position_final_value`) — no `Position`, no
+  mover / opponent handling, no standalone player in the solver code.
 
 ## The trace
 
@@ -55,11 +60,12 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 - The search contract on hand-built endgames (the full-board terminals from both perspectives, the draw, the
   draw-with-empties-is-zero WOF case, the single-empties forced move, the equal-value tie keeping the first static
   move, the pass at the root) — `test_endgame_solver::TestMinimaxSolveMicro`.
-- The exact solution of the `ffo-01-simplified-8` fixture position (the value 18, the final position, the 46 nodes
-  / 15 leaves, the A1-B1-H1-G2 solution line) — `test_endgame_solver::TestMinimaxSolveFixture`.
-- The node-by-node trace: the 46 `NodeRecord`s of the `ffo-01-simplified-8` solve reproduce the C
-  game-tree log record by record, on the six comparable columns —
-  `test_endgame_solver::TestMinimaxSolveFixture` (the trace test).
+- The exact solution of the `ffo-01-simplified` 4–8 series of the `gpdb-sample-games.txt` corpus (the generic
+  case test: the value, the node / leaf counts, the final position, the solution line played to the final
+  position) — `test_endgame_solver::TestMinimaxSolveFixture`.
+- The node-by-node trace: the `NodeRecord`s of each solve reproduce the C game-tree log of the case
+  (`es_log_ffo-01-simplified-{4..8}.csv`) record by record, on the six comparable columns —
+  `test_endgame_solver::TestMinimaxSolveFixture` (the trace tests).
 - The result container (the fields, the frozen behaviour) — `test_endgame_solver::TestSolverResult`.
 - The int8-dtype contract of the `GameValueArray` validator —
   `test_endgame_solver::TestGameValueArrayValidator` (together with the tests above, they cover the
@@ -78,8 +84,9 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 
 ## Integration
 
-- Consumes: `board.py` (`position_legal_moves`, `position_make_move`, `position_final_value`,
-  `make_position`, `make_game_position`, the `Move` / `Player` types, `MOVE_PA`).
+- Consumes: `board.py` (the three GamePosition-level tools `game_position_legal_moves` /
+  `game_position_make_move` / `game_position_final_value`, the `bitboard_bsf` bit-scan, the
+  `Move` / `Player` types, `MOVE_PA` / `MOVE_NA` / `MOVE_UN`).
 - Consumed by: the test suite; the future `alpha_beta` solver (the shared `SolverResult`); the ENDGAME-SOLVER
   campaign (the `gpdb-ffo.txt` corpus is the cross-validation surface); `regab.py` (the `GameValue` /
   `GameValueArray` types — the database stores the values the solver produces).
