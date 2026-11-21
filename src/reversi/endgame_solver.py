@@ -68,6 +68,28 @@ matching a column of the C log:
 
 The C-internal columns (the Zobrist `HASH`, the absolute `BLACKS` / `WHITES` bitboards) are not
 part of the record: they depend on the C hash constants and are not reproducible in v2.
+
+The alpha-beta search
+---------------------
+
+`alphabeta_solve` is the alpha-beta twin of `minimax_solve`: the same depth-first search, the
+same natural (static square) move order, the same tie-break (the strict comparison keeps the
+first move in the order), plus the zero-window propagation (the child window is the negated
+parent window) and the cutoff (a child value that reaches the node's beta ends the move loop;
+the node then exits with its alpha — a bound at a cutoff node, exact otherwise). The root
+window is the C ground-node initialization (the out-of-range sentinels, [-66, 66]): the
+game-value range lies strictly inside it, the root value is exact, and the returned best line
+is the same line the minimax returns; the node / leaf counts are smaller, the pruned subtrees
+never being visited. The compiled twin is `_ab_search`, the per-node data (the entry-order counter, the
+parent move, the alpha / beta window) threaded through the 4-element shared state array with the
+same save/restore stack discipline as `_search`.
+
+A trace note: in the C reference log the `T_BEST_MOVE` of a non-improving node (a fail-low node
+that exits with its window alpha) is not defined by the search — the C node struct never
+initializes `best_move` there, so the log carries the stale value of the previous occupant of the
+stack slot. The v2 trace records `MOVE_NA` at such nodes, the only value consistent with the
+search; a node-by-node comparison against the C log therefore skips `best_move` where the v2
+record is `MOVE_NA`.
 """
 
 from dataclasses import dataclass
@@ -85,7 +107,7 @@ from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePositionFiel
 
 
 __all__ = ['OUT_OF_RANGE_DEFEAT_SCORE', 'GameValue', 'GameValueArray', 'NodeRecord',
-           'SolverResult', 'minimax_solve']
+           'SolverResult', 'minimax_solve', 'alphabeta_solve']
 
 
 #: Represents a reversi game value from -64 to +64 as an numpy.int8 scalar.
@@ -197,6 +219,85 @@ def _search(mover, opponent, player, level, records, state):
     return best_value, best_fm, best_fo, best_fp, nodes, leafs
 
 
+# The 4-element `state` array: state[0] the entry-order node counter, state[1] the current
+# parent_move, state[2] / state[3] the node's (alpha, beta) window — every per-node datum is
+# threaded through the shared array with save/restore around each recursive call (stack
+# discipline), keeping the 6-parameter signature (a 7th scalar parameter is the numba 0.68
+# cache-loader segfault trigger, D-662).
+@nb.njit(cache=True)
+def _ab_search(mover, opponent, player, level, records, state):
+    """
+    The numba-compiled recursive alpha-beta search, the compiled twin of `_search`: the same
+    position / sink / state convention, plus the zero-window propagation (the child window is the
+    negated parent window) and the cutoff (a child value that reaches the node's beta ends the
+    move loop). The node's best value starts at its window alpha: a fail-low node exits with its
+    window alpha and `MOVE_NA`, a cutoff node with the bound that triggered it.
+
+    Returns:
+        The (value, final_mover, final_opponent, final_player, nodes, leafs) of the subtree.
+    """
+    state[0] += 1
+    call_id = state[0]
+    alpha = state[2]
+    beta = state[3]
+    legal = legal_moves_of(mover, opponent)
+    if not legal:
+        if not legal_moves_of(opponent, mover):
+            value = final_value_of(mover, opponent)
+            if records is not None:
+                records.append((call_id, level, player, state[1], MOVE_NA, value))
+            return value, mover, opponent, player, 1, 1
+        saved_pm, saved_a, saved_b = state[1], state[2], state[3]
+        state[1] = MOVE_PA
+        state[2], state[3] = -beta, -alpha
+        value, fm, fo, fp, nodes, leafs = _ab_search(opponent, mover, other_player(player), level + 1,
+                                                     records, state)
+        state[1], state[2], state[3] = saved_pm, saved_a, saved_b
+        value = -value
+        if value <= alpha:
+            # Fail-low: the C pass node exits with its window alpha and best_move NA (the pass is
+            # recorded only when it improves the window alpha).
+            value, fm, fo, fp = alpha, mover, opponent, player
+            best = MOVE_NA
+        else:
+            best = MOVE_PA
+        if records is not None:
+            records.append((call_id, level, player, state[1], best, value))
+        return value, fm, fo, fp, nodes + 1, leafs
+    best_value = alpha
+    best_move = MOVE_NA
+    best_fm, best_fo, best_fp = mover, opponent, player
+    nodes = 1
+    leafs = 0
+    moves = legal
+    while moves:
+        sq = bitboard_bsf(moves)
+        moves = moves & (moves - Bitboard(1))
+        m = Bitboard(1) << Bitboard(sq)
+        flips = flips_of_move(mover, opponent, m)
+        saved_pm, saved_a, saved_b = state[1], state[2], state[3]
+        state[1] = sq
+        state[2], state[3] = -beta, -alpha
+        value, fm, fo, fp, n, l = _ab_search(opponent ^ flips, (mover ^ flips) | m,
+                                             other_player(player), level + 1, records, state)
+        state[1], state[2], state[3] = saved_pm, saved_a, saved_b
+        value = -value
+        nodes += n
+        leafs += l
+        if value > best_value:
+            best_value, best_move, best_fm, best_fo, best_fp = value, sq, fm, fo, fp
+            # The node's alpha rises with the best child: the NEXT sibling's window is derived
+            # from it (the zero-window tightening, the source of the pruning).
+            alpha = value
+            if value >= beta:
+                if records is not None:
+                    records.append((call_id, level, player, state[1], best_move, best_value))
+                return best_value, best_fm, best_fo, best_fp, nodes, leafs
+    if records is not None:
+        records.append((call_id, level, player, state[1], best_move, best_value))
+    return best_value, best_fm, best_fo, best_fp, nodes, leafs
+
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def minimax_solve(gp: GamePositionField, log: Callable[[NodeRecord], None] | None = None) -> SolverResult:
     """
@@ -224,6 +325,48 @@ def minimax_solve(gp: GamePositionField, log: Callable[[NodeRecord], None] | Non
         records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
         value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
                                                   1, records, state)
+        for rec in records:
+            log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
+    return SolverResult(game_value=GameValue(value),
+                        final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
+                                                               Player(fp)),
+                        nodes=nodes, leafs=leafs)
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def alphabeta_solve(gp: GamePositionField, log: Callable[[NodeRecord], None] | None = None) -> SolverResult:
+    """
+    Solve the endgame exactly with a depth-first alpha-beta search (the zero-window negamax with
+    the natural move order of `minimax_solve`; see the "The alpha-beta search" section of the
+    module docstring) and return the game value, the final game position of the best line, and
+    the node / leaf counts (smaller than the minimax ones: the pruned subtrees are never
+    visited).
+
+    Args:
+        gp: the game position to solve (scalar only).
+        log: optional callable, invoked with the `NodeRecord` of every visited node (in
+            completion order, replayed when the search completes — see "The trace" section of the
+            module docstring; at a cutoff node the record value is the search bound).
+
+    Returns:
+        The SolverResult of the search.
+    """
+    state = np.zeros(4, dtype=np.int64)
+    state[1] = MOVE_UN
+    # The C game-tree stack ground node is initialized with the out-of-range sentinels on both
+    # sides, so the root window is [-66, 66]: the game-value range lies strictly inside it and
+    # the root value is exact.
+    state[2] = OUT_OF_RANGE_DEFEAT_SCORE
+    state[3] = -OUT_OF_RANGE_DEFEAT_SCORE
+    if log is None:
+        value, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
+                                                     1, None, state)
+    else:
+        # The trace sink: the typed list of the 6-int node records, filled by the compiled
+        # search at each node exit, replayed to the callback when the search completes.
+        records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
+        value, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
+                                                     1, records, state)
         for rec in records:
             log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
     return SolverResult(game_value=GameValue(value),
