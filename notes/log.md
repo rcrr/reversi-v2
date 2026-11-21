@@ -187,3 +187,12 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    the defensive `int(MOVE_*)` casts dropped (numba widens the uint8 sentinels implicitly), the boundary
    casts now use the domain aliases (`Bitboard` / `Player` / `Move` / `GameValue`). The 5 trace tests
    validate the compiled path record by record; case 4: untraced ~1.1 ms, traced ~78 ms. (D-659)
+ - Exhaustive coverage analysis of board.py (coverage 7.17.3, branch mode): the raw 70% is mostly njit
+   invisibility artefact; the real gaps were closed with 8 new tests (340 -> 348): the
+   position_is_game_over post-pass False branch, the N-D array paths of the two gp tools, the three
+   game_position_make_move error raises, the GamePositionArray validator raise. The 267 remaining
+   "missing" lines are all untestable: the njit bodies (compiled, invisible), the 4 @overload bodies
+   (empirically never executed in this numba 0.68 + pydantic-wrapped configuration — 3 cold-cache runs +
+   an isolated JIT-caller probe — while the JIT path they serve is tested with goldens), and 2 redundant
+   guards preempted by the pydantic gates (structurally unreachable). Zero real gaps remain. .coverage
+   added to .gitignore. (D-660)

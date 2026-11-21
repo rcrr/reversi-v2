@@ -5,6 +5,7 @@
 __pycache__/
 .venv/
 *.egg-info/
+.coverage
 
 # Emacs temp / lock files
 \#*

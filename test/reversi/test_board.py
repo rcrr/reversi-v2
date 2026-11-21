@@ -3510,6 +3510,17 @@ class TestPositionIsGameOver(unittest.TestCase):
         position = make_position(mover, opponent)
         self.assertTrue(position_is_game_over(position))
 
+    def test_position_is_game_over_false_after_pass(self):
+
+        # The mover has no legal move, but after the pass the opponent has one: the game is not
+        # over (the post-pass False branch). Row 3: a3 white, b3 c3 black — black cannot move
+        # (every line through a3 ends off-board or on an empty square), white plays d3 and flips
+        # the b3 c3 pair.
+        mover = Bitboard(0x0000000000060000)
+        opponent = Bitboard(0x0000000000010000)
+        position = make_position(mover, opponent)
+        self.assertFalse(position_is_game_over(position))
+
 class TestPositionIsMoveLegal(unittest.TestCase):
 
     def test_position_is_move_legal_false(self):
@@ -4062,6 +4073,12 @@ class TestGamePosition(unittest.TestCase):
                                np.array([3], dtype=np.uint64),
                                np.array([0, 1], dtype=np.uint8))
 
+    def test_gp_array_wrong_dtype_raises(self):
+        # The GamePositionArray gate: an ndarray that is not the structured GamePosition dtype
+        # is rejected by the validator before any dispatch.
+        with self.assertRaises(ValueError):
+            game_position_legal_moves(np.zeros(3, dtype=np.uint64))
+
     def test_make_from_position_scalar(self):
         p = make_position(Bitboard(0x11), Bitboard(0x22))
         gp = make_game_position_from_position(p, PLAYER_WHITE)
@@ -4166,6 +4183,26 @@ class TestGamePosition(unittest.TestCase):
         self.assertEqual(game_position_to_str(out[1]),
                          'bbbbbbbbbbbbbbbb.bbbwwwwbbwwwwwwbbbbbbbbwbbbbbbbbbbbbbbbwwwwwwbb' + 'w')
 
+    def test_make_move_array_shape_mismatch_raises(self):
+        g1 = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        gpa = np.array([g1, g1], dtype=g1.dtype)
+        mva = np.array([0, 0, 0], dtype=np.uint8)
+        with self.assertRaises(ValueError):
+            game_position_make_move(gpa, mva)
+
+    def test_make_move_array_out_of_range_raises(self):
+        g1 = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        gpa = np.array([g1, g1], dtype=g1.dtype)
+        mva = np.array([0, 70], dtype=np.uint8)
+        with self.assertRaises(ValueError):
+            game_position_make_move(gpa, mva)
+
+    def test_make_move_mixed_kind_raises(self):
+        g1 = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        mva = np.array([0, 0], dtype=np.uint8)
+        with self.assertRaises(TypeError):
+            game_position_make_move(g1, mva)
+
     def test_make_move_nd(self):
         g1 = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
         gpa = np.array([g1, g1], dtype=g1.dtype).reshape(2, 1)
@@ -4191,6 +4228,17 @@ class TestGamePosition(unittest.TestCase):
         self.assertEqual(int(lma[0]), 0x1)
         self.assertEqual(int(lma[1]), 0x0)
 
+    def test_legal_moves_nd(self):
+        # The N-D contract: the 1-D kernel over the flattened view, the output reshaped back.
+        g1 = game_position_from_str('.wbbbbbb' + 'bbbbbbbb' * 3 + 'bbwwwwww' + 'wwwwwwww' * 3 + 'b')
+        g3 = game_position_from_str('bbbbbbbb' + 'bbbbbbbb' + '.bbbwwww' + 'bbwwwwww' + 'bbbbbbbb'
+                                    + 'wbbbbbbb' + 'bbbbbbbb' + 'wwwwwwbb' + 'b')
+        gpa = np.array([g1, g3], dtype=g1.dtype).reshape(2, 1)
+        lma = game_position_legal_moves(gpa)
+        self.assertEqual(lma.shape, (2, 1))
+        self.assertEqual(int(lma[0, 0]), 0x1)
+        self.assertEqual(int(lma[1, 0]), 0x0)
+
     def test_final_value_scalar(self):
         # The WOF scoring from the player-to-move point of view: the win, the draw, and the
         # draw-with-empties-is-zero.
@@ -4213,6 +4261,16 @@ class TestGamePosition(unittest.TestCase):
         self.assertEqual(fva.shape, (2,))
         self.assertEqual(fva.dtype, np.int64)
         self.assertEqual(list(fva), [16, 0])
+
+    def test_final_value_nd(self):
+        # The N-D contract: the 1-D kernel over the flattened view, the output reshaped back.
+        full = game_position_from_str('bbbbbbbb' * 5 + 'wwwwwwww' * 3 + 'b')
+        draw = game_position_from_str('bbbbbbbb' * 4 + 'wwwwwwww' * 4 + 'b')
+        gpa = np.array([full, draw], dtype=full.dtype).reshape(2, 1)
+        fva = game_position_final_value(gpa)
+        self.assertEqual(fva.shape, (2, 1))
+        self.assertEqual(fva.dtype, np.int64)
+        self.assertEqual(list(fva.ravel()), [16, 0])
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_make_move_1m(self):

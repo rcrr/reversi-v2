@@ -188,7 +188,7 @@ define the evaluation function.
 | test/reversi/paths.py | complete | 0/0/0/0/0 | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_base\_model.py | complete | 9/0/0/0/0 | [docs/test/reversi/test\_base\_model.md](docs/test/reversi/test\_base\_model.md) |
-| test/reversi/test\_board.py | complete | 340/0/18/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
+| test/reversi/test\_board.py | complete | 348/0/18/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
 | test/reversi/test\_endgame\_solver.py | complete | 26/0/0/0/0 (25 + 1 LONG) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_game\_position\_database.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_game\_position\_database.md](docs/test/reversi/test\_game\_position\_database.md) |

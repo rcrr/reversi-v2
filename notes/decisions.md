@@ -365,3 +365,24 @@ D-659 | 2026-11-21 | One search, compiled, traced: the user rejected the dual im
          rebuilds. Measured on the 20k-node case 4: untraced ~1.1 ms (untouched), traced ~78 ms (the sink +
          the 20k-record replay — 90x cheaper than the old Python trace, the production path pays nothing).
          All 26 endgame tests pass with the trace validating the COMPILED path record by record.
+
+D-660 | 2026-11-21 | Exhaustive coverage analysis of board.py under test_board (the user's request, the
+         freshly-installed `coverage` 7.17.3): the raw 70% (888 stmts, 274 missed, 13 partial branches) was
+         shown to be mostly structural artefact, and the real gaps were closed with 8 new tests (340 -> 348):
+         (a) `position_is_game_over` post-pass False branch (the mover stuck, the opponent moves after the
+         pass — row 3 a3W b3c3B, white plays d3); (b) the N-D array paths of `game_position_legal_moves` and
+         `game_position_final_value` (only scalars and 1-D arrays were tested); (c) the three
+         `game_position_make_move` error raises (array shape mismatch, move code above 64, mixed
+         scalar/array kind); (d) the `GamePositionArray` validator dtype raise. The remaining 267 "missing"
+         lines are all in three UNTESTABLE classes: (1) the ~255 njit function bodies (compiled code is
+         invisible to Python line coverage — functionally exercised by the 348 tests through the public API);
+         (2) the 4 `@overload` bodies (the compile-time typing functions of the D8 reflections: empirically
+         proven — 3 cold-cache coverage runs plus an isolated fresh-JIT-caller probe — to NEVER execute in
+         this numba 0.68 + pydantic-wrapped-target configuration, while the JIT calls they are meant to
+         serve DO work and ARE tested with goldens by TestNumbaReflectionOverloads; the registry
+         introspection found no entry under the wrapped or the original identity, the exact numba mechanism
+         is left as a library internal); (3) two structurally unreachable redundant guards (the body dtype
+         raise of `bitboard_to_signed_int` and the body TypeError of `position_hash` — the pydantic gates
+         raise first, no public-API test can reach them; the first attempt at such a test empirically
+         confirmed the pydantic ValidationError preemption and was deleted). Verdict: zero real gaps remain.
+         The `.coverage` data file was added to .gitignore.
