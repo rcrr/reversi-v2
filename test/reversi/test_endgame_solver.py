@@ -39,6 +39,8 @@
 #
 
 import dataclasses
+import os
+import time
 import unittest
 
 import numpy as np
@@ -283,6 +285,20 @@ class TestMinimaxSolveFixture(unittest.TestCase):
 
     def test_ffo_01_simplified_8(self):
         self._solve_case(8)
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_ffo_01_simplified_1(self):
+        # The 1.1M-node case 1: the untraced throughput of the compiled search (the printout is the
+        # measurement; no assertion on the rate — the machine dependent number of the run).
+        name = 'ffo-01-simplified-1'
+        entry = self.db.find(name)
+        self.assertIsNotNone(entry)
+        minimax_solve(entry.position)  # warm-up (the njit compile)
+        start = time.perf_counter()
+        r = minimax_solve(entry.position)
+        duration = time.perf_counter() - start
+        print(f"\n[PERF minimax_solve {name}] Solved {r.nodes:,} nodes in "
+              f"{duration:.4f}s ({r.nodes / duration / 1e6:.2f} M nodes/s)")
 
     def test_ffo_01_simplified_8_trace(self):
         self._trace_case(8)

@@ -205,11 +205,13 @@ def other_player(p: Player) -> Player:
 
     The public per-lane primitive of the player domain: the single source of the turn flip, inlined
     by the compiler in the numba compositions of the other modules (the endgame solver game tree).
+    The outer Player() re-narrows the result: numba promotes every binary op on small ints to 64 bits
+    (uint8 - uint8 types as uint64), and the return annotation is not enforced by the compiler.
 
     Args:
         p: the player.
     """
-    return Player(1) - p
+    return Player(Player(1) - p)
 
 
 #: A game position is a Position (mover / opponent) plus the player to move: the structured native

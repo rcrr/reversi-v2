@@ -79,7 +79,7 @@ import numpy.typing as npt
 from numba.typed import List
 from pydantic import BeforeValidator, ConfigDict, validate_call
 
-from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePosition, GamePositionField,
+from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePositionField,
                            Move, Player, bitboard_bsf, final_value_of, flips_of_move,
                            legal_moves_of, make_game_position, other_player)
 
@@ -191,7 +191,7 @@ def _search(mover, opponent, player, level, parent_move, records, counter):
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def minimax_solve(gp: GamePosition, log: Callable[[NodeRecord], None] | None = None) -> SolverResult:
+def minimax_solve(gp: GamePositionField, log: Callable[[NodeRecord], None] | None = None) -> SolverResult:
     """
     Solve the endgame exactly with a depth-first minimax (see the module docstring for the search
     contract) and return the game value, the final game position of the best line, and the node /

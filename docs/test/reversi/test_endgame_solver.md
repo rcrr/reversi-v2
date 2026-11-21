@@ -1,8 +1,9 @@
 # test/reversi/test_endgame_solver.py
 
-The endgame_solver unit suite — 4 classes / 26 tests (25 + the LONG-gated case 0), no DB; the runtime is
-dominated by the five traced fixture solves (the trace is the typed-list sink of the compiled search,
-replayed to the collector at the end). Companion of docs/src/reversi/endgame_solver.md.
+The endgame_solver unit suite — 4 classes / 27 tests (25 + the LONG-gated case 0 + the PERF-gated
+throughput run of case 1), no DB beyond the gpdb fixture load; the runtime is dominated by the five
+traced fixture solves (the trace is the typed-list sink of the compiled search, replayed to the
+collector at the end). Companion of docs/src/reversi/endgame_solver.md.
 
 ## Coverage
 

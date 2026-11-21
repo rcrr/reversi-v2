@@ -36,8 +36,9 @@ The `__all__` names.
 - **The compiled search is the only search**: `minimax_solve` runs the numba-compiled `_search` in both modes:
   the position travels as the three field scalars (numba cannot build the structured GamePosition scalar), the
   four public per-lane kernels of board.py (`legal_moves_of`, `flips_of_move`, `final_value_of`,
-  `bitboard_bsf`) are inlined by the compiler. The throughput is flat at ~12.5 M nodes/s across the
-  ffo-01-simplified 0–5 series (the 18M-node case 0 in ~1.4 s). The trace is a typed-list sink inside the
+  `bitboard_bsf`) are inlined by the compiler. The throughput is flat at ~19 M nodes/s (machine
+  dependent) across the ffo-01-simplified 0–5 series (the 18M-node case 0 in ~0.95 s). The trace is a
+  typed-list sink inside the
   compiled search (one 6-int tuple per node, appended at the node exit, `None` in the untraced mode — the
   untraced specialization compiles the guards away); the records are replayed to the `log` callback when the
   search completes (the trace costs ~78 ms on the 20k-node case 4, the untraced path is untouched at ~1 ms).

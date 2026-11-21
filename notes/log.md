@@ -196,3 +196,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    an isolated JIT-caller probe — while the JIT path they serve is tested with goldens), and 2 redundant
    guards preempted by the pydantic gates (structurally unreachable). Zero real gaps remain. .coverage
    added to .gitignore. (D-660)
+ - Two warnings from the user's full-suite run were fixed: the NumbaTypeSafetyWarning (numba promotes
+   every small-int binary op to 64 bits — other_player's `Player(1) - p` typed uint64, the return
+   annotation is not enforced by the compiler; fixed with the explicit `Player(Player(1) - p)`
+   re-narrowing) and the pydantic ArbitraryTypeWarning (minimax_solve annotated the parameter with the
+   raw GamePosition dtype; fixed with the house scalar-only alias GamePositionField); a PERF-gated
+   throughput test for the 1.1M-node case 1 was added with the house printout (the user's tagging: case
+   0 LONG, case 1 PERF, the rest untagged); the throughput re-verified flat at ~19 M nodes/s across
+   cases 0–3 (up from the earlier ~12.5, measured under a loaded machine) — no regression. (D-661)

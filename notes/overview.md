@@ -65,8 +65,9 @@ define the evaluation function.
   probabilities.
 - The ENDGAME-SOLVER campaign: port the endgame\_solver program (the ANSI C code of the legacy Reversi repository) into
   reversi-v2. The scalar `minimax_solve` is in and COMPILED (the single njit `_search` over the four public per-lane
-  kernels of board.py — traced and untraced — ~12.5 M nodes/s flat across the ffo-01-simplified 0–5 series, the
-  18M-node case 0 in ~1.4 s; the trace is the typed-list sink inside the compiled search) and the game tree is
+  kernels of board.py — traced and untraced — ~19 M nodes/s flat (machine dependent) across the
+  ffo-01-simplified 0–5 series, the 18M-node case 0 in ~0.95 s; the trace is the typed-list sink inside the
+  compiled search) and the game tree is
   GamePosition-only (the user's field decision) — cross-validated on the 0–8 series (the solve cases all, the
   node-by-node trace on 4–8, all on the compiled path) against the C references; next: the alpha-beta solver
   (the same scalar / compiled sequence), then the vectorized phase; the final high-perf solver is headed to Rust,
@@ -189,7 +190,7 @@ define the evaluation function.
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_base\_model.py | complete | 9/0/0/0/0 | [docs/test/reversi/test\_base\_model.md](docs/test/reversi/test\_base\_model.md) |
 | test/reversi/test\_board.py | complete | 348/0/18/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
-| test/reversi/test\_endgame\_solver.py | complete | 26/0/0/0/0 (25 + 1 LONG) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
+| test/reversi/test\_endgame\_solver.py | complete | 27/0/0/0/0 (25 + 1 LONG + 1 PERF) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_game\_position\_database.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_game\_position\_database.md](docs/test/reversi/test\_game\_position\_database.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |

@@ -386,3 +386,22 @@ D-660 | 2026-11-21 | Exhaustive coverage analysis of board.py under test_board (
          raise first, no public-API test can reach them; the first attempt at such a test empirically
          confirmed the pydantic ValidationError preemption and was deleted). Verdict: zero real gaps remain.
          The `.coverage` data file was added to .gitignore.
+
+D-661 | 2026-11-21 | Two warning fixes surfaced by the user's full-suite run, plus the PERF throughput
+         run: (1) the four NumbaTypeSafetyWarning "unsafe cast from Tuple(..., uint64, ...) to
+         UniTuple(int64 x 6)" in the endgame_solver trace sink — root cause: numba promotes EVERY binary
+         op on small ints to 64 bits, so `Player(1) - p` in `other_player` typed as uint64 (the `-> Player`
+         return annotation is not enforced by the compiler — proven with inspect_types), the recursion
+         passed a uint64 player, and the record tuple carried a uint64 slot; the fix is the explicit
+         re-narrowing `return Player(Player(1) - p)` (documented in the docstring) — after it both `_search`
+         specializations type the player uint8 and the warnings are gone; (2) the pydantic
+         ArbitraryTypeWarning at the endgame_solver import — `minimax_solve(gp: GamePosition, ...)`
+         annotated the parameter with the raw np.dtype (an arbitrary object to pydantic); the fix is the
+         house scalar-only alias `gp: GamePositionField` (and the now-unused bare-dtype import dropped) —
+         the imports are clean under warnings-as-errors; (3) a PERF-gated throughput test for the
+         ffo-01-simplified-1 case (1.1M nodes) with the house printout ([PERF minimax_solve ...] N nodes in
+         T s (X M nodes/s)) — the user's tagging scheme: case 0 stays LONG, case 1 is PERF, the rest
+         untagged. The throughput was re-verified after all the D-659 changes: flat at ~19 M nodes/s
+         (machine dependent, up from the earlier ~12.5 measured under a loaded machine) across cases 0–3,
+         the 18M-node case 0 in ~0.95 s — no regression. The docs' throughput statements were updated to
+         the current measurement with the machine-dependent caveat.
