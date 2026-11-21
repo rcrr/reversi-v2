@@ -83,10 +83,13 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 
 ## Open issues
 
-- `_search` is `cache=False`: the numba 0.68 cache of the function (the recursive search calling the other
-  cached kernels, with the typed-list trace sink) segfaults when a fresh process loads it (reproduced and
-  bisected in scratch: the plain recursive variant caches and reloads fine, the full one does not) — the
-  per-process recompile is the price, to be revisited at the next numba upgrade.
+- `_search` is `cache=True` again: numba 0.68 SEGFAULTS a fresh process that loads the cache of the
+  7-parameter form (the one with the `parent_move` scalar) — bisected in scratch (the identical body
+  with 6 parameters caches and reloads fine; adding the 7th scalar parameter crashes the loader). The
+  workaround: `parent_move` lives in the 2-element shared `state` array (state[0] the entry-order
+  counter, state[1] the current parent_move, saved/restored around each recursive call) instead of
+  being a scalar parameter. To be revisited at the next numba upgrade (the scalar form may cache
+  fine there).
 - Next: the alpha-beta solver (the same scalar / compiled sequence), then the vectorized design.
 
 ## Conventions

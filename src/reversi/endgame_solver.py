@@ -134,38 +134,42 @@ class SolverResult:
     leafs: int
 
 
-# cache=False: the numba 0.68 cache of this function (the recursive search calling the other
-# cached kernels, with the typed-list trace sink) segfaults when a fresh process loads it
-# (reproduced and bisected in scratch: the plain recursive variant caches and reloads fine,
-# the full one does not); the per-process recompile is the price.
-@nb.njit(cache=False)
-def _search(mover, opponent, player, level, parent_move, records, counter):
+# The 2-element `state` array (not a 7th scalar parameter): numba 0.68 SEGFAULTS when a fresh
+# process loads the cache of this function WITH a parent_move scalar parameter (bisected in
+# scratch: the identical body caches and reloads fine with 6 parameters, the 7-parameter form
+# crashes the loader). state[0] is the entry-order node counter, state[1] the current
+# parent_move, saved/restored around each recursive call (stack discipline).
+@nb.njit(cache=True)
+def _search(mover, opponent, player, level, records, state):
     """
     The numba-compiled recursive search, the single implementation of the search contract of
     `minimax_solve`: the position passed as the three field scalars (numba cannot build the
     structured GamePosition scalar), the public per-lane bitboard primitives of board.py inlined
     by the compiler. `records` is the trace sink (one 6-int tuple per node, appended at the node
-    exit; None disables the trace, the untraced specialization drops the guards); `counter` is
-    the 1-element entry-order node counter, the call_id of a node is its value at the node entry
-    (the C convention).
+    exit; None disables the trace, the untraced specialization drops the guards); `state` is the
+    2-element shared array: state[0] the entry-order node counter (the call_id of a node is its
+    value at the node entry, the C convention), state[1] the current parent_move.
 
     Returns:
         The (value, final_mover, final_opponent, final_player, nodes, leafs) of the subtree.
     """
-    counter[0] += 1
-    call_id = counter[0]
+    state[0] += 1
+    call_id = state[0]
     legal = legal_moves_of(mover, opponent)
     if not legal:
         if not legal_moves_of(opponent, mover):
             value = final_value_of(mover, opponent)
             if records is not None:
-                records.append((call_id, level, player, parent_move, MOVE_NA, value))
+                records.append((call_id, level, player, state[1], MOVE_NA, value))
             return value, mover, opponent, player, 1, 1
+        saved = state[1]
+        state[1] = MOVE_PA
         value, fm, fo, fp, nodes, leafs = _search(opponent, mover, other_player(player), level + 1,
-                                                  MOVE_PA, records, counter)
+                                                  records, state)
+        state[1] = saved
         value = -value
         if records is not None:
-            records.append((call_id, level, player, parent_move, MOVE_PA, value))
+            records.append((call_id, level, player, state[1], MOVE_PA, value))
         return value, fm, fo, fp, nodes + 1, leafs
     best_value = OUT_OF_RANGE_DEFEAT_SCORE
     best_move = MOVE_NA
@@ -178,15 +182,18 @@ def _search(mover, opponent, player, level, parent_move, records, counter):
         moves = moves & (moves - Bitboard(1))
         m = Bitboard(1) << Bitboard(sq)
         flips = flips_of_move(mover, opponent, m)
+        saved = state[1]
+        state[1] = sq
         value, fm, fo, fp, n, l = _search(opponent ^ flips, (mover ^ flips) | m,
-                                          other_player(player), level + 1, sq, records, counter)
+                                          other_player(player), level + 1, records, state)
+        state[1] = saved
         value = -value
         nodes += n
         leafs += l
         if value > best_value:
             best_value, best_move, best_fm, best_fo, best_fp = value, sq, fm, fo, fp
     if records is not None:
-        records.append((call_id, level, player, parent_move, best_move, best_value))
+        records.append((call_id, level, player, state[1], best_move, best_value))
     return best_value, best_fm, best_fo, best_fp, nodes, leafs
 
 
@@ -206,16 +213,17 @@ def minimax_solve(gp: GamePositionField, log: Callable[[NodeRecord], None] | Non
     Returns:
         The SolverResult of the search.
     """
-    counter = np.zeros(1, dtype=np.int64)
+    state = np.zeros(2, dtype=np.int64)
+    state[1] = MOVE_UN
     if log is None:
         value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
-                                                  1, MOVE_UN, None, counter)
+                                                  1, None, state)
     else:
         # The trace sink: the typed list of the 6-int node records, filled by the compiled
         # search at each node exit, replayed to the callback when the search completes.
         records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
         value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
-                                                  1, MOVE_UN, records, counter)
+                                                  1, records, state)
         for rec in records:
             log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
     return SolverResult(game_value=GameValue(value),

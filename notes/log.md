@@ -135,72 +135,86 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 
 - The user's field decision closes the design of the search: the game tree uses `GamePosition` and ONLY `GamePosition`
   (no `Position`, no `mover` / `opponent`, no standalone `player`); the elegance must be visible in the code and the
-  encapsulation must not cost performance (board.py exports the kernels — the public per-lane bitboard primitives —
-  for the future numba inlining).
+  encapsulation must not cost performance (board.py exports the kernels — the public per-lane bitboard primitives — for
+  the future numba inlining).
 - src/reversi/board.py — the three GamePosition-level game-tree tools (`game_position_make_move` /
   `game_position_legal_moves` / `game_position_final_value`: the private prange kernels compose the public
   `flips_of_move` / `legal_moves_of` over the field views, the wrappers give the scalar/array contract) + `bitboard_bsf`
   (the njit ascending twin of `bitboard_bsr`) + the private `_popcount` (numba has no `np.bitwise_count`). Numba
   findings: no structured-scalar construction (the kernels work on three arrays, repacked with `make_game_position`);
-  the make_move kernel applies the orientation rotation of `position_make_move` (the first version kept the
+  the `make_move` kernel applies the orientation rotation of `position_make_move` (the first version kept the
   orientation fixed and produced inconsistent game positions — caught by the parity smoke test). (D-657)
-- src/reversi/endgame_solver.py — the `search` rewritten GamePosition-only on the three tools, with the user's six
+- `src/reversi/endgame_solver.py` — the `search` rewritten GamePosition-only on the three tools, with the user's six
   style notes: no comment lines; the root at level 0, the first statement `level += 1`; the return type in the
   definition; no `int()` cast; the `range(64)` scan replaced by the `bitboard_bsf` loop; the `None` accumulators
   replaced by the out-of-range initialisation (the new `OUT_OF_RANGE_DEFEAT_SCORE` = −66, the C constant). (D-657)
-- test/reversi/test_board.py — 339 tests: the nine game-tree-tool tests (scalar/array parity with the position-level
+- `test/reversi/test_board.py` — 339 tests: the nine game-tree-tool tests (scalar/array parity with the position-level
   composition, the pass rotation, the out-of-range ValueError, the N-D shape) + the 1M-board PERF pair + the two
   `bitboard_bsf` tests. (D-657)
-- test/reversi/test_endgame_solver.py + the four new C reference logs — the fixture test becomes the GENERIC case
-  test (`CASES` entry + two one-line methods per case); the series grows to ffo-01-simplified 4–8 (22 tests): the
-  references generated with the legacy toolchain (the C `endgame_solver -s minimax -l` + `read_game_tree_log`), the
-  solution lines and final positions walked from the log's HASH links (the case-4 transpositions follow the first
-  visit — the deterministic search gives the transposed visits the same best move, asserted). Suite runtime ~9 s
-  (the 20040-node case 4 dominates) — the LONG territory, the numba-compiled scalar search is the next step. (D-657)
-- Next: the numba-compiled scalar search on the same fixture series (the 20k-node case 4 is the target of measure),
-  then the alpha-beta solver, then the vectorized design.
+- `test/reversi/test_endgame_solver.py` + the four new C reference logs — the fixture test becomes the GENERIC case test
+  (`CASES` entry + two one-line methods per case); the series grows to ffo-01-simplified 4–8 (22 tests): the references
+  generated with the legacy toolchain (the C `endgame_solver -s minimax -l` + `read_game_tree_log`), the solution lines
+  and final positions walked from the log's HASH links (the case-4 transpositions follow the first visit — the
+  deterministic search gives the transposed visits the same best move, asserted). Suite runtime ~9 s (the 20040-node
+  case 4 dominates) — the LONG territory, the numba-compiled scalar search is the next step. (D-657)
+- Next: the numba-compiled scalar search on the same fixture series (the 20k-node case 4 is the target of measure), then
+  the alpha-beta solver, then the vectorized design.
 
 ## 2026-11-21 — session 131 (ENDGAME-SOLVER — the numba-compiled scalar search + the fixture series 0–3)
 
 - src/reversi/board.py — the fourth public per-lane kernel `final_value_of` (the nopython WOF twin of
   `position_final_value`, over `_popcount`; the parity test joins `TestPositionFinalValue`). (D-658)
-- src/reversi/endgame_solver.py — the njit recursive `_search` (the nopython twin of the Python `search` closure:
-  the position as the three field scalars, the four public per-lane kernels inlined) + the `minimax_solve`
-  dispatch (`log is None` → the compiled fast path, the final position repacked with `make_game_position` and the
-  njit returns cast through `np.uint64`; `log` given → the traced Python search). (D-658)
-- test/reversi/test_endgame_solver.py — the fixture series grows to ffo-01-simplified 0–3 as solve-only cases
-  (no trace, no CSV in the repo — the C references generated in scratch, the goldens extracted by the HASH-link
-  walk); the 18M-node case 0 is LONG-gated (`tier_long`). Suite: 26 tests (25 + 1 LONG). (D-658)
-- The measured state: the compiled throughput is flat at ~12.5 M nodes/s across the 0–5 series (case 0: 1.43 s,
-  case 4: 1.6 ms vs ~7 s pure Python — ~4400x); against the legacy C the v2 is ~1.3–1.7x slower at large scale
-  (the constant-factor gap closes as the cases grow: 1.7x at 18M nodes down to 1.3x at 105k) and faster at small
-  scale (the C times include the process startup). The user's ruling: the numba engine is the working engine of
-  the campaign (it will run for months solving the ML positions), the 1.7x is to be pursued, and the final
-  high-perf solver will get a Rust version — the v2 numba engine is the reference of correctness for that port.
+- `src/reversi/endgame_solver.py` — the njit recursive `_search` (the nopython twin of the Python `search` closure: the
+  position as the three field scalars, the four public per-lane kernels inlined) + the `minimax_solve` dispatch
+  (`log is None` → the compiled fast path, the final position repacked with `make_game_position` and the njit returns
+  cast through `np.uint64`; `log` given → the traced Python search). (D-658)
+- `test/reversi/test_endgame_solver.py` — the fixture series grows to ffo-01-simplified 0–3 as solve-only cases (no
+  trace, no CSV in the repo — the C references generated in scratch, the goldens extracted by the HASH-link walk); the
+  18M-node case 0 is LONG-gated (`tier_long`). Suite: 26 tests (25 + 1 LONG). (D-658)
+- The measured state: the compiled throughput is flat at ~12.5 M nodes/s across the 0–5 series (case 0: 1.43 s, case
+  4: 1.6 ms vs ~7 s pure Python — ~4400x); against the legacy C the v2 is ~1.3–1.7x slower at large scale (the
+  constant-factor gap closes as the cases grow: 1.7x at 18M nodes down to 1.3x at 105k) and faster at small scale (the C
+  times include the process startup). The user's ruling: the numba engine is the working engine of the campaign (it will
+  run for months solving the ML positions), the 1.7x is to be pursued, and the final high-perf solver will get a Rust
+  version — the v2 numba engine is the reference of correctness for that port.
 - Next: the user's further instructions (the candidates: the compiled trace, the alpha-beta solver).
- - The dual search implementation was dissolved per the user (no duplicated logic): the Python `search`
-   closure is deleted, the compiled `_search` carries the trace as a typed-list sink (one 6-int tuple per
-   node at the node exit, None untraced — the guards compile away), replayed to the `log` callback at
-   completion; `_search` is `cache=False` (the numba 0.68 cache of the full function segfaults on load in
-   a fresh process — bisected in scratch); the beauty notes landed: `other_player` (the new public per-lane
-   player primitive of board.py) replaced `1 - player` and deleted the `int(gp['player'])` boundary cast,
-   the defensive `int(MOVE_*)` casts dropped (numba widens the uint8 sentinels implicitly), the boundary
-   casts now use the domain aliases (`Bitboard` / `Player` / `Move` / `GameValue`). The 5 trace tests
-   validate the compiled path record by record; case 4: untraced ~1.1 ms, traced ~78 ms. (D-659)
- - Exhaustive coverage analysis of board.py (coverage 7.17.3, branch mode): the raw 70% is mostly njit
-   invisibility artefact; the real gaps were closed with 8 new tests (340 -> 348): the
-   position_is_game_over post-pass False branch, the N-D array paths of the two gp tools, the three
-   game_position_make_move error raises, the GamePositionArray validator raise. The 267 remaining
-   "missing" lines are all untestable: the njit bodies (compiled, invisible), the 4 @overload bodies
-   (empirically never executed in this numba 0.68 + pydantic-wrapped configuration — 3 cold-cache runs +
-   an isolated JIT-caller probe — while the JIT path they serve is tested with goldens), and 2 redundant
-   guards preempted by the pydantic gates (structurally unreachable). Zero real gaps remain. .coverage
-   added to .gitignore. (D-660)
- - Two warnings from the user's full-suite run were fixed: the NumbaTypeSafetyWarning (numba promotes
-   every small-int binary op to 64 bits — other_player's `Player(1) - p` typed uint64, the return
-   annotation is not enforced by the compiler; fixed with the explicit `Player(Player(1) - p)`
-   re-narrowing) and the pydantic ArbitraryTypeWarning (minimax_solve annotated the parameter with the
-   raw GamePosition dtype; fixed with the house scalar-only alias GamePositionField); a PERF-gated
-   throughput test for the 1.1M-node case 1 was added with the house printout (the user's tagging: case
-   0 LONG, case 1 PERF, the rest untagged); the throughput re-verified flat at ~19 M nodes/s across
+ - The dual search implementation was dissolved per the user (no duplicated logic): the Python `search` closure is
+   deleted, the compiled `_search` carries the trace as a typed-list sink (one 6-int tuple per node at the node exit,
+   None untraced — the guards compile away), replayed to the `log` callback at completion; `_search` is `cache=False`
+   (the numba 0.68 cache of the full function segfaults on load in a fresh process — bisected in scratch); the beauty
+   notes landed: `other_player` (the new public per-lane player primitive of board.py) replaced `1 - player` and deleted
+   the `int(gp['player'])` boundary cast, the defensive `int(MOVE_*)` casts dropped (numba widens the uint8 sentinels
+   implicitly), the boundary casts now use the domain aliases (`Bitboard` / `Player` / `Move` / `GameValue`). The 5
+   trace tests validate the compiled path record by record; case 4: untraced ~1.1 ms, traced ~78 ms. (D-659)
+ - Exhaustive coverage analysis of board.py (coverage 7.17.3, branch mode): the raw 70% is mostly njit invisibility
+   artefact; the real gaps were closed with 8 new tests (340 -> 348): the `position_is_game_over` post-pass False
+   branch, the N-D array paths of the two gp tools, the three `game_position_make_move` error raises, the
+   GamePositionArray validator raise. The 267 remaining "missing" lines are all untestable: the njit bodies (compiled,
+   invisible), the 4 @overload bodies (empirically never executed in this numba 0.68 + pydantic-wrapped configuration —
+   3 cold-cache runs + an isolated JIT-caller probe — while the JIT path they serve is tested with goldens), and 2
+   redundant guards preempted by the pydantic gates (structurally unreachable). Zero real gaps remain. .coverage added
+   to .gitignore. (D-660)
+ - Two warnings from the user's full-suite run were fixed: the NumbaTypeSafetyWarning (numba promotes every small-int
+   binary op to 64 bits — `other_player`'s `Player(1) - p` typed uint64, the return annotation is not enforced by the
+   compiler; fixed with the explicit `Player(Player(1) - p)` re-narrowing) and the pydantic ArbitraryTypeWarning (
+   `minimax_solve` annotated the parameter with the raw GamePosition dtype; fixed with the house scalar-only alias
+   GamePositionField); a PERF-gated throughput test for the 1.1M-node case 1 was added with the house printout (the
+   user's tagging: case 0 LONG, case 1 PERF, the rest untagged); the throughput re-verified flat at ~19 M nodes/s across
    cases 0–3 (up from the earlier ~12.5, measured under a loaded machine) — no regression. (D-661)
+ - The user asked why the numba cache of `_search` segfaults — expected behaviour or a library bug: a full scratch
+   bisect with the real kernels and the verbatim search body answered it — the identical body with 6 parameters (± the
+   counter array, ± the UniTuple trace sink) caches and reloads fine in a fresh process, the 7-parameter form (the
+   `parent_move` scalar added) segfaults the loader on cache load: a numba 0.68 bug (the designed fallback for a bad
+   cache is the recompile, not a crash), triggered by the 7th scalar parameter. The reformulation dodges it:
+   `parent_move` moves out of the signature into the 2-element shared state array (state[0] the entry-order counter,
+   state[1] the current `parent_move`, saved/restored around each recursive call) and `cache=True` is restored.
+   Verified: full suite twice (run 1 writes the cache, 43.7 s cold; run 2 loads it, 12.5 s, all green, no segfault), the
+   trace tests pin the `parent_move` column of all 20,040 case-4 records against the C goldens, pure execution 55/73 ms
+   at 20.2 M nodes/s, the one-time per-process cache load is 0.28/0.45 s per specialization (replacing the 3.3/4.3 s
+   compiles), the warm-cache suite total is 12.1 s (was 19.2 s). Bonus bisect finding: a structural clone whose 6-tuple
+   return slots are type-underdetermined is silently unified to float64 and its generated code segfaults at run time (a
+   second independent codegen bug); the real `_search` escapes it because the
+   `best_fm, best_fo, best_fp = mover, opponent, player` line pins the slots to uint64/uint8 — proven by the bit-exact
+   final-position goldens. The LONG-vs-warmup question for the two "slow" endgame tests became moot: cache warm, case 1
+   is out of the top-15 slowest and the case-4 trace is 0.59 s, dominated by the one-time traced-specialization load.
+   (D-662)
