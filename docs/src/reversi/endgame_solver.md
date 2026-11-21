@@ -1,6 +1,7 @@
 # reversi/endgame_solver.py
 The scalar exact endgame solver. `minimax_solve` searches the whole game tree of an endgame with a depth-first
-minimax and returns the game value, the terminal game position of the best line, and the search counters.
+minimax, `alphabeta_solve` the same tree with the zero-window alpha-beta pruning; both return the game value,
+the terminal game position of the best line, and the search counters.
 
 ## API
 
@@ -14,6 +15,7 @@ The `__all__` names.
 | `NodeRecord` | the frozen dataclass `(call_id, level, player, parent_move, best_move, value)` — one visited node of the search, as emitted to the `log` callback (see The trace); the move fields are never `None` (the sentinel codes `MOVE_UN` / `MOVE_NA` / `MOVE_PA` express the absences) |
 | `SolverResult` | the frozen dataclass `(game_value, final_game_position, nodes, leafs)`: the value is an `np.int8` (the vectorized future's type, kept here for conformance), the final position is a GamePosition scalar (`GamePositionField`) |
 | `minimax_solve(gp, log=None) -> SolverResult` | the depth-first minimax over the game tree of the GamePosition scalar `gp` (see Architecture for the search contract); `log` is an optional callable invoked once per visited node, with the `NodeRecord` of the node, when the search of the node completes |
+| `alphabeta_solve(gp, log=None) -> SolverResult` | the alpha-beta twin of `minimax_solve` (the same natural move order and strict tie-break, the zero-window propagation, the cutoff; the root window is the C ground-node initialization [−66, 66] — see Architecture); the same `log` contract; the node / leaf counts are smaller than the minimax ones (the pruned subtrees are never visited) |
 
 ## Architecture
 
@@ -42,6 +44,17 @@ The `__all__` names.
   compiled search (one 6-int tuple per node, appended at the node exit, `None` in the untraced mode — the
   untraced specialization compiles the guards away); the records are replayed to the `log` callback when the
   search completes (the trace costs ~78 ms on the 20k-node case 4, the untraced path is untouched at ~1 ms).
+- **The alpha-beta search** (`_ab_search`, the compiled twin of `_search`) adds the zero-window propagation
+  (the child window is the negated CURRENT parent window) and the cutoff (a child value that reaches the node
+  beta ends the move loop; the node exits with its alpha — a bound at a cutoff node, exact otherwise). The node
+  best value starts at the window alpha: a fail-low node exits with its window alpha and `MOVE_NA`. The root
+  window is the C ground-node initialization (the out-of-range sentinels [−66, 66]): the game-value range lies
+  strictly inside it, the root value is exact, and the returned best line is the same line the minimax returns.
+  The per-node data (the entry-order counter, the parent move, the alpha / beta window) is threaded through the
+  4-element shared `state` array with the same save/restore stack discipline as `_search`, keeping the
+  6-parameter signature (the 7th scalar parameter is the numba 0.68 cache-loader segfault trigger, D-662). On the
+  ffo-01-simplified series the pruning is 9.9x–25x in node count (case 4: 2,029 vs 20,040; case 0: 1.7M vs 18M)
+  at the same per-node throughput (~19 M nodes/s, machine dependent).
 
 ## The trace
 
@@ -64,6 +77,14 @@ part of the record: they depend on the C hash constants and are not reproducible
 fields grow incrementally — each new field joins with its documented reason (the first
 candidates: `is_leaf`, `empty_count`, the legal-move set).
 
+The `T_BEST_MOVE` caveat (alpha-beta): in the C reference log the best move of a non-improving
+node (a fail-low node that exits with its window alpha) is not defined by the search — the C node
+struct never initializes `best_move` there, so the log carries the stale value of the previous
+occupant of the stack slot. The v2 trace records `MOVE_NA` at such nodes, the only value
+consistent with the search; a node-by-node comparison against the C log therefore skips
+`best_move` where the v2 record is `MOVE_NA` (the minimax log is not affected: a minimax node
+always improves or is a leaf).
+
 ## Verified invariants
 
 - The search contract on hand-built endgames (the full-board terminals from both perspectives, the draw, the
@@ -76,6 +97,14 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 - The node-by-node trace: the `NodeRecord`s of each solve reproduce the C game-tree log of the case
   (`es_log_ffo-01-simplified-{4..8}.csv`) record by record, on the six comparable columns —
   `test_endgame_solver::TestMinimaxSolveFixture` (the trace tests).
+- The exact solution of the `ffo-01-simplified` 0–8 series with the alpha-beta search (the same case
+  test as the minimax, against the C alpha-beta reference counts; the solution line is the minimax
+  one) — `test_endgame_solver::TestAlphaBetaSolveFixture`.
+- The alpha-beta node-by-node trace against the C alpha-beta game-tree log
+  (`ab_log_ffo-01-simplified-{4,6,7,8}.csv`) record by record, with the `T_BEST_MOVE` caveat of the
+  trace section — `test_endgame_solver::TestAlphaBetaSolveFixture` (the trace tests).
+- The alpha-beta / minimax agreement on the value and the final position of the 1–8 series (both
+  searches are exact) — `test_endgame_solver::TestAlphaBetaSolveFixture::test_ab_minimax_parity`.
 - The result container (the fields, the frozen behaviour) — `test_endgame_solver::TestSolverResult`.
 - The int8-dtype contract of the `GameValueArray` validator —
   `test_endgame_solver::TestGameValueArrayValidator` (together with the tests above, they cover the
@@ -90,7 +119,8 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
   counter, state[1] the current parent_move, saved/restored around each recursive call) instead of
   being a scalar parameter. To be revisited at the next numba upgrade (the scalar form may cache
   fine there).
-- Next: the alpha-beta solver (the same scalar / compiled sequence), then the vectorized design.
+- Next: the move-ordered alpha-beta variants of the C reference (the `ev` estimated-value and
+  `rglm` random-legal-move orders), then the vectorized design.
 
 ## Conventions
 
@@ -105,6 +135,6 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
   `legal_moves_of` / `flips_of_move` / `final_value_of` / `bitboard_bsf` of the compiled `_search`,
   `make_game_position` for the final-position repack, the `Move` / `Player` types,
   `MOVE_PA` / `MOVE_NA` / `MOVE_UN`).
-- Consumed by: the test suite; the future `alpha_beta` solver (the shared `SolverResult`); the ENDGAME-SOLVER
+- Consumed by: the test suite; the ENDGAME-SOLVER
   campaign (the `gpdb-ffo.txt` corpus is the cross-validation surface); `regab.py` (the `GameValue` /
   `GameValueArray` types — the database stores the values the solver produces).

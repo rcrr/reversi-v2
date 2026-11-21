@@ -302,3 +302,162 @@ class TestMinimaxSolveFixture(unittest.TestCase):
 
     def test_ffo_01_simplified_8_trace(self):
         self._trace_case(8)
+
+
+class TestAlphaBetaSolveFixture(unittest.TestCase):
+    """
+    alphabeta_solve on the ffo-01-simplified series of the gpdb-sample-games.txt corpus (loaded
+    with the gpdb module): each case reproduces the C alpha-beta reference exactly (the value, the
+    node / leaf counts, the final position, the solution line — the same line the minimax
+    returns), and the search trace reproduces the C alpha-beta game-tree log record by record.
+
+    Trace note: the C log `T_BEST_MOVE` of a non-improving (fail-low) node is not part of the
+    search contract — the C node struct never initializes `best_move` there, so the log carries
+    the stale value of the previous occupant of the stack slot (a C logging artifact). The v2
+    record is `MOVE_NA` at such nodes, and the comparison skips the best-move column when the v2
+    record has no real best move.
+    """
+
+    DB_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
+    LOG_DIR = WORKSPACE_ROOT / 'test' / 'reversi' / 'data'
+
+    # The case -> the expected result: the game value, the node count, the leaf count, the final
+    # position string, the solution line (identical to the minimax one: the same natural move
+    # order and the same strict tie-break).
+    FINAL = 'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b'
+    CASES = {
+        0: (18, 1700428, 420214, FINAL,
+            ('A8', 'A6', 'A4', 'A7', 'B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        1: (-18, 43846, 10037, FINAL,
+            ('A6', 'A4', 'A7', 'B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        2: (18, 15638, 3640, FINAL,
+            ('A4', 'A7', 'B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        3: (-18, 7881, 1947, FINAL,
+            ('A7', 'B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        4: (18, 2029, 538, FINAL,
+            ('B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        5: (-18, 427, 108, FINAL,
+            ('A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        6: (18, 232, 64, FINAL,
+            ('H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        7: (-18, 107, 33, FINAL,
+            ('A3', 'A1', 'B1', 'H1', 'G2')),
+        8: (18, 40, 13, FINAL,
+            ('A1', 'B1', 'H1', 'G2')),
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db, _ = load_game_position_database(cls.DB_FILE)
+
+    def _solve_case(self, n):
+        value, nodes, leafs, final, line = self.CASES[n]
+        name = 'ffo-01-simplified' if n == 0 else f'ffo-01-simplified-{n}'
+        entry = self.db.find(name)
+        self.assertIsNotNone(entry)
+        r = alphabeta_solve(entry.position)
+        self.assertEqual(int(r.game_value), value)
+        self.assertEqual(r.nodes, nodes)
+        self.assertEqual(r.leafs, leafs)
+        self.assertEqual(game_position_to_str(r.final_game_position), final)
+        # Playing the solution line from the starting position arrives at the final position.
+        p = entry.position
+        for name in line:
+            p = game_position_make_move(p, Move(square_from_str(name)))
+        self.assertEqual(game_position_to_str(p), final)
+
+    def _trace_case(self, n):
+        # The trace of the search (one NodeRecord per visited node, emitted when the node's
+        # search completes) reproduces the C alpha-beta game-tree log record by record, on the
+        # six comparable columns — with the documented exception of the best move at a
+        # non-improving node (the C stale-value artifact, the class docstring).
+        entry = self.db.find(f'ffo-01-simplified-{n}')
+        self.assertIsNotNone(entry)
+        records = []
+        alphabeta_solve(entry.position, log=records.append)
+        records.sort(key=lambda r: r.call_id)
+
+        log_file = self.LOG_DIR / f'ab_log_ffo-01-simplified-{n}.csv'
+        lines = [l for l in log_file.read_text().splitlines() if l.strip()]
+        col = {name: i for i, name in enumerate(lines[0].split(';'))}
+        c_rows = sorted((l.split(';') for l in lines[1:]), key=lambda r: int(r[col['CALL_ID']]))
+
+        self.assertEqual(len(records), len(c_rows))
+        for rec, row in zip(records, c_rows):
+            got = (rec.call_id, rec.level, int(rec.player),
+                   '--' if rec.parent_move == MOVE_PA else move_to_str(rec.parent_move),
+                   rec.value)
+            exp = (int(row[col['CALL_ID']]), int(row[col['CALL_LEVEL']]), int(row[col['PLAYER']]),
+                   row[col['PARENT_MOVE']], int(row[col['T_ALPHA']]))
+            self.assertEqual(got, exp, f"node {rec.call_id}")
+            if rec.best_move != MOVE_NA:
+                self.assertEqual('--' if rec.best_move == MOVE_PA else move_to_str(rec.best_move),
+                                 row[col['T_BEST_MOVE']], f"node {rec.call_id} best move")
+
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
+    def test_ffo_01_simplified(self):
+        self._solve_case(0)
+
+    def test_ffo_01_simplified_1(self):
+        self._solve_case(1)
+
+    def test_ffo_01_simplified_2(self):
+        self._solve_case(2)
+
+    def test_ffo_01_simplified_3(self):
+        self._solve_case(3)
+
+    def test_ffo_01_simplified_4(self):
+        self._solve_case(4)
+
+    def test_ffo_01_simplified_4_trace(self):
+        self._trace_case(4)
+
+    def test_ffo_01_simplified_5(self):
+        self._solve_case(5)
+
+    def test_ffo_01_simplified_6(self):
+        self._solve_case(6)
+
+    def test_ffo_01_simplified_6_trace(self):
+        self._trace_case(6)
+
+    def test_ffo_01_simplified_7(self):
+        self._solve_case(7)
+
+    def test_ffo_01_simplified_7_trace(self):
+        self._trace_case(7)
+
+    def test_ffo_01_simplified_8(self):
+        self._solve_case(8)
+
+    def test_ffo_01_simplified_8_trace(self):
+        self._trace_case(8)
+
+    def test_ab_minimax_parity(self):
+        # The alpha-beta and the minimax agree on the value and the final position of every case
+        # (both searches are exact: the pruning only skips the irrelevant subtrees).
+        for n in (1, 2, 3, 4, 5, 6, 7, 8):
+            name = f'ffo-01-simplified-{n}'
+            entry = self.db.find(name)
+            self.assertIsNotNone(entry)
+            ab = alphabeta_solve(entry.position)
+            mm = minimax_solve(entry.position)
+            self.assertEqual(int(ab.game_value), int(mm.game_value), name)
+            self.assertEqual(game_position_to_str(ab.final_game_position),
+                             game_position_to_str(mm.final_game_position), name)
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_ffo_01_simplified_1(self):
+        # The 44k-node case 1: the untraced throughput of the compiled alpha-beta search (the
+        # printout is the measurement; no assertion on the rate — the machine dependent number of
+        # the run).
+        name = 'ffo-01-simplified-1'
+        entry = self.db.find(name)
+        self.assertIsNotNone(entry)
+        alphabeta_solve(entry.position)  # warm-up (the njit compile)
+        start = time.perf_counter()
+        r = alphabeta_solve(entry.position)
+        duration = time.perf_counter() - start
+        print(f"\n[PERF alphabeta_solve {name}] Solved {r.nodes:,} nodes in "
+              f"{duration:.4f}s ({r.nodes / duration / 1e6:.2f} M nodes/s)")

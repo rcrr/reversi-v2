@@ -70,7 +70,13 @@ define the evaluation function.
   restored — the numba 0.68 cache-loader segfault is dodged by carrying parent\_move in the 2-element shared state array
   instead of a 7th scalar parameter, the warm-cache suite is ~12 s) and the game tree is GamePosition-only (the user's
   field decision) — cross-validated on the 0–8 series (the solve cases all, the node-by-node trace on 4–8, all on the
-  compiled path) against the C references; next: the alpha-beta solver (the same scalar / compiled sequence), then the
+  compiled path) against the C references. The alpha-beta twin `alphabeta_solve` is in (the `_ab_search` compiled twin:
+  the zero-window negamax, the same natural order and strict tie-break, the root window the C ground-node [−66, 66], the
+  per-node window in the 4-element state array) — node-by-node exact against the C alpha-beta logs (the 401 apparent
+  best-move differences of the case-4 trace are a C logging artifact: the C node struct never initializes best\_move at
+  a non-improving node, the log carries the stale value of the previous stack-slot occupant; the v2 records MOVE\_NA
+  there): 9.9x–25x fewer nodes than the minimax (case 4: 2,029 vs 20,040; case 0: 1.7M vs 18M) at the same per-node
+  throughput, same value / final / line. Next: the move-ordered variants (the C `ev` / `rglm` orders), then the
   vectorized phase; the final high-perf solver is headed to Rust, the v2 numba engine is its reference of correctness.
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
@@ -190,7 +196,7 @@ define the evaluation function.
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_base\_model.py | complete | 9/0/0/0/0 | [docs/test/reversi/test\_base\_model.md](docs/test/reversi/test\_base\_model.md) |
 | test/reversi/test\_board.py | complete | 348/0/18/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
-| test/reversi/test\_endgame\_solver.py | complete | 27/0/0/0/0 (25 + 1 LONG + 1 PERF) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
+| test/reversi/test\_endgame\_solver.py | complete | 42/0/0/0/0 (40 + 2 LONG + 2 PERF) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_game\_position\_database.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_game\_position\_database.md](docs/test/reversi/test\_game\_position\_database.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |

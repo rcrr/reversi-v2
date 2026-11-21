@@ -420,3 +420,21 @@ D-662 | 2026-11-21 | Restored `cache=True` on the compiled `_search` by reformul
          rewritten accordingly (the scalar form is to be revisited at the next numba upgrade). The earlier
          LONG-vs-warmup question for the two "slow" endgame tests became moot: with the cache warm they are fast (case 1
          out of the top-15 slowest, case-4 trace 0.59 s dominated by the one-time traced-specialization load).
+
+D-663 | 2026-11-21 | Committed the C alpha-beta reference logs of the ffo-01-simplified 4/6/7/8 trace cases to the test
+         data (`ab_log_ffo-01-simplified-{4,6,7,8}.csv`, the same 21-column `;`-separated game-tree log format as the
+         `es_log_` family, generated with the legacy `endgame_solver -s ab` + `read_game_tree_log`): the fixture surface
+         of the alpha-beta port. On this series the ab search visits 9.9x–25x fewer nodes than the minimax (case 4:
+         2,029 vs 20,040; case 0: 1,700,428 vs 18,055,194) at the same values, final positions and solution lines (the
+         same static order + the same strict tie-break). The 0–3 logs stay in the legacy scratch (KPI extraction only).
+
+D-665 | 2026-11-21 | `TestAlphaBetaSolveFixture` (15 tests) + docs for the alpha-beta port: the 0–8 series against the C
+         alpha-beta reference (the pruned node / leaf counts 1,700,428/420,214 ... 40/13, the same value / final / line
+         as the minimax), the node-by-node trace of cases 4, 6, 7, 8 against the committed `ab_log_*.csv` fixtures (the
+         best-move column compared only when the v2 record has a real best move — the C stale-value artifact of D-664),
+         `test_ab_minimax_parity` (value + final position, the 1–8 series: both searches are exact), the PERF-gated
+         case-1 throughput (18.9 M nodes/s — the same per-node rate as the minimax: the alpha-beta speedup is the
+         node-count reduction pure, 25x at case 1), the 1.7M-node case 0 LONG-gated (0.247 s, vs the minimax ~0.95 s).
+         The module doc gained the `alphabeta_solve` API row, the Architecture bullet, the `T_BEST_MOVE` trace caveat,
+         the invariant entries and the rewritten open issues; the test doc the coverage row and the goldens; the
+         overview the campaign state and the test count (42). The suite is now 1,291 tests, green.

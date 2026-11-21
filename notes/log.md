@@ -218,3 +218,34 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    final-position goldens. The LONG-vs-warmup question for the two "slow" endgame tests became moot: cache warm, case 1
    is out of the top-15 slowest and the case-4 trace is 0.59 s, dominated by the one-time traced-specialization load.
    (D-662)
+ - The C alpha-beta reference logs of the ffo-01-simplified 4/6/7/8 trace cases joined the test data (generated with the
+   legacy `endgame_solver -s ab` + `read_game_tree_log`, the same 21-column game-tree log format as the `es_` family):
+   the ab search visits 9.9x–25x fewer nodes than the minimax on this series (case 4: 2,029 vs 20,040; case 0: 1.7M vs
+   18M), the best lines and final positions are the minimax ones (the same static order + the same strict tie-break).
+   The 0–3 logs stay in the legacy scratch (KPI extraction only, not committed). (D-663)
+ - The alpha-beta twin `alphabeta_solve` / `_ab_search` (the zero-window negamax: the same natural move order and strict
+   tie-break as the minimax, the child window the negated CURRENT parent window, the cutoff when a child value reaches
+   the node beta, the node best starting at the window alpha — a fail-low node exits with its window alpha and
+   `MOVE_NA`; the root window is the C ground-node initialization [−66, 66], NOT the driver's [−64, 64] default):
+   node-by-node EXACT against the C alpha-beta log — all 2,029 nodes of case 4 match on `call_id` / level / player /
+   `parent_move` / value and on the entry window (the log ALPHA/BETA columns), 1,628 also on the best move. The 401
+   apparent best-move differences turned out to be a C LOGGING ARTIFACT, not a search difference: the C node struct
+   never initializes `best_move` at a non-improving (fail-low) node, so the log carries the stale value of the previous
+   occupant of the stack slot (proven 401/401: each stale value equals the best move of the previous same-depth node;
+   `gts_generate_moves` leaves `best_move` untouched). The v2 records `MOVE_NA` there — the only value consistent with
+   the search. Debug trail worth keeping: the first trace comparison ran with a file-major square parser (the v2 and the
+   C are both rank-major: A1=0, B1=1, ..., A2=8) inflating the mismatches to 1,718, and a mid-debug window
+   instrumentation recorded the EXIT alpha (the final value) and compared it to the C ENTRY alpha — both fixed before
+   the real comparison. The 4-element state array (counter, parent move, alpha, beta) keeps the 6-parameter signature
+   (the D-662 numba 0.68 cache-loader trigger); the cache round-trip was re-verified on the final shape (write +
+   fresh-process load, both exact). Solve level: case 4 (18, 2,029, 538), case 0 (18, 1,700,428, 420,214); the full
+   suite 1,276 green. (D-664)
+ - `TestAlphaBetaSolveFixture` (15 tests) joined the endgame suite: the 0–8 series against the C alpha-beta reference
+   (the pruned node / leaf counts, the same value / final / line as the minimax), the node-by-node trace of cases 4, 6,
+   7, 8 against the committed `ab_log_*.csv` fixtures (the best-move column compared only when the v2 record has a real
+   best move — the C stale-value caveat), `test_ab_minimax_parity` (value + final position, the 1–8 series: both
+   searches are exact), the PERF-gated case-1 throughput run (18.9 M nodes/s — the SAME per-node rate as the minimax:
+   the alpha-beta speedup is the node-count reduction pure, 25x at case 1), the 1.7M-node case 0 LONG-gated (0.247 s, vs
+   the minimax ~0.95 s). The docs followed (the module doc: the API row, the Architecture bullet, the trace caveat, the
+   invariants, the open issues; the test doc: the coverage row, the goldens); the suite is now 1,291 tests, green.
+   (D-665)
