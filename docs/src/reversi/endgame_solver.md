@@ -33,12 +33,14 @@ The `__all__` names.
 - **The game tree is GamePosition-only**: the search composes the three GamePosition-level tools of board.py
   (`game_position_legal_moves`, `game_position_make_move`, `game_position_final_value`) — no `Position`, no
   mover / opponent handling, no standalone player in the solver code.
-- **The compiled fast path**: without a `log`, `minimax_solve` runs the numba-compiled `_search` (the nopython
-  twin of the Python `search` closure): the position travels as the three field scalars (numba cannot build the
-  structured GamePosition scalar), the four public per-lane kernels of board.py
-  (`legal_moves_of`, `flips_of_move`, `final_value_of`, `bitboard_bsf`) are inlined by the compiler. The
-  throughput is flat at ~12.5 M nodes/s across the ffo-01-simplified 0–5 series (the 18M-node case 0 in ~1.4 s).
-  The traced search is the Python closure (the compiled trace is a later step).
+- **The compiled search is the only search**: `minimax_solve` runs the numba-compiled `_search` in both modes:
+  the position travels as the three field scalars (numba cannot build the structured GamePosition scalar), the
+  four public per-lane kernels of board.py (`legal_moves_of`, `flips_of_move`, `final_value_of`,
+  `bitboard_bsf`) are inlined by the compiler. The throughput is flat at ~12.5 M nodes/s across the
+  ffo-01-simplified 0–5 series (the 18M-node case 0 in ~1.4 s). The trace is a typed-list sink inside the
+  compiled search (one 6-int tuple per node, appended at the node exit, `None` in the untraced mode — the
+  untraced specialization compiles the guards away); the records are replayed to the `log` callback when the
+  search completes (the trace costs ~78 ms on the 20k-node case 4, the untraced path is untouched at ~1 ms).
 
 ## The trace
 
@@ -80,9 +82,11 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 
 ## Open issues
 
-- The traced search is still the Python closure (the numba fast path is the untraced one): the compiled trace
-  (a typed record sink inside `_search`) is the next step, so that the trace tests validate the compiled path.
-  After it: the alpha-beta solver (the same scalar / compiled sequence), then the vectorized design.
+- `_search` is `cache=False`: the numba 0.68 cache of the function (the recursive search calling the other
+  cached kernels, with the typed-list trace sink) segfaults when a fresh process loads it (reproduced and
+  bisected in scratch: the plain recursive variant caches and reloads fine, the full one does not) — the
+  per-process recompile is the price, to be revisited at the next numba upgrade.
+- Next: the alpha-beta solver (the same scalar / compiled sequence), then the vectorized design.
 
 ## Conventions
 

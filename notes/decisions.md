@@ -340,3 +340,28 @@ D-658 | 2026-11-21 | The numba-compiled scalar search (the first step of the com
          user's reading: the numba engine is the working engine of the campaign (the solver that will run for
          months solving the ML positions), the 1.7x is to be pursued, and the final high-perf solver will get a
          Rust version — the v2 numba engine is the reference of correctness for that port.
+
+D-659 | 2026-11-21 | One search, compiled, traced: the user rejected the dual implementation (the njit fast
+         path + the Python traced closure — "non mi piace duplicare la logica") and the Python `search` closure
+         was deleted. The compiled `_search` carries the trace as a typed-list sink: one UniTuple(int64 x 6)
+         record per node, appended at the node exit (None in the untraced mode — the untraced specialization
+         compiles the guards away), the records replayed to the `log` callback when the search completes (the
+         trace semantics moved from "during the search" to "buffered, at completion" — the documented price,
+         no live-progress consumer exists). The 1-element int64 `counter` array threads the entry-order call_id
+         through the njit recursion (numba passes scalars by value: the array is the pointer idiom; int64 keeps
+         the call_id in the record tuple's type family — a uint64 counter would force the int64() cast back in,
+         the uint64 -> int64 conversion being lossy and numba-refused). Along the way: (a) the numba 0.68 cache
+         of the full `_search` (recursion + the other cached kernels + the typed-list sink) SEGFAULTS when a
+         fresh process loads it (bisected in scratch: the plain recursive variant caches and reloads fine) —
+         `_search` is `cache=False`, the per-process recompile is the price, to be revisited at the next numba
+         upgrade; (b) the user's beauty notes: `other_player(p: Player) -> Player` (the new public per-lane
+         player primitive of board.py, njit inline='always') replaced the `1 - player` spellings and, with the
+         player now travelling as a pure uint8, deleted the `int(gp['player'])` cast at the boundary; the
+         defensive `int(MOVE_NA / MOVE_PA / MOVE_UN)` casts were dropped (numba widens the uint8 sentinel codes
+         to the int64 record slots implicitly — the same widening the bare player already relied on); the
+         boundary casts at the njit -> Python exit use the domain aliases (`Bitboard(fm)`, `Player(fp)`,
+         `Move(...)`, `GameValue(value)`) — numba returns every integer result as a bare Python int, the
+         pydantic-validated public API demands the numpy scalars, and the aliases say WHICH entity each cast
+         rebuilds. Measured on the 20k-node case 4: untraced ~1.1 ms (untouched), traced ~78 ms (the sink +
+         the 20k-record replay — 90x cheaper than the old Python trace, the production path pays nothing).
+         All 26 endgame tests pass with the trace validating the COMPILED path record by record.

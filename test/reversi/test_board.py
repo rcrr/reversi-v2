@@ -4034,6 +4034,10 @@ class TestGamePosition(unittest.TestCase):
         self.assertEqual(PLAYER_BLACK, np.uint8(0))
         self.assertEqual(PLAYER_WHITE, np.uint8(1))
 
+    def test_other_player(self):
+        self.assertEqual(other_player(PLAYER_BLACK), PLAYER_WHITE)
+        self.assertEqual(other_player(PLAYER_WHITE), PLAYER_BLACK)
+
     def test_make_scalar(self):
         gp = make_game_position(Bitboard(0x11), Bitboard(0x22), PLAYER_BLACK)
         self.assertIsInstance(gp, np.void)

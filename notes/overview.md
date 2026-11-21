@@ -64,12 +64,13 @@ define the evaluation function.
   distribution over the legal-move set); develop a statistical validation method for the assignment of these
   probabilities.
 - The ENDGAME-SOLVER campaign: port the endgame\_solver program (the ANSI C code of the legacy Reversi repository) into
-  reversi-v2. The scalar `minimax_solve` is in and COMPILED (the numba fast path of the untraced search: the njit
-  `_search` over the four public per-lane kernels of board.py, ~12.5 M nodes/s flat across the ffo-01-simplified
-  0–5 series — the 18M-node case 0 in ~1.4 s) and the game tree is GamePosition-only (the user's field decision) —
-  cross-validated on the 0–8 series (the solve cases all, the node-by-node trace on 4–8) against the C references;
-  next: the user's further instructions (the compiled trace, the alpha-beta solver), then the vectorized phase;
-  the final high-perf solver is headed to Rust, the v2 numba engine is its reference of correctness.
+  reversi-v2. The scalar `minimax_solve` is in and COMPILED (the single njit `_search` over the four public per-lane
+  kernels of board.py — traced and untraced — ~12.5 M nodes/s flat across the ffo-01-simplified 0–5 series, the
+  18M-node case 0 in ~1.4 s; the trace is the typed-list sink inside the compiled search) and the game tree is
+  GamePosition-only (the user's field decision) — cross-validated on the 0–8 series (the solve cases all, the
+  node-by-node trace on 4–8, all on the compiled path) against the C references; next: the alpha-beta solver
+  (the same scalar / compiled sequence), then the vectorized phase; the final high-perf solver is headed to Rust,
+  the v2 numba engine is its reference of correctness.
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python

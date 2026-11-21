@@ -47,10 +47,11 @@ terminal positions evaluated.
 The trace
 ---------
 
-With a `log` given, `minimax_solve` calls it once per visited node, when the search of the node
-completes (the C game-tree log works the same way: the `CALL_ID` is assigned at the node entry,
-the row is written at its exit). The `NodeRecord` carries the six fields of the first trace
-version, each one matching a column of the C log:
+With a `log` given, `minimax_solve` collects one `NodeRecord` per visited node, in the order the
+search of the nodes completes (the C game-tree log works the same way: the `CALL_ID` is assigned
+at the node entry, the row is written at its exit), and replays them to the callback when the
+search completes. The `NodeRecord` carries the six fields of the first trace version, each one
+matching a column of the C log:
 
 - `call_id` (the C `CALL_ID`): the node number, 1-based, assigned at entry - it aligns the v2
   records with the C log one to one;
@@ -75,12 +76,12 @@ from typing import Any, Annotated, Callable, TypeAlias
 import numba as nb
 import numpy as np
 import numpy.typing as npt
+from numba.typed import List
 from pydantic import BeforeValidator, ConfigDict, validate_call
 
 from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePosition, GamePositionField,
                            Move, Player, bitboard_bsf, final_value_of, flips_of_move,
-                           legal_moves_of, game_position_final_value, game_position_legal_moves,
-                           game_position_make_move, make_game_position)
+                           legal_moves_of, make_game_position, other_player)
 
 
 __all__ = ['OUT_OF_RANGE_DEFEAT_SCORE', 'GameValue', 'GameValueArray', 'NodeRecord',
@@ -133,24 +134,41 @@ class SolverResult:
     leafs: int
 
 
-@nb.njit(cache=True)
-def _search(mover, opponent, player, level):
+# cache=False: the numba 0.68 cache of this function (the recursive search calling the other
+# cached kernels, with the typed-list trace sink) segfaults when a fresh process loads it
+# (reproduced and bisected in scratch: the plain recursive variant caches and reloads fine,
+# the full one does not); the per-process recompile is the price.
+@nb.njit(cache=False)
+def _search(mover, opponent, player, level, parent_move, records, counter):
     """
-    The numba-compiled recursive search (the nopython twin of the Python `search` closure of
-    `minimax_solve`): the same contract, the position passed as the three field scalars (numba
-    cannot build the structured GamePosition scalar), the public per-lane bitboard primitives of
-    board.py inlined by the compiler.
+    The numba-compiled recursive search, the single implementation of the search contract of
+    `minimax_solve`: the position passed as the three field scalars (numba cannot build the
+    structured GamePosition scalar), the public per-lane bitboard primitives of board.py inlined
+    by the compiler. `records` is the trace sink (one 6-int tuple per node, appended at the node
+    exit; None disables the trace, the untraced specialization drops the guards); `counter` is
+    the 1-element entry-order node counter, the call_id of a node is its value at the node entry
+    (the C convention).
 
     Returns:
         The (value, final_mover, final_opponent, final_player, nodes, leafs) of the subtree.
     """
+    counter[0] += 1
+    call_id = counter[0]
     legal = legal_moves_of(mover, opponent)
     if not legal:
         if not legal_moves_of(opponent, mover):
-            return final_value_of(mover, opponent), mover, opponent, player, 1, 1
-        value, fm, fo, fp, nodes, leafs = _search(opponent, mover, 1 - player, level + 1)
-        return -value, fm, fo, fp, nodes + 1, leafs
+            value = final_value_of(mover, opponent)
+            if records is not None:
+                records.append((call_id, level, player, parent_move, MOVE_NA, value))
+            return value, mover, opponent, player, 1, 1
+        value, fm, fo, fp, nodes, leafs = _search(opponent, mover, other_player(player), level + 1,
+                                                  MOVE_PA, records, counter)
+        value = -value
+        if records is not None:
+            records.append((call_id, level, player, parent_move, MOVE_PA, value))
+        return value, fm, fo, fp, nodes + 1, leafs
     best_value = OUT_OF_RANGE_DEFEAT_SCORE
+    best_move = MOVE_NA
     best_fm, best_fo, best_fp = mover, opponent, player
     nodes = 1
     leafs = 0
@@ -161,12 +179,14 @@ def _search(mover, opponent, player, level):
         m = Bitboard(1) << Bitboard(sq)
         flips = flips_of_move(mover, opponent, m)
         value, fm, fo, fp, n, l = _search(opponent ^ flips, (mover ^ flips) | m,
-                                          1 - player, level + 1)
+                                          other_player(player), level + 1, sq, records, counter)
         value = -value
         nodes += n
         leafs += l
         if value > best_value:
-            best_value, best_fm, best_fo, best_fp = value, fm, fo, fp
+            best_value, best_move, best_fm, best_fo, best_fp = value, sq, fm, fo, fp
+    if records is not None:
+        records.append((call_id, level, player, parent_move, best_move, best_value))
     return best_value, best_fm, best_fo, best_fp, nodes, leafs
 
 
@@ -179,58 +199,26 @@ def minimax_solve(gp: GamePosition, log: Callable[[NodeRecord], None] | None = N
 
     Args:
         gp: the game position to solve (scalar only).
-        log: optional callable, invoked once per visited node with the `NodeRecord` of the node,
-            when the search of the node completes (see the "The trace" section of the module
-            docstring).
+        log: optional callable, invoked with the `NodeRecord` of every visited node (in
+            completion order, replayed when the search completes — see the "The trace" section of
+            the module docstring).
 
     Returns:
         The SolverResult of the search.
     """
+    counter = np.zeros(1, dtype=np.int64)
     if log is None:
-        value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'],
-                                                  int(gp['player']), 1)
-        return SolverResult(game_value=GameValue(value),
-                            final_game_position=make_game_position(np.uint64(fm), np.uint64(fo),
-                                                                   np.uint8(fp)),
-                            nodes=nodes, leafs=leafs)
-
-    nodes = 0
-    leafs = 0
-
-    def search(gp: GamePosition, level: int, parent_move: Move) -> tuple[int, GamePositionField]:
-        level += 1
-        nonlocal nodes, leafs
-        nodes += 1
-        call_id = nodes
-        legal = game_position_legal_moves(gp)
-        if not legal:
-            gp_pass = game_position_make_move(gp, MOVE_PA)
-            if not game_position_legal_moves(gp_pass):
-                leafs += 1
-                value = game_position_final_value(gp)
-                if log is not None:
-                    log(NodeRecord(call_id, level, gp['player'], parent_move, MOVE_NA, value))
-                return value, gp
-            value, final = search(gp_pass, level, MOVE_PA)
-            value = -value
-            if log is not None:
-                log(NodeRecord(call_id, level, gp['player'], parent_move, MOVE_PA, value))
-            return value, final
-        best_value = OUT_OF_RANGE_DEFEAT_SCORE
-        best_move = MOVE_NA
-        best_final = gp
-        moves = legal
-        while moves:
-            sq = bitboard_bsf(moves)
-            moves &= moves - 1
-            value, final = search(game_position_make_move(gp, Move(sq)), level, Move(sq))
-            value = -value
-            if value > best_value:
-                best_value, best_move, best_final = value, Move(sq), final
-        if log is not None:
-            log(NodeRecord(call_id, level, gp['player'], parent_move, best_move, best_value))
-        return best_value, best_final
-
-    value, final = search(gp, 0, MOVE_UN)
-    return SolverResult(game_value=GameValue(value), final_game_position=final,
+        value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
+                                                  1, MOVE_UN, None, counter)
+    else:
+        # The trace sink: the typed list of the 6-int node records, filled by the compiled
+        # search at each node exit, replayed to the callback when the search completes.
+        records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
+        value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
+                                                  1, MOVE_UN, records, counter)
+        for rec in records:
+            log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
+    return SolverResult(game_value=GameValue(value),
+                        final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
+                                                               Player(fp)),
                         nodes=nodes, leafs=leafs)

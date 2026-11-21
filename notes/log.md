@@ -178,3 +178,12 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   the campaign (it will run for months solving the ML positions), the 1.7x is to be pursued, and the final
   high-perf solver will get a Rust version — the v2 numba engine is the reference of correctness for that port.
 - Next: the user's further instructions (the candidates: the compiled trace, the alpha-beta solver).
+ - The dual search implementation was dissolved per the user (no duplicated logic): the Python `search`
+   closure is deleted, the compiled `_search` carries the trace as a typed-list sink (one 6-int tuple per
+   node at the node exit, None untraced — the guards compile away), replayed to the `log` callback at
+   completion; `_search` is `cache=False` (the numba 0.68 cache of the full function segfaults on load in
+   a fresh process — bisected in scratch); the beauty notes landed: `other_player` (the new public per-lane
+   player primitive of board.py) replaced `1 - player` and deleted the `int(gp['player'])` boundary cast,
+   the defensive `int(MOVE_*)` casts dropped (numba widens the uint8 sentinels implicitly), the boundary
+   casts now use the domain aliases (`Bitboard` / `Player` / `Move` / `GameValue`). The 5 trace tests
+   validate the compiled path record by record; case 4: untraced ~1.1 ms, traced ~78 ms. (D-659)

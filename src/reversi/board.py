@@ -89,7 +89,7 @@ __all__ = ['Square', 'SquareArray',
            'Position', 'PositionField', 'PositionArray',
            'position_collisions', 'position_check_collisions', 'position_empty_count',
            'make_position', 'initial_game_position', 'position_eq',
-           'Player', 'PLAYER_BLACK', 'PLAYER_WHITE', 'PlayerArray',
+           'Player', 'PLAYER_BLACK', 'PLAYER_WHITE', 'PlayerArray', 'other_player',
            'GamePosition', 'GamePositionField', 'GamePositionArray',
            'make_game_position', 'make_game_position_from_position',
            'game_position_blacks', 'game_position_whites',
@@ -197,6 +197,19 @@ PLAYER_WHITE: Player = Player(1)
 
 # A Pydantic-compatible type hint for Player (np.uint8) arrays (the shared uint8 gate, as MoveArray).
 PlayerArray = Annotated[npt.NDArray[np.uint8], BeforeValidator(validate_square_array)]
+
+@nb.njit(inline='always', cache=True)
+def other_player(p: Player) -> Player:
+    """
+    The other player: 1 for 0, 0 for 1.
+
+    The public per-lane primitive of the player domain: the single source of the turn flip, inlined
+    by the compiler in the numba compositions of the other modules (the endgame solver game tree).
+
+    Args:
+        p: the player.
+    """
+    return Player(1) - p
 
 
 #: A game position is a Position (mover / opponent) plus the player to move: the structured native
