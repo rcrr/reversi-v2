@@ -79,7 +79,7 @@ __all__ = ['Square', 'SquareArray',
            'Bitboard', 'BitboardArray',
            'bitboard_from_signed_int', 'bitboard_to_signed_int', 'bitboard_from_hex_str',
            'bitboard_bsr', 'bitboard_bsf', 'bitboard_count',
-           'legal_moves_of', 'flips_of_move',
+           'legal_moves_of', 'flips_of_move', 'final_value_of',
            'bitboard_transformations', 'bitboard_anti_transformations',  'bitboard_print',
            'bitboard_fa1h8', 'bitboard_fh1a8', 'bitboard_fhori', 'bitboard_fvert',
            'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270',
@@ -1870,6 +1870,29 @@ def position_final_value(p: PositionField) -> int:
     else:
         delta = diff - ec
     return delta
+
+@nb.njit(inline='always', cache=True)
+def final_value_of(mover: Bitboard, opponent: Bitboard) -> int:
+    """
+    The per-lane WOF final value (the nopython twin of position_final_value): the disk difference,
+    the empty squares assigned to the player having most discs, a draw is 0.
+
+    The public per-lane primitive the numba compositions of the other modules (the endgame solver
+    game tree) call directly: the single source of the leaf scoring.
+
+    Args:
+        mover: the mover discs.
+        opponent: the opponent discs.
+    """
+    mc = _popcount(mover)
+    oc = _popcount(opponent)
+    diff = mc - oc
+    if diff == 0:
+        return 0
+    ec = __square_max_value__ - mc - oc
+    if diff > 0:
+        return diff + ec
+    return diff - ec
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_has_to_pass(p: PositionField) -> bool:

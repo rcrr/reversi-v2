@@ -49,6 +49,7 @@ from reversi.endgame_solver import _validate_game_value_array
 from reversi.game_position_database import load_game_position_database
 
 from test.reversi.paths import WORKSPACE_ROOT
+from test.reversi.tags import tier_long
 
 
 class TestSolverResult(unittest.TestCase):
@@ -168,6 +169,18 @@ class TestMinimaxSolveFixture(unittest.TestCase):
     # The case -> the expected result: the game value, the node count, the leaf count, the final
     # position string, the solution line.
     CASES = {
+        0: (18, 18055194, 5316151,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('A8', 'A6', 'A4', 'A7', 'B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        1: (-18, 1111408, 322891,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('A6', 'A4', 'A7', 'B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        2: (18, 261482, 78435,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('A4', 'A7', 'B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
+        3: (-18, 105203, 32174,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ('A7', 'B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
         4: (18, 20040, 6201,
             'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
             ('B6', 'A2', 'H8', 'A3', 'A1', 'B1', 'H1', 'G2')),
@@ -191,7 +204,8 @@ class TestMinimaxSolveFixture(unittest.TestCase):
 
     def _solve_case(self, n):
         value, nodes, leafs, final, line = self.CASES[n]
-        entry = self.db.find(f'ffo-01-simplified-{n}')
+        name = 'ffo-01-simplified' if n == 0 else f'ffo-01-simplified-{n}'
+        entry = self.db.find(name)
         self.assertIsNotNone(entry)
         r = minimax_solve(entry.position)
         self.assertEqual(int(r.game_value), value)
@@ -229,6 +243,19 @@ class TestMinimaxSolveFixture(unittest.TestCase):
             exp = (int(row[col['CALL_ID']]), int(row[col['CALL_LEVEL']]), int(row[col['PLAYER']]),
                    row[col['PARENT_MOVE']], row[col['T_BEST_MOVE']], int(row[col['T_ALPHA']]))
             self.assertEqual(got, exp, f"node {rec.call_id}")
+
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
+    def test_ffo_01_simplified(self):
+        self._solve_case(0)
+
+    def test_ffo_01_simplified_1(self):
+        self._solve_case(1)
+
+    def test_ffo_01_simplified_2(self):
+        self._solve_case(2)
+
+    def test_ffo_01_simplified_3(self):
+        self._solve_case(3)
 
     def test_ffo_01_simplified_4(self):
         self._solve_case(4)

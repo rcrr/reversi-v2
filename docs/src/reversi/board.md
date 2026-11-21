@@ -32,6 +32,7 @@ unless stated.
 | Bitboard | `bitboard_count(bb) -> np.uint8 \| npt.NDArray[np.uint8]` | popcount via `np.bitwise_count`; dual scalar/array |
 | Bitboard | `legal_moves_of(mover, opponent) -> Bitboard` | the per-lane legal-move set — the njit domain wrapper over the private core `_kogge_stone_lms` (the same encapsulation pattern as `flips_of_move` / `_kogge_stone_mm`): the single source of the geometry, called per lane by the vectorized kernel and by the numba compositions (random_game's fused engine) |
 | Bitboard | `flips_of_move(mover, opponent, move) -> Bitboard` | the flip set of the single-bit move — the njit flip primitive (the Kogge-Stone core) for the numba compositions |
+| Bitboard | `final_value_of(mover, opponent) -> int` | the per-lane WOF final value (the nopython twin of `position_final_value`): the single source of the leaf scoring for the numba compositions |
 | Bitboard | `bitboard_print(bb, output)` | 2-D text; row 1 on top, column a on the left |
 | Bitboard | `bitboard_to_square_list(bb) -> List[Square]` | the squares, descending (H8 → A1) |
 | Bitboard | `bitboard_to_square_array(bb) -> SquareArray` | as a uint8 array |

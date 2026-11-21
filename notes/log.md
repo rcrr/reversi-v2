@@ -159,3 +159,22 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (the 20040-node case 4 dominates) — the LONG territory, the numba-compiled scalar search is the next step. (D-657)
 - Next: the numba-compiled scalar search on the same fixture series (the 20k-node case 4 is the target of measure),
   then the alpha-beta solver, then the vectorized design.
+
+## 2026-11-21 — session 131 (ENDGAME-SOLVER — the numba-compiled scalar search + the fixture series 0–3)
+
+- src/reversi/board.py — the fourth public per-lane kernel `final_value_of` (the nopython WOF twin of
+  `position_final_value`, over `_popcount`; the parity test joins `TestPositionFinalValue`). (D-658)
+- src/reversi/endgame_solver.py — the njit recursive `_search` (the nopython twin of the Python `search` closure:
+  the position as the three field scalars, the four public per-lane kernels inlined) + the `minimax_solve`
+  dispatch (`log is None` → the compiled fast path, the final position repacked with `make_game_position` and the
+  njit returns cast through `np.uint64`; `log` given → the traced Python search). (D-658)
+- test/reversi/test_endgame_solver.py — the fixture series grows to ffo-01-simplified 0–3 as solve-only cases
+  (no trace, no CSV in the repo — the C references generated in scratch, the goldens extracted by the HASH-link
+  walk); the 18M-node case 0 is LONG-gated (`tier_long`). Suite: 26 tests (25 + 1 LONG). (D-658)
+- The measured state: the compiled throughput is flat at ~12.5 M nodes/s across the 0–5 series (case 0: 1.43 s,
+  case 4: 1.6 ms vs ~7 s pure Python — ~4400x); against the legacy C the v2 is ~1.3–1.7x slower at large scale
+  (the constant-factor gap closes as the cases grow: 1.7x at 18M nodes down to 1.3x at 105k) and faster at small
+  scale (the C times include the process startup). The user's ruling: the numba engine is the working engine of
+  the campaign (it will run for months solving the ML positions), the 1.7x is to be pursued, and the final
+  high-perf solver will get a Rust version — the v2 numba engine is the reference of correctness for that port.
+- Next: the user's further instructions (the candidates: the compiled trace, the alpha-beta solver).

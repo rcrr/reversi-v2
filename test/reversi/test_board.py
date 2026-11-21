@@ -3410,6 +3410,16 @@ class TestPositionFinalValue(unittest.TestCase):
         expected_value = 62
         self.assertEqual(position_final_value(position), expected_value)
 
+    def test_final_value_of_parity(self):
+        # The per-lane njit twin agrees with the pydantic function on the win, the draw, and the
+        # draw-with-empties.
+        for mover, opponent in ((0xFF00000000000000, 0x0000000000000002),
+                                 (0x00000000000000FF, 0xFF00000000000000),
+                                 (0x0000000000000001, 0x0000000000000001),
+                                 (0x00000000000000FF, 0x00000000000000FF)):
+            self.assertEqual(final_value_of(Bitboard(mover), Bitboard(opponent)),
+                             position_final_value(make_position(Bitboard(mover), Bitboard(opponent))))
+
     def test_position_final_value_draw(self):
 
         mover = Bitboard(0x0000000000000001)

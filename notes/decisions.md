@@ -320,3 +320,23 @@ D-657 | 2026-11-18 | The game tree is GamePosition-only (the user's field decisi
          tests + the 1M-board PERF pair + the two `bitboard_bsf` tests), endgame 22 (the 5 solve + 5 trace cases,
          20040/6201 the largest); the perf check shows the gp tools at the position-level throughput (the kernel
          computes the same inlined primitives, the delta is the wrapper layer that the numba phase drops).
+
+D-658 | 2026-11-21 | The numba-compiled scalar search (the first step of the compilation phase of the
+         ENDGAME-SOLVER campaign): board.py gains the fourth public per-lane kernel `final_value_of` (the nopython
+         WOF twin of `position_final_value`, over `_popcount`); `endgame_solver.py` gains the njit recursive
+         `_search` (the nopython twin of the Python `search` closure: the same contract, the position as the three
+         field scalars — numba cannot build the structured GamePosition scalar — the four public per-lane kernels
+         `legal_moves_of` / `flips_of_move` / `final_value_of` / `bitboard_bsf` inlined by the compiler) and the
+         `minimax_solve` dispatch: `log is None` runs the compiled fast path (the final position repacked with
+         `make_game_position`, the njit uint64 returns cast through `np.uint64` — they come back as Python ints), a
+         `log` given runs the traced Python search (the compiled trace is a later step). The fixture series grows
+         to ffo-01-simplified 0–3 as SOLVE-ONLY cases (the user's call: no trace for them, no CSV fixtures in the
+         repo — the C references were generated in scratch and used only to extract the goldens: value, nodes,
+         leafs, final position, solution line), and the 18M-node case 0 is LONG-gated (the `tier_long` flag, the
+         house convention) so the regular suite keeps the 1.1M-node case 1 as its largest. Measured: the compiled
+         throughput is flat at ~12.5 M nodes/s across the 0–5 series (case 0: 1.43 s; case 4: 1.6 ms vs ~7 s
+         Python, ~4400x); against the legacy C the v2 is ~1.3–1.7x slower at large scale (a constant-factor gap
+         that closes as the cases grow) and faster at small scale (the C times include the process startup). The
+         user's reading: the numba engine is the working engine of the campaign (the solver that will run for
+         months solving the ML positions), the 1.7x is to be pursued, and the final high-perf solver will get a
+         Rust version — the v2 numba engine is the reference of correctness for that port.

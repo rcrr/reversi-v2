@@ -72,13 +72,15 @@ part of the record: they depend on the C hash constants and are not reproducible
 from dataclasses import dataclass
 from typing import Any, Annotated, Callable, TypeAlias
 
+import numba as nb
 import numpy as np
 import numpy.typing as npt
 from pydantic import BeforeValidator, ConfigDict, validate_call
 
-from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, GamePosition, GamePositionField, Move,
-                           Player, bitboard_bsf, game_position_final_value,
-                           game_position_legal_moves, game_position_make_move)
+from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePosition, GamePositionField,
+                           Move, Player, bitboard_bsf, final_value_of, flips_of_move,
+                           legal_moves_of, game_position_final_value, game_position_legal_moves,
+                           game_position_make_move, make_game_position)
 
 
 __all__ = ['OUT_OF_RANGE_DEFEAT_SCORE', 'GameValue', 'GameValueArray', 'NodeRecord',
@@ -131,6 +133,43 @@ class SolverResult:
     leafs: int
 
 
+@nb.njit(cache=True)
+def _search(mover, opponent, player, level):
+    """
+    The numba-compiled recursive search (the nopython twin of the Python `search` closure of
+    `minimax_solve`): the same contract, the position passed as the three field scalars (numba
+    cannot build the structured GamePosition scalar), the public per-lane bitboard primitives of
+    board.py inlined by the compiler.
+
+    Returns:
+        The (value, final_mover, final_opponent, final_player, nodes, leafs) of the subtree.
+    """
+    legal = legal_moves_of(mover, opponent)
+    if not legal:
+        if not legal_moves_of(opponent, mover):
+            return final_value_of(mover, opponent), mover, opponent, player, 1, 1
+        value, fm, fo, fp, nodes, leafs = _search(opponent, mover, 1 - player, level + 1)
+        return -value, fm, fo, fp, nodes + 1, leafs
+    best_value = OUT_OF_RANGE_DEFEAT_SCORE
+    best_fm, best_fo, best_fp = mover, opponent, player
+    nodes = 1
+    leafs = 0
+    moves = legal
+    while moves:
+        sq = bitboard_bsf(moves)
+        moves = moves & (moves - Bitboard(1))
+        m = Bitboard(1) << Bitboard(sq)
+        flips = flips_of_move(mover, opponent, m)
+        value, fm, fo, fp, n, l = _search(opponent ^ flips, (mover ^ flips) | m,
+                                          1 - player, level + 1)
+        value = -value
+        nodes += n
+        leafs += l
+        if value > best_value:
+            best_value, best_fm, best_fo, best_fp = value, fm, fo, fp
+    return best_value, best_fm, best_fo, best_fp, nodes, leafs
+
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def minimax_solve(gp: GamePosition, log: Callable[[NodeRecord], None] | None = None) -> SolverResult:
     """
@@ -147,6 +186,14 @@ def minimax_solve(gp: GamePosition, log: Callable[[NodeRecord], None] | None = N
     Returns:
         The SolverResult of the search.
     """
+    if log is None:
+        value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'],
+                                                  int(gp['player']), 1)
+        return SolverResult(game_value=GameValue(value),
+                            final_game_position=make_game_position(np.uint64(fm), np.uint64(fo),
+                                                                   np.uint8(fp)),
+                            nodes=nodes, leafs=leafs)
+
     nodes = 0
     leafs = 0
 

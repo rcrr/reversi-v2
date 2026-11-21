@@ -33,6 +33,12 @@ The `__all__` names.
 - **The game tree is GamePosition-only**: the search composes the three GamePosition-level tools of board.py
   (`game_position_legal_moves`, `game_position_make_move`, `game_position_final_value`) — no `Position`, no
   mover / opponent handling, no standalone player in the solver code.
+- **The compiled fast path**: without a `log`, `minimax_solve` runs the numba-compiled `_search` (the nopython
+  twin of the Python `search` closure): the position travels as the three field scalars (numba cannot build the
+  structured GamePosition scalar), the four public per-lane kernels of board.py
+  (`legal_moves_of`, `flips_of_move`, `final_value_of`, `bitboard_bsf`) are inlined by the compiler. The
+  throughput is flat at ~12.5 M nodes/s across the ffo-01-simplified 0–5 series (the 18M-node case 0 in ~1.4 s).
+  The traced search is the Python closure (the compiled trace is a later step).
 
 ## The trace
 
@@ -60,9 +66,10 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 - The search contract on hand-built endgames (the full-board terminals from both perspectives, the draw, the
   draw-with-empties-is-zero WOF case, the single-empties forced move, the equal-value tie keeping the first static
   move, the pass at the root) — `test_endgame_solver::TestMinimaxSolveMicro`.
-- The exact solution of the `ffo-01-simplified` 4–8 series of the `gpdb-sample-games.txt` corpus (the generic
+- The exact solution of the `ffo-01-simplified` 0–8 series of the `gpdb-sample-games.txt` corpus (the generic
   case test: the value, the node / leaf counts, the final position, the solution line played to the final
-  position) — `test_endgame_solver::TestMinimaxSolveFixture`.
+  position; cases 0–3 are solve-only, the 18M-node case 0 is LONG-gated) —
+  `test_endgame_solver::TestMinimaxSolveFixture`.
 - The node-by-node trace: the `NodeRecord`s of each solve reproduce the C game-tree log of the case
   (`es_log_ffo-01-simplified-{4..8}.csv`) record by record, on the six comparable columns —
   `test_endgame_solver::TestMinimaxSolveFixture` (the trace tests).
@@ -73,8 +80,9 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 
 ## Open issues
 
-- The search is pure Python: fine for the small endgames of the test / POC phase, the vectorized numba phase is
-  the next step of the campaign.
+- The traced search is still the Python closure (the numba fast path is the untraced one): the compiled trace
+  (a typed record sink inside `_search`) is the next step, so that the trace tests validate the compiled path.
+  After it: the alpha-beta solver (the same scalar / compiled sequence), then the vectorized design.
 
 ## Conventions
 
@@ -85,8 +93,10 @@ candidates: `is_leaf`, `empty_count`, the legal-move set).
 ## Integration
 
 - Consumes: `board.py` (the three GamePosition-level tools `game_position_legal_moves` /
-  `game_position_make_move` / `game_position_final_value`, the `bitboard_bsf` bit-scan, the
-  `Move` / `Player` types, `MOVE_PA` / `MOVE_NA` / `MOVE_UN`).
+  `game_position_make_move` / `game_position_final_value` of the traced search, the four public per-lane kernels
+  `legal_moves_of` / `flips_of_move` / `final_value_of` / `bitboard_bsf` of the compiled `_search`,
+  `make_game_position` for the final-position repack, the `Move` / `Player` types,
+  `MOVE_PA` / `MOVE_NA` / `MOVE_UN`).
 - Consumed by: the test suite; the future `alpha_beta` solver (the shared `SolverResult`); the ENDGAME-SOLVER
   campaign (the `gpdb-ffo.txt` corpus is the cross-validation surface); `regab.py` (the `GameValue` /
   `GameValueArray` types — the database stores the values the solver produces).
