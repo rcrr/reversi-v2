@@ -68,10 +68,13 @@ The `__all__` names.
   wall time is the batch work over the worker count (~8x on this 8-core machine, measured). The lanes are
   expected to share the same empty count (the batch precondition, checked up front only when `check_ec=True`);
   the per-lane result is EXACTLY the scalar `alphabeta_solve` result of that lane (zero new search code — the
-  D-664/665/666 node-level goldens carry over per lane for free). The frontier-vectorized core (the lanes as
-  search frontiers, the gather/scatter design) is parked in ideas.md as the candidate Rust feature: its
-  numba payoff is limited (the irregular mask/gather control flow is not auto-vectorizable), and at 1M–10M
-  batches it would need batching (1k–10k lanes) parallelized worker-pool style anyway.
+  D-664/665/666 node-level goldens carry over per lane for free). Scale: the 100 / 1000-lane regab batches
+  (the ec=8 positions) solve in ~0.2–0.3 s wall (the 1000-lane batch: 2.3M nodes in 0.22 s, ~10.4 M
+  lane-nodes/s — the pool keeps the scalar per-node rate, the lanes just run in parallel). The
+  frontier-vectorized core (the lanes as search frontiers, the gather/scatter design) is parked in ideas.md
+  as the candidate Rust feature: its numba payoff is limited (the irregular mask/gather control flow is not
+  auto-vectorizable), and at 1M–10M batches it would need batching (1k–10k lanes) parallelized worker-pool
+  style anyway.
 
 ## The trace
 
@@ -126,7 +129,10 @@ always improves or is a leaf).
   against the INDEPENDENT DB game-value goldens, the per-lane parity with the scalar solve (value,
   final, node / leaf counts), the mixed corner batch (the forced pass, the finished game, the
   wipe-out, a plain lane), the empty batch, and the `uniform_empty_count` / `check_ec` gate —
-  `test_endgame_solver::TestAlphaBetaSolveArray`.
+  `test_endgame_solver::TestAlphaBetaSolveArray`; the 100 / 1000-lane regab batches (the batches 8
+  and 9, the ec=8 positions in seq order) against the INDEPENDENT DB game-value goldens, plus the
+  PERF throughput printout of the 1000-lane batch —
+  `test_endgame_solver::TestAlphaBetaSolveArrayScale`.
 - The result container (the fields, the frozen behaviour) — `test_endgame_solver::TestSolverResult`.
 - The int8-dtype contract of the `GameValueArray` validator —
   `test_endgame_solver::TestGameValueArrayValidator` (together with the tests above, they cover the
@@ -141,10 +147,9 @@ always improves or is a leaf).
   counter, state[1] the current parent_move, saved/restored around each recursive call) instead of
   being a scalar parameter. To be revisited at the next numba upgrade (the scalar form may cache
   fine there).
-- Next: the array-solver scale-up (the 100 / 1000-lane batches, the PERF speedup printout), then
-  the move-ordered alpha-beta variants of the C reference (the `ev` estimated-value and `rglm`
-  random-legal-move orders). The frontier-vectorized core is parked in ideas.md (the candidate
-  Rust feature, the 1M–10M-batch endgame).
+- Next: the move-ordered alpha-beta variants of the C reference (the `ev` estimated-value and
+  `rglm` random-legal-move orders). The frontier-vectorized core is parked in ideas.md (the
+  candidate Rust feature, the 1M–10M-batch endgame).
 
 ## Conventions
 

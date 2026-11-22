@@ -475,3 +475,15 @@ D-667 | 2026-11-22 | The vectorized array solver, engine B (the worker pool) —
          (value, final, node / leaf counts), the mixed corner batch (the forced pass, the finished game, the wipe-out, a
          plain lane), the empty batch, and the `uniform_empty_count` / `check_ec` gate. A is parked in ideas.md. The
          docs and the notes follow; the suite is now 1,303 tests, green.
+
+D-668 | 2026-11-22 | The array-solver scale-up (the 100 / 1000-lane batches). The data: the `regab_prng_gp` table is
+         reachable from this machine (the remote host gandalf.skynet, the `tst_regab` user / database, the `reversi`
+         schema), so the 100 / 1000 sets are pulled STRAIGHT FROM THE DB with independent game-value goldens (no seeded
+         playouts needed): 100 = the batch 8 ec=8 positions in seq order (`regab-batch8-ec8-100.tsv`), 1000 = the batch
+         9 (`regab-batch9-ec8-1000.tsv`) — the batch 7 holds only 20 ec=8 rows, hence the distinct batches per set size
+         (the user's 10 stay the embedded batch 7 set). The worker pool solves the 100-lane batch in ~0.32 s and the
+         1000-lane batch in ~0.22 s (2.3M nodes, 10.4 M lane-nodes/s — the pool keeps the scalar per-node rate, the
+         lanes run in parallel; the 1000 batch is FASTER than the 100 one: the larger pool of lanes hides the
+         max-cost-lane tail), both in the fast tier. Three tests: the 100 / 1000 value arrays against the INDEPENDENT DB
+         goldens (all values, the `check_ec=True` gate on both) and the PERF-gated throughput printout of the 1000-lane
+         batch. The docs and the notes follow; the suite is now 1,306 tests, green.

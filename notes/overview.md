@@ -80,9 +80,9 @@ define the evaluation function.
   already-finished game, the wipe-out win before ec=0). The array solver `alphabeta_solve_array` is in on the
   worker-pool engine (D-667: one thread per CPU, dynamic dispatch, the per-lane fast path on the compiled search, ~8x on
   this 8-core machine, every lane its scalar result; the frontier-vectorized core parked in ideas.md as the candidate
-  Rust feature). Next: the array scale-up (the 100 / 1000-lane batches, the PERF printout), then the move-ordered
-  variants (the C `ev` / `rglm` orders); the final high-perf solver is headed to Rust, the v2 numba engine is its
-  reference of correctness.
+  Rust feature; the 100 / 1000-lane regab batches scale it to ~0.2–0.3 s wall with the independent DB goldens). Next:
+  the move-ordered variants (the C `ev` / `rglm` orders); the final high-perf solver is headed to Rust, the v2 numba
+  engine is its reference of correctness.
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python
@@ -201,7 +201,7 @@ define the evaluation function.
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_base\_model.py | complete | 9/0/0/0/0 | [docs/test/reversi/test\_base\_model.md](docs/test/reversi/test\_base\_model.md) |
 | test/reversi/test\_board.py | complete | 348/0/18/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
-| test/reversi/test\_endgame\_solver.py | complete | 54/0/0/0/0 (52 + 2 LONG + 2 PERF) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
+| test/reversi/test\_endgame\_solver.py | complete | 57/0/0/0/0 (54 + 2 LONG + 3 PERF) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_game\_position\_database.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_game\_position\_database.md](docs/test/reversi/test\_game\_position\_database.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |

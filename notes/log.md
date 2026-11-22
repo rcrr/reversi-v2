@@ -276,3 +276,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    −48, −22] (which also cross-validates the scalar solver against the C/REGAB database on that set), the per-lane
    scalar parity, the mixed corner batch, the empty batch, the check gate. A parked in ideas.md. The suite is now 1,303
    tests, green. (D-667)
+ - The array scale-up: the `regab_prng_gp` table turned out to be reachable from this machine (the remote host
+   gandalf.skynet, the `tst_regab` user, the `reversi` schema), so the 100 / 1000 sets are pulled STRAIGHT FROM THE DB
+   with independent goldens (no seeded playouts): 100 = the batch 8 ec=8 positions in seq order, 1000 = the batch 9 (the
+   batch 7 holds only 20 ec=8 rows — hence a distinct batch per set size, the user's 10 stay the embedded batch 7 set).
+   The pool solves the 100-lane batch in ~0.32 s and the 1000-lane batch in ~0.22 s (2.3M nodes, 10.4 M lane-nodes/s —
+   the 1000 batch is FASTER than the 100 one: the larger lane pool hides the max-cost-lane tail), both fast tier. Three
+   tests: the 100 / 1000 value arrays against the INDEPENDENT DB goldens (the `check_ec=True` gate on both) + the PERF
+   throughput printout. The suite is now 1,306 tests, green. (D-668)

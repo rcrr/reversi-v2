@@ -656,3 +656,46 @@ class TestAlphaBetaSolveArray(unittest.TestCase):
             alphabeta_solve_array(mixed, check_ec=True)
         r = alphabeta_solve_array(mixed)
         self.assertEqual([int(v) for v in r.game_values], [18, 18])
+
+
+class TestAlphaBetaSolveArrayScale(unittest.TestCase):
+    """
+    The worker-pool array solver at the 100 / 1000-lane scale: the regab batch sets (the ec=8
+    positions of the regab_prng_gp table, pulled in seq order from the batches 8 and 9) — the
+    batch values are the INDEPENDENT DB game-value goldens, the ec precondition is enforced by the
+    check, and the PERF printout is the batch throughput.
+    """
+
+    B8_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'regab-batch8-ec8-100.tsv'
+    B9_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'regab-batch9-ec8-1000.tsv'
+
+    @classmethod
+    def _load(cls, path):
+        rows = np.genfromtxt(path, delimiter='|', dtype=np.int64)
+        gps = make_game_position(rows[:, 0].astype(np.uint64), rows[:, 1].astype(np.uint64),
+                                 rows[:, 2].astype(np.uint8))
+        return gps, rows[:, 3]
+
+    def test_batch8_100_db_goldens(self):
+        gps, goldens = self._load(self.B8_FILE)
+        self.assertEqual(uniform_empty_count(gps), 8)
+        r = alphabeta_solve_array(gps, check_ec=True)
+        self.assertTrue(np.array_equal(r.game_values, goldens.astype(np.int8)))
+
+    def test_batch9_1000_db_goldens(self):
+        gps, goldens = self._load(self.B9_FILE)
+        self.assertEqual(uniform_empty_count(gps), 8)
+        r = alphabeta_solve_array(gps, check_ec=True)
+        self.assertTrue(np.array_equal(r.game_values, goldens.astype(np.int8)))
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_batch9_1000(self):
+        # The 1000-lane batch: the pool throughput (the printout is the measurement; no assertion
+        # on the rate — the machine dependent number of the run).
+        gps, _ = self._load(self.B9_FILE)
+        alphabeta_solve_array(gps)  # warm-up (the njit compile)
+        start = time.perf_counter()
+        r = alphabeta_solve_array(gps)
+        duration = time.perf_counter() - start
+        print(f"\n[PERF alphabeta_solve_array batch9-ec8-1000] Solved {r.nodes.sum():,} nodes "
+              f"in {duration:.4f}s ({r.nodes.sum() / duration / 1e6:.2f} M lane-nodes/s)")
