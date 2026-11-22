@@ -1,8 +1,36 @@
+#
+# test_fixtures.py
+#
+# This file is part of the reversi program
+# http://github.com/rcrr/reversi-v2
+#
+# Author Roberto Corradini mailto:rob_corradini@yahoo.it
+# Copyright 2026 Roberto Corradini. All rights reserved.
+#
+# License
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 3, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+# or visit the site <http://www.gnu.org/licenses/>.
+#
+
 """
 Unit tests for the rebuildable LM test fixtures helper (test/reversi/fixtures.py): the path
-helpers, the ec20 fixture config content, the consumer gate (require_lm_fixture) and the
-create idempotency — all STATIC (no pipeline run, no DB, no artifact required): the build
-itself is a manual, seconds-long operation proven by the first consumer.
+helpers, the fixture config set content (all five members, rlm_04 as the reference), the
+consumer gate (require_lm_fixture) and the create idempotency — all STATIC (no pipeline run,
+no DB, no artifact required): the build itself is a manual, seconds-long operation proven by
+the first consumer.
 """
 
 import json5
@@ -12,7 +40,11 @@ from unittest import mock
 
 from test.reversi import fixtures
 
-FIXTURE = 'rlm_fixture_simple_ec20'
+#: The fixture set: the multi-ply EF depth ladder (positions at A = ec20 over models at
+#: B = ec20...ec16 -> depths 0...4).
+ECS = (20, 19, 18, 17, 16)
+FIXTURES = {ec: f'rlm_fixture_simple_ec{ec}' for ec in ECS}
+FIXTURE = FIXTURES[20]  # the gate / idempotency tests run on the ec20 member
 
 
 class TestFixturePaths(unittest.TestCase):
@@ -34,39 +66,46 @@ class TestFixturePaths(unittest.TestCase):
             Path('build/tmp/fixtures/rlm_fixture_simple_ec20/rlm_fixture_simple_ec20.dat'))
 
 
-class TestEc20FixtureConfig(unittest.TestCase):
-    """The committed ec20 config carries the fixture contract."""
+class TestFixtureConfigs(unittest.TestCase):
+    """The committed fixture configs carry the fixture contract (all five members)."""
 
     @classmethod
     def setUpClass(cls):
         # The house .json data files are json5 (the /* ... */ comment header + the trailing
         # commas) — parsed with the pipeline's own loader.
-        cls.cfg = json5.loads(fixtures.lm_fixture_config_path(FIXTURE).read_text())
+        cls.cfgs = {
+            name: json5.loads(fixtures.lm_fixture_config_path(name).read_text())
+            for name in FIXTURES.values()
+        }
+        cls.rlm04 = json5.loads(Path('test/reversi/data/rlm_04.json').read_text())
 
     def test_identity(self):
-        self.assertEqual(self.cfg['name'],
-                         'RGLM (Logistic) - LM fixture simple ec20 (rlm_fixture_simple_ec20.json)')
-        self.assertEqual(self.cfg['empty_count'], 20)
+        for ec, name in FIXTURES.items():
+            with self.subTest(ec=ec):
+                self.assertEqual(self.cfgs[name]['name'],
+                                 f'RGLM (Logistic) - LM fixture simple ec{ec} ({name}.json)')
+                self.assertEqual(self.cfgs[name]['empty_count'], ec)
 
     def test_output_location(self):
-        self.assertEqual(self.cfg['base_dir'], 'build/tmp/fixtures/rlm_fixture_simple_ec20')
-        self.assertEqual(self.cfg['output'], 'rlm_fixture_simple_ec20.dat')
+        for ec, name in FIXTURES.items():
+            with self.subTest(ec=ec):
+                self.assertEqual(self.cfgs[name]['base_dir'], f'build/tmp/fixtures/{name}')
+                self.assertEqual(self.cfgs[name]['output'], f'{name}.dat')
 
     def test_fixture_flags(self):
-        self.assertIs(self.cfg['regab_allow_duplicate'], False)
-        self.assertFalse(self.cfg['plot']['enable'])
+        for name in self.cfgs:
+            with self.subTest(fixture=name):
+                self.assertIs(self.cfgs[name]['regab_allow_duplicate'], False)
+                self.assertFalse(self.cfgs[name]['plot']['enable'])
 
     def test_rlm_04_inheritance(self):
-        # The training-relevant sections are the rlm_04 ones, untouched.
-        self.assertEqual(self.cfg['stat_model'],
-                         {'frequency_cut_off': 10, 'logit_clipping': 0.01,
-                          'ridge_regularization': 0.01})
-        self.assertEqual(self.cfg['regab_data_set']['bid'], [6])
-        self.assertEqual(self.cfg['validation_data_set']['bid'], [5])
-        fs = self.cfg['feature_set']
-        self.assertTrue(fs['intercept'])
-        self.assertEqual(fs['pattern_set']['name'], 'EDGE')
-        self.assertEqual(fs['mobility_set']['mobility_features'][0]['name'], 'LMC')
+        # The training-relevant sections are the rlm_04 ones, untouched (rlm_04 is the
+        # direct reference — no hardcoded values).
+        for name in self.cfgs:
+            with self.subTest(fixture=name):
+                for section in ('stat_model', 'optimization', 'feature_set',
+                                 'regab_data_set', 'validation_data_set'):
+                    self.assertEqual(self.cfgs[name][section], self.rlm04[section])
 
 
 class TestRequireLmFixture(unittest.TestCase):

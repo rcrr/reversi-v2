@@ -317,3 +317,13 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    gate passed (18 932 residuals, max difference 0.000e+00), the model loads with ec = 20 / `w_dense` (6 627,) and
    evaluates real positions; 12 static tests pin the mechanism (no pipeline, no DB, no artifact required). The ec19…ec16
    set members (the multi-ply depth ladder 1…4) are replicated once this round proves the cycle. (D-671)
+ - The LM fixture set completed to the full five-member depth ladder: the ec20 round proved the cycle, so the four
+   configs `rlm_fixture_simple_ec`{19,18,17,16}.json landed (generated from the ec20 template: the `rlm_04` config, full
+   corpus, `regab_allow_duplicate` = false, `plot.enable` = false, per-member name / `empty_count` / `base_dir` /
+   `output`) and the house copyright header was added to `fixtures.py` + `test_fixtures.py` (it was missing — user
+   catch). The test module now pins ALL FIVE configs (per member via subTest; the `rlm_04`-inherited training sections
+   with `rlm_04`.json itself as the direct reference). The four builds ran in ONE CLI call — 11.3 s total, ~2.8 s each
+   (the deeper corpora are smaller) — every one passing the `CLIENT_CHECK` gate (18 844…18 929 residuals, max
+   difference 0.000e+00). Smoke: all five load with the right `mw.ec` (20…16), the identical `w_dense` (6 627,) shape
+   class, and agree in magnitude on the same positions (26…31). The multi-ply EF depth ladder (positions at A = ec20
+   over models at B = ec20…16 → depths 0…4) is now fully on disk. (D-672)

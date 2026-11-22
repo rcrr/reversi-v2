@@ -1,0 +1,94 @@
+/*
+ * rlm_fixture_simple_ec17.json
+ *
+ * This file is part of the reversi program
+ * http://github.com/rcrr/reversi-v2
+ * 
+ * Author Roberto Corradini mailto:rob_corradini@yahoo.it
+ * Copyright 2026 Roberto Corradini. All rights reserved.
+ *
+ * License
+ * 
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * or visit the site <http://www.gnu.org/licenses/>.
+ */
+{
+    "name": "RGLM (Logistic) - LM fixture simple ec17 (rlm_fixture_simple_ec17.json)",
+    "empty_count": 17,
+    "description": "Rebuildable LM test fixture (the multi-ply evaluation-function set, the ec17 member): the rlm_04 config with the FULL corpus, PLOT disabled, regab_allow_duplicate=false, the model saved under build/tmp/fixtures/ (git-ignored) — rebuild it with: python -m test.reversi.fixtures create rlm_fixture_simple_ec17",
+    "base_dir": "build/tmp/fixtures/rlm_fixture_simple_ec17",
+    "output": "rlm_fixture_simple_ec17.dat",
+    "use_cache": true,
+    "cache_files_prefix": "rlmwf_",
+    "regab_allow_duplicate": false,
+    "stat_model": {
+        "frequency_cut_off": 10,
+        "logit_clipping": 0.01,
+        "ridge_regularization": 0.01,
+    },
+    "optimization": {
+        "max_iters": 100,
+        "m": 19,
+        "c1": 0.0001,
+        "c2": 0.9,
+        "min_grad": [1e-4, 5],
+        "min_p_fun_decrease": [1e-5, 5],
+        "log_every_n": 1,
+        "save_every_n": 100,
+        "checkpoint_file": "checkpoint_optimize.dat",
+        "high_performance_fg": true
+    },
+    "analytics": {
+        "report_file_name": "model_analytics_report.txt",
+        "detailed_report": ["EDGE", "LMC"]
+    },
+    "plot": {
+        "enable": false,
+        "format": "png",
+        "dpi": 150,
+        "dir_name": "plots",
+        "plots": ["residual_density", "resid_vs_fitted", "resid_vs_gv",
+                   "gv_by_egv_box", "resid_mean_by_egv", "parity",
+                   "resid_qq"]
+    },
+    "regab_data_set": {
+        "regab_db_connection": {
+            "dbname": "tst_regab",
+            "user": "tst_regab",
+            "host": "localhost"
+        },
+        "bid": [6],
+        "status": ["CMR", "CMS"]
+    },
+    "validation_data_set": {
+        "bid": [5],
+        "status": ["CMS", "CMR"]
+    },
+    "feature_set": {
+        "intercept": true,
+        "pattern_set": {
+            "name": "EDGE",
+            "patterns": [
+                { "name": "EDGE", "mask": "00000000000000FF" }
+            ]
+        },
+        "mobility_set": {
+            "name": "MOBILITY",
+            "mobility_features": [
+                { "name": "LMC", "mask": "FFFFFFFFFFFFFFFF", "side": "mover" }
+            ]
+        }
+    }
+}

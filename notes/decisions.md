@@ -548,3 +548,16 @@ D-671 | 2026-11-22 | The rebuildable LM test fixtures mechanism (the ec20 member
          The 12 static tests (no pipeline, no DB, no artifact required) pin the paths, the config contract, the gate
          message and the idempotency. The other set members (ec19…ec16 — the depth ladder 1…4 of the multi-ply EF) are
          replicated once this round proves the cycle. No production code changed.
+
+D-672 | 2026-11-22 | The LM fixture set completed to the full five-member depth ladder. The ec20 round (D-671) proved
+         the cycle, so the replication landed: the four configs `rlm_fixture_simple_ec{19,18,17,16}.json` (generated
+         from the ec20 template — the `rlm_04` config, full corpus, `regab_allow_duplicate = false`,
+         `plot.enable = false`, per-member name / `empty_count` / `base_dir` / `output`) + the house copyright header
+         added to `fixtures.py` and `test_fixtures.py` (it was missing — user catch). The test module now pins ALL FIVE
+         configs (the identity / `output` location / flags per member via subTest, and the `rlm_04`-inherited training
+         sections with `rlm_04`.json ITSELF as the direct reference — no hardcoded values). The four builds ran in ONE
+         CLI call (11.3 s total, ~2.8 s each — the deeper corpora are smaller than ec20's), every one passing the
+         `CLIENT_CHECK` gate (18 844…18 929 validation residuals, max difference 0.000e+00). Smoke: all five models load
+         with the right `mw.ec` (20…16), the identical `w_dense` (6 627,) shape class, and agree in magnitude on the
+         same positions (26…31). The multi-ply EF depth ladder (positions at A = ec20 over models at B = ec20…16 →
+         depths 0…4) is now fully on disk. No production code changed.

@@ -3,10 +3,9 @@ The rebuildable LM test fixtures helper (D-671): the functions that BUILD, CLEAN
 sticky `ModelWeights` artifacts the test modules consume from disk. A fixture is "a bit more
 sticky" than the transient setUp-built artifacts: it is built ONCE (a seconds-long full
 pipeline run), lives under `build/tmp/fixtures/` (git-ignored, the `build/` pattern) for
-sessions of weeks, and is rebuilt on demand. The ec20 member is in place; the set is designed
-for the multi-ply evaluation-function work (the depth ladder: positions at A = ec20 over
-models at B = ec20…16 → depths 0…4) — the other members are replicated once the ec20 round
-proves the full cycle.
+sessions of weeks, and is rebuilt on demand. The set is the multi-ply evaluation-function
+depth ladder (positions at A = ec20 over models at B = ec20…16 → depths 0…4) — all five
+members in place (D-671 the ec20 member, D-672 the replication to ec19…ec16).
 
 ## API
 
@@ -38,24 +37,28 @@ proves the full cycle.
 - No format-versioning intelligence by design: if the `ModelWeights` format changes, the
   remedy is a manual clean + rebuild of the affected fixtures.
 
-## The fixture set (the ec20 member in place)
+## The fixture set (the full five-member depth ladder)
 
-- `rlm_fixture_simple_ec20` — the rlm_04 config (FULL corpus: `tst_regab` batch 6 CMR/CMS,
-  validation batch 5; intercept + EDGE + LMC feature set; cut 10, clipping 0.01, ridge
-  0.01) with: `regab_allow_duplicate = false`, `plot.enable = false`, `base_dir` =
-  `build/tmp/fixtures/rlm_fixture_simple_ec20`, `output` = `rlm_fixture_simple_ec20.dat`, a
-  clear name + description. Built in ~20 s; the CLIENT_CHECK gate passes (18 932 validation
-  residuals, max difference 0.000e+00); the saved model loads with `ec = 20`, `w_dense`
-  (6 627,) — the same shape class as the rlm_04 production models.
+The five members `rlm_fixture_simple_ec{20,19,18,17,16}` — the multi-ply EF depth ladder
+(positions at A = ec20 over models at B = ec20…ec16 → depths 0…4). Each is the rlm_04 config
+(FULL corpus: `tst_regab` batch 6 CMR/CMS, validation batch 5; intercept + EDGE + LMC
+feature set; cut 10, clipping 0.01, ridge 0.01) with: `regab_allow_duplicate = false`,
+`plot.enable = false`, `base_dir` = `build/tmp/fixtures/<name>`, `output` = `<name>.dat`, a
+clear name + description. Build times: ec20 ~20 s, ec19…ec16 ~2.8 s each (the deeper
+corpora are smaller); every build passes the CLIENT_CHECK gate (18 844…18 932 validation
+residuals, max difference 0.000e+00). All five load with the right `mw.ec` and the identical
+`w_dense` (6 627,) shape class — the same as the rlm_04 production models — and agree in
+magnitude on the same positions (26…31 in the smoke run).
 
 ## Verified invariants
 
 Pinned by `test_fixtures.py` (12 tests, all STATIC — no pipeline run, no DB, no artifact
-required): the three path helpers derive the house layout; the ec20 config carries the
-fixture contract (identity, the output location, `regab_allow_duplicate = false`,
-`plot.enable = false`, the rlm_04-inherited training sections — parsed with json5, the
-pipeline's own loader, because the house .json data files carry the comment header + the
-trailing commas); `require_lm_fixture` returns the path when present and names the exact
+required): the three path helpers derive the house layout; the FIVE fixture configs carry
+the fixture contract (per member: the identity, the output location, `regab_allow_duplicate
+= false`, `plot.enable = false`; and the rlm_04-inherited training sections with
+`rlm_04.json` itself as the direct reference — parsed with json5, the pipeline's own
+loader, because the house .json data files carry the comment header + the trailing
+commas); `require_lm_fixture` returns the path when present and names the exact
 build command + the missing model path in the `RuntimeError` when absent; `create_lm_fixture`
 raises `ValueError` on a missing config and SHORT-CIRCUITS (no pipeline run — the
 `LogisticModel` construction is mocked to a sentinel) when the artifact is present.

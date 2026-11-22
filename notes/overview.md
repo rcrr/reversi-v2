@@ -76,8 +76,9 @@ define the evaluation function.
   exact WOF one) and the horizon leaf value is the REAL of the chosen evaluation function — the search-based evaluation
   (the value plus the root best move), a greenfield v2 design (no C reference); the EF Y output range contract is
   documented (D-670: NO clip, the values beyond ±64 are the confidence excess, the search window derived from
-  `logit_clipping`); the rebuildable LM fixture mechanism is in place (D-671: the ec20 member built + pinned,
-  tier-agnostic consumers, the ec19…ec16 depth-ladder members replicated once the full cycle proves out).
+  `logit_clipping`); the rebuildable LM fixture mechanism is in place with the FULL five-member depth ladder on disk
+  (D-671 the ec20 member, D-672 the replication to ec19…ec16 — positions at A = ec20 over models at B = ec20…16 → depths
+  0…4, tier-agnostic consumers).
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python
