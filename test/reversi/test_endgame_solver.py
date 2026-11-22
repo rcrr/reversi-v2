@@ -557,7 +557,7 @@ class TestAlphaBetaSolveFixture(unittest.TestCase):
 
 class TestAlphaBetaSolveArray(unittest.TestCase):
     """
-    alphabeta_solve_array on the worker-pool engine: every lane is exactly the result of the
+    the array form of alphabeta_solve (the worker-pool engine): every lane is exactly the result of the
     scalar alphabeta_solve of that lane (the engine runs the same compiled search), the batch
     values are checked against the independent DB goldens, and the batch precondition (the
     uniform empty count) is enforced by the opt-in check.
@@ -590,13 +590,13 @@ class TestAlphaBetaSolveArray(unittest.TestCase):
 
     def test_ten_db_golden_values(self):
         # The batch values are the independent DB goldens.
-        r = alphabeta_solve_array(self.gps10)
+        r = alphabeta_solve(self.gps10)
         self.assertEqual(r.game_values.tolist(), [row[3] for row in self.ROWS_10])
 
     def test_ten_parity_scalar(self):
         # Every lane is exactly the result of the scalar solve of that lane (value, final,
         # node / leaf counts).
-        r = alphabeta_solve_array(self.gps10)
+        r = alphabeta_solve(self.gps10)
         for i in range(10):
             s = alphabeta_solve(self.gps10[i])
             self.assertEqual(int(r.game_values[i]), int(s.game_value))
@@ -615,7 +615,7 @@ class TestAlphaBetaSolveArray(unittest.TestCase):
                                  np.array([e.position['opponent'] for e in entries],
                                           dtype=np.uint64),
                                  np.array([e.position['player'] for e in entries], dtype=np.uint8))
-        r = alphabeta_solve_array(gps)
+        r = alphabeta_solve(gps)
         self.assertEqual([int(v) for v in r.game_values], [-52, 18, -64, 18])
         for i, e in enumerate(entries):
             s = alphabeta_solve(e.position)
@@ -627,7 +627,7 @@ class TestAlphaBetaSolveArray(unittest.TestCase):
     def test_empty_batch(self):
         empty = make_game_position(np.array([], dtype=np.uint64), np.array([], dtype=np.uint64),
                                    np.array([], dtype=np.uint8))
-        r = alphabeta_solve_array(empty)
+        r = alphabeta_solve(empty)
         self.assertEqual(r.game_values.shape, (0,))
         self.assertEqual(r.nodes.shape, (0,))
         self.assertEqual(r.leafs.shape, (0,))
@@ -653,8 +653,8 @@ class TestAlphaBetaSolveArray(unittest.TestCase):
                                    np.array([p8['opponent'], p12['opponent']], dtype=np.uint64),
                                    np.array([p8['player'], p12['player']], dtype=np.uint8))
         with self.assertRaises(ValueError):
-            alphabeta_solve_array(mixed, check_ec=True)
-        r = alphabeta_solve_array(mixed)
+            alphabeta_solve(mixed, check_ec=True)
+        r = alphabeta_solve(mixed)
         self.assertEqual([int(v) for v in r.game_values], [18, 18])
 
 
@@ -679,13 +679,13 @@ class TestAlphaBetaSolveArrayScale(unittest.TestCase):
     def test_batch8_100_db_goldens(self):
         gps, goldens = self._load(self.B8_FILE)
         self.assertEqual(uniform_empty_count(gps), 8)
-        r = alphabeta_solve_array(gps, check_ec=True)
+        r = alphabeta_solve(gps, check_ec=True)
         self.assertTrue(np.array_equal(r.game_values, goldens.astype(np.int8)))
 
     def test_batch9_1000_db_goldens(self):
         gps, goldens = self._load(self.B9_FILE)
         self.assertEqual(uniform_empty_count(gps), 8)
-        r = alphabeta_solve_array(gps, check_ec=True)
+        r = alphabeta_solve(gps, check_ec=True)
         self.assertTrue(np.array_equal(r.game_values, goldens.astype(np.int8)))
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
@@ -693,9 +693,52 @@ class TestAlphaBetaSolveArrayScale(unittest.TestCase):
         # The 1000-lane batch: the pool throughput (the printout is the measurement; no assertion
         # on the rate — the machine dependent number of the run).
         gps, _ = self._load(self.B9_FILE)
-        alphabeta_solve_array(gps)  # warm-up (the njit compile)
+        alphabeta_solve(gps)  # warm-up (the njit compile)
         start = time.perf_counter()
-        r = alphabeta_solve_array(gps)
+        r = alphabeta_solve(gps)
         duration = time.perf_counter() - start
-        print(f"\n[PERF alphabeta_solve_array batch9-ec8-1000] Solved {r.nodes.sum():,} nodes "
+        print(f"\n[PERF alphabeta_solve batch9-ec8-1000] Solved {r.nodes.sum():,} nodes "
               f"in {duration:.4f}s ({r.nodes.sum() / duration / 1e6:.2f} M lane-nodes/s)")
+
+
+class TestUnifiedSolveApi(unittest.TestCase):
+    """
+    The unified scalar / array API (the board.py idiom: one function, both forms): the scalar
+    input gives the SolverResult of the direct compiled search, the array input the
+    SolverResultArray of the worker pool, the log callback is the scalar form only, and the
+    minimax array form gives the same exact values (both engines are exact).
+    """
+
+    DB_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
+    ROWS_10 = TestAlphaBetaSolveArray.ROWS_10
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db, _ = load_game_position_database(cls.DB_FILE)
+        cls.gps10 = make_game_position(
+            np.array([r[0] for r in cls.ROWS_10], dtype=np.int64).astype(np.uint64),
+            np.array([r[1] for r in cls.ROWS_10], dtype=np.int64).astype(np.uint64),
+            np.array([r[2] for r in cls.ROWS_10], dtype=np.uint8))
+
+    def test_scalar_form_returns_solver_result(self):
+        gp = self.db.find('ffo-01-simplified-4').position
+        self.assertIsInstance(alphabeta_solve(gp), SolverResult)
+        self.assertIsInstance(minimax_solve(gp), SolverResult)
+
+    def test_array_form_returns_solver_result_array(self):
+        self.assertIsInstance(alphabeta_solve(self.gps10), SolverResultArray)
+        self.assertIsInstance(minimax_solve(self.gps10), SolverResultArray)
+
+    def test_array_log_raises(self):
+        def log(rec):
+            pass
+        with self.assertRaises(ValueError):
+            alphabeta_solve(self.gps10, log=log)
+        with self.assertRaises(ValueError):
+            minimax_solve(self.gps10, log=log)
+
+    def test_minimax_array_db_goldens(self):
+        # The minimax array form: the same exact DB values as the alpha-beta form (both engines
+        # are exact).
+        r = minimax_solve(self.gps10)
+        self.assertEqual(r.game_values.tolist(), [row[3] for row in self.ROWS_10])

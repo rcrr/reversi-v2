@@ -487,3 +487,21 @@ D-668 | 2026-11-22 | The array-solver scale-up (the 100 / 1000-lane batches). Th
          max-cost-lane tail), both in the fast tier. Three tests: the 100 / 1000 value arrays against the INDEPENDENT DB
          goldens (all values, the `check_ec=True` gate on both) and the PERF-gated throughput printout of the 1000-lane
          batch. The docs and the notes follow; the suite is now 1,306 tests, green.
+
+D-669 | 2026-11-22 | The unified scalar / array API of the public solvers (the board.py idiom: one function, both forms
+         — the user's consistency call, with the analysis: the 2x2 matrix (minimax / alpha-beta x scalar / array)
+         collapses to two names, each taking a `Union[GamePositionField, GamePositionArray]` and returning
+         `Union[SolverResult, SolverResultArray]`; NO performance cost — the dispatch is one `isinstance` at the
+         boundary, the scalar path is byte-identical (the direct compiled call), the array path is the unchanged worker
+         pool; the honest costs are formal only: the union return type and the form-dependent parameters (`log`
+         scalar-only — the array form raises `ValueError`; `check_ec` array-only — the scalar form ignores it)).
+         `alphabeta_solve_array` is REMOVED from the API (subsumed by the unified `alphabeta_solve`); `minimax_solve`
+         gains the array form for symmetry (it is never used in place of alpha-beta, the user's words — consistency
+         only). The worker-pool machinery is now the private `_solve_pool(gps, search, make_state)` shared by both
+         public solvers (engine-agnostic: the workers run `_search` or `_ab_search` with the `_mm_state` / `_ab_state`
+         factories, which the scalar paths now share too). The idiom is in place BEFORE the multi-ply EF step:
+         `alphabeta_eval` will inherit the unified contract from day one. Four new contract tests
+         (`TestUnifiedSolveApi`): the form dispatch (void → `SolverResult`, ndarray → `SolverResultArray`, both
+         engines), the array + `log` raise, and the minimax array form of the ten batch 7 lanes against the SAME
+         independent DB goldens (both engines are exact). The docs and the notes follow; the suite is now 1,310 tests,
+         green.

@@ -1,9 +1,10 @@
 # reversi/endgame_solver.py
-The exact endgame solver, scalar and array. `minimax_solve` searches the whole game tree of an endgame with a
-depth-first minimax, `alphabeta_solve` the same tree with the zero-window alpha-beta pruning, and
-`alphabeta_solve_array` solves a batch of endgames (one per lane of a `GamePositionArray`) with the same
-alpha-beta on a pool of worker threads; all return the game value, the terminal game position of the best line,
-and the search counters (the array form: the parallel arrays, one entry per lane).
+The exact endgame solver, scalar and array (the unified API, the board.py idiom: one function, both
+forms). `minimax_solve` searches the whole game tree of an endgame with a depth-first minimax,
+`alphabeta_solve` the same tree with the zero-window alpha-beta pruning; each takes a GamePosition
+scalar (the direct compiled search, the `SolverResult`) or a `GamePositionArray` (the batch on a pool
+of worker threads, one per CPU, dynamic dispatch — the `SolverResultArray` of the per-lane results);
+all return the game value, the terminal game position of the best line, and the search counters.
 
 ## API
 
@@ -17,9 +18,8 @@ The `__all__` names.
 | `NodeRecord` | the frozen dataclass `(call_id, level, player, parent_move, best_move, value)` — one visited node of the search, as emitted to the `log` callback (see The trace); the move fields are never `None` (the sentinel codes `MOVE_UN` / `MOVE_NA` / `MOVE_PA` express the absences) |
 | `SolverResult` | the frozen dataclass `(game_value, final_game_position, nodes, leafs)`: the value is an `np.int8` (the vectorized future's type, kept here for conformance), the final position is a GamePosition scalar (`GamePositionField`) |
 | `SolverResultArray` | the frozen dataclass `(game_values, final_game_positions, nodes, leafs)` of parallel arrays, one entry per lane: the `GameValueArray` values, the `GamePositionArray` finals, the int64 node / leaf counts (the natural vectorized result shape — no array of result objects) |
-| `minimax_solve(gp, log=None) -> SolverResult` | the depth-first minimax over the game tree of the GamePosition scalar `gp` (see Architecture for the search contract); `log` is an optional callable invoked once per visited node, with the `NodeRecord` of the node, when the search of the node completes |
-| `alphabeta_solve(gp, log=None) -> SolverResult` | the alpha-beta twin of `minimax_solve` (the same natural move order and strict tie-break, the zero-window propagation, the cutoff; the root window is the C ground-node initialization [−66, 66] — see Architecture); the same `log` contract; the node / leaf counts are smaller than the minimax ones (the pruned subtrees are never visited) |
-| `alphabeta_solve_array(gps, check_ec=False) -> SolverResultArray` | the batch form of `alphabeta_solve`: one lane per game position of the `GamePositionArray`, the same exact search per lane on a pool of worker threads (one per CPU, dynamic dispatch — see Architecture); `check_ec` (default False) runs the `uniform_empty_count` precondition check up front |
+| `minimax_solve(gp, log=None, check_ec=False) -> SolverResult \| SolverResultArray` | the depth-first minimax over the game tree, scalar or array (the unified API): a GamePosition scalar gives the `SolverResult` of the direct compiled search, a `GamePositionArray` the `SolverResultArray` of the worker pool (one thread per CPU, dynamic dispatch — see Architecture); `log` is an optional callable invoked once per visited node, with the `NodeRecord` of the node, when the search of the node completes (scalar form only); `check_ec` (array form only, default False) runs the `uniform_empty_count` precondition check up front |
+| `alphabeta_solve(gp, log=None, check_ec=False) -> SolverResult \| SolverResultArray` | the alpha-beta twin of `minimax_solve` (the same natural move order and strict tie-break, the zero-window propagation, the cutoff; the root window is the C ground-node initialization [−66, 66] — see Architecture), scalar or array (the same unified contract); the node / leaf counts are smaller than the minimax ones (the pruned subtrees are never visited) |
 | `uniform_empty_count(gps) -> int` | the batch precondition check: all lanes share the same empty count (the message names the distinct counts and the lanes); raises `ValueError` when not uniform, returns the common count otherwise |
 
 ## Architecture
@@ -60,14 +60,16 @@ The `__all__` names.
   6-parameter signature (the 7th scalar parameter is the numba 0.68 cache-loader segfault trigger, D-662). On the
   ffo-01-simplified series the pruning is 9.9x–25x in node count (case 4: 2,029 vs 20,040; case 0: 1.7M vs 18M)
   at the same per-node throughput (~19 M nodes/s, machine dependent).
-- **The array solver is a worker pool, not a vectorized frontier** (the design decision of D-667): `alphabeta_solve_array`
-  solves the batch lanes in parallel on a pool of worker threads (one per available CPU) with DYNAMIC dispatch
-  (each worker pulls the next unsolved lane from the work queue — optimal for the 100x solve-cost variance
-  between endgames), each worker running the compiled `_ab_search` DIRECTLY (the per-lane pydantic validation
-  skipped — the batch boundary is the only checked one). The njit search releases the GIL while running, so the
-  wall time is the batch work over the worker count (~8x on this 8-core machine, measured). The lanes are
+- **The array form is a worker pool, not a vectorized frontier** (the design decision of D-667, unified
+  scalar / array API of D-669): the array input of both public solvers runs the batch lanes in parallel on a
+  pool of worker threads (one per available CPU) with DYNAMIC dispatch (each worker pulls the next unsolved
+  lane from the work queue — optimal for the 100x solve-cost variance between endgames), each worker running
+  the compiled search of its engine (`_search` / `_ab_search`) DIRECTLY (the per-lane pydantic validation
+  skipped — the batch boundary is the only checked one; the scalar input keeps the byte-identical direct
+  path, the dispatch is one `isinstance` at the boundary). The njit search releases the GIL while running, so
+  the wall time is the batch work over the worker count (~8x on this 8-core machine, measured). The lanes are
   expected to share the same empty count (the batch precondition, checked up front only when `check_ec=True`);
-  the per-lane result is EXACTLY the scalar `alphabeta_solve` result of that lane (zero new search code — the
+  the per-lane result is EXACTLY the scalar solve result of that lane (zero new search code — the
   D-664/665/666 node-level goldens carry over per lane for free). Scale: the 100 / 1000-lane regab batches
   (the ec=8 positions) solve in ~0.2–0.3 s wall (the 1000-lane batch: 2.3M nodes in 0.22 s, ~10.4 M
   lane-nodes/s — the pool keeps the scalar per-node rate, the lanes just run in parallel). The
@@ -147,9 +149,13 @@ always improves or is a leaf).
   counter, state[1] the current parent_move, saved/restored around each recursive call) instead of
   being a scalar parameter. To be revisited at the next numba upgrade (the scalar form may cache
   fine there).
-- Next: the move-ordered alpha-beta variants of the C reference (the `ev` estimated-value and
-  `rglm` random-legal-move orders). The frontier-vectorized core is parked in ideas.md (the
-  candidate Rust feature, the 1M–10M-batch endgame).
+- Next: the multi-ply evaluation alpha-beta (`alphabeta_eval`): the search descends to the
+  ec-assigned horizon (earlier at the terminal, where the value is the exact WOF one) and the
+  horizon leaf value is the REAL of the chosen evaluation function — the search-based evaluation
+  (the value plus the root best move), a greenfield v2 design (no C reference). The move-ordered
+  variants of the C reference (the `ev` estimated-value and `rglm` random-legal-move orders) and
+  the frontier-vectorized core are parked (the latter in ideas.md, the candidate Rust feature for
+  the 1M–10M-batch endgame).
 
 ## Conventions
 

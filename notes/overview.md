@@ -64,25 +64,17 @@ define the evaluation function.
   distribution over the legal-move set); develop a statistical validation method for the assignment of these
   probabilities.
 - The ENDGAME-SOLVER campaign: port the endgame\_solver program (the ANSI C code of the legacy Reversi repository) into
-  reversi-v2. The scalar `minimax_solve` is in and COMPILED (the single njit `_search` over the four public per-lane
-  kernels of board.py — traced and untraced — ~19 M nodes/s flat (machine dependent) across the ffo-01-simplified 0–5
-  series, the 18M-node case 0 in ~0.95 s; the trace is the typed-list sink inside the compiled search; `cache=True`
-  restored — the numba 0.68 cache-loader segfault is dodged by carrying parent\_move in the 2-element shared state array
-  instead of a 7th scalar parameter, the warm-cache suite is ~12 s) and the game tree is GamePosition-only (the user's
-  field decision) — cross-validated on the 0–8 series (the solve cases all, the node-by-node trace on 4–8, all on the
-  compiled path) against the C references. The alpha-beta twin `alphabeta_solve` is in (the `_ab_search` compiled twin:
-  the zero-window negamax, the same natural order and strict tie-break, the root window the C ground-node [−66, 66], the
-  per-node window in the 4-element state array) — node-by-node exact against the C alpha-beta logs (the 401 apparent
-  best-move differences of the case-4 trace are a C logging artifact: the C node struct never initializes best\_move at
-  a non-improving node, the log carries the stale value of the previous stack-slot occupant; the v2 records MOVE\_NA
-  there): 9.9x–25x fewer nodes than the minimax (case 4: 2,029 vs 20,040; case 0: 1.7M vs 18M) at the same per-node
-  throughput, same value / final / line; the fixtures also cover three corner cases (the forced first pass, the
-  already-finished game, the wipe-out win before ec=0). The array solver `alphabeta_solve_array` is in on the
-  worker-pool engine (D-667: one thread per CPU, dynamic dispatch, the per-lane fast path on the compiled search, ~8x on
-  this 8-core machine, every lane its scalar result; the frontier-vectorized core parked in ideas.md as the candidate
-  Rust feature; the 100 / 1000-lane regab batches scale it to ~0.2–0.3 s wall with the independent DB goldens). Next:
-  the move-ordered variants (the C `ev` / `rglm` orders); the final high-perf solver is headed to Rust, the v2 numba
-  engine is its reference of correctness.
+  reversi-v2. The scalar `minimax_solve` and its alpha-beta twin `alphabeta_solve` are in and COMPILED (the single njit
+  over the four public per-lane kernels of board.py, ~19 M nodes/s, the trace the typed-list sink inside the compiled
+  search) — cross-validated node-by-node against the C references (the ffo-01-simplified 0–8 series; the alpha-beta
+  prunes 9.9x–25x the nodes, same value / final / line; the fixtures also cover the three corner cases). The array
+  solver is unified scalar / array (the board.py idiom, D-669: one function, both forms, the array form on the
+  worker-pool engine — one thread per CPU, dynamic dispatch, ~8x on this 8-core machine, zero cost on the scalar path)
+  with the 100 / 1000-lane regab batches in ~0.2–0.3 s wall against the independent DB goldens; the frontier-vectorized
+  core parked in ideas.md as the candidate Rust feature. Next: the multi-ply evaluation alpha-beta (`alphabeta_eval`):
+  the search descends to the ec-assigned horizon (earlier at the terminal, where the value is the exact WOF one) and the
+  horizon leaf value is the REAL of the chosen evaluation function — the search-based evaluation (the value plus the
+  root best move), a greenfield v2 design (no C reference).
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python
@@ -201,7 +193,7 @@ define the evaluation function.
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_base\_model.py | complete | 9/0/0/0/0 | [docs/test/reversi/test\_base\_model.md](docs/test/reversi/test\_base\_model.md) |
 | test/reversi/test\_board.py | complete | 348/0/18/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
-| test/reversi/test\_endgame\_solver.py | complete | 57/0/0/0/0 (54 + 2 LONG + 3 PERF) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
+| test/reversi/test\_endgame\_solver.py | complete | 61/0/0/0/0 (56 + 2 LONG + 3 PERF) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_game\_position\_database.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_game\_position\_database.md](docs/test/reversi/test\_game\_position\_database.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |

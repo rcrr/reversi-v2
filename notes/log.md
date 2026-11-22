@@ -284,3 +284,13 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    the 1000 batch is FASTER than the 100 one: the larger lane pool hides the max-cost-lane tail), both fast tier. Three
    tests: the 100 / 1000 value arrays against the INDEPENDENT DB goldens (the `check_ec=True` gate on both) + the PERF
    throughput printout. The suite is now 1,306 tests, green. (D-668)
+ - The unified scalar / array API (the board.py idiom — the user's consistency call): both public solvers now take a
+   scalar OR an array (one function, both forms) and return the `SolverResult` / `SolverResultArray` accordingly;
+   `alphabeta_solve_array` is removed from the API (subsumed), `minimax_solve` gains the array form for symmetry. The
+   dispatch is one `isinstance` at the boundary — NO performance cost (the scalar path is byte-identical, the array path
+   the unchanged worker pool); the honest costs are formal only (the union return type, the form-dependent `log` /
+   `check_ec` parameters — `log` is scalar-only, the array form raises). The pool machinery is the private
+   `_solve_pool(gps, search, make_state)` shared by both engines (the `_mm_state` / `_ab_state` factories, now shared
+   with the scalar paths). The idiom is in place BEFORE the multi-ply EF step (`alphabeta_eval` inherits the unified
+   contract from day one). Four new contract tests (the form dispatch both engines, the array + `log` raise, the minimax
+   array form of the ten batch 7 lanes against the SAME DB goldens). The suite is now 1,310 tests, green. (D-669)

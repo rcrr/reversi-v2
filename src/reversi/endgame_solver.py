@@ -91,27 +91,30 @@ stack slot. The v2 trace records `MOVE_NA` at such nodes, the only value consist
 search; a node-by-node comparison against the C log therefore skips `best_move` where the v2
 record is `MOVE_NA`.
 
-The array solver (the worker pool)
-----------------------------------
+The unified scalar / array API (the worker pool)
+------------------------------------------------
 
-`alphabeta_solve_array` solves a batch of endgames (one per lane of the `GamePositionArray`) with
-the same exact alpha-beta search, on a pool of worker threads (one per available CPU): each
-worker pulls the next unsolved lane from the work queue and runs the compiled `_ab_search`
-directly (the per-lane pydantic validation is skipped — the batch boundary is the only checked
-one), so the lanes solve in parallel and the wall time is the batch work over the worker count
-(the njit search releases the GIL while running). The lanes are expected to share the same empty
-count (the batch precondition, which keeps the batch on a single search horizon): with
-`check_ec=True` the `uniform_empty_count` check runs up front and a non-uniform batch raises, by
-default (False) the check is skipped and the precondition is the caller's. The result is the
-`SolverResultArray` of parallel arrays (the per-lane game values, final game positions, node /
-leaf counts), each lane exactly the result of the scalar `alphabeta_solve` of that lane.
+Both public solvers take a scalar OR an array (the board.py idiom: one function, both forms): a
+GamePosition scalar gives the `SolverResult` of the direct compiled search (the byte-identical
+scalar path, the `log` trace callback supported), a `GamePositionArray` gives the
+`SolverResultArray` of the worker pool (the `log` callback is the scalar form only and raises on
+the array form). The pool runs the batch lanes in parallel on a pool of worker threads (one per
+available CPU): each worker pulls the next unsolved lane from the work queue and runs the
+compiled search directly (the per-lane pydantic validation is skipped — the batch boundary is
+the only checked one), so the lanes solve in parallel and the wall time is the batch work over
+the worker count (the njit search releases the GIL while running). The lanes are expected to
+share the same empty count (the batch precondition, which keeps the batch on a single search
+horizon): with `check_ec=True` the `uniform_empty_count` check runs up front and a non-uniform
+batch raises, by default (False) the check is skipped and the precondition is the caller's. The
+`SolverResultArray` is the parallel arrays (the per-lane game values, final game positions, node
+/ leaf counts), each lane exactly the result of the scalar solve of that lane.
 """
 
 import os
 import queue
 from dataclasses import dataclass
 from threading import Thread
-from typing import Any, Annotated, Callable, TypeAlias
+from typing import Any, Annotated, Callable, TypeAlias, Union
 
 import numba as nb
 import numpy as np
@@ -127,7 +130,7 @@ from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePositionArra
 
 __all__ = ['OUT_OF_RANGE_DEFEAT_SCORE', 'GameValue', 'GameValueArray', 'NodeRecord',
            'SolverResult', 'SolverResultArray', 'minimax_solve', 'alphabeta_solve',
-           'alphabeta_solve_array', 'uniform_empty_count']
+           'uniform_empty_count']
 
 
 #: Represents a reversi game value from -64 to +64 as an numpy.int8 scalar.
@@ -331,88 +334,191 @@ def _ab_search(mover, opponent, player, level, records, state):
     return best_value, best_fm, best_fo, best_fp, nodes, leafs
 
 
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def minimax_solve(gp: GamePositionField, log: Callable[[NodeRecord], None] | None = None) -> SolverResult:
-    """
-    Solve the endgame exactly with a depth-first minimax (see the module docstring for the search
-    contract) and return the game value, the final game position of the best line, and the node /
-    leaf counts.
-
-    Args:
-        gp: the game position to solve (scalar only).
-        log: optional callable, invoked with the `NodeRecord` of every visited node (in
-            completion order, replayed when the search completes — see the "The trace" section of
-            the module docstring).
-
-    Returns:
-        The SolverResult of the search.
-    """
+def _mm_state():
+    """The 2-element minimax state: the visit counter and the parent move (the root's MOVE_UN)."""
     state = np.zeros(2, dtype=np.int64)
     state[1] = MOVE_UN
-    if log is None:
-        value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
-                                                  1, None, state)
-    else:
-        # The trace sink: the typed list of the 6-int node records, filled by the compiled
-        # search at each node exit, replayed to the callback when the search completes.
-        records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
-        value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
-                                                  1, records, state)
-        for rec in records:
-            log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
-    return SolverResult(game_value=GameValue(value),
-                        final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
-                                                               Player(fp)),
-                        nodes=nodes, leafs=leafs)
+    return state
 
 
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def alphabeta_solve(gp: GamePositionField, log: Callable[[NodeRecord], None] | None = None) -> SolverResult:
+def _ab_state():
     """
-    Solve the endgame exactly with a depth-first alpha-beta search (the zero-window negamax with
-    the natural move order of `minimax_solve`; see the "The alpha-beta search" section of the
-    module docstring) and return the game value, the final game position of the best line, and
-    the node / leaf counts (smaller than the minimax ones: the pruned subtrees are never
-    visited).
-
-    Args:
-        gp: the game position to solve (scalar only).
-        log: optional callable, invoked with the `NodeRecord` of every visited node (in
-            completion order, replayed when the search completes — see "The trace" section of the
-            module docstring; at a cutoff node the record value is the search bound).
-
-    Returns:
-        The SolverResult of the search.
+    The 4-element alpha-beta state: the minimax pair plus the C ground-node root window [-66, 66]
+    (the game-value range lies strictly inside it, the root value is exact).
     """
     state = np.zeros(4, dtype=np.int64)
     state[1] = MOVE_UN
-    # The C game-tree stack ground node is initialized with the out-of-range sentinels on both
-    # sides, so the root window is [-66, 66]: the game-value range lies strictly inside it and
-    # the root value is exact.
     state[2] = OUT_OF_RANGE_DEFEAT_SCORE
     state[3] = -OUT_OF_RANGE_DEFEAT_SCORE
-    if log is None:
-        value, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
-                                                     1, None, state)
-    else:
-        # The trace sink: the typed list of the 6-int node records, filled by the compiled
-        # search at each node exit, replayed to the callback when the search completes.
-        records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
-        value, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
-                                                     1, records, state)
-        for rec in records:
-            log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
-    return SolverResult(game_value=GameValue(value),
-                        final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
-                                                               Player(fp)),
-                        nodes=nodes, leafs=leafs)
+    return state
+
+
+def _solve_pool(gps, search, make_state):
+    """
+    The worker-pool array engine shared by the public solvers: one thread per available CPU pulls
+    the next unsolved lane from the work queue (the dynamic dispatch, optimal for the solve-cost
+    variance between endgames) and runs the compiled `search` on it — the per-lane pydantic
+    validation skipped, the batch boundary the only checked one — filling the pre-allocated
+    per-lane result slots. The njit search releases the GIL while running, so the wall time is
+    the batch work over the worker count. Returns the six result arrays (the values, the final
+    mover / opponent / player, the node / leaf counts).
+    """
+    n = gps.shape[0]
+    values = np.empty(n, dtype=GameValue)
+    fm = np.empty(n, dtype=Bitboard)
+    fo = np.empty(n, dtype=Bitboard)
+    fp = np.empty(n, dtype=Player)
+    nodes = np.empty(n, dtype=np.int64)
+    leafs = np.empty(n, dtype=np.int64)
+    if not n:
+        return values, fm, fo, fp, nodes, leafs
+    movers = gps['mover']
+    opponents = gps['opponent']
+    players = gps['player']
+
+    def solve_lane(i):
+        # The fast path: the compiled search directly (no per-lane pydantic).
+        state = make_state()
+        v, f_m, f_o, f_p, nd, lf = search(movers[i], opponents[i], players[i], 1, None, state)
+        values[i] = GameValue(v)
+        fm[i] = f_m
+        fo[i] = f_o
+        fp[i] = f_p
+        nodes[i] = nd
+        leafs[i] = lf
+
+    work = queue.Queue()
+    for i in range(n):
+        work.put(i)
+    errors = []
+
+    def worker():
+        while True:
+            try:
+                i = work.get_nowait()
+            except queue.Empty:
+                return
+            try:
+                solve_lane(i)
+            except BaseException as e:  # surface the lane error at the batch boundary
+                errors.append(e)
+
+    threads = [Thread(target=worker) for _ in range(min(n, os.cpu_count() or 1))]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    if errors:
+        raise errors[0]
+    return values, fm, fo, fp, nodes, leafs
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def minimax_solve(gp: Union[GamePositionField, GamePositionArray],
+                  log: Callable[[NodeRecord], None] | None = None,
+                  check_ec: bool = False) -> Union[SolverResult, SolverResultArray]:
+    """
+    Solve the endgame(s) exactly with a depth-first minimax (see the module docstring for the
+    search contract), scalar or array (the board.py idiom: one function, both forms). A
+    GamePosition scalar gives the SolverResult of the direct compiled search; a GamePositionArray
+    gives the SolverResultArray of the worker pool (one thread per CPU, the dynamic dispatch,
+    every lane exactly its scalar result).
+
+    Args:
+        gp: the game position (scalar) or the game position array (one endgame per lane) to solve.
+        log: optional callable, invoked with the `NodeRecord` of every visited node (in
+            completion order, replayed when the search completes — see the "The trace" section of
+            the module docstring). The scalar form only: the array form raises.
+        check_ec: array form only (the scalar form ignores it): verify the uniform-empty-count
+            batch precondition up front (default False).
+
+    Returns:
+        The SolverResult of the scalar solve, or the SolverResultArray of the batch.
+    """
+    if isinstance(gp, np.void):
+        state = _mm_state()
+        if log is None:
+            value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
+                                                      1, None, state)
+        else:
+            # The trace sink: the typed list of the 6-int node records, filled by the compiled
+            # search at each node exit, replayed to the callback when the search completes.
+            records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
+            value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
+                                                      1, records, state)
+            for rec in records:
+                log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
+        return SolverResult(game_value=GameValue(value),
+                            final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
+                                                                   Player(fp)),
+                            nodes=nodes, leafs=leafs)
+    if log is not None:
+        raise ValueError('The log callback is the scalar form only (one trace per solve).')
+    if check_ec:
+        uniform_empty_count(gp)
+    values, fm, fo, fp, nodes, leafs = _solve_pool(gp, _search, _mm_state)
+    return SolverResultArray(game_values=values,
+                             final_game_positions=make_game_position(fm, fo, fp),
+                             nodes=nodes, leafs=leafs)
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def alphabeta_solve(gp: Union[GamePositionField, GamePositionArray],
+                    log: Callable[[NodeRecord], None] | None = None,
+                    check_ec: bool = False) -> Union[SolverResult, SolverResultArray]:
+    """
+    Solve the endgame(s) exactly with a depth-first alpha-beta search (the zero-window negamax
+    with the natural move order of `minimax_solve`; see the "The alpha-beta search" section of
+    the module docstring), scalar or array (the board.py idiom: one function, both forms). A
+    GamePosition scalar gives the SolverResult of the direct compiled search (the node / leaf
+    counts smaller than the minimax ones: the pruned subtrees are never visited); a
+    GamePositionArray gives the SolverResultArray of the worker pool (one thread per CPU, the
+    dynamic dispatch, every lane exactly its scalar result).
+
+    Args:
+        gp: the game position (scalar) or the game position array (one endgame per lane) to solve.
+        log: optional callable, invoked with the `NodeRecord` of every visited node (in
+            completion order, replayed when the search completes — see "The trace" section of the
+            module docstring; at a cutoff node the record value is the search bound). The scalar
+            form only: the array form raises.
+        check_ec: array form only (the scalar form ignores it): verify the uniform-empty-count
+            batch precondition up front (default False).
+
+    Returns:
+        The SolverResult of the scalar solve, or the SolverResultArray of the batch.
+    """
+    if isinstance(gp, np.void):
+        state = _ab_state()
+        if log is None:
+            value, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
+                                                         1, None, state)
+        else:
+            # The trace sink: the typed list of the 6-int node records, filled by the compiled
+            # search at each node exit, replayed to the callback when the search completes.
+            records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
+            value, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
+                                                         1, records, state)
+            for rec in records:
+                log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
+        return SolverResult(game_value=GameValue(value),
+                            final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
+                                                                   Player(fp)),
+                            nodes=nodes, leafs=leafs)
+    if log is not None:
+        raise ValueError('The log callback is the scalar form only (one trace per solve).')
+    if check_ec:
+        uniform_empty_count(gp)
+    values, fm, fo, fp, nodes, leafs = _solve_pool(gp, _ab_search, _ab_state)
+    return SolverResultArray(game_values=values,
+                             final_game_positions=make_game_position(fm, fo, fp),
+                             nodes=nodes, leafs=leafs)
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def uniform_empty_count(gps: GamePositionArray) -> int:
     """
     Check that all the game positions of the array share the same empty count and return it (the
-    batch precondition of `alphabeta_solve_array`: a uniform empty count keeps the batch on a
+    batch precondition of the array form of the solvers: a uniform empty count keeps the batch on a
     single search horizon).
 
     Args:
@@ -432,85 +538,3 @@ def uniform_empty_count(gps: GamePositionArray) -> int:
         detail = ", ".join(f"ec={u} on {c} lane(s)" for u, c in zip(unique, counts))
         raise ValueError(f"Non-uniform empty counts: {detail}.")
     return int(ecs[0])
-
-
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def alphabeta_solve_array(gps: GamePositionArray, check_ec: bool = False) -> SolverResultArray:
-    """
-    Solve a batch of endgames exactly with the alpha-beta search, one lane per game position, on a
-    pool of worker threads (one per available CPU): each worker pulls the next unsolved lane from
-    the work queue and runs the compiled `_ab_search` on it (the same exact search as
-    `alphabeta_solve`, the per-lane pydantic validation skipped — the batch boundary is the only
-    checked one), so the lanes solve in parallel and the wall time is the batch work over the
-    worker count.
-
-    The lanes are expected to share the same empty count (the batch precondition): with
-    `check_ec=True` the `uniform_empty_count` check runs up front and a non-uniform batch raises;
-    by default (False) the check is skipped and the precondition is the caller's.
-
-    Args:
-        gps: the game position array to solve (one endgame per lane).
-        check_ec: whether to verify the uniform-empty-count precondition up front (default False).
-
-    Returns:
-        The SolverResultArray of the batch: the per-lane game values, final game positions, and
-        node / leaf counts — each lane exactly the result of the scalar `alphabeta_solve` of that
-        lane.
-    """
-    if check_ec:
-        uniform_empty_count(gps)
-    n = gps.shape[0]
-    movers = gps['mover']
-    opponents = gps['opponent']
-    players = gps['player']
-    # The per-lane result slots, filled by the workers.
-    values = np.empty(n, dtype=GameValue)
-    fm = np.empty(n, dtype=Bitboard)
-    fo = np.empty(n, dtype=Bitboard)
-    fp = np.empty(n, dtype=Player)
-    nodes = np.empty(n, dtype=np.int64)
-    leafs = np.empty(n, dtype=np.int64)
-
-    def solve_lane(i):
-        # The fast path: the compiled search directly (no per-lane pydantic), the C ground-node
-        # root window.
-        state = np.zeros(4, dtype=np.int64)
-        state[1] = MOVE_UN
-        state[2] = OUT_OF_RANGE_DEFEAT_SCORE
-        state[3] = -OUT_OF_RANGE_DEFEAT_SCORE
-        v, f_m, f_o, f_p, nd, lf = _ab_search(movers[i], opponents[i], players[i], 1, None, state)
-        values[i] = GameValue(v)
-        fm[i] = f_m
-        fo[i] = f_o
-        fp[i] = f_p
-        nodes[i] = nd
-        leafs[i] = lf
-
-    if n:
-        work = queue.Queue()
-        for i in range(n):
-            work.put(i)
-        errors = []
-
-        def worker():
-            while True:
-                try:
-                    i = work.get_nowait()
-                except queue.Empty:
-                    return
-                try:
-                    solve_lane(i)
-                except BaseException as e:  # surface the lane error at the batch boundary
-                    errors.append(e)
-
-        threads = [Thread(target=worker) for _ in range(min(n, os.cpu_count() or 1))]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
-        if errors:
-            raise errors[0]
-
-    return SolverResultArray(game_values=values,
-                             final_game_positions=make_game_position(fm, fo, fp),
-                             nodes=nodes, leafs=leafs)
