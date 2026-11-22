@@ -71,14 +71,16 @@ define the evaluation function.
   solver is unified scalar / array (the board.py idiom, D-669: one function, both forms, the array form on the
   worker-pool engine — one thread per CPU, dynamic dispatch, ~8x on this 8-core machine, zero cost on the scalar path)
   with the 100 / 1000-lane regab batches in ~0.2–0.3 s wall against the independent DB goldens; the frontier-vectorized
-  core parked in ideas.md as the candidate Rust feature. Next: the multi-ply evaluation alpha-beta (`alphabeta_eval`,
-  currently PAUSED): the search descends to the ec-assigned horizon (earlier at the terminal, where the value is the
-  exact WOF one) and the horizon leaf value is the REAL of the chosen evaluation function — the search-based evaluation
-  (the value plus the root best move), a greenfield v2 design (no C reference); the EF Y output range contract is
-  documented (D-670: NO clip, the values beyond ±64 are the confidence excess, the search window derived from
-  `logit_clipping`); the rebuildable LM fixture mechanism is in place with the FULL five-member depth ladder on disk
-  (D-671 the ec20 member, D-672 the replication to ec19…ec16 — positions at A = ec20 over models at B = ec20…16 → depths
-  0…4, tier-agnostic consumers).
+  core parked in ideas.md as the candidate Rust feature. Next: the multi-ply evaluation alpha-beta (UNFROZEN — D-674
+  stage 1 done: the compiled EF leaf in `reversi/lm/multi_ply_ef.py`, the measured parity contract: indexes bit-exact,
+  the leaf within 8e-6 of the client EF; D-675 next: the float32 alpha-beta + the public `make_evaluation_function(mw)`
+  factory + the depth-ladder tests over the five fixtures): the search descends to the ec-assigned horizon (earlier at
+  the terminal, where the value is the exact WOF one) and the horizon leaf value is the REAL of the chosen evaluation
+  function — the search-based evaluation (the value plus the root best move), a greenfield v2 design (no C reference);
+  the EF Y output range contract is documented (D-670: NO clip, the values beyond ±64 are the confidence excess, the
+  search window derived from `logit_clipping`); the rebuildable LM fixture mechanism is in place with the FULL
+  five-member depth ladder on disk (D-671 the ec20 member, D-672 the replication to ec19…ec16 — positions at A = ec20
+  over models at B = ec20…16 → depths 0…4, tier-agnostic consumers).
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python
@@ -122,6 +124,7 @@ define the evaluation function.
 | src/reversi/lm/hlp\_zed.py | complete | [docs/src/reversi/lm/hlp\_zed.md](docs/src/reversi/lm/hlp\_zed.md) |
 | src/reversi/lm/logistic\_model.py | complete | [docs/src/reversi/lm/logistic\_model.md](docs/src/reversi/lm/logistic\_model.md) |
 | src/reversi/lm/model\_weights.py | complete | [docs/src/reversi/lm/model\_weights.md](docs/src/reversi/lm/model\_weights.md) |
+| src/reversi/lm/multi\_ply\_ef.py | D-674 stage 1 (the compiled EF leaf) | [docs/src/reversi/lm/multi\_ply\_ef.md](docs/src/reversi/lm/multi\_ply\_ef.md) |
 | src/reversi/lm/wrk\_analytics.py | complete | [docs/src/reversi/lm/wrk\_analytics.md](docs/src/reversi/lm/wrk\_analytics.md) |
 | src/reversi/lm/wrk\_anova.py | complete | [docs/src/reversi/lm/wrk\_anova.md](docs/src/reversi/lm/wrk\_anova.md) |
 | src/reversi/lm/wrk\_client\_check.py | complete | [docs/src/reversi/lm/wrk\_client\_check.md](docs/src/reversi/lm/wrk\_client\_check.md) |
@@ -175,6 +178,7 @@ define the evaluation function.
 | test/reversi/lm/test\_lm\_worker\_full\_chain.py | complete | 10/0/1/0/1 | [docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md](docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md) |
 | test/reversi/lm/test\_logistic\_model.py | complete | 31/0/0/0/0 | [docs/test/reversi/lm/test\_logistic\_model.md](docs/test/reversi/lm/test\_logistic\_model.md) |
 | test/reversi/lm/test\_model\_weights.py | complete | 5/0/0/0/0 | [docs/test/reversi/lm/test\_model\_weights.md](docs/test/reversi/lm/test\_model\_weights.md) |
+| test/reversi/lm/test\_multi\_ply\_ef.py | D-674 stage 1 | 4/0/0/0/0 | [docs/test/reversi/lm/test\_multi\_ply\_ef.md](docs/test/reversi/lm/test\_multi\_ply\_ef.md) |
 | test/reversi/lm/test\_wrk\_analytics.py | complete | 20/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_analytics.md](docs/test/reversi/lm/test\_wrk\_analytics.md) |
 | test/reversi/lm/test\_wrk\_anova.py | complete | 7/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_anova.md](docs/test/reversi/lm/test\_wrk\_anova.md) |
 | test/reversi/lm/test\_wrk\_client\_check.py | complete | 7/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_client\_check.md](docs/test/reversi/lm/test\_wrk\_client\_check.md) |

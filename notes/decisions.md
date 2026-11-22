@@ -571,3 +571,21 @@ D-673 | 2026-11-22 | The direct not-existing-fixture gate test. The user's revie
          missing state is the real one (the name is never built, on any machine). The build command itself is documented
          in four places (the `fixtures.py` module docstring, the mirror doc, every config JSON's description field, the
          notes) — confirmed by the same review. 13 tests, green. No production code changed.
+
+D-674 | 2026-11-22 | The multi-ply EF, stage 1: the compiled EF leaf kernel + the per-model index plan (the module is
+         unfrozen — the D-670 range contract + the D-671/672 fixture set cleared the way). `reversi/lm/multi_ply_ef.py`
+         carries: `prepare_multi_ply_plan(mw)` (the 17-tuple: the client's `expanded_offsets` + the z2y affine a1/b1
+         (the EXACT `hlp_zed` formula) + the intercept flag + the mobility masks/sides + the 11 pattern-block arrays)
+         and the two private njit kernels — `_ef_leaf_indexes` (the SAME njit index pipeline the client EF uses: the
+         anti-transformations + the mobility + the principal-indexes kernels inlined, the pydantic wrapper removed) and
+         `_ef_leaf_value` (index row + f32 gather + SEQUENTIAL f32 sum + the scipy piecewise f32 expit + the z2y
+         affine). The parity contract, refined with measurements (not vibes): the INDEXES are bit-exact (same kernels —
+         pinned by `assert_array_equal`); the depth-0 anchor (A == B) will be bit-exact BY DELEGATION to the client EF
+         (D-675); the search leaf is deterministic and within a measured bound of the client EF — the numpy pairwise sum
+         vs the sequential f32 sum was measured at <= 409 ulp on the linear predictor, and the D-674 run on 100
+         fixture-ec16 playout positions shows the real margin: max 8e-6 in Y, mean 6.5e-7, 85/100 positions bit-equal —
+         the test bound 0.05 is a drift detector 6000× above the measurement. The 4 tests (no DB: the fixture ec16 model
+         + 100 seeded playout positions) are green in 0.7 s. D-675 next: the float32 alpha-beta search (the
+         endgame-solver discipline: zero-window, static bsf order, strict tie-break, the C root window ±66 — the R =
+         64/(1−2c) + margin of D-670) + the public `make_evaluation_function(mw)` factory + the depth-ladder tests over
+         the five fixtures.

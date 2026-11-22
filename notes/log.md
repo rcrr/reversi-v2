@@ -332,3 +332,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    `RuntimeError`, the message checked for the exact build command + the missing model path, NO mock (the name is never
    built, on any machine). The build command is documented in four places (the `fixtures.py` docstring, the mirror doc,
    every config description, the notes) — confirmed by the same review. 13 tests, green. (D-673)
+ - The multi-ply EF unfroze — stage 1 (the compiled EF leaf): reversi/lm/`multi_ply_ef`.py landed with
+   `prepare_multi_ply_plan` (the 17-tuple: the client's `expanded_offsets` + the z2y affine a1/b1 + the mobility + the
+   pattern-block prepared arrays) and the two njit kernels — `_ef_leaf_indexes` (the client's njit index pipeline inlined,
+   bit-exact) and `_ef_leaf_value` (gather + sequential f32 sum + the scipy piecewise f32 expit + the z2y affine). The
+   parity contract was refined with measurements: the numpy pairwise sum vs the sequential f32 sum is <= 409 ulp on the
+   linear predictor; on 100 fixture-ec16 playout positions the real margin is max 8e-6 in Y (85/100 bit-equal) — the
+   test bound 0.05 is a drift detector 6000× above. 4 tests green in 0.7 s (no DB). D-675 next: the float32 alpha-beta +
+   the public factory + the depth-ladder tests over the five fixtures. (D-674)

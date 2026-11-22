@@ -124,6 +124,7 @@ MODULES=(
     test.reversi.lm.test_model_weights
     test.reversi.lm.test_wrk_save
     test.reversi.lm.test_client
+    test.reversi.lm.test_multi_ply_ef
     test.reversi.lm.test_wrk_client_check
     test.reversi.lm.test_hlp_plot
     test.reversi.lm.test_wrk_plot
