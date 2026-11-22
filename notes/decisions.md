@@ -620,3 +620,8 @@ D-676 | 2026-11-22 | R-540 compliance for the multi-ply EF: all the D-XXX proven
          number dropped; the `#` code comments already carried none. The mirror docs keep their D references (docs are
          not bound by R-540). The fixture files were checked and were already clean. Docstring-only change: 18 tests
          green.
+
+D-677 | 2026-11-22 | Overview: the ENDGAME-SOLVER and the MULTI-PLY campaigns are complete (for now) — their two
+         Next-steps entries were removed and replaced by a single composed Current-state entry (the ported/compiled
+         endgame solver + the multi-ply evaluation function extending the LM pipeline). Next steps now open with
+         MOVE-PROB.

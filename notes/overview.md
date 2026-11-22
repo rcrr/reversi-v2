@@ -53,36 +53,16 @@ define the evaluation function.
   at the argument / `cfg.target_level` / the last step.
 - A LaTeX book describing the work exists as an acceptable draft in the `latex/` zone; the PDF is generated with
   `make -C latex latex`.
+- The ENDGAME solver is ported and compiled (the scalar / array minimax + alpha-beta over the board.py per-lane kernels,
+  cross-validated against the C references and the DB goldens); the MULTI-PLY evaluation function
+  (`reversi/lm/multi_ply_ef.py`, `make_evaluation_function`) extends the LM pipeline: the alpha-beta search descends to
+  the model's ec horizon, the EF as the horizon leaf (18 tests, the five-member depth ladder).
 
 ## Next steps
 
-- The MULTI-PLY campaign: the current EF is zero-ply; develop the N-ply game expansion (the alpha-beta search over the
-  EF) delivering an evaluation based on a game tree search; evaluate the statistical properties of the resulting
-  function. Step 1 is in: the `GamePosition` entity in `board.py` (the Position + the player to move, the 65-char string
-  form) and the `game_position_database` reader (the gpdb text format, the C loader port).
 - The MOVE-PROB campaign: develop an algorithm that assigns each legal move a probability of being the best move (a
   distribution over the legal-move set); develop a statistical validation method for the assignment of these
   probabilities.
-- The ENDGAME-SOLVER campaign: port the endgame\_solver program (the ANSI C code of the legacy Reversi repository) into
-  reversi-v2. The scalar `minimax_solve` and its alpha-beta twin `alphabeta_solve` are in and COMPILED (the single njit
-  over the four public per-lane kernels of board.py, ~19 M nodes/s, the trace the typed-list sink inside the compiled
-  search) — cross-validated node-by-node against the C references (the ffo-01-simplified 0–8 series; the alpha-beta
-  prunes 9.9x–25x the nodes, same value / final / line; the fixtures also cover the three corner cases). The array
-  solver is unified scalar / array (the board.py idiom, D-669: one function, both forms, the array form on the
-  worker-pool engine — one thread per CPU, dynamic dispatch, ~8x on this 8-core machine, zero cost on the scalar path)
-  with the 100 / 1000-lane regab batches in ~0.2–0.3 s wall against the independent DB goldens; the frontier-vectorized
-  core parked in ideas.md as the candidate Rust feature. Next: the multi-ply evaluation alpha-beta (DONE — D-674 the
-  compiled EF leaf + D-675 the float32 alpha-beta + the public `make_evaluation_function(mw)` factory in
-  `reversi/lm/multi_ply_ef.py`: the search descends to the ec-assigned horizon (earlier at the terminal, where the value
-  is the exact WOF one), the horizon leaf value is the REAL of the chosen evaluation function — the search-based
-  evaluation, value-only in v1 (the root best move / the move-ordered variants are deferred), a greenfield v2 design (no
-  C reference); the serial leaf transcription is 170-190x faster than the batch kernels at N=1, the depth-0 anchor is
-  bit-exact by delegation, depths 1-2 pinned vs the independent minimax oracle); the EF Y output range contract is
-  documented (D-670: NO clip, the values beyond ±64 are the confidence excess, the search window derived from
-  `logit_clipping`); the rebuildable LM fixture mechanism is in place with the FULL five-member depth ladder on disk
-  (D-671 the ec20 member, D-672 the replication to ec19…ec16 — positions at A = ec20 over models at B = ec20…16 → depths
-  0…4, tier-agnostic consumers). After this: the campaign backlog (the C `ev`/`rglm` move-ordered variants, explicitly
-  deferred; the Rust high-perf solver, I-023).
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python

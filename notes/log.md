@@ -354,3 +354,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    reversi/lm/`multi_ply_ef`.py and its tests (rules.md R-540: no D-XXX provenance in docstrings). 16 references removed
    (7 module + 9 test) - each rewritten as a plain design summary with the number dropped; the # code comments already
    carried none. The fixture files checked clean. Docstring-only: 18 tests green. (D-676)
+ - Overview updated (user-approved): the ENDGAME-SOLVER + MULTI-PLY campaign entries left the Next steps (both complete)
+   — a single composed 3-line entry joined them in the Current state. (D-677)
+
