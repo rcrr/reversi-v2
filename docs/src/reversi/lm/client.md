@@ -66,6 +66,10 @@ full-chain suite + `test_client`.
 - N-D C-order parity (D-422): an N-D structured batch (2-D and 3-D, including a strided 2-D view) ravels bit-exactly
   to the 1-D ravel result, and the output keeps the input shape (the (0, N) and (K, 0) empty edges keep their
   shapes) — test_client::test_2d_structured_corder_parity / test_3d_structured_corder_parity.
+- Output range contract (D-670): every EF output lies in [−64/(1−2c), 64/(1−2c)] (c = `mw.logit_clipping`, the
+  affine image of the FULL sigmoid range — NO clip anywhere in the chain) and the seeded 1000-position batch
+  deterministically produces values BEYOND ±64 (the confidence excess) —
+  test_client::test_output_range_affine_image_with_confidence_excess.
 
 ## Open issues
 
@@ -85,6 +89,11 @@ None.
   0); the client does not re-check.
 - The sigmoid/z2y calls reuse the pipeline's own functions (hlp_gradient / hlp_zed) — the client cannot drift from the
   model's own transforms.
+- The Y output is the affine image of the FULL sigmoid range: values live in [−64/(1−2c), 64/(1−2c)] (±65.31 for
+  c = 0.01) — the values beyond ±64 are the confidence EXCESS, not a score (a design feature: the ~200-model
+  campaign found higher-clipping models perform better, the excess band grading the model's certainty beyond the
+  maximum score). A consumer needing a bounded score clips at its own boundary, knowing it compresses the tail —
+  the client never clips.
 - The u32 arithmetic: expanded_offsets u32 + indexes u32 → u32 (the measured runtime promotion; the gather is a plain
   fancy index into the f32 w_dense).
 

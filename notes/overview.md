@@ -71,10 +71,12 @@ define the evaluation function.
   solver is unified scalar / array (the board.py idiom, D-669: one function, both forms, the array form on the
   worker-pool engine — one thread per CPU, dynamic dispatch, ~8x on this 8-core machine, zero cost on the scalar path)
   with the 100 / 1000-lane regab batches in ~0.2–0.3 s wall against the independent DB goldens; the frontier-vectorized
-  core parked in ideas.md as the candidate Rust feature. Next: the multi-ply evaluation alpha-beta (`alphabeta_eval`):
-  the search descends to the ec-assigned horizon (earlier at the terminal, where the value is the exact WOF one) and the
-  horizon leaf value is the REAL of the chosen evaluation function — the search-based evaluation (the value plus the
-  root best move), a greenfield v2 design (no C reference).
+  core parked in ideas.md as the candidate Rust feature. Next: the multi-ply evaluation alpha-beta (`alphabeta_eval`,
+  currently PAUSED): the search descends to the ec-assigned horizon (earlier at the terminal, where the value is the
+  exact WOF one) and the horizon leaf value is the REAL of the chosen evaluation function — the search-based evaluation
+  (the value plus the root best move), a greenfield v2 design (no C reference); the EF Y output range contract is
+  documented (D-670: NO clip, the values beyond ±64 are the confidence excess, the search window derived from
+  `logit_clipping`).
 - The REGAB campaign: port the REGAB database management (the PL/pgSQL of the legacy Reversi repository) into
   reversi-v2, component by component: position generation (ANSI C) becomes Python (the v2 random\_game code already
   exists, only the DB insert is added); classification generation leaves the v2 DDL (superseded by the dynamic Python
@@ -152,7 +154,7 @@ define the evaluation function.
 | File | State | Suite/std\_run | Doc |
 | --- | --- | --- | --- |
 | test/reversi/closecheck.py | complete | 0/0/0/0/0 | [docs/test/reversi/closecheck.md](docs/test/reversi/closecheck.md) |
-| test/reversi/lm/test\_client.py | complete | 10/0/1/0/0 | [docs/test/reversi/lm/test\_client.md](docs/test/reversi/lm/test\_client.md) |
+| test/reversi/lm/test\_client.py | complete | 11/0/1/0/0 | [docs/test/reversi/lm/test\_client.md](docs/test/reversi/lm/test\_client.md) |
 | test/reversi/lm/test\_hlp\_analytics.py | complete | 8/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_analytics.md](docs/test/reversi/lm/test\_hlp\_analytics.md) |
 | test/reversi/lm/test\_hlp\_anova.py | complete | 18/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_anova.md](docs/test/reversi/lm/test\_hlp\_anova.md) |
 | test/reversi/lm/test\_hlp\_config\_schemas.py | complete | 32/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_config\_schemas.md](docs/test/reversi/lm/test\_hlp\_config\_schemas.md) |

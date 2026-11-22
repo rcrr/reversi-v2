@@ -294,3 +294,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    with the scalar paths). The idiom is in place BEFORE the multi-ply EF step (`alphabeta_eval` inherits the unified
    contract from day one). Four new contract tests (the form dispatch both engines, the array + `log` raise, the minimax
    array form of the ten batch 7 lanes against the SAME DB goldens). The suite is now 1,310 tests, green. (D-669)
+ - The EF Y output range contract — the "bug" that was not a bug: the multi-ply planning surfaced the array EF
+   measuring 65.30 beyond +/-64; the first reading (and a red reproduction test) treated the open window as the defect,
+   but the complete `logit_clipping` review (the `hlp_zed` + `wrk_zed` docs, the latex book) showed NO clip documented anywhere in
+   the inference chain — the clipping lives only structurally in the training targets. The user did the math and
+   re-framed: the values beyond ±64 are the CONFIDENCE EXCESS (how much more certain the model is than the maximum
+   score), and the ~200-model campaign found higher-clipping models perform BETTER (higher c widens the band: ±65.31 at
+   c=0.01, ±80 at c=0.1) — learned, valuable signal. The proposed z2y clip was WITHDRAWN (it would flatten the tail into
+   a ±64 plateau). The red test was converted into the design-pinning test
+   `test_output_range_affine_image_with_confidence_excess` (the bound [−64/(1−2c), 64/(1−2c)] AND the deterministic
+   excess presence) and the contract is now stated explicitly in client.md, `hlp_zed.md` (the [c, 1−c] domain is a
+   property of the training z vector, not of the total z2y inverse) and the latex 080. No production code changed; the
+   frozen multi-ply EF will use the window derived from c, no clip. (D-670)

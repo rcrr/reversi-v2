@@ -21,7 +21,10 @@ level, like CONFIG / FEATURES / ANOVA (no store / load / is_cache_consistent, no
   Conventions).
 - `hlp_zed_fun_factory(logit_clipping)` (validated): `a = float32(0.5)`, `b = float32((1 − 2c)/128)`; `y_to_z(y)`: `y`
   cast to float32, `z = a + y·b` — maps the int8 range [−64, +64] onto [c, 1−c] (c = logit_clipping). `z_to_y(z)`: the
-  EXACT inverse, `a1 = float32(−64/(1 − 2c))`, `b1 = float32(128/(1 − 2c))`, `y = a1 + z·b1`.
+  EXACT inverse, `a1 = float32(−64/(1 − 2c))`, `b1 = float32(128/(1 − 2c))`, `y = a1 + z·b1` — TOTAL on the full
+  (0, 1) sigmoid range, NO clip: the [c, 1−c] domain is a property of the TRAINING targets (the `y_to_z` image of
+  the int8 values), not a constraint of the inverse; applied to an inference prediction ẑ = σ(η) it yields the
+  output range [−64/(1−2c), 64/(1−2c)] (the values beyond ±64 are the confidence excess — see client.md, D-670).
 - `hlp_zed_compute`: NO `@validate_call` (the no-validation note — the hlp_indexes class). Body:
   `alpha = ctx.cfg.stat_model.logit_clipping`; `y2z, z2y = hlp_zed_fun_factory(alpha)`; `y = ctx.game_values`;
   `z = y2z(y)`; returns the object.
@@ -61,8 +64,11 @@ None.
   different hash, so no collision risk today; a future cache would need the clipping in the checksum.
 - The flat-file numbering skips 09 (FEATURES skips 02): the 09/10/11 slots stay unused — GRADIENT and OPTIMIZE are
   non-cache levels (OPTIMIZE writes a config-named checkpoint instead); the next cache level is GENERATE (step 12).
-- z's dtype contract is float32 (pinned in the worker test + 3× in the dedicated test): the values live in [c, 1−c] ⊂
-  (0, 1); the float32 arithmetic is exact for the round-trip within the pinned allclose tolerances (1e-6/1e-7).
+- z's dtype contract is float32 (pinned in the worker test + 3× in the dedicated test): the values of the TRAINING
+  z vector live in [c, 1−c] ⊂ (0, 1) (the affine image of the int8 targets — by construction); the float32
+  arithmetic is exact for the round-trip within the pinned allclose tolerances (1e-6/1e-7). The inference
+  prediction ẑ = σ(η) is NOT in [c, 1−c] — it lives in the full (0, 1), and its z2y image is the open affine
+  range [−64/(1−2c), 64/(1−2c)] (the confidence excess beyond ±64 — client.md, D-670).
 - No `@validate_call` on `hlp_zed_compute` — the TYPE_CHECKING circular-import constraint (the note).
 
 ## Integration

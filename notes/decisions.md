@@ -505,3 +505,25 @@ D-669 | 2026-11-22 | The unified scalar / array API of the public solvers (the b
          engines), the array + `log` raise, and the minimax array form of the ten batch 7 lanes against the SAME
          independent DB goldens (both engines are exact). The docs and the notes follow; the suite is now 1,310 tests,
          green.
+
+D-670 | 2026-11-22 | The EF Y output range contract — the "bug" that was not a bug. The multi-ply EF planning surfaced
+         it: the array EF measured 65.30 on random positions, beyond the +/-64 game-value range. A first reading (Nia's,
+         then the user's "e' un BUG ed e' grave") treated the open window as the defect and a red reproduction test was
+         written (assert |y| <= 64). The complete `logit_clipping` logic review (the `hlp_zed` doc + code, the `wrk_zed`
+         worker doc, the latex book 080/160/200) showed NO clip is documented anywhere in the inference chain — the
+         chain ẑ = σ(η) → z2y is exactly as implemented; the clipping lives only STRUCTURALLY in the training targets
+         (the y2z image of the int8 values is in [c, 1−c] by construction). The user then did the math and re-framed: Y
+         is a probabilistic estimate — the values beyond ±64 are the CONFIDENCE EXCESS (how much more certain the model
+         is than the maximum score), and the ~200-model campaign found higher-clipping models perform BETTER (higher c
+         widens the expressible band: ±65.31 at c = 0.01, ±80 at c = 0.1) — the excess band is learned, valuable signal.
+         The proposed z2y clip was therefore WITHDRAWN (a monotone clip would flatten the tail into a ±64 plateau,
+         destroying the magnitude the campaign values). The red test was CONVERTED into the design-pinning test
+         `test_client::test_output_range_affine_image_with_confidence_excess`: every output of the seeded 1000-position
+         batch lies in [−64/(1−2c), 64/(1−2c)] (the affine image of the FULL sigmoid range — would catch a future clip
+         or an affine-constant drift) AND the batch deterministically produces values beyond ±64 (the excess presence —
+         would catch a future regression in the other direction). The docs state the contract explicitly where the
+         ambiguity lived: client.md (the convention + the invariant), `hlp_zed.md` (the [c, 1−c] domain is a property of
+         the TRAINING z vector, NOT a constraint of the total z2y inverse), the latex 080 (the native ẑ output lives in
+         the full (0,1); a consumer needing a bounded score clips at its own boundary). Consequence for the frozen
+         multi-ply EF: no clip anywhere, the search window derived from c (R = 64/(1−2c) + margin). No production code
+         changed.

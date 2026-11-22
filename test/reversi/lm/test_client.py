@@ -114,6 +114,23 @@ class TestClientEvaluationFunction(unittest.TestCase):
         y_scalar = np.array([self.ef(p) for p in positions])
         np.testing.assert_array_equal(y_array, y_scalar)
 
+    def test_output_range_affine_image_with_confidence_excess(self):
+        """
+        The EF output range is the affine image of the FULL sigmoid range (the design contract,
+        NO clip anywhere): every value lies in [-64/(1-2c), 64/(1-2c)] (the float32 saturated
+        sigmoid reaches the bound: +/-65.31 for c = 0.01), and the values BEYOND +/-64 are the
+        confidence excess, not a score — a design feature, not a bug (the ~200-model campaign
+        found higher-clipping models perform better: the excess band grades how much more
+        certain the model is than the maximum score). A consumer needing a bounded score clips
+        at its own boundary, knowing it compresses the tail. Both halves pinned: the bound and
+        the excess presence (the seeded batch deterministically produces it).
+        """
+        c = 0.01  # the SYNTH_RLM04 logit clipping
+        bound = 64.0 / (1 - 2 * c)
+        y = self.ef_array(self._positions(1000))
+        self.assertLessEqual(float(np.abs(y).max()), bound + 1e-3)
+        self.assertGreater(int((np.abs(y) > 64).sum()), 0)
+
     def test_u64_coercion(self):
         """
         A (N, 2) uint64 array is coerced by the PositionArray validator to the same result as the

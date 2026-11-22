@@ -54,6 +54,16 @@ La funzione di valutazione finale $\hat{z}$ è ottenuta applicando la trasformaz
   \hat{z} = \sigma(\eta(b)) = \frac{1}{1 + e^{-\eta(b)}}
 \end{equation}
 
+L'output nativo $\hat{z}$ vive nell'intervallo pieno $(0, 1)$, NON in $[\alpha, 1-\alpha]$:
+la restrizione al sotto-intervallo vale solo per i \emph{target} $z_i$ (per costruzione,
+essendo immagine affina dei valori interi $[-64, 64]$). Ri-mappato con l'inversa affine
+\texttt{z2y}, l'output del modello vive quindi in
+$[-\frac{64}{1-2\alpha},\, +\frac{64}{1-2\alpha}]$: i valori oltre $\pm 64$ non sono un
+errore, ma l'\emph{eccesso di confidenza} — la misura di quanto il modello è certo oltre il
+massimo punteggio raggiungibile (con $\alpha = 0.01$ la fascia è $\pm 65.31$, con
+$\alpha = 0.1$ è $\pm 80$). Un consumatore che richieda un punteggio bounded applica il
+clip al proprio confine, a sua conoscenza: la catena di inference non clippa mai.
+
 \section{Definizione del Target della Minimizzazione}
 
 Per determinare l'insieme ottimale dei pesi $w$, il processo di apprendimento supervisionato mira a minimizzare lo scarto tra le predizioni del modello e i risultati reali contenuti nel dataset $\mathcal{D}$.
