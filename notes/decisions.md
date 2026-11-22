@@ -452,3 +452,26 @@ D-666 | 2026-11-22 | Per the user's request, three corner-case GamePositions joi
          (the `--` line entries replay as the player-swap move, which `game_position_make_move` already supports); six
          new tests (three per fixture), the 4.9M-node wipe-out minimax in ~0.25 s (fast tier, untagged). The test doc
          and the notes follow; the suite is now 1,297 tests, green.
+
+D-667 | 2026-11-22 | The vectorized array solver, engine B (the worker pool) — the user's question "does the frontier
+         vectorization pay?" decided with an analysis and the user's 100% agreement. The honest estimate for the
+         frontier-vectorized core (A) in NUMBA is 1.5–4x single-core, because the irregular mask/gather/cutoff control
+         flow is exactly what LLVM does not auto-vectorize (only the regular per-lane kernels do); the worker pool (B)
+         over the battle-tested scalar `_ab_search` gives ~8x on this 8-core machine with ZERO new search code (every
+         lane is its scalar result — the D-664/665/666 node-level goldens carry over per lane for free), dynamic
+         dispatch optimal for the 100x solve-cost variance, and it is the better ORDER: A remains available later as an
+         engine upgrade behind the same API (and the true vectorized payoff lives in the Rust port, where A is the
+         batched design for the 1M–10M-position datasets, run in 1k–10k-lane batches parallelized worker-pool style).
+         Milestone 1 (the GIL check): 8 threads x njit scale (65.8x on the 10-task set — the njit search releases the
+         GIL while running). Built: `SolverResultArray` (parallel arrays: the GameValueArray values, the
+         GamePositionArray finals, the int64 node / leaf counts — the "group of arrays" shape, not an array of result
+         objects), `uniform_empty_count` (the batch precondition check, the distinct counts named in the raise), and
+         `alphabeta_solve_array(gps, check_ec=False)` (the worker pool: one thread per CPU, the work queue of lane
+         indices, the per-lane FAST PATH calling the compiled `_ab_search` directly — the pydantic validation only at
+         the batch boundary, the lane errors surfaced at the boundary, the per-lane result slots pre-allocated). Tests
+         (6): the ten ec=8 lanes of the `regab_prng_gp` batch 7 (the user's set, the bitboards as the DB signed
+         integers) against the INDEPENDENT DB game-value goldens [14, 22, 0, 2, 8, −8, −6, 28, −48, −22] — which also
+         cross-validates the scalar solver against the C/REGAB database on that set — plus the per-lane scalar parity
+         (value, final, node / leaf counts), the mixed corner batch (the forced pass, the finished game, the wipe-out, a
+         plain lane), the empty batch, and the `uniform_empty_count` / `check_ec` gate. A is parked in ideas.md. The
+         docs and the notes follow; the suite is now 1,303 tests, green.

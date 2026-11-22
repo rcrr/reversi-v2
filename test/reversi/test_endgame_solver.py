@@ -553,3 +553,106 @@ class TestAlphaBetaSolveFixture(unittest.TestCase):
         # The wipe-out win before ec=0: one side has no stone left, the WOF assigns every empty
         # square to the winner (the value the full +/-64, the final board one colour).
         self._solve_named('black-wins-by-wipe-out')
+
+
+class TestAlphaBetaSolveArray(unittest.TestCase):
+    """
+    alphabeta_solve_array on the worker-pool engine: every lane is exactly the result of the
+    scalar alphabeta_solve of that lane (the engine runs the same compiled search), the batch
+    values are checked against the independent DB goldens, and the batch precondition (the
+    uniform empty count) is enforced by the opt-in check.
+    """
+
+    DB_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
+
+    # The ten ec=8 lanes of the regab_prng_gp batch 7 (the user's set): the (mover, opponent)
+    # bitboards as the DB signed integers, the player to move, and the independent DB game value.
+    ROWS_10 = (
+        (292196245152202976, -941136803967009266, 0, 14),
+        (137788107833069952, 8220822431822392860, 0, 22),
+        (72340273019509822, -1657607341870702464, 0, 0),
+        (-7277957165829819713, 6917669195627496704, 0, 2),
+        (221126373199515453, -259477888540577728, 0, 8),
+        (-62480787258276348, 26100142223444217, 0, -8),
+        (-1989845522081987904, 1737573574205058354, 0, -6),
+        (-9218550381016039559, 8711891024890314754, 0, 28),
+        (5782611454622482432, 1080872728222711615, 0, -48),
+        (185881781002365168, 1228230909805926159, 0, -22),
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db, _ = load_game_position_database(cls.DB_FILE)
+        cls.gps10 = make_game_position(
+            np.array([r[0] for r in cls.ROWS_10], dtype=np.int64).astype(np.uint64),
+            np.array([r[1] for r in cls.ROWS_10], dtype=np.int64).astype(np.uint64),
+            np.array([r[2] for r in cls.ROWS_10], dtype=np.uint8))
+
+    def test_ten_db_golden_values(self):
+        # The batch values are the independent DB goldens.
+        r = alphabeta_solve_array(self.gps10)
+        self.assertEqual(r.game_values.tolist(), [row[3] for row in self.ROWS_10])
+
+    def test_ten_parity_scalar(self):
+        # Every lane is exactly the result of the scalar solve of that lane (value, final,
+        # node / leaf counts).
+        r = alphabeta_solve_array(self.gps10)
+        for i in range(10):
+            s = alphabeta_solve(self.gps10[i])
+            self.assertEqual(int(r.game_values[i]), int(s.game_value))
+            self.assertEqual(game_position_to_str(r.final_game_positions[i]),
+                             game_position_to_str(s.final_game_position))
+            self.assertEqual(r.nodes[i], s.nodes)
+            self.assertEqual(r.leafs[i], s.leafs)
+
+    def test_mixed_corner_batch(self):
+        # A batch mixing the corner shapes (the forced first pass, the finished game, the
+        # wipe-out, a plain series lane): each lane its scalar result.
+        names = ('black-has-to-pass', 'ffo-01-simplified-12', 'black-wins-by-wipe-out',
+                 'ffo-01-simplified-8')
+        entries = [self.db.find(n) for n in names]
+        gps = make_game_position(np.array([e.position['mover'] for e in entries], dtype=np.uint64),
+                                 np.array([e.position['opponent'] for e in entries],
+                                          dtype=np.uint64),
+                                 np.array([e.position['player'] for e in entries], dtype=np.uint8))
+        r = alphabeta_solve_array(gps)
+        self.assertEqual([int(v) for v in r.game_values], [-52, 18, -64, 18])
+        for i, e in enumerate(entries):
+            s = alphabeta_solve(e.position)
+            self.assertEqual(r.nodes[i], s.nodes)
+            self.assertEqual(r.leafs[i], s.leafs)
+            self.assertEqual(game_position_to_str(r.final_game_positions[i]),
+                             game_position_to_str(s.final_game_position))
+
+    def test_empty_batch(self):
+        empty = make_game_position(np.array([], dtype=np.uint64), np.array([], dtype=np.uint64),
+                                   np.array([], dtype=np.uint8))
+        r = alphabeta_solve_array(empty)
+        self.assertEqual(r.game_values.shape, (0,))
+        self.assertEqual(r.nodes.shape, (0,))
+        self.assertEqual(r.leafs.shape, (0,))
+
+    def test_uniform_empty_count(self):
+        # The ten lanes share ec=8.
+        self.assertEqual(uniform_empty_count(self.gps10), 8)
+        # A non-uniform batch raises, naming the distinct counts.
+        p8 = self.db.find('ffo-01-simplified-8').position
+        p12 = self.db.find('ffo-01-simplified-12').position
+        mixed = make_game_position(np.array([p8['mover'], p12['mover']], dtype=np.uint64),
+                                   np.array([p8['opponent'], p12['opponent']], dtype=np.uint64),
+                                   np.array([p8['player'], p12['player']], dtype=np.uint8))
+        with self.assertRaises(ValueError):
+            uniform_empty_count(mixed)
+
+    def test_check_ec_gate(self):
+        # check_ec=True on a non-uniform batch raises at the boundary; the default (False) skips
+        # the check and solves the lanes anyway.
+        p8 = self.db.find('ffo-01-simplified-8').position
+        p12 = self.db.find('ffo-01-simplified-12').position
+        mixed = make_game_position(np.array([p8['mover'], p12['mover']], dtype=np.uint64),
+                                   np.array([p8['opponent'], p12['opponent']], dtype=np.uint64),
+                                   np.array([p8['player'], p12['player']], dtype=np.uint8))
+        with self.assertRaises(ValueError):
+            alphabeta_solve_array(mixed, check_ec=True)
+        r = alphabeta_solve_array(mixed)
+        self.assertEqual([int(v) for v in r.game_values], [18, 18])

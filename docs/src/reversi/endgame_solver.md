@@ -1,7 +1,9 @@
 # reversi/endgame_solver.py
-The scalar exact endgame solver. `minimax_solve` searches the whole game tree of an endgame with a depth-first
-minimax, `alphabeta_solve` the same tree with the zero-window alpha-beta pruning; both return the game value,
-the terminal game position of the best line, and the search counters.
+The exact endgame solver, scalar and array. `minimax_solve` searches the whole game tree of an endgame with a
+depth-first minimax, `alphabeta_solve` the same tree with the zero-window alpha-beta pruning, and
+`alphabeta_solve_array` solves a batch of endgames (one per lane of a `GamePositionArray`) with the same
+alpha-beta on a pool of worker threads; all return the game value, the terminal game position of the best line,
+and the search counters (the array form: the parallel arrays, one entry per lane).
 
 ## API
 
@@ -14,8 +16,11 @@ The `__all__` names.
 | `GameValueArray` | the pydantic-validated `NDArray[np.int8]` game-value array type (the int8-dtype `BeforeValidator`) — defined here with `GameValue` |
 | `NodeRecord` | the frozen dataclass `(call_id, level, player, parent_move, best_move, value)` — one visited node of the search, as emitted to the `log` callback (see The trace); the move fields are never `None` (the sentinel codes `MOVE_UN` / `MOVE_NA` / `MOVE_PA` express the absences) |
 | `SolverResult` | the frozen dataclass `(game_value, final_game_position, nodes, leafs)`: the value is an `np.int8` (the vectorized future's type, kept here for conformance), the final position is a GamePosition scalar (`GamePositionField`) |
+| `SolverResultArray` | the frozen dataclass `(game_values, final_game_positions, nodes, leafs)` of parallel arrays, one entry per lane: the `GameValueArray` values, the `GamePositionArray` finals, the int64 node / leaf counts (the natural vectorized result shape — no array of result objects) |
 | `minimax_solve(gp, log=None) -> SolverResult` | the depth-first minimax over the game tree of the GamePosition scalar `gp` (see Architecture for the search contract); `log` is an optional callable invoked once per visited node, with the `NodeRecord` of the node, when the search of the node completes |
 | `alphabeta_solve(gp, log=None) -> SolverResult` | the alpha-beta twin of `minimax_solve` (the same natural move order and strict tie-break, the zero-window propagation, the cutoff; the root window is the C ground-node initialization [−66, 66] — see Architecture); the same `log` contract; the node / leaf counts are smaller than the minimax ones (the pruned subtrees are never visited) |
+| `alphabeta_solve_array(gps, check_ec=False) -> SolverResultArray` | the batch form of `alphabeta_solve`: one lane per game position of the `GamePositionArray`, the same exact search per lane on a pool of worker threads (one per CPU, dynamic dispatch — see Architecture); `check_ec` (default False) runs the `uniform_empty_count` precondition check up front |
+| `uniform_empty_count(gps) -> int` | the batch precondition check: all lanes share the same empty count (the message names the distinct counts and the lanes); raises `ValueError` when not uniform, returns the common count otherwise |
 
 ## Architecture
 
@@ -55,6 +60,18 @@ The `__all__` names.
   6-parameter signature (the 7th scalar parameter is the numba 0.68 cache-loader segfault trigger, D-662). On the
   ffo-01-simplified series the pruning is 9.9x–25x in node count (case 4: 2,029 vs 20,040; case 0: 1.7M vs 18M)
   at the same per-node throughput (~19 M nodes/s, machine dependent).
+- **The array solver is a worker pool, not a vectorized frontier** (the design decision of D-667): `alphabeta_solve_array`
+  solves the batch lanes in parallel on a pool of worker threads (one per available CPU) with DYNAMIC dispatch
+  (each worker pulls the next unsolved lane from the work queue — optimal for the 100x solve-cost variance
+  between endgames), each worker running the compiled `_ab_search` DIRECTLY (the per-lane pydantic validation
+  skipped — the batch boundary is the only checked one). The njit search releases the GIL while running, so the
+  wall time is the batch work over the worker count (~8x on this 8-core machine, measured). The lanes are
+  expected to share the same empty count (the batch precondition, checked up front only when `check_ec=True`);
+  the per-lane result is EXACTLY the scalar `alphabeta_solve` result of that lane (zero new search code — the
+  D-664/665/666 node-level goldens carry over per lane for free). The frontier-vectorized core (the lanes as
+  search frontiers, the gather/scatter design) is parked in ideas.md as the candidate Rust feature: its
+  numba payoff is limited (the irregular mask/gather control flow is not auto-vectorizable), and at 1M–10M
+  batches it would need batching (1k–10k lanes) parallelized worker-pool style anyway.
 
 ## The trace
 
@@ -105,6 +122,11 @@ always improves or is a leaf).
   trace section — `test_endgame_solver::TestAlphaBetaSolveFixture` (the trace tests).
 - The alpha-beta / minimax agreement on the value and the final position of the 1–8 series (both
   searches are exact) — `test_endgame_solver::TestAlphaBetaSolveFixture::test_ab_minimax_parity`.
+- The array solver on the worker-pool engine: the ten ec=8 lanes of the regab_prng_gp batch 7
+  against the INDEPENDENT DB game-value goldens, the per-lane parity with the scalar solve (value,
+  final, node / leaf counts), the mixed corner batch (the forced pass, the finished game, the
+  wipe-out, a plain lane), the empty batch, and the `uniform_empty_count` / `check_ec` gate —
+  `test_endgame_solver::TestAlphaBetaSolveArray`.
 - The result container (the fields, the frozen behaviour) — `test_endgame_solver::TestSolverResult`.
 - The int8-dtype contract of the `GameValueArray` validator —
   `test_endgame_solver::TestGameValueArrayValidator` (together with the tests above, they cover the
@@ -119,8 +141,10 @@ always improves or is a leaf).
   counter, state[1] the current parent_move, saved/restored around each recursive call) instead of
   being a scalar parameter. To be revisited at the next numba upgrade (the scalar form may cache
   fine there).
-- Next: the move-ordered alpha-beta variants of the C reference (the `ev` estimated-value and
-  `rglm` random-legal-move orders), then the vectorized design.
+- Next: the array-solver scale-up (the 100 / 1000-lane batches, the PERF speedup printout), then
+  the move-ordered alpha-beta variants of the C reference (the `ev` estimated-value and `rglm`
+  random-legal-move orders). The frontier-vectorized core is parked in ideas.md (the candidate
+  Rust feature, the 1M–10M-batch endgame).
 
 ## Conventions
 

@@ -250,15 +250,29 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    invariants, the open issues; the test doc: the coverage row, the goldens); the suite is now 1,291 tests, green.
    (D-665)
  - Per the user's request, three corner-case GamePositions joined both the minimax and the alpha-beta fixtures:
-   `black-has-to-pass` (the forced first pass: the line opens with `--`), `ffo-01-simplified-12` (the
-   already-finished game of the series: the single leaf, the WOF of the full board) and `black-wins-by-wipe-out`
-   (the wipe-out win before ec=0: the full −64, the one-colour final) — all three already entries of the
-   `gpdb-sample-games.txt` corpus. Goldens measured with both solvers (bhp −52: 196,030/55,778 minimax vs
-   23,977/5,963 alpha-beta; 12: +18, 1/1; wo −64: 4,900,474/1,367,719 vs 310,082/74,388). The solution lines were
-   extracted ply by ply (the first static-order move achieving the exact value at the actual position — the
-   search's own tie-break): the naive trace-chain walk is unreliable on transposed positions (several nodes share
-   the same level / parent-move pair) and produced a wrong line on both pass-containing cases; the per-ply
-   extraction replays to the golden finals. The fixtures gained `CASES[12]` and the `CASES_CORNER` dict +
-   `_solve_named` (the `--` entries replay as the player-swap move, which `game_position_make_move` already
-   supports); six new tests (three per fixture), the 4.9M-node wipe-out minimax in ~0.25 s (fast tier, untagged).
-   The test doc and the notes followed; the suite is now 1,297 tests, green. (D-666)
+   `black-has-to-pass` (the forced first pass: the line opens with `--`), `ffo-01-simplified-12` (the already-finished
+   game of the series: the single leaf, the WOF of the full board) and `black-wins-by-wipe-out` (the wipe-out win before
+   ec=0: the full −64, the one-colour final) — all three already entries of the `gpdb-sample-games.txt` corpus. Goldens
+   measured with both solvers (bhp −52: 196,030/55,778 minimax vs 23,977/5,963 alpha-beta; 12: +18, 1/1; wo −64:
+   4,900,474/1,367,719 vs 310,082/74,388). The solution lines were extracted ply by ply (the first static-order move
+   achieving the exact value at the actual position — the search's own tie-break): the naive trace-chain walk is
+   unreliable on transposed positions (several nodes share the same level / parent-move pair) and produced a wrong line
+   on both pass-containing cases; the per-ply extraction replays to the golden finals. The fixtures gained `CASES[12]`
+   and the `CASES_CORNER` dict + `_solve_named` (the `--` entries replay as the player-swap move, which
+   `game_position_make_move` already supports); six new tests (three per fixture), the 4.9M-node wipe-out minimax in
+   ~0.25 s (fast tier, untagged). The test doc and the notes followed; the suite is now 1,297 tests, green. (D-666)
+ - The vectorized array solver took the worker-pool engine (B) over the frontier-vectorized core (A) — the user's "does
+   the vectorization pay?" question, decided with an analysis and the user's 100% agreement: A's numba payoff is 1.5–4x
+   single-core (the irregular mask/gather/cutoff control flow is not auto-vectorizable), B gives ~8x on this 8-core
+   machine with ZERO new search code (every lane is its scalar `_ab_search` result — the node-level goldens carry over
+   per lane for free), dynamic dispatch is optimal for the 100x solve-cost variance, and A stays available later as an
+   engine upgrade behind the same API (its true home is the Rust port: the batched design for the 1M–10M-position
+   datasets, 1k–10k-lane batches parallelized pool style). Milestone 1 verified the GIL: 8 threads x njit scale (65.8x
+   on the 10-task set). Built: `SolverResultArray` (the parallel arrays — the "group of arrays" shape),
+   `uniform_empty_count` (the batch precondition, the distinct counts named in the raise),
+   `alphabeta_solve_array(gps, check_ec=False)` (one thread per CPU, the work queue, the per-lane fast path on the
+   compiled search, pydantic only at the batch boundary, lane errors surfaced). Six tests: the ten ec=8 lanes of the
+   `regab_prng_gp` batch 7 (the user's set) against the INDEPENDENT DB game-value goldens [14, 22, 0, 2, 8, −8, −6, 28,
+   −48, −22] (which also cross-validates the scalar solver against the C/REGAB database on that set), the per-lane
+   scalar parity, the mixed corner batch, the empty batch, the check gate. A parked in ideas.md. The suite is now 1,303
+   tests, green. (D-667)

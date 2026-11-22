@@ -90,9 +90,27 @@ initializes `best_move` there, so the log carries the stale value of the previou
 stack slot. The v2 trace records `MOVE_NA` at such nodes, the only value consistent with the
 search; a node-by-node comparison against the C log therefore skips `best_move` where the v2
 record is `MOVE_NA`.
+
+The array solver (the worker pool)
+----------------------------------
+
+`alphabeta_solve_array` solves a batch of endgames (one per lane of the `GamePositionArray`) with
+the same exact alpha-beta search, on a pool of worker threads (one per available CPU): each
+worker pulls the next unsolved lane from the work queue and runs the compiled `_ab_search`
+directly (the per-lane pydantic validation is skipped — the batch boundary is the only checked
+one), so the lanes solve in parallel and the wall time is the batch work over the worker count
+(the njit search releases the GIL while running). The lanes are expected to share the same empty
+count (the batch precondition, which keeps the batch on a single search horizon): with
+`check_ec=True` the `uniform_empty_count` check runs up front and a non-uniform batch raises, by
+default (False) the check is skipped and the precondition is the caller's. The result is the
+`SolverResultArray` of parallel arrays (the per-lane game values, final game positions, node /
+leaf counts), each lane exactly the result of the scalar `alphabeta_solve` of that lane.
 """
 
+import os
+import queue
 from dataclasses import dataclass
+from threading import Thread
 from typing import Any, Annotated, Callable, TypeAlias
 
 import numba as nb
@@ -101,13 +119,15 @@ import numpy.typing as npt
 from numba.typed import List
 from pydantic import BeforeValidator, ConfigDict, validate_call
 
-from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePositionField,
-                           Move, Player, bitboard_bsf, final_value_of, flips_of_move,
-                           legal_moves_of, make_game_position, other_player)
+from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePositionArray,
+                           GamePositionField, Move, Player, bitboard_bsf, bitboard_count,
+                           final_value_of, flips_of_move, legal_moves_of, make_game_position,
+                           other_player)
 
 
 __all__ = ['OUT_OF_RANGE_DEFEAT_SCORE', 'GameValue', 'GameValueArray', 'NodeRecord',
-           'SolverResult', 'minimax_solve', 'alphabeta_solve']
+           'SolverResult', 'SolverResultArray', 'minimax_solve', 'alphabeta_solve',
+           'alphabeta_solve_array', 'uniform_empty_count']
 
 
 #: Represents a reversi game value from -64 to +64 as an numpy.int8 scalar.
@@ -154,6 +174,19 @@ class SolverResult:
     final_game_position: GamePositionField
     nodes: int
     leafs: int
+
+
+@dataclass(frozen=True)
+class SolverResultArray:
+    """
+    The result of an array endgame solve: one entry per lane, as parallel arrays (the natural
+    vectorized shape): the game values, the terminal game positions of the best lines, and the
+    search counters.
+    """
+    game_values: GameValueArray
+    final_game_positions: GamePositionArray
+    nodes: npt.NDArray[np.int64]
+    leafs: npt.NDArray[np.int64]
 
 
 # The 2-element `state` array (not a 7th scalar parameter): numba 0.68 SEGFAULTS when a fresh
@@ -373,3 +406,111 @@ def alphabeta_solve(gp: GamePositionField, log: Callable[[NodeRecord], None] | N
                         final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
                                                                Player(fp)),
                         nodes=nodes, leafs=leafs)
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def uniform_empty_count(gps: GamePositionArray) -> int:
+    """
+    Check that all the game positions of the array share the same empty count and return it (the
+    batch precondition of `alphabeta_solve_array`: a uniform empty count keeps the batch on a
+    single search horizon).
+
+    Args:
+        gps: the game position array to check.
+
+    Returns:
+        The common empty count.
+
+    Raises:
+        ValueError: the empty counts are not uniform (the message names the distinct counts and
+            the number of lanes holding each).
+    """
+    occupied = bitboard_count(gps['mover'] | gps['opponent']).astype(np.int64)
+    ecs = 64 - occupied
+    unique, counts = np.unique(ecs, return_counts=True)
+    if unique.size != 1:
+        detail = ", ".join(f"ec={u} on {c} lane(s)" for u, c in zip(unique, counts))
+        raise ValueError(f"Non-uniform empty counts: {detail}.")
+    return int(ecs[0])
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def alphabeta_solve_array(gps: GamePositionArray, check_ec: bool = False) -> SolverResultArray:
+    """
+    Solve a batch of endgames exactly with the alpha-beta search, one lane per game position, on a
+    pool of worker threads (one per available CPU): each worker pulls the next unsolved lane from
+    the work queue and runs the compiled `_ab_search` on it (the same exact search as
+    `alphabeta_solve`, the per-lane pydantic validation skipped — the batch boundary is the only
+    checked one), so the lanes solve in parallel and the wall time is the batch work over the
+    worker count.
+
+    The lanes are expected to share the same empty count (the batch precondition): with
+    `check_ec=True` the `uniform_empty_count` check runs up front and a non-uniform batch raises;
+    by default (False) the check is skipped and the precondition is the caller's.
+
+    Args:
+        gps: the game position array to solve (one endgame per lane).
+        check_ec: whether to verify the uniform-empty-count precondition up front (default False).
+
+    Returns:
+        The SolverResultArray of the batch: the per-lane game values, final game positions, and
+        node / leaf counts — each lane exactly the result of the scalar `alphabeta_solve` of that
+        lane.
+    """
+    if check_ec:
+        uniform_empty_count(gps)
+    n = gps.shape[0]
+    movers = gps['mover']
+    opponents = gps['opponent']
+    players = gps['player']
+    # The per-lane result slots, filled by the workers.
+    values = np.empty(n, dtype=GameValue)
+    fm = np.empty(n, dtype=Bitboard)
+    fo = np.empty(n, dtype=Bitboard)
+    fp = np.empty(n, dtype=Player)
+    nodes = np.empty(n, dtype=np.int64)
+    leafs = np.empty(n, dtype=np.int64)
+
+    def solve_lane(i):
+        # The fast path: the compiled search directly (no per-lane pydantic), the C ground-node
+        # root window.
+        state = np.zeros(4, dtype=np.int64)
+        state[1] = MOVE_UN
+        state[2] = OUT_OF_RANGE_DEFEAT_SCORE
+        state[3] = -OUT_OF_RANGE_DEFEAT_SCORE
+        v, f_m, f_o, f_p, nd, lf = _ab_search(movers[i], opponents[i], players[i], 1, None, state)
+        values[i] = GameValue(v)
+        fm[i] = f_m
+        fo[i] = f_o
+        fp[i] = f_p
+        nodes[i] = nd
+        leafs[i] = lf
+
+    if n:
+        work = queue.Queue()
+        for i in range(n):
+            work.put(i)
+        errors = []
+
+        def worker():
+            while True:
+                try:
+                    i = work.get_nowait()
+                except queue.Empty:
+                    return
+                try:
+                    solve_lane(i)
+                except BaseException as e:  # surface the lane error at the batch boundary
+                    errors.append(e)
+
+        threads = [Thread(target=worker) for _ in range(min(n, os.cpu_count() or 1))]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        if errors:
+            raise errors[0]
+
+    return SolverResultArray(game_values=values,
+                             final_game_positions=make_game_position(fm, fo, fp),
+                             nodes=nodes, leafs=leafs)

@@ -14,3 +14,14 @@ I-021 | idea | Define the new model based on a residual neural network (ResNet) 
          Start the experimentation of the new pipeline for training this model.
 
 I-022 | idea | Port the artifacts developed in ANSI C to Rust.
+
+I-023 | idea | The frontier-vectorized endgame search core (the "engine A" parked by D-667): the recursion over arrays
+         of positions (the search frontier), the per-lane windows / counters / finals as arrays, the mask-classified
+         lanes (leaf / pass / move), the move loop as an iteration over the move rank (the k-th set bit per lane), the
+         gather/scatter of the active lanes, the per-lane zero-window propagation and cutoff merge. Parked because its
+         NUMBA payoff is limited (1.5–4x single-core: the irregular mask/gather/cutoff control flow is not
+         auto-vectorizable, only the regular per-lane kernels are), while the worker pool (D-667) gives ~8x on 8 cores
+         with zero new search code. The candidate home is the RUST high-perf solver (the I-022 lineage), where the
+         batched frontier design is the standard high-performance formulation for the 1M–10M-position endgame datasets —
+         run in 1k–10k-lane batches, the batches parallelized worker-pool style. Revisit when the Rust port starts (or
+         if a numba prototype ever measures clearly above the pool baseline).
