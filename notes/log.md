@@ -296,9 +296,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    array form of the ten batch 7 lanes against the SAME DB goldens). The suite is now 1,310 tests, green. (D-669)
  - The EF Y output range contract — the "bug" that was not a bug: the multi-ply planning surfaced the array EF
    measuring 65.30 beyond +/-64; the first reading (and a red reproduction test) treated the open window as the defect,
-   but the complete `logit_clipping` review (the `hlp_zed` + `wrk_zed` docs, the latex book) showed NO clip documented anywhere in
-   the inference chain — the clipping lives only structurally in the training targets. The user did the math and
-   re-framed: the values beyond ±64 are the CONFIDENCE EXCESS (how much more certain the model is than the maximum
+   but the complete `logit_clipping` review (the `hlp_zed` + `wrk_zed` docs, the latex book) showed NO clip documented
+   anywhere in the inference chain — the clipping lives only structurally in the training targets. The user did the math
+   and re-framed: the values beyond ±64 are the CONFIDENCE EXCESS (how much more certain the model is than the maximum
    score), and the ~200-model campaign found higher-clipping models perform BETTER (higher c widens the band: ±65.31 at
    c=0.01, ±80 at c=0.1) — learned, valuable signal. The proposed z2y clip was WITHDRAWN (it would flatten the tail into
    a ±64 plateau). The red test was converted into the design-pinning test
@@ -306,3 +306,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    excess presence) and the contract is now stated explicitly in client.md, `hlp_zed.md` (the [c, 1−c] domain is a
    property of the training z vector, not of the total z2y inverse) and the latex 080. No production code changed; the
    frozen multi-ply EF will use the window derived from c, no clip. (D-670)
+ - The rebuildable LM test fixtures mechanism (the ec20 member): the multi-ply EF tests need REAL saved models on disk,
+   so the user's design landed — committed config JSONs in test/reversi/data/, a small helper MODULE in the test tree
+   (test/reversi/fixtures.py: clean / create(`force_rebuild`) / require + the `python -m test.reversi.fixtures` CLI),
+   artifacts under build/tmp/fixtures/ (git-ignored), the consumers TIER-AGNOSTIC with an actionable error (the exact
+   build command) when the artifact is missing, NO manifest, FULL `rlm_04` corpus (a build costs seconds), no
+   format-versioning intelligence. The build runs the standard pipeline entry stopped at `CLIENT_CHECK` (the config
+   `target_level` field is dead code — the stop is explicit in the helper; plot.enable = false in the config as well).
+   The ec20 fixture (`rlm_04` config, full corpus, `regab_allow_duplicate` = false) built in ~20 s, the `CLIENT_CHECK`
+   gate passed (18 932 residuals, max difference 0.000e+00), the model loads with ec = 20 / `w_dense` (6 627,) and
+   evaluates real positions; 12 static tests pin the mechanism (no pipeline, no DB, no artifact required). The ec19…ec16
+   set members (the multi-ply depth ladder 1…4) are replicated once this round proves the cycle. (D-671)

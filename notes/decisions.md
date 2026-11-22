@@ -527,3 +527,24 @@ D-670 | 2026-11-22 | The EF Y output range contract — the "bug" that was not a
          the full (0,1); a consumer needing a bounded score clips at its own boundary). Consequence for the frozen
          multi-ply EF: no clip anywhere, the search window derived from c (R = 64/(1−2c) + margin). No production code
          changed.
+
+D-671 | 2026-11-22 | The rebuildable LM test fixtures mechanism (the ec20 member). The multi-ply EF tests need REAL
+         saved models on disk (not the transient 424-ms in-memory SYNTH builds): the user's design — the models are
+         defined by committed config JSONs in test/reversi/data/, built by a small helper module, consumed by the tests
+         which ERROR (naming the exact build command) when the artifact is missing. Refinements accepted from the
+         discussion: the consumers are TIER-AGNOSTIC (the fixture is sticky workspace state — built once, there for
+         sessions of weeks — not a LONG-tier prerequisite); NO manifest (the per-model embedded `sha3_256` + the config
+         provenance already cover it); the helper is a MODULE in the test tree (test/reversi/fixtures.py), not a wsutils
+         CLI script; the corpus is the FULL `rlm_04` one (a build costs seconds); no format-versioning intelligence
+         (format change → manual clean + rebuild). The helper API: `clean_lm_fixture` /
+         `create_lm_fixture`(`force_rebuild`) (idempotent: an existing model file short-circuits; the CONFIG worker
+         requires the base dir to exist, so the helper mkdirs first) / `require_lm_fixture` (the consumer gate) + the
+         `python -m test.reversi.fixtures create|clean <name>… [--force]` CLI. The build runs the standard pipeline
+         entry STOPPED at `CLIENT_CHECK` (the config's `target_level` field is dead code — no entry honors it — so the
+         stop is explicit; the config also carries plot.enable = false: SAVE + the client-check integrity gate included,
+         PLOT + `FINAL_LOG_PRINT` skipped). The ec20 fixture (`rlm_fixture_simple_ec20`: the `rlm_04` config, full
+         corpus, `regab_allow_duplicate` = false) built in ~20 s, the `CLIENT_CHECK` gate passed (18 932 residuals, max
+         difference 0.000e+00), the saved model loads with ec = 20 and `w_dense` (6 627,) and evaluates real positions.
+         The 12 static tests (no pipeline, no DB, no artifact required) pin the paths, the config contract, the gate
+         message and the idempotency. The other set members (ec19…ec16 — the depth ladder 1…4 of the multi-ply EF) are
+         replicated once this round proves the cycle. No production code changed.

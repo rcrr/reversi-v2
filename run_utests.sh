@@ -72,6 +72,7 @@ MODULES=(
     test.reversi.tools.test_state_machine
     test.reversi.lm.test_logistic_model
     test.reversi.test_base_model
+    test.reversi.test_fixtures
     test.reversi.test_paths
     # 3 — DB access
     test.reversi.test_regab
