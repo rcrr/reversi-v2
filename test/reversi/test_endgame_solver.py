@@ -198,6 +198,21 @@ class TestMinimaxSolveFixture(unittest.TestCase):
         8: (18, 46, 15,
             'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
             ('A1', 'B1', 'H1', 'G2')),
+        12: (18, 1, 1,
+            'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b',
+            ()),
+    }
+
+    # The corner cases: the named corpus entries with the search-contract edge shapes (the forced
+    # first pass, the wipe-out win before ec=0).
+    CASES_CORNER = {
+        'black-has-to-pass': (-52, 196030, 55778,
+            'wwwwwwwbwwwwwwbwwwwwwbwwwwwwwwwwwwwbwwwwwwwwbwwwwwwwwwwwwwwwwwbwb',
+            ('--', 'H7', '--', 'G1', 'H1', 'E1', '--', 'C1', '--', 'A6', 'A5', 'A3', 'A7', 'A4')),
+        'black-wins-by-wipe-out': (-64, 4900474, 1367719,
+            'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbw',
+            ('F6', 'H2', '--', 'H4', '--', 'A6', '--', 'G8', 'G6', 'A7', '--', 'H8', 'H7',
+             'H6', '--', 'F8', '--', 'B7', '--', 'A8')),
     }
 
     @classmethod
@@ -218,6 +233,22 @@ class TestMinimaxSolveFixture(unittest.TestCase):
         p = entry.position
         for name in line:
             p = game_position_make_move(p, Move(square_from_str(name)))
+        self.assertEqual(game_position_to_str(p), final)
+
+    def _solve_named(self, name):
+        value, nodes, leafs, final, line = self.CASES_CORNER[name]
+        entry = self.db.find(name)
+        self.assertIsNotNone(entry)
+        r = minimax_solve(entry.position)
+        self.assertEqual(int(r.game_value), value)
+        self.assertEqual(r.nodes, nodes)
+        self.assertEqual(r.leafs, leafs)
+        self.assertEqual(game_position_to_str(r.final_game_position), final)
+        # Playing the solution line from the starting position arrives at the final position (a
+        # line entry of '--' is a pass: the player swap, the board untouched).
+        p = entry.position
+        for mv in line:
+            p = game_position_make_move(p, Move(MOVE_PA) if mv == '--' else square_from_str(mv))
         self.assertEqual(game_position_to_str(p), final)
 
     def _trace_case(self, n):
@@ -303,6 +334,21 @@ class TestMinimaxSolveFixture(unittest.TestCase):
     def test_ffo_01_simplified_8_trace(self):
         self._trace_case(8)
 
+    def test_ffo_01_simplified_12(self):
+        # The already-finished game of the series: a single leaf (the terminal check precedes any
+        # search), the value the WOF of the full board.
+        self._solve_case(12)
+
+    def test_black_has_to_pass(self):
+        # The forced first pass: the mover has no legal move, the search starts with the pass
+        # node (the solution line opens with '--').
+        self._solve_named('black-has-to-pass')
+
+    def test_black_wins_by_wipe_out(self):
+        # The wipe-out win before ec=0: one side has no stone left, the WOF assigns every empty
+        # square to the winner (the value the full +/-64, the final board one colour).
+        self._solve_named('black-wins-by-wipe-out')
+
 
 class TestAlphaBetaSolveFixture(unittest.TestCase):
     """
@@ -344,6 +390,21 @@ class TestAlphaBetaSolveFixture(unittest.TestCase):
             ('A3', 'A1', 'B1', 'H1', 'G2')),
         8: (18, 40, 13, FINAL,
             ('A1', 'B1', 'H1', 'G2')),
+        12: (18, 1, 1, FINAL, ()),
+    }
+
+    # The corner cases: the named corpus entries with the search-contract edge shapes (the forced
+    # first pass, the wipe-out win before ec=0). The solution line is the minimax one (the full
+    # best line): the alpha-beta recorded best-move chain stops at the first fail-low tie, while
+    # the value / final / line are the same game properties.
+    CASES_CORNER = {
+        'black-has-to-pass': (-52, 23977, 5963,
+            'wwwwwwwbwwwwwwbwwwwwwbwwwwwwwwwwwwwbwwwwwwwwbwwwwwwwwwwwwwwwwwbwb',
+            ('--', 'H7', '--', 'G1', 'H1', 'E1', '--', 'C1', '--', 'A6', 'A5', 'A3', 'A7', 'A4')),
+        'black-wins-by-wipe-out': (-64, 310082, 74388,
+            'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbw',
+            ('F6', 'H2', '--', 'H4', '--', 'A6', '--', 'G8', 'G6', 'A7', '--', 'H8', 'H7',
+             'H6', '--', 'F8', '--', 'B7', '--', 'A8')),
     }
 
     @classmethod
@@ -364,6 +425,22 @@ class TestAlphaBetaSolveFixture(unittest.TestCase):
         p = entry.position
         for name in line:
             p = game_position_make_move(p, Move(square_from_str(name)))
+        self.assertEqual(game_position_to_str(p), final)
+
+    def _solve_named(self, name):
+        value, nodes, leafs, final, line = self.CASES_CORNER[name]
+        entry = self.db.find(name)
+        self.assertIsNotNone(entry)
+        r = alphabeta_solve(entry.position)
+        self.assertEqual(int(r.game_value), value)
+        self.assertEqual(r.nodes, nodes)
+        self.assertEqual(r.leafs, leafs)
+        self.assertEqual(game_position_to_str(r.final_game_position), final)
+        # Playing the solution line from the starting position arrives at the final position (a
+        # line entry of '--' is a pass: the player swap, the board untouched).
+        p = entry.position
+        for mv in line:
+            p = game_position_make_move(p, Move(MOVE_PA) if mv == '--' else square_from_str(mv))
         self.assertEqual(game_position_to_str(p), final)
 
     def _trace_case(self, n):
@@ -461,3 +538,18 @@ class TestAlphaBetaSolveFixture(unittest.TestCase):
         duration = time.perf_counter() - start
         print(f"\n[PERF alphabeta_solve {name}] Solved {r.nodes:,} nodes in "
               f"{duration:.4f}s ({r.nodes / duration / 1e6:.2f} M nodes/s)")
+
+    def test_ffo_01_simplified_12(self):
+        # The already-finished game of the series: a single leaf (the terminal check precedes any
+        # search), the value the WOF of the full board.
+        self._solve_case(12)
+
+    def test_black_has_to_pass(self):
+        # The forced first pass: the mover has no legal move, the search starts with the pass
+        # node (the solution line opens with '--').
+        self._solve_named('black-has-to-pass')
+
+    def test_black_wins_by_wipe_out(self):
+        # The wipe-out win before ec=0: one side has no stone left, the WOF assigns every empty
+        # square to the winner (the value the full +/-64, the final board one colour).
+        self._solve_named('black-wins-by-wipe-out')

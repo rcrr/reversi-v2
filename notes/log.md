@@ -249,3 +249,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    the minimax ~0.95 s). The docs followed (the module doc: the API row, the Architecture bullet, the trace caveat, the
    invariants, the open issues; the test doc: the coverage row, the goldens); the suite is now 1,291 tests, green.
    (D-665)
+ - Per the user's request, three corner-case GamePositions joined both the minimax and the alpha-beta fixtures:
+   `black-has-to-pass` (the forced first pass: the line opens with `--`), `ffo-01-simplified-12` (the
+   already-finished game of the series: the single leaf, the WOF of the full board) and `black-wins-by-wipe-out`
+   (the wipe-out win before ec=0: the full −64, the one-colour final) — all three already entries of the
+   `gpdb-sample-games.txt` corpus. Goldens measured with both solvers (bhp −52: 196,030/55,778 minimax vs
+   23,977/5,963 alpha-beta; 12: +18, 1/1; wo −64: 4,900,474/1,367,719 vs 310,082/74,388). The solution lines were
+   extracted ply by ply (the first static-order move achieving the exact value at the actual position — the
+   search's own tie-break): the naive trace-chain walk is unreliable on transposed positions (several nodes share
+   the same level / parent-move pair) and produced a wrong line on both pass-containing cases; the per-ply
+   extraction replays to the golden finals. The fixtures gained `CASES[12]` and the `CASES_CORNER` dict +
+   `_solve_named` (the `--` entries replay as the player-swap move, which `game_position_make_move` already
+   supports); six new tests (three per fixture), the 4.9M-node wipe-out minimax in ~0.25 s (fast tier, untagged).
+   The test doc and the notes followed; the suite is now 1,297 tests, green. (D-666)

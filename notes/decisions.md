@@ -438,3 +438,17 @@ D-665 | 2026-11-21 | `TestAlphaBetaSolveFixture` (15 tests) + docs for the alpha
          The module doc gained the `alphabeta_solve` API row, the Architecture bullet, the `T_BEST_MOVE` trace caveat,
          the invariant entries and the rewritten open issues; the test doc the coverage row and the goldens; the
          overview the campaign state and the test count (42). The suite is now 1,291 tests, green.
+
+D-666 | 2026-11-22 | Per the user's request, three corner-case GamePositions joined BOTH the minimax and the alpha-beta
+         fixtures: `black-has-to-pass` (the forced first pass), `ffo-01-simplified-12` (the already-finished game: the
+         single leaf) and `black-wins-by-wipe-out` (the wipe-out win before ec=0: the full −64, the one-colour final) —
+         all three already entries of the `gpdb-sample-games.txt` corpus. The goldens were measured with both solvers:
+         bhp (−52, 196,030/55,778 minimax — 23,977/5,963 alpha-beta), 12 (+18, 1/1 both), wo (−64, 4,900,474/1,367,719
+         minimax — 310,082/74,388 alpha-beta). The solution lines were extracted ply by ply (the first static-order move
+         achieving the exact node value at the ACTUAL position — the search's own tie-break rule): the naive trace-chain
+         walk is unreliable on transposed positions (several nodes share the same level / parent-move pair) and produced
+         a wrong line on both pass-containing cases; the per-ply extraction is exact by construction and replays to the
+         golden finals. The fixtures gained `CASES[12]` (the series entry) and the `CASES_CORNER` dict + `_solve_named`
+         (the `--` line entries replay as the player-swap move, which `game_position_make_move` already supports); six
+         new tests (three per fixture), the 4.9M-node wipe-out minimax in ~0.25 s (fast tier, untagged). The test doc
+         and the notes follow; the suite is now 1,297 tests, green.
