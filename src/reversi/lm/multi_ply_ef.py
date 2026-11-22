@@ -39,24 +39,34 @@ scipy form) + the z2y affine. The leaf is deterministic and within the measured 
 the client EF (the numpy pairwise sum vs the sequential sum: D-674 measurement, <= 409 ulp
 on the linear predictor).
 
-The compiled leaf reuses the pipeline's own njit kernels (the no-drift principle of
-client.md): the anti-transformations + the principal-indexes kernel of pattern.py, the
-indexes kernel of mobility.py, the legal-moves vector kernel of board.py, and the client's
-own `_prepare_weights` for the dense offsets.
+The leaf is a SERIAL transcription of the client's kernels (the no-drift principle of
+client.md, the single-position form): the batch `parallel=True` kernels cannot be called
+from the worker-pool threads (the LLVM `allocate_sched` crash), so the leaf inlines the
+kernel BODIES — the anti-transformation scalar impls of board.py, the mobility loop of
+mobility.py, the pack/base-3/coset-min pipeline of pattern.py — and the client's own
+`_prepare_weights` for the dense offsets. The index-parity test pins the bit-exact
+agreement with the client's `compute_indexes`.
 """
+
+import os
+import queue
+from threading import Thread
+from typing import Callable
 
 import numba as nb
 import numpy as np
 import numpy.typing as npt
 from pydantic import ConfigDict, validate_call
 
-from reversi.board import (_numba_bitboard_anti_transformations, _vectorized_legal_moves)
-from reversi.lm.client import _prepare_weights
+from reversi.board import (Bitboard, PositionArray, _numba_fa1h8_scalar_impl,
+                           _numba_fh1a8_scalar_impl, _numba_fhori_scalar_impl,
+                           _numba_fvert_scalar_impl, _popcount, bitboard_bsf,
+                           bitboard_count, final_value_of, flips_of_move,
+                           legal_moves_of)
+from reversi.lm.client import _prepare_weights, make_evaluation_function_array
 from reversi.lm.model_weights import ModelWeights
-from reversi.mobility import _numba_compute_indexes_kernel
-from reversi.pattern import _numba_compute_principal_indexes_kernel
 
-__all__ = ['prepare_multi_ply_plan']
+__all__ = ['prepare_multi_ply_plan', 'make_evaluation_function']
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -165,16 +175,15 @@ def _ef_leaf_indexes(mover, opponent,
                     current_col, col_offsets,
                     num_planes_arr, pack_masks_3d, pack_shifts_3d):
     """
-    The compiled index pipeline of a SINGLE position: the same njit kernels the client EF uses
-    (the `FeatureSet.compute_indexes` pydantic wrapper inlined) — bit-exact with it.
+    The compiled index pipeline of a SINGLE position — the SERIAL transcription of the client's
+    njit kernels (the batch `parallel=True` forms cannot be called from the worker-pool threads
+    — the LLVM `allocate_sched` crash): the same per-element math, bit-exact with
+    `FeatureSet.compute_indexes`.
 
     Returns:
         The (I,) uint32 index row (the intercept column, then the mobility block, then the
         pattern block — the FeatureSet column contract).
     """
-    m1 = np.array([mover], dtype=np.uint64)
-    o1 = np.array([opponent], dtype=np.uint64)
-
     n_mob = mob_masks.shape[0]
     I = (1 if has_intercept else 0) + n_mob + current_col
     out = np.empty(I, dtype=np.uint32)
@@ -183,23 +192,65 @@ def _ef_leaf_indexes(mover, opponent,
         out[0] = 0
         k = 1
     if n_mob > 0:
-        lms = _vectorized_legal_moves(m1, o1)
-        alms = _vectorized_legal_moves(o1, m1)
-        mob = _numba_compute_indexes_kernel(lms, alms, mob_masks, mob_sides)
+        # The mobility kernel body (mobility.py), the single-position form:
+        lm_m = legal_moves_of(mover, opponent)
+        lm_o = legal_moves_of(opponent, mover)
         for j in range(n_mob):
-            out[k + j] = mob[0, j]
+            src = lm_m if mob_sides[j] == 0 else lm_o
+            out[k + j] = _popcount(src & mob_masks[j])
         k += n_mob
     if current_col > 0:
-        m_atrxs = _numba_bitboard_anti_transformations(m1)
-        o_atrxs = _numba_bitboard_anti_transformations(o1)
-        pat = _numba_compute_principal_indexes_kernel(
-            m_atrxs, o_atrxs,
-            n_squares_arr, bit_shifts_matrix, powers_3,
-            n_groups_arr, group_size_arr, idx_sort_matrix,
-            current_col, col_offsets,
-            num_planes_arr, pack_masks_3d, pack_shifts_3d)
-        for j in range(current_col):
-            out[k + j] = pat[0, j]
+        # The anti-transformations (the board.py kernel body, the 8 scalar images):
+        m_atrxs = np.empty(8, dtype=np.uint64)
+        o_atrxs = np.empty(8, dtype=np.uint64)
+        for v, ts in ((mover, m_atrxs), (opponent, o_atrxs)):
+            fh = _numba_fhori_scalar_impl(v)
+            ts[0] = v
+            ts[1] = _numba_fh1a8_scalar_impl(fh)
+            ts[2] = _numba_fvert_scalar_impl(fh)
+            ts[3] = _numba_fa1h8_scalar_impl(fh)
+            ts[4] = _numba_fvert_scalar_impl(v)
+            ts[5] = _numba_fh1a8_scalar_impl(v)
+            ts[6] = fh
+            ts[7] = _numba_fa1h8_scalar_impl(v)
+        # The principal-indexes kernel body (pattern.py), the single-position form:
+        L = n_squares_arr.shape[0]
+        local = np.empty(8, dtype=np.uint32)
+        for i in range(L):
+            S = n_squares_arr[i]
+            n_groups = n_groups_arr[i]
+            group_size = group_size_arr[i]
+            col_offset = col_offsets[i]
+            num_planes = num_planes_arr[i]
+            for s in range(8):
+                val_m = m_atrxs[s]
+                val_o = o_atrxs[s]
+                packed_m = Bitboard(0)
+                packed_o = Bitboard(0)
+                for p in range(num_planes):
+                    mask = pack_masks_3d[i, p]
+                    shift = pack_shifts_3d[i, p]
+                    packed_m |= (val_m & mask) >> shift
+                    packed_o |= (val_o & mask) >> shift
+                idx_m = np.uint32(0)
+                idx_o = np.uint32(0)
+                for b in range(S):
+                    shift_val = bit_shifts_matrix[i, b]
+                    p3 = powers_3[b]
+                    bit_m = (packed_m >> shift_val) & Bitboard(1)
+                    bit_o = (packed_o >> shift_val) & Bitboard(1)
+                    idx_m += np.uint32(bit_m) * p3
+                    idx_o += np.uint32(bit_o) * p3
+                local[s] = (np.uint32(2) * idx_o) + idx_m
+            for g in range(n_groups):
+                min_val = np.uint32(4294967295)  # UINT32_MAX
+                start_idx = g * group_size
+                for t in range(group_size):
+                    sorted_s = idx_sort_matrix[i, start_idx + t]
+                    val = local[sorted_s]
+                    if val < min_val:
+                        min_val = val
+                out[k + col_offset + g] = min_val
     return out
 
 
@@ -242,3 +293,202 @@ def _ef_leaf_value(mover, opponent,
         e = np.exp(linear)
         z = e / (one + e)
     return a1 + z * b1
+
+
+@nb.njit(cache=True)
+def _ab_eval(mover, opponent, state,
+             w_dense, expanded_offsets, a1, b1,
+             has_intercept,
+             mob_masks, mob_sides,
+             n_squares_arr, bit_shifts_matrix, powers_3,
+             n_groups_arr, group_size_arr, idx_sort_matrix,
+             current_col, col_offsets,
+             num_planes_arr, pack_masks_3d, pack_shifts_3d,
+             horizon_stones):
+    """
+    The float32 alpha-beta of the multi-ply EF (the endgame-solver discipline, the value-only
+    variant): the node value is seen from the point of view of the mover at that node (the
+    child values are negated at each ply); the horizon node is the EF leaf (the contract: at
+    the horizon, the value is the EF — no pass-through); the terminal node is the exact WOF
+    (`final_value_of`, the mover's point of view) cast to f32; a no-move node above the
+    horizon passes (the sides swap, the value is negated). The move loop is the static bsf
+    order, the zero-window propagation (the child window is the negated parent window), the
+    cutoff at value >= beta, and the strict > alpha rise. `state` is the 2-element shared
+    array: state[0] / state[1] the node's (alpha, beta) window (the numba 0.68 state-array
+    idiom, D-662).
+
+    Returns:
+        The f32 value of the position, from the mover's point of view.
+    """
+    # The horizon: the EF leaf (the stones only grow, so >= is the exact horizon test).
+    # `_popcount` is the njit kernel (the bitboard_count public wrapper is Python).
+    if _popcount(mover | opponent) >= horizon_stones:
+        return _ef_leaf_value(mover, opponent, w_dense, expanded_offsets, a1, b1,
+                              has_intercept,
+                              mob_masks, mob_sides,
+                              n_squares_arr, bit_shifts_matrix, powers_3,
+                              n_groups_arr, group_size_arr, idx_sort_matrix,
+                              current_col, col_offsets,
+                              num_planes_arr, pack_masks_3d, pack_shifts_3d)
+    legal = legal_moves_of(mover, opponent)
+    if not legal:
+        if not legal_moves_of(opponent, mover):
+            # The terminal: the exact WOF (the mover's point of view), as f32.
+            return np.float32(final_value_of(mover, opponent))
+        # The pass: the sides swap, the window negates (the zero-window propagation).
+        saved_a, saved_b = state[0], state[1]
+        state[0], state[1] = -state[1], -state[0]
+        value = _ab_eval(opponent, mover, state,
+                         w_dense, expanded_offsets, a1, b1,
+                         has_intercept,
+                         mob_masks, mob_sides,
+                         n_squares_arr, bit_shifts_matrix, powers_3,
+                         n_groups_arr, group_size_arr, idx_sort_matrix,
+                         current_col, col_offsets,
+                         num_planes_arr, pack_masks_3d, pack_shifts_3d,
+                         horizon_stones)
+        state[0], state[1] = saved_a, saved_b
+        return -value
+    alpha = state[0]
+    beta = state[1]
+    best = alpha
+    moves = legal
+    while moves:
+        sq = bitboard_bsf(moves)
+        moves = moves & (moves - Bitboard(1))
+        m = Bitboard(1) << Bitboard(sq)
+        flips = flips_of_move(mover, opponent, m)
+        saved_a, saved_b = state[0], state[1]
+        state[0], state[1] = -beta, -alpha
+        value = _ab_eval(opponent ^ flips, (mover ^ flips) | m, state,
+                         w_dense, expanded_offsets, a1, b1,
+                         has_intercept,
+                         mob_masks, mob_sides,
+                         n_squares_arr, bit_shifts_matrix, powers_3,
+                         n_groups_arr, group_size_arr, idx_sort_matrix,
+                         current_col, col_offsets,
+                         num_planes_arr, pack_masks_3d, pack_shifts_3d,
+                         horizon_stones)
+        state[0], state[1] = saved_a, saved_b
+        value = -value
+        if value > best:
+            best = value
+            # The node's alpha rises with the best child: the NEXT sibling's window is
+            # derived from it (the zero-window tightening, the source of the pruning).
+            alpha = value
+            if value >= beta:
+                return best
+    return best
+
+
+def _search_pool(positions, ecs, mw, plan, client_ef, window, horizon_stones):
+    """
+    The worker-pool batch search (the D-669 idiom): one thread per CPU (capped at the lane
+    count), a queue of lane indices, dynamic dispatch, the per-lane fast path calling the
+    compiled search directly (it releases the GIL), the A == B lanes delegated to the client
+    EF (the bit-exact depth-0 anchor), the lane errors surfaced at the boundary.
+
+    Returns:
+        The (positions.shape,) float32 value array.
+    """
+    n = positions.shape[0]
+    out = np.empty(n, dtype=np.float32)
+    if n == 0:
+        return out
+    (expanded_offsets, a1, b1, has_intercept,
+     mob_masks, mob_sides,
+     n_squares_arr, bit_shifts_matrix, powers_3,
+     n_groups_arr, group_size_arr, idx_sort_matrix,
+     current_col, col_offsets,
+     num_planes_arr, pack_masks_3d, pack_shifts_3d) = plan
+
+    q: 'queue.Queue' = queue.Queue()
+    for i in range(n):
+        q.put(i)
+    errors = []
+
+    def worker():
+        while True:
+            try:
+                i = q.get_nowait()
+            except queue.Empty:
+                return
+            try:
+                p = positions[i]
+                if int(ecs[i]) == mw.ec:
+                    # The depth-0 lane: the client EF itself (the bit-exact anchor).
+                    out[i] = client_ef(positions[i:i + 1])[0]
+                else:
+                    # The window state is F64 (the f32 values are exact in it — the int64 state
+                    # of the endgame solver fits there because the game values are integers;
+                    # here an f32 window stored in int64 would TRUNCATE and break the
+                    # zero-window tightening).
+                    st = np.zeros(2, dtype=np.float64)
+                    st[0], st[1] = -window, window  # the root window [-R, +R] (alpha, beta)
+                    out[i] = _ab_eval(p['mover'], p['opponent'], st,
+                                      mw.w_dense, expanded_offsets, a1, b1,
+                                      has_intercept,
+                                      mob_masks, mob_sides,
+                                      n_squares_arr, bit_shifts_matrix, powers_3,
+                                      n_groups_arr, group_size_arr, idx_sort_matrix,
+                                      current_col, col_offsets,
+                                      num_planes_arr, pack_masks_3d, pack_shifts_3d,
+                                      horizon_stones)
+            except BaseException as exc:  # surfaced at the boundary
+                errors.append((i, exc))
+            finally:
+                q.task_done()
+
+    n_threads = min(os.cpu_count() or 1, n)
+    threads = [Thread(target=worker) for _ in range(n_threads)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    if errors:
+        i, exc = errors[0]
+        raise type(exc)(f'lane {i} failed: {exc}') from exc
+    return out
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def make_evaluation_function(mw: ModelWeights) -> Callable[[npt.NDArray], npt.NDArray[np.float32]]:
+    """
+    The multi-ply evaluation-function factory: the search-based evaluation over the model.
+
+    The returned `ef` is STRICT ARRAY (the client array-EF contract): it accepts a structured
+    PositionArray of any shape (a (N, 2) uint64 array is coerced to 1-D by the PositionArray
+    validator) and returns a same-shape float32 array (C-order element order). A scalar
+    Position or bare lists raise the Pydantic `ValidationError`.
+
+    The search contract: every position's empty count A must be >= the model's horizon
+    B = `mw.ec` (a `ValueError` naming the offending count otherwise). A position with A == B
+    is evaluated by the CLIENT EF itself (the bit-exact depth-0 anchor — the pure EF); a
+    position with A > B is searched (the float32 alpha-beta, the static bsf order, the zero
+    window) down to the horizon, where the leaf value is the compiled EF. The batch runs on
+    the worker pool (the D-669 idiom: the compiled search releases the GIL).
+
+    The Y output range contract (D-670) applies: NO clip anywhere; the root window is
+    derived from the clipping: R = ceil(64/(1-2c)) + 1 (67 for c = 0.01 — it strictly
+    contains the EF range +/-64/(1-2c) = +/-65.31, as the C ground window +/-66 contains the
+    game-value range).
+    """
+    plan = prepare_multi_ply_plan(mw)
+    horizon_stones = 64 - mw.ec
+    window = int(np.ceil(64.0 / (1.0 - 2.0 * mw.logit_clipping))) + 1
+    client_ef = make_evaluation_function_array(mw)
+
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def ef(positions: PositionArray) -> npt.NDArray[np.float32]:
+        # The A >= B contract (the per-lane empty counts).
+        ecs = 64 - bitboard_count(positions['mover'] | positions['opponent'])
+        if ecs.size and int(ecs.min()) < mw.ec:
+            bad = int(ecs.min())
+            raise ValueError(
+                f'every position empty count must be >= the model empty count '
+                f'{mw.ec} (the search horizon): found {bad}')
+        flat = positions.ravel()
+        out = _search_pool(flat, ecs.ravel(), mw, plan, client_ef, window, horizon_stones)
+        return out.reshape(positions.shape)
+
+    return ef

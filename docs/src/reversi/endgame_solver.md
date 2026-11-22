@@ -149,10 +149,11 @@ always improves or is a leaf).
   counter, state[1] the current parent_move, saved/restored around each recursive call) instead of
   being a scalar parameter. To be revisited at the next numba upgrade (the scalar form may cache
   fine there).
-- Next: the multi-ply evaluation alpha-beta (`alphabeta_eval`): the search descends to the
-  ec-assigned horizon (earlier at the terminal, where the value is the exact WOF one) and the
-  horizon leaf value is the REAL of the chosen evaluation function — the search-based evaluation
-  (the value plus the root best move), a greenfield v2 design (no C reference). The move-ordered
+- Next: the multi-ply evaluation alpha-beta — it landed in `reversi/lm/multi_ply_ef.py`
+  (`make_evaluation_function`, D-674/D-675): the search descends to the ec-assigned horizon
+  (earlier at the terminal, where the value is the exact WOF one) and the horizon leaf value is
+  the REAL of the chosen evaluation function — the search-based evaluation (value-only in v1;
+  the root best move is a later stage), a greenfield v2 design (no C reference). The move-ordered
   variants of the C reference (the `ev` estimated-value and `rglm` random-legal-move orders) and
   the frontier-vectorized core are parked (the latter in ideas.md, the candidate Rust feature for
   the 1M–10M-batch endgame).

@@ -589,3 +589,27 @@ D-674 | 2026-11-22 | The multi-ply EF, stage 1: the compiled EF leaf kernel + th
          endgame-solver discipline: zero-window, static bsf order, strict tie-break, the C root window ±66 — the R =
          64/(1−2c) + margin of D-670) + the public `make_evaluation_function(mw)` factory + the depth-ladder tests over
          the five fixtures.
+
+D-675 | 2026-11-22 | The multi-ply EF, stage 2: the float32 alpha-beta search + the public
+         `make_evaluation_function(mw)` factory. The search (`_ab_eval`, njit) is the endgame-solver discipline in its
+         value-only variant: the horizon node is the EF leaf, the terminal the exact WOF as f32, the no-move node passes
+         (sides swap, value negated), the static bsf move order, the zero-window propagation, the cutoff at value >=
+         beta, the strict > alpha rise. Three implementation findings, all pinned by tests: (1) the batch
+         `parallel=True` index kernels CANNOT be called from the worker-pool threads (the LLVM `allocate_sched` crash) —
+         the leaf became a SERIAL transcription of the kernel bodies (the anti-transformation scalar impls, the mobility
+         loop, the pack/base-3/coset-min pipeline), which is 170-190x FASTER at N=1 (depth-4: 242 ms/pos -> 1.3 ms/pos —
+         the batch forms pay a large fixed prange overhead per call); (2) the window state is F64, not the solver's
+         int64: the f32 values stored in an int64 state TRUNCATE the window (2.0539 -> 2) and break the zero-window
+         tightening — the depth-2 oracle caught it (up to 0.7 in Y on 6/50 positions); (3) the root window is [-R, +R]
+         with R = ceil(64/(1-2c)) + 1 = 67 for c = 0.01 (the factory first shipped it inverted — the values came out at
+         the window bound). The factory is strict array (the PositionArray validator), checks A >= B (ValueError naming
+         the offending count), delegates the A == B lanes to the client EF (the bit-exact depth-0 anchor) and runs the A
+         > B lanes on the worker pool. The 18 tests (no DB) are green in 0.7 s fast / 1.8 s LONG (the full 100-scale
+         oracle + structural in the LONG tier; the fast scale is 10-20 positions per test): depth-0 anchor bit-exact,
+         depths 1-2 vs the INDEPENDENT full-width minimax oracle (pure Python, no pruning — its independence is in the
+         search logic, the leaves use the separately-pinned compiled leaf), depths 3-4 structural (range within
+         the D-670 R, determinism), the search contract (A < B ValueError, scalar/list ValidationError, empty batch),
+         and the discipline on a trivial intercept-only model (normal root -y0, pass root +y0 against the scipy-expit
+         reference y0). The `endgame_solver` doc "Next" line now points at the final `reversi.lm.multi_ply_ef` /
+         `make_evaluation_function` naming. v1 is value-only: the move-ordered / root-best-move stage stays deferred
+         (the user: "per ora NON facciamo un dynamic ordering").
