@@ -561,3 +561,13 @@ D-672 | 2026-11-22 | The LM fixture set completed to the full five-member depth 
          with the right `mw.ec` (20…16), the identical `w_dense` (6 627,) shape class, and agree in magnitude on the
          same positions (26…31). The multi-ply EF depth ladder (positions at A = ec20 over models at B = ec20…16 →
          depths 0…4) is now fully on disk. No production code changed.
+
+D-673 | 2026-11-22 | The direct not-existing-fixture gate test. The user's review caught the gap: the missing-fixture
+         cases were pinned only via MOCKS (the patched `FIXTURE_ROOT`) + the create missing-config case — there was no
+         DIRECT test calling `require_lm_fixture` with a name that genuinely does not exist and capturing the exception.
+         Added `test_require...::test_not_existing_fixture_raises`: `require_lm_fixture`('`not_existing_fixture`')
+         raises the actionable `RuntimeError`, and the message is checked for BOTH the exact build command
+         (`python -m test.reversi.fixtures create not_existing_fixture`) and the missing model path — no mock, the
+         missing state is the real one (the name is never built, on any machine). The build command itself is documented
+         in four places (the `fixtures.py` module docstring, the mirror doc, every config JSON's description field, the
+         notes) — confirmed by the same review. 13 tests, green. No production code changed.

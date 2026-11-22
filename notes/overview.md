@@ -200,7 +200,7 @@ define the evaluation function.
 | test/reversi/test\_board.py | complete | 348/0/18/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
 | test/reversi/test\_endgame\_solver.py | complete | 61/0/0/0/0 (56 + 2 LONG + 3 PERF) | [docs/test/reversi/test\_endgame\_solver.md](docs/test/reversi/test\_endgame\_solver.md) |
 | test/reversi/test\_feature.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
-| test/reversi/test\_fixtures.py | complete | 12/0/0/0/0 | [docs/test/reversi/fixtures.md](docs/test/reversi/fixtures.md) |
+| test/reversi/test\_fixtures.py | complete | 13/0/0/0/0 | [docs/test/reversi/fixtures.md](docs/test/reversi/fixtures.md) |
 | test/reversi/test\_game\_position\_database.py | complete | 22/0/0/0/0 | [docs/test/reversi/test\_game\_position\_database.md](docs/test/reversi/test\_game\_position\_database.md) |
 | test/reversi/test\_index.py | complete | 10/0/0/0/0 | [docs/test/reversi/test\_index.md](docs/test/reversi/test\_index.md) |
 | test/reversi/test\_mobility.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |

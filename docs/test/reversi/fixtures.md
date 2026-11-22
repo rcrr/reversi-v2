@@ -52,14 +52,16 @@ magnitude on the same positions (26…31 in the smoke run).
 
 ## Verified invariants
 
-Pinned by `test_fixtures.py` (12 tests, all STATIC — no pipeline run, no DB, no artifact
+Pinned by `test_fixtures.py` (13 tests, all STATIC — no pipeline run, no DB, no artifact
 required): the three path helpers derive the house layout; the FIVE fixture configs carry
 the fixture contract (per member: the identity, the output location, `regab_allow_duplicate
 = false`, `plot.enable = false`; and the rlm_04-inherited training sections with
 `rlm_04.json` itself as the direct reference — parsed with json5, the pipeline's own
 loader, because the house .json data files carry the comment header + the trailing
 commas); `require_lm_fixture` returns the path when present and names the exact
-build command + the missing model path in the `RuntimeError` when absent; `create_lm_fixture`
+build command + the missing model path in the `RuntimeError` when absent — including the
+DIRECT not-existing-fixture case (a name that is never built raises the same actionable
+error, no mock); `create_lm_fixture`
 raises `ValueError` on a missing config and SHORT-CIRCUITS (no pipeline run — the
 `LogisticModel` construction is mocked to a sentinel) when the artifact is present.
 

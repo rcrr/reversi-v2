@@ -111,6 +111,16 @@ class TestFixtureConfigs(unittest.TestCase):
 class TestRequireLmFixture(unittest.TestCase):
     """The consumer gate: the path when present, the actionable error when missing."""
 
+    def test_not_existing_fixture_raises(self):
+        # A name with no config and no artifact (it is never built): the gate raises the
+        # actionable RuntimeError, naming the exact build command. Direct, no mock — the
+        # missing state is the real one.
+        with self.assertRaises(RuntimeError) as ctx:
+            fixtures.require_lm_fixture('not_existing_fixture')
+        msg = str(ctx.exception)
+        self.assertIn('python -m test.reversi.fixtures create not_existing_fixture', msg)
+        self.assertIn('build/tmp/fixtures/not_existing_fixture/not_existing_fixture.dat', msg)
+
     def test_present_returns_path(self):
         with mock.patch.object(fixtures, 'FIXTURE_ROOT', Path('/nonexistent/root')):
             with mock.patch.object(Path, 'is_file', return_value=True):

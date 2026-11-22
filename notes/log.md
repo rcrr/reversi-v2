@@ -327,3 +327,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    difference 0.000e+00). Smoke: all five load with the right `mw.ec` (20…16), the identical `w_dense` (6 627,) shape
    class, and agree in magnitude on the same positions (26…31). The multi-ply EF depth ladder (positions at A = ec20
    over models at B = ec20…16 → depths 0…4) is now fully on disk. (D-672)
+ - The direct not-existing-fixture gate test: the user's review caught that the missing cases were pinned only via mocks
+   — added `test_not_existing_fixture_raises`: `require_lm_fixture`('`not_existing_fixture`') raises the actionable
+   `RuntimeError`, the message checked for the exact build command + the missing model path, NO mock (the name is never
+   built, on any machine). The build command is documented in four places (the `fixtures.py` docstring, the mirror doc,
+   every config description, the notes) — confirmed by the same review. 13 tests, green. (D-673)
