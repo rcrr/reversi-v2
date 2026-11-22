@@ -26,12 +26,12 @@
 #
 
 """
-Unit tests for the multi-ply evaluation function (D-674: the compiled EF leaf — the index
-parity BIT-EXACT vs the client's compute_indexes pipeline + the leaf value contract,
-deterministic and within the measured ulp bound of the client EF; D-675: the float32
-alpha-beta search + the public factory — the depth ladder over the fixture set + the search
-contract + the search discipline on a trivial intercept-only model). No DB: the rebuildable
-LM fixtures (D-671/672) + seeded collision-free playout positions.
+Unit tests for the multi-ply evaluation function: the compiled EF leaf (the index parity
+BIT-EXACT vs the client's compute_indexes pipeline + the leaf value contract, deterministic
+and within the measured ulp bound of the client EF) and the float32 alpha-beta search + the
+public factory (the depth ladder over the fixture set + the search contract + the search
+discipline on a trivial intercept-only model). No DB: the rebuildable LM fixtures + seeded
+collision-free playout positions.
 """
 
 import unittest
@@ -106,7 +106,7 @@ def _minimax_oracle(mw, p, plan):
     The INDEPENDENT full-width minimax oracle (pure Python, NO pruning, its own move
     enumeration, the exact WOF at the terminals, the pass negated): the reference the
     alpha-beta SEARCH logic is checked against. The horizon leaves use the compiled EF leaf
-    (the D-674 parity test pins it bit-close to the client EF — the oracle's independence is
+    (the leaf parity test pins it bit-close to the client EF — the oracle's independence is
     in the search logic, the leaf correctness is a separate pinned concern) — 100x cheaper
     than a per-leaf client-EF pydantic call.
     """
@@ -166,7 +166,7 @@ class TestMultiPlyEfLeaf(unittest.TestCase):
 
     def test_leaf_value_within_measured_bound(self):
         """
-        The leaf value is within the D-674 measured bound of the client EF (the numpy
+        The leaf value is within the measured bound of the client EF (the numpy
         pairwise sum vs the sequential f32 sum: <= 409 ulp on the linear predictor,
         compressed further by the expit + the affine — 0.05 in Y is a wide safety margin).
         """
@@ -202,7 +202,7 @@ class TestMultiPlyEfLeaf(unittest.TestCase):
 
 class TestMultiPlyEfSearch(unittest.TestCase):
     """
-    The search-based evaluation over the fixture set (D-675): the depth ladder (the depth-0
+    The search-based evaluation over the fixture set: the depth ladder (the depth-0
     anchor bit-exact by delegation, the depths 1-2 vs the independent minimax oracle, the
     depths 3-4 structural in the LONG tier) + the search contract.
     """
@@ -253,7 +253,7 @@ class TestMultiPlyEfSearch(unittest.TestCase):
 
     def test_depth34_structural(self):
         """A = B+3 / B+4: 10 positions each — the structural contract (float32, the batch
-        shape, the D-670 range |v| <= R, determinism)."""
+        shape, the EF output range |v| <= R, determinism)."""
         for B in (17, 16):
             with self.subTest(B=B):
                 mw = model_weights_read_file(require_lm_fixture(f'rlm_fixture_simple_ec{B}'))
@@ -284,8 +284,8 @@ class TestMultiPlyEfSearch(unittest.TestCase):
     # --- the structural contract (the fast scale) ---
 
     def test_output_range_and_determinism(self):
-        """The structural contract: float32 of the batch shape, |v| within the D-670 range,
-        and deterministic (two calls bit-equal)."""
+        """The structural contract: float32 of the batch shape, |v| within the EF output
+        range, and deterministic (two calls bit-equal)."""
         for B in (19, 18):
             with self.subTest(B=B):
                 mw = self.models[B]

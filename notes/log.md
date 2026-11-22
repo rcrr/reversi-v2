@@ -341,12 +341,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
    bit-equal) — the test bound 0.05 is a drift detector 6000× above. 4 tests green in 0.7 s (no DB). D-675 next: the
    float32 alpha-beta + the public factory + the depth-ladder tests over the five fixtures. (D-674)
  - The multi-ply EF stage 2: the float32 alpha-beta (`_ab_eval`, the endgame-solver discipline: zero-window, static bsf
-   order, strict tie-break, the pass/terminal handling, the root window [-R, +R]) + the public `make_evaluation_function`
-   factory (the A >= B contract, the A == B delegation to the client EF, the worker-pool batch). Three findings pinned
-   by tests: the parallel index kernels cannot run from pool threads (the LLVM `allocate_sched` crash) — the leaf is now a
-   SERIAL transcription of the kernel bodies, 170-190x faster at N=1 (depth-4: 242 -> 1.3 ms/pos); the window state must
-   be F64 (the int64 state truncated the f32 windows and broke the zero-window tightening — the depth-2 oracle caught
-   it, up to 0.7 in Y); the root window ships as [-R, +R] (the first version had it inverted — the values came out at
-   the bound). 18 tests green: depth-0 anchor bit-exact, depths 1-2 vs the independent full-width minimax oracle, depths
-   3-4 structural, the search contract, the pass/sign discipline on a trivial intercept-only model (the scanned ec28
-   pass constant). 0.7 s fast / 1.8 s LONG. (D-675)
+   order, strict tie-break, the pass/terminal handling, the root window [-R, +R]) + the public
+   `make_evaluation_function` factory (the A >= B contract, the A == B delegation to the client EF, the worker-pool
+   batch). Three findings pinned by tests: the parallel index kernels cannot run from pool threads (the LLVM
+   `allocate_sched` crash) — the leaf is now a SERIAL transcription of the kernel bodies, 170-190x faster at N=1
+   (depth-4: 242 -> 1.3 ms/pos); the window state must be F64 (the int64 state truncated the f32 windows and broke the
+   zero-window tightening — the depth-2 oracle caught it, up to 0.7 in Y); the root window ships as [-R, +R] (the first
+   version had it inverted — the values came out at the bound). 18 tests green: depth-0 anchor bit-exact, depths 1-2 vs
+   the independent full-width minimax oracle, depths 3-4 structural, the search contract, the pass/sign discipline on a
+   trivial intercept-only model (the scanned ec28 pass constant). 0.7 s fast / 1.8 s LONG. (D-675)
+ - R-540 compliance for the multi-ply EF: the user asked to remove every D-XXX reference from the comments/docstrings of
+   reversi/lm/`multi_ply_ef`.py and its tests (rules.md R-540: no D-XXX provenance in docstrings). 16 references removed
+   (7 module + 9 test) - each rewritten as a plain design summary with the number dropped; the # code comments already
+   carried none. The fixture files checked clean. Docstring-only: 18 tests green. (D-676)

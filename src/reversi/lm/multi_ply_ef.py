@@ -26,8 +26,9 @@
 #
 
 """
-The multi-ply evaluation function (D-674: the compiled EF leaf kernel + the per-model index
-plan — the bit-exact pieces; D-675 adds the alpha-beta search + the public factory).
+The multi-ply evaluation function: the compiled EF leaf kernel + the per-model index plan
+(the bit-exact pieces) and the float32 alpha-beta search + the public
+`make_evaluation_function` factory.
 
 The design: a search-based evaluation over a ModelWeights `mw`. The search descends from the
 position's empty count A to the model's empty count B = `mw.ec` (the horizon; A < B is a
@@ -36,8 +37,8 @@ depth-0 anchor is bit-exact by construction). A horizon leaf value is the EF of 
 computed by the COMPILED leaf of this module: the same njit index pipeline the client EF uses
 (bit-exact indexes) + the f32 gather + the sequential f32 sum + the piecewise f32 expit (the
 scipy form) + the z2y affine. The leaf is deterministic and within the measured ulp bound of
-the client EF (the numpy pairwise sum vs the sequential sum: D-674 measurement, <= 409 ulp
-on the linear predictor).
+the client EF (the numpy pairwise sum vs the sequential sum: measured <= 409 ulp on the
+linear predictor).
 
 The leaf is a SERIAL transcription of the client's kernels (the no-drift principle of
 client.md, the single-position form): the batch `parallel=True` kernels cannot be called
@@ -269,7 +270,8 @@ def _ef_leaf_value(mover, opponent,
     client's sigmoid is) + the z2y affine.
 
     Deterministic (the same f32 bits on every run); within the measured ulp bound of the
-    client EF (the numpy pairwise sum vs the sequential sum — D-674: <= 409 ulp linear).
+    client EF (the numpy pairwise sum vs the sequential sum — measured <= 409 ulp on the
+    linear predictor).
 
     Returns:
         The f32 Y-space value of the position.
@@ -315,7 +317,7 @@ def _ab_eval(mover, opponent, state,
     order, the zero-window propagation (the child window is the negated parent window), the
     cutoff at value >= beta, and the strict > alpha rise. `state` is the 2-element shared
     array: state[0] / state[1] the node's (alpha, beta) window (the numba 0.68 state-array
-    idiom, D-662).
+    idiom).
 
     Returns:
         The f32 value of the position, from the mover's point of view.
@@ -383,9 +385,9 @@ def _ab_eval(mover, opponent, state,
 
 def _search_pool(positions, ecs, mw, plan, client_ef, window, horizon_stones):
     """
-    The worker-pool batch search (the D-669 idiom): one thread per CPU (capped at the lane
-    count), a queue of lane indices, dynamic dispatch, the per-lane fast path calling the
-    compiled search directly (it releases the GIL), the A == B lanes delegated to the client
+    The worker-pool batch search: one thread per CPU (capped at the lane count), a queue of
+    lane indices, dynamic dispatch, the per-lane fast path calling the compiled search
+    directly (it releases the GIL), the A == B lanes delegated to the client
     EF (the bit-exact depth-0 anchor), the lane errors surfaced at the boundary.
 
     Returns:
@@ -466,9 +468,9 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[npt.NDArray], npt.ND
     is evaluated by the CLIENT EF itself (the bit-exact depth-0 anchor — the pure EF); a
     position with A > B is searched (the float32 alpha-beta, the static bsf order, the zero
     window) down to the horizon, where the leaf value is the compiled EF. The batch runs on
-    the worker pool (the D-669 idiom: the compiled search releases the GIL).
+    the worker pool (the compiled search releases the GIL).
 
-    The Y output range contract (D-670) applies: NO clip anywhere; the root window is
+    The Y output range contract applies: NO clip anywhere; the root window is
     derived from the clipping: R = ceil(64/(1-2c)) + 1 (67 for c = 0.01 — it strictly
     contains the EF range +/-64/(1-2c) = +/-65.31, as the C ground window +/-66 contains the
     game-value range).

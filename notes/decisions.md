@@ -613,3 +613,10 @@ D-675 | 2026-11-22 | The multi-ply EF, stage 2: the float32 alpha-beta search + 
          reference y0). The `endgame_solver` doc "Next" line now points at the final `reversi.lm.multi_ply_ef` /
          `make_evaluation_function` naming. v1 is value-only: the move-ordered / root-best-move stage stays deferred
          (the user: "per ora NON facciamo un dynamic ordering").
+
+D-676 | 2026-11-22 | R-540 compliance for the multi-ply EF: all the D-XXX provenance removed from the docstrings of
+         `reversi/lm/multi_ply_ef.py` (7) and `test/reversi/lm/test_multi_ply_ef.py` (9) — the references were rewritten
+         as plain design summaries (the measured bound, the worker-pool idiom, the output range contract) with the
+         number dropped; the `#` code comments already carried none. The mirror docs keep their D references (docs are
+         not bound by R-540). The fixture files were checked and were already clean. Docstring-only change: 18 tests
+         green.
