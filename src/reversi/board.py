@@ -627,6 +627,44 @@ def bitboard_bsf(bb: Bitboard) -> int:
         n += 1
     return n
 
+@nb.njit(inline='always', cache=True)
+def _bsr(bb):
+    """
+    The compiled bit-scan-reverse: the descending twin of `bitboard_bsf` for the numba
+    compositions that need the highest set bit (the public `bitboard_bsr` is the
+    @validate_call Python form and is not njit-callable).
+
+    The mirror image of the `bitboard_bsf` shift ladder: the upper half is tested first,
+    so the ladder walks 32 -> 16 -> 8 -> 4 -> 2 -> 1 from the top.
+
+    Args:
+        bb: the bitboard.
+
+    Returns:
+        int: 63 down to 0 for the highest set bit; -1 for the empty bitboard.
+    """
+    if bb == 0:
+        return -1
+    n = 0
+    if (bb & 0xFFFFFFFF00000000) != 0:
+        n += 32
+        bb >>= 32
+    if (bb & 0xFFFF0000) != 0:
+        n += 16
+        bb >>= 16
+    if (bb & 0xFF00) != 0:
+        n += 8
+        bb >>= 8
+    if (bb & 0xF0) != 0:
+        n += 4
+        bb >>= 4
+    if (bb & 0x0C) != 0:
+        n += 2
+        bb >>= 2
+    if (bb & 0x02) != 0:
+        n += 1
+    return n
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_count(bb: Bitboard | BitboardArray) -> np.uint8 | npt.NDArray[np.uint8]:
     """

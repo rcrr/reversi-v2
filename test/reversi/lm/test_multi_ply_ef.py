@@ -44,8 +44,9 @@ from reversi.board import (Bitboard, bitboard_count, flips_of_move, final_value_
                            initial_game_position, legal_moves_of, make_position)
 from reversi.lm.client import make_evaluation_function_array
 from reversi.lm.model_weights import ModelWeights, model_weights_read_file
-from reversi.lm.multi_ply_ef import (_ef_leaf_indexes, _ef_leaf_value,
-                                      make_evaluation_function, prepare_multi_ply_plan)
+from reversi.lm.multi_ply_ef import (_ab_eval, _ef_leaf_indexes, _ef_leaf_value,
+                                      GROUP_MASKS, make_evaluation_function,
+                                      N_GROUPS, prepare_multi_ply_plan)
 from reversi.feature import Feature, FeatureSet
 from test.reversi.fixtures import require_lm_fixture
 from test.reversi.tags import tier_long
@@ -335,6 +336,54 @@ class TestMultiPlyEfSearch(unittest.TestCase):
         out = ef(empty)
         self.assertEqual(out.shape, (0,))
         self.assertEqual(out.dtype, np.float32)
+
+
+class TestMultiPlyEfGroupOrder(unittest.TestCase):
+    """
+    The fixed best-first group ordering (the C fast endgame solver's worst_to_best table):
+    the mask partition of the 64 squares + the priority (the corners first, the central
+    four last) + the value invariance (the wide root window contains the value range, so
+    the search is the exact minimax and the ordering only changes the node counts — the
+    ground window and the over-wide window are bit-identical).
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mw = model_weights_read_file(require_lm_fixture('rlm_fixture_simple_ec19'))
+        cls.plan = prepare_multi_ply_plan(cls.mw)
+        rng = np.random.default_rng(SEED)
+        cls.positions = np.array([_playout_to_ec(20, rng) for _ in range(4)])
+
+    def test_group_masks_partition_the_board(self):
+        """The N_GROUPS group masks are pairwise disjoint and cover all 64 squares exactly once."""
+        seen = np.uint64(0)
+        for g in range(N_GROUPS):
+            self.assertEqual(int(seen & GROUP_MASKS[g]), 0, f'group {g} overlaps the earlier ones')
+            seen = seen | GROUP_MASKS[g]
+        self.assertEqual(seen, np.uint64((1 << 64) - 1))
+
+    def test_group_priority_corners_first_central_last(self):
+        """Group 0 is exactly the four corners (A1, H1, A8, H8); the last group the central
+        four (D4, E4, D5, E5)."""
+        def bits(mask):
+            return {i for i in range(64) if int(mask) >> i & 1}
+        self.assertEqual(bits(GROUP_MASKS[0]), {0, 7, 56, 63})
+        self.assertEqual(bits(GROUP_MASKS[-1]), {27, 28, 35, 36})
+
+    def test_ground_window_equals_wide_window(self):
+        """Value invariance under the ordering: the ground window (+/-R, containing the EF
+        range) and the over-wide window (+/-1e30, no cutoff can fire) return bit-identical
+        values — both are the exact minimax."""
+        horizon = 64 - self.mw.ec
+        R = int(np.ceil(64.0 / (1.0 - 2.0 * self.mw.logit_clipping))) + 1
+        for p in self.positions:
+            st_ground = np.array([-float(R), float(R)])
+            st_wide = np.array([-1e30, 1e30])
+            v_ground = _ab_eval(p['mover'], p['opponent'], st_ground,
+                                self.mw.w_dense, *self.plan, horizon)
+            v_wide = _ab_eval(p['mover'], p['opponent'], st_wide,
+                              self.mw.w_dense, *self.plan, horizon)
+            self.assertEqual(v_ground, v_wide)
 
 
 class TestMultiPlyEfDiscipline(unittest.TestCase):

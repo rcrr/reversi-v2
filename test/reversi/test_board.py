@@ -57,7 +57,7 @@ import numba as nb
 from reversi.board import *
 
 # The white-box import for the Zobrist table pin: the star import above skips the underscore names.
-from reversi.board import _zobrist_bitstrings
+from reversi.board import _zobrist_bitstrings, _bsr
 from test.reversi.tags import tier_long
 
 from test.reversi.paths import WORKSPACE_ROOT
@@ -666,6 +666,31 @@ class TestBitboardBsf(unittest.TestCase):
         self.assertEqual(bitboard_bsf(Bitboard(0x3FFFFFFFF)), 0)
         self.assertEqual(bitboard_bsf(Bitboard(0x4000000000000002)), 1)
         self.assertEqual(bitboard_bsf(Bitboard(0x8000000000000000)), 63)
+
+class TestBsrNjit(unittest.TestCase):
+    """The compiled `_bsr` (the descending twin of bitboard_bsf, the njit-callable scan)."""
+
+    def test_scalar_bsr_high_bits(self):
+        """Precisely identify the highest set bit, including near the 64-bit boundary, and return int."""
+        res_0 = _bsr(np.uint64(0))
+        res_1 = _bsr(np.uint64(1))
+        res_53 = _bsr(np.uint64(1 << 53))
+        res_62 = _bsr(np.uint64(1 << 62))
+        res_63 = _bsr(np.uint64(1 << 63))
+        res_max = _bsr(np.uint64(0xFFFFFFFFFFFFFFFF))
+
+        self.assertEqual(res_0, -1)
+        self.assertEqual(res_1, 0)
+        self.assertEqual(res_53, 53)
+        self.assertEqual(res_62, 62)
+        self.assertEqual(res_63, 63)
+        self.assertEqual(res_max, 63)
+
+    def test_scalar_bsr_highest_of_many(self):
+        # With several bits set, the highest index wins (the descending iteration order).
+        self.assertEqual(_bsr(np.uint64(0x3FFFFFFFF)), 33)
+        self.assertEqual(_bsr(np.uint64(0x4000000000000002)), 62)
+        self.assertEqual(_bsr(np.uint64(0x8000000000000001)), 63)
 
 class TestBitboardPrint(unittest.TestCase):
 

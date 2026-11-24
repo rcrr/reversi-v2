@@ -428,3 +428,21 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   user will re-take the times under htop before the second fix (the move ordering) is attempted — and the ordering will
   be measured single-thread vs single-thread first (the user's methodology: no parallelism confounding the node-count /
   time comparison).
+- D-682 (the second I-024 fix, on the user's explicit request — "Porta in produzione"): the `_ab_eval` move loop is the
+  fixed best-first group order of the C fast endgame solver's `worst_to_best` table: 10 priority groups (the corner
+  rings first, the X-squares last, the central four searched after them — unlike the C, which excludes them, so the
+  value stays the exact minimax), `legal` masked per group, each group's legal bits scanned BSR-first (the user's design
+  — "un loop che fa il MASK per gruppi ... con BSR dopo aver fatto i gruppi"; my first 64-scan form was slower at
+  shallow depth from the per-node overhead). The new njit `_bsr` in board.py (the descending twin of `bitboard_bsf`; the
+  public `bitboard_bsr` is `@validate_call` Python and not njit-callable). SINGLE-THREAD A/B first (the agreed
+  methodology): the first round was INVALID — two of my scratch bugs (the table slice `[59:0:-1]` silently dropped the
+  worst square, G7; a patch indentation break moved the recursion out of the scan loop and segfaulted on an unbound
+  variable); the user was right to demand the re-check ("RICONTROLLA BENE !!!!!!") — with the fixed 64-square table the
+  values are BIT-EXACT, 250/250 lanes at depths 5 and 6, exactly as the wide-window theorem requires (no sums or
+  products in the search, only comparisons). Post-fix A/B: depth 5 -40% nodes / 2.0x faster, depth 6 -52% nodes / 1.5x
+  faster (serial, 250 positions). Production: the 1k depth-5/6 values bit-exact vs the pre-change baseline (1000/1000),
+  the depth-6 / 1k 8-core wall 25.8 s -> 6.4 s (4x). New tests: TestBsrNjit (2) + TestMultiPlyEfGroupOrder (3: the mask
+  partition, the corner-first priority, the ground-window == wide-window value invariance) — all fast-tier. The prange
+  chunking question was settled without a change: numba's workqueue dispatch is dynamic at ~n/80 chunk granularity
+  (proven with the concentrated-outlier probe), and since numba exposes no chunk parameter the sub-batching workaround
+  was declined by the user as too specific.

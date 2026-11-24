@@ -64,15 +64,36 @@ import numpy as np
 import numpy.typing as npt
 from pydantic import ConfigDict, validate_call
 
-from reversi.board import (Bitboard, PositionArray, _numba_fa1h8_scalar_impl,
+from reversi.board import (Bitboard, PositionArray, _bsr,
+                           _numba_fa1h8_scalar_impl,
                            _numba_fh1a8_scalar_impl, _numba_fhori_scalar_impl,
-                           _numba_fvert_scalar_impl, _popcount, bitboard_bsf,
-                           bitboard_count, final_value_of, flips_of_move,
-                           legal_moves_of)
+                           _numba_fvert_scalar_impl, _popcount, bitboard_count,
+                           final_value_of, flips_of_move, legal_moves_of)
 from reversi.lm.client import _prepare_weights, make_evaluation_function_array
 from reversi.lm.model_weights import ModelWeights
 
 __all__ = ['prepare_multi_ply_plan', 'make_evaluation_function']
+
+# The fixed best-first square grouping of the search move loop, ported from the C fast
+# endgame solver's worst_to_best table: the corner rings first (the four corners in the
+# first group), the outer rings in, the X-squares last, the central four appended after
+# them. Each group is one bitmask; `legal` is masked with the groups in this order and
+# each group's legal bits are scanned BSR-first. The central four ARE searched (unlike
+# the C, which skips them), so the value stays the exact minimax — the ordering only
+# changes the node counts, never the values (the wide root window contains the range).
+GROUP_MASKS = np.array([
+    0x8100000000000081,   # the four corners (A1, H1, A8, H8)
+    0x2400810000810024,
+    0x240000240000,
+    0x1800008181000018,
+    0x182424180000,
+    0x18004242001800,
+    0x24420000422400,
+    0x4281000000008142,
+    0x42000000004200,
+    0x1818000000,         # the central four (E5, D5, E4, D4)
+], dtype=np.uint64)
+N_GROUPS = 10
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -319,9 +340,11 @@ def _ab_eval(mover, opponent, state,
     child values are negated at each ply); the horizon node is the EF leaf (the contract: at
     the horizon, the value is the EF — no pass-through); the terminal node is the exact WOF
     (`final_value_of`, the mover's point of view) cast to f32; a no-move node above the
-    horizon passes (the sides swap, the value is negated). The move loop is the static bsf
-    order, the zero-window propagation (the child window is the negated parent window), the
-    cutoff at value >= beta, and the strict > alpha rise. `state` is the 2-element shared
+    horizon passes (the sides swap, the value is negated). The move loop is the fixed
+    best-first group order (the `GROUP_MASKS` table: `legal` masked with the groups in
+    priority order, each group's legal bits scanned BSR-first), the zero-window
+    propagation (the child window is the negated parent window), the cutoff at value >=
+    beta, and the strict > alpha rise. `state` is the 2-element shared
     array: state[0] / state[1] the node's (alpha, beta) window (the numba 0.68 state-array
     idiom).
 
@@ -360,32 +383,33 @@ def _ab_eval(mover, opponent, state,
     alpha = state[0]
     beta = state[1]
     best = alpha
-    moves = legal
-    while moves:
-        sq = bitboard_bsf(moves)
-        moves = moves & (moves - Bitboard(1))
-        m = Bitboard(1) << Bitboard(sq)
-        flips = flips_of_move(mover, opponent, m)
-        saved_a, saved_b = state[0], state[1]
-        state[0], state[1] = -beta, -alpha
-        value = _ab_eval(opponent ^ flips, (mover ^ flips) | m, state,
-                         w_dense, expanded_offsets, a1, b1,
-                         has_intercept,
-                         mob_masks, mob_sides,
-                         n_squares_arr, bit_shifts_matrix, powers_3,
-                         n_groups_arr, group_size_arr, idx_sort_matrix,
-                         current_col, col_offsets,
-                         num_planes_arr, pack_masks_3d, pack_shifts_3d,
-                         horizon_stones)
-        state[0], state[1] = saved_a, saved_b
-        value = -value
-        if value > best:
-            best = value
-            # The node's alpha rises with the best child: the NEXT sibling's window is
-            # derived from it (the zero-window tightening, the source of the pruning).
-            alpha = value
-            if value >= beta:
-                return best
+    for g in range(N_GROUPS):
+        gm = legal & GROUP_MASKS[g]
+        while gm:
+            sq = _bsr(gm)
+            m = Bitboard(1) << Bitboard(sq)
+            gm = gm & ~m
+            flips = flips_of_move(mover, opponent, m)
+            saved_a, saved_b = state[0], state[1]
+            state[0], state[1] = -beta, -alpha
+            value = _ab_eval(opponent ^ flips, (mover ^ flips) | m, state,
+                             w_dense, expanded_offsets, a1, b1,
+                             has_intercept,
+                             mob_masks, mob_sides,
+                             n_squares_arr, bit_shifts_matrix, powers_3,
+                             n_groups_arr, group_size_arr, idx_sort_matrix,
+                             current_col, col_offsets,
+                             num_planes_arr, pack_masks_3d, pack_shifts_3d,
+                             horizon_stones)
+            state[0], state[1] = saved_a, saved_b
+            value = -value
+            if value > best:
+                best = value
+                # The node's alpha rises with the best child: the NEXT sibling's window is
+                # derived from it (the zero-window tightening, the source of the pruning).
+                alpha = value
+                if value >= beta:
+                    return best
     return best
 
 
@@ -469,8 +493,8 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[npt.NDArray], npt.ND
     first: the A == B lanes (the bit-exact depth-0 anchor) go to the CLIENT EF itself in a
     SINGLE batched call (the EF is per-position, so the batched values are the individual
     ones); only the A > B lanes run the float32 alpha-beta — a single njit call over the
-    lanes on numba's workqueue (the static bsf order, the zero window, down to the horizon,
-    where the leaf value is the compiled EF).
+    lanes on numba's workqueue (the fixed best-first group order, the zero window, down to
+    the horizon, where the leaf value is the compiled EF).
 
     The Y output range contract applies: NO clip anywhere; the root window is
     derived from the clipping: R = ceil(64/(1-2c)) + 1 (67 for c = 0.01 — it strictly

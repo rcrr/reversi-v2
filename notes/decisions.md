@@ -663,3 +663,18 @@ D-681 | 2026-11-24 | Multi-ply EF parallelism (I-024, first of the two fixes): t
          per-lane independent). 1342 fast-tier tests green. The second I-024 fix (the move ordering, the 4.91x/ply node
          growth against the ideal sqrt(b) = 3.11x) is deliberately SEPARATE: it will be measured single-thread vs
          single-thread first, and only then combined with the parallel form (the user's call).
+
+D-682 | 2026-11-24 | Multi-ply EF move ordering (I-024, second of the two fixes): the `_ab_eval` move loop is the FIXED
+         best-first group order ported from the C fast endgame solver's `worst_to_best` table — the 64 squares in 10
+         priority groups (the corner rings first, the X-squares last, the central four appended after them; the central
+         four ARE searched, unlike the C which skips them, so the value stays the exact minimax), `legal` is masked with
+         the groups in priority order and each group's legal bits are scanned BSR-first (the C's within-cluster
+         convention; the new njit `_bsr` in board.py, the descending twin of `bitboard_bsf` — the public `bitboard_bsr`
+         is the `@validate_call` Python form, not njit-callable). Measured SINGLE-THREAD vs SINGLE-THREAD first (the
+         agreed methodology): on the 250-position sample, depth 5 -40% nodes / 2.0x faster, depth 6 -52% nodes / 1.5x
+         faster, the values BIT-EXACT (250/250 lanes) vs the former bsf order — the wide root window contains the value
+         range, so the search is the exact minimax and the ordering only changes the node counts, never the values. The
+         1k depth-5/6 values are bit-exact vs the pre-change production (1000/1000 lanes); the depth-6 / 1k 8-core wall
+         drops 25.8 s -> 6.4 s (4x). The first A/B round was invalidated by two scratch bugs (the table slice
+         `[59:0:-1]` dropped the worst square — G7 — and a patch indentation break); after the fix the values are
+         identical as the theorem requires.

@@ -15,7 +15,7 @@ the EF of that position computed by the COMPILED leaf.
 | `prepare_multi_ply_plan(mw: ModelWeights) -> tuple` | `@validate_call` — the per-model prepared data of the compiled EF leaf (computed ONCE, closed over by the factory): the 17-tuple (the client's `expanded_offsets` + the z2y affine `a1`/`b1` (the EXACT hlp_zed formula) + the intercept flag + the mobility masks/sides + the pattern-block arrays the leaf needs) |
 | `_ef_leaf_indexes(mover, opponent, <plan[3:]>)` | private njit — the compiled index pipeline of a single position: the SERIAL transcription of the client's njit kernels (the anti-transformation scalar impls of board.py, the mobility loop of mobility.py, the pack/base-3/coset-min pipeline of pattern.py) — bit-exact with `FeatureSet.compute_indexes` |
 | `_ef_leaf_value(mover, opponent, w_dense, <plan>)` | private njit — the full compiled EF leaf: the index row + the f32 gather + the SEQUENTIAL f32 sum + the piecewise f32 expit (the scipy form) + the z2y affine; deterministic, within the measured bound of the client EF |
-| `_ab_eval(mover, opponent, state, w_dense, <plan>, horizon_stones)` | private njit — the float32 alpha-beta (the endgame-solver discipline, value-only): the horizon node is the EF leaf, the terminal the exact WOF as f32, the no-move node passes (sides swap, value negated); the static bsf move order, the zero-window propagation (the child window is the negated parent window), the cutoff at value >= beta, the strict > alpha rise; `state` is the 2-element F64 (alpha, beta) array (the f32 windows are exact in f64 — the int64 state of the endgame solver fits there only because the game values are integers) |
+| `_ab_eval(mover, opponent, state, w_dense, <plan>, horizon_stones)` | private njit — the float32 alpha-beta (the endgame-solver discipline, value-only): the horizon node is the EF leaf, the terminal the exact WOF as f32, the no-move node passes (sides swap, value negated); the fixed best-first group move order (D-682: `legal` masked with the `GROUP_MASKS` in priority order, each group's legal bits scanned BSR-first — the C fast endgame solver's worst_to_best table, the corners first, the X-squares last, the central four searched after them), the zero-window propagation (the child window is the negated parent window), the cutoff at value >= beta, the strict > alpha rise; `state` is the 2-element F64 (alpha, beta) array (the f32 windows are exact in f64 — the int64 state of the endgame solver fits there only because the game values are integers) |
 | `_search_prange(movers, opponents, out, w_dense, <plan>, horizon_stones, window)` | private njit `parallel=True` — the batch search over the above-horizon lanes (D-681): the lanes loop on numba's workqueue (`prange`, the C-level dynamic dispatch that balances the lane-cost tail), each lane the compiled `_ab_eval` with the root window [−R, +R]; the per-lane values are bit-exact with the former worker-pool form |
 
 ## Architecture
@@ -67,8 +67,17 @@ seeded playout positions; the full 100-position scale in the LONG tier):
   is derived from the clipping: R = ceil(64/(1−2c)) + 1 (67 for c = 0.01 — it strictly
   contains the EF range ±64/(1−2c) = ±65.31, as the C ground window ±66 contains the
   game-value range).
-- v1 is VALUE-ONLY (no root best move) — the move-ordering / best-move stage is deferred
-  (the user: "per ora NON facciamo un dynamic ordering").
+- v1 is VALUE-ONLY (no root best move) — the DYNAMIC move-ordering / best-move stage is
+  deferred (the user: "per ora NON facciamo un dynamic ordering"); the FIXED static
+  best-first group ordering of the C fast endgame solver is in since D-682 (it is a
+  pruning-only change: the node counts drop, the values are bit-invariant — the wide root
+  window contains the range, so the search stays the exact minimax whatever the order).
+- The fixed group ordering (D-682) is measured single-thread A/B on the 250-position
+  sample: depth 5 −40% nodes / 2.0x faster, depth 6 −52% nodes / 1.5x faster, the
+  values bit-exact (250/250 lanes) vs the former bsf order; on the depth-6 / 1k test
+  case the 8-core wall drops from 25.8 s to 6.4 s (4x). The legal bits within a group
+  are scanned BSR-first (the C's within-cluster convention), the central four are
+  searched (unlike the C, which skips them) so the value stays the exact minimax.
 - The compiled search releases the GIL for the WHOLE batch call: the A > B lanes run on
   numba's workqueue — a single njit `prange` over the lanes (D-681) — where the C-level
   dynamic dispatch balances the lane-cost tail; the per-lane values are bit-exact with the
