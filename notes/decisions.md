@@ -704,3 +704,16 @@ D-685 | 2026-11-24 | `endgame_solver` coverage — the mirror `test_minimax_chec
          guards by `test_array_log_raises` (the coverage study had misread line 458 as the log guard; it is the
          `check_ec` line). The remaining uncovered lines (the 403-404 / 412 worker-pool error net) are left as-is by
          design: a defensive path not triggerable with valid positions (the bit arithmetic raises nothing).
+
+D-686 | 2026-11-24 | `multi_ply_ef` deep-branch tests (the `TestMultiPlyEfDeepBranches` class): the two `_ab_eval`
+         branches the shallow fixture depths never reach. (1) The in-search TERMINAL — the double-pass node above the
+         horizon returns the exact WOF (`final_value_of`); pinned with 'black-wins-by-wipe-out' (13 empties) over the
+         ec0 fixture (the horizon the 64-stone board: every leaf an exact terminal) — the value asserted identical (as
+         float) to the independent exact engine `alphabeta_solve` (-64.0 == -64). (2) The in-search PASS — the no-move
+         node above the horizon swaps the sides and negates; pinned with 'woc18-FKvsAP-g1-03' (3 empties, 61 stones — a
+         legal move leaves the opponent with no legal move, the 62-stone child the pass node) over the TRIVIAL model at
+         ec1 (the horizon 63: the pass node below it, the 63-stone leaves the closed-form constant), the value asserted
+         against the independent Python minimax oracle (the same contract, no pruning) — bit-identical in the prototype,
+         delta 1e-4 in the test (the house TRIVIAL idiom). Both positions from the committed sample DB
+         (gpdb-sample-games.txt); the pass test pins its precondition (the internal pass must exist) so the test keeps
+         testing what it claims.

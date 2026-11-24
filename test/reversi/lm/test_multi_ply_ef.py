@@ -42,13 +42,16 @@ from scipy.special import expit
 
 from reversi.board import (Bitboard, bitboard_count, flips_of_move, final_value_of,
                            initial_game_position, legal_moves_of, make_position)
+from reversi.endgame_solver import alphabeta_solve
+from reversi.feature import Feature, FeatureSet
+from reversi.game_position_database import load_game_position_database
 from reversi.lm.client import make_evaluation_function_array
 from reversi.lm.model_weights import ModelWeights, model_weights_read_file
 from reversi.lm.multi_ply_ef import (_ab_eval, _ef_leaf_indexes, _ef_leaf_value,
                                       GROUP_MASKS, make_evaluation_function,
                                       N_GROUPS, prepare_multi_ply_plan)
-from reversi.feature import Feature, FeatureSet
 from test.reversi.fixtures import require_lm_fixture
+from test.reversi.paths import WORKSPACE_ROOT
 from test.reversi.tags import tier_long
 
 FIXTURE = 'rlm_fixture_simple_ec16'
@@ -426,6 +429,100 @@ class TestMultiPlyEfDiscipline(unittest.TestCase):
         lane = np.array([[int(PASS_MOVER), int(PASS_OPPONENT)]], dtype=np.uint64)
         got = float(make_evaluation_function(self.mw)(lane)[0])
         self.assertAlmostEqual(got, self.y0, delta=1e-4)
+
+
+class TestMultiPlyEfDeepBranches(unittest.TestCase):
+    """
+    The deep branches of _ab_eval the shallow fixture depths never reach: the in-search
+    TERMINAL (the double-pass node above the horizon -> the exact WOF, the leaf the
+    final_value_of) and the in-search PASS (the no-move node above the horizon -> the sides
+    swap, the value negated). The ec0 fixture makes the horizon the 64-stone board, so the
+    wipe-out position's leaves are all exact terminals and the search value is the exact
+    endgame value — asserted identical (as float) to the independent exact engine
+    (alphabeta_solve); the internal pass is pinned with the TRIVIAL model (the constant
+    leaf, the closed form) against the independent Python minimax oracle (the same
+    contract, no pruning).
+    """
+
+    DB_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db, _ = load_game_position_database(cls.DB_FILE)
+        # The model (the factory is called per test: a function stored as a class attribute
+        # would bind as a method and swallow `self` — the discipline class idiom).
+        cls.mw0 = model_weights_read_file(require_lm_fixture('rlm_fixture_simple_ec0'))
+        # The TRIVIAL model at ec1 (the horizon 63: the 62-stone pass node is above it,
+        # the 63-stone leaves are the constant).
+        fs = FeatureSet('TRIVIAL', Feature.new_intercept(), None, None)
+        w0 = np.float32(np.log(3.0))
+        cls.mw1 = ModelWeights(
+            version=1, name='TRIVIAL-EC1', ec=1, logit_clipping=0.01,
+            opt_info={}, training_pop_stats={}, vld_metrics={}, feature_set=fs,
+            iwmap_feature_offset=np.array([0, 1], dtype=np.uint32),
+            w_dense=np.array([w0], dtype=np.float32))
+        a1 = np.float32(-64. / (1. - 2. * 0.01))
+        b1 = np.float32(128. / (1. - 2. * 0.01))
+        cls.leaf = float(a1 + expit(w0) * b1)
+
+    def _ef0_named(self, name):
+        p = self.db.find(name).position
+        pos2 = make_position(np.array([p['mover']], dtype=np.uint64),
+                             np.array([p['opponent']], dtype=np.uint64))
+        return float(make_evaluation_function(self.mw0)(pos2)[0])
+
+    def test_terminal_wipe_out_is_exact(self):
+        """The in-search terminal: 'black-wins-by-wipe-out' (13 empties) — the double-pass
+        node above the horizon returns the exact WOF, every leaf exact, the value identical
+        (as float) to the alphabeta_solve integer."""
+        p = self.db.find('black-wins-by-wipe-out').position
+        ref = int(alphabeta_solve(p).game_value)
+        self.assertEqual(self._ef0_named('black-wins-by-wipe-out'), float(ref))
+
+    @staticmethod
+    def _trivial_oracle(m, o, horizon, leaf):
+        """The independent Python minimax of the TRIVIAL contract (no pruning)."""
+        if bitboard_count(np.uint64(m | o)) >= horizon:
+            return leaf
+        lm = int(legal_moves_of(np.uint64(m), np.uint64(o)))
+        if not lm:
+            if not int(legal_moves_of(np.uint64(o), np.uint64(m))):
+                return float(final_value_of(np.uint64(m), np.uint64(o)))
+            return -TestMultiPlyEfDeepBranches._trivial_oracle(o, m, horizon, leaf)
+        best = None
+        g = lm
+        while g:
+            b = g & (-g)
+            fo = int(flips_of_move(np.uint64(m), np.uint64(o), np.uint64(b)))
+            v = -TestMultiPlyEfDeepBranches._trivial_oracle(o ^ fo, (m ^ fo) | b,
+                                                             horizon, leaf)
+            best = v if best is None else max(best, v)
+            g &= g - 1
+        return best
+
+    def test_internal_pass_is_exact(self):
+        """The in-search pass: 'woc18-FKvsAP-g1-03' (3 empties, 61 stones) — one of the
+        mover's legal moves leaves the opponent with NO legal move, the 62-stone child is
+        the pass node (above the TRIVIAL ec1 horizon 63 the search would stop — it is
+        below it, so the pass branch runs). The value is the independent Python oracle."""
+        p = self.db.find('woc18-FKvsAP-g1-03').position
+        m, o = int(p['mover']), int(p['opponent'])
+        # The precondition pin: at least one legal move leaves the opponent with none.
+        g = int(legal_moves_of(np.uint64(m), np.uint64(o)))
+        has_internal_pass = False
+        while g:
+            b = g & (-g)
+            fo = int(flips_of_move(np.uint64(m), np.uint64(o), np.uint64(b)))
+            nm, no = (m | b | fo), (o & ~fo)
+            if not int(legal_moves_of(np.uint64(no), np.uint64(nm))):
+                has_internal_pass = True
+                break
+            g &= g - 1
+        self.assertTrue(has_internal_pass, 'the fixture position lost its internal pass')
+        ref = self._trivial_oracle(m, o, 63, self.leaf)
+        got = float(make_evaluation_function(self.mw1)(
+            np.array([[m, o]], dtype=np.uint64))[0])
+        self.assertAlmostEqual(got, ref, delta=1e-4)
 
 
 if __name__ == '__main__':

@@ -462,3 +462,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   the `check_ec` path of `minimax_solve` (line 458). The mirror `test_minimax_check_ec_gate` is added to
   TestUnifiedSolveApi (the non-uniform batch raises at the boundary; the default solves the two lanes to [18, 18]).
   Module coverage: 96/219 statements now uncovered, all njit bodies + the defensive pool error net.
+- D-686: the multi-ply deep-branch tests (TestMultiPlyEfDeepBranches): the in-search TERMINAL pinned with
+  'black-wins-by-wipe-out' over the ec0 fixture (the value identical-as-float to `alphabeta_solve`: -64.0 == -64) and
+  the in-search PASS pinned with 'woc18-FKvsAP-g1-03' over the TRIVIAL model at ec1 (the closed-form constant leaf)
+  against the independent Python minimax oracle (bit-identical in the prototype; delta 1e-4 in the test). The prototype
+  first showed why the real fixture cannot pin the pass exactly: at the 64-stone horizon the leaf is the model ESTIMATE
+  (the contract: horizon -> EF leaf), so only the double-pass terminal (above the horizon) is exact — the TRIVIAL
+  constant-leaf model is the exact oracle for the pass branch.
