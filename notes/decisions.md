@@ -678,3 +678,13 @@ D-682 | 2026-11-24 | Multi-ply EF move ordering (I-024, second of the two fixes)
          drops 25.8 s -> 6.4 s (4x). The first A/B round was invalidated by two scratch bugs (the table slice
          `[59:0:-1]` dropped the worst square — G7 — and a patch indentation break); after the fix the values are
          identical as the theorem requires.
+
+D-683 | 2026-11-24 | Multi-ply EF suite compile time (the fast-tier budget): `_search_prange` was the only njit in the
+         module WITHOUT `cache=True` (the other three — `_ef_leaf_indexes`, `_ef_leaf_value`, `_ab_eval` — were already
+         cached), so every fresh process re-paid the ~5.5 s compilation of the prange entry point, and the first tests
+         to call it carried it: `test_depth1_vs_minimax_oracle` (5.46 s) and `test_normal_root_is_minus_y0` (5.72 s) —
+         the latter also triggers a SECOND `_search_prange` overload (the TRIVIAL discipline model passes
+         `horizon_stones` as int64, the parsed fixture models as uint32). The test bodies themselves are ~0.1 s warm.
+         Fix in the source (no test change, no coverage loss): `cache=True` on `_search_prange` — the compilation is now
+         a one-time cost per source change, subsequent processes load the cached code. Warm cache: both tests under 0.5
+         s, the 1k d5/d6 values bit-exact (1000/1000) vs the pre-change baseline, 1347 fast-tier tests green.

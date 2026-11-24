@@ -446,3 +446,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   chunking question was settled without a change: numba's workqueue dispatch is dynamic at ~n/80 chunk granularity
   (proven with the concentrated-outlier probe), and since numba exposes no chunk parameter the sub-batching workaround
   was declined by the user as too specific.
+- D-683 (the fast-tier budget; the user: "ne vedo 2 della suite che sicuramente sono sopra 0.5s ... trovali"): the
+  per-test timing of the 1347-test suite pinned the two — `test_depth1_vs_minimax_oracle` (5.46 s) and
+  `test_normal_root_is_minus_y0` (5.72 s), both in `test_multi_ply_ef.py`. Root cause: NOT the test bodies (~0.1 s warm)
+  but the one-time JIT compilation — `_search_prange` was the only njit of the module without `cache=True`, so every
+  fresh process re-compiled the prange entry (~5.5 s) and the first callers paid it; the discipline test additionally
+  triggers a second `_search_prange` overload (the TRIVIAL model's `horizon_stones` is int64, the fixture models'
+  uint32). Fix in the source (no test change, no coverage loss): `cache=True` on `_search_prange`. Warm cache: both
+  tests under 0.5 s, the 1k d5/d6 values bit-exact (1000/1000) vs the pre-change baseline, 1347 fast-tier tests green.

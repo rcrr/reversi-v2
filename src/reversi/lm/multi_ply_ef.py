@@ -413,7 +413,7 @@ def _ab_eval(mover, opponent, state,
     return best
 
 
-@nb.njit(parallel=True)
+@nb.njit(parallel=True, cache=True)
 def _search_prange(movers, opponents, out,
                    w_dense, expanded_offsets, a1, b1,
                    has_intercept,
