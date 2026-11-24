@@ -625,3 +625,12 @@ D-677 | 2026-11-22 | Overview: the ENDGAME-SOLVER and the MULTI-PLY campaigns ar
          Next-steps entries were removed and replaced by a single composed Current-state entry (the ported/compiled
          endgame solver + the multi-ply evaluation function extending the LM pipeline). Next steps now open with
          MOVE-PROB.
+
+D-678 | 2026-11-23 | The 0153 series: the book §17.5 reference model 0153 (the series best performer — RMSE val 6.50,
+         711,853 active weights) is re-trained with its feature set held fixed (2X6COR, CASTLE, 3X4COR, R4, BARBEL,
+         DIAG7, DIAG6, DIAG5, R2, R3 + OptMob) at ec = 19..10: 10 new models, ID 0153 at each level (the user's explicit
+         naming — the series carries the reference model's id, not the registry's next-sequential id), same corpus
+         (batches 3, 9, 12 train / 6 val, CMS+CMR) and same `stat_model` / `optimization` hyperparameters. The configs
+         are generated from the 0153 template by literal substitution of the 7 ec-specific fields (the feature set
+         byte-identical); the 10 registry indexes gain their row. The original ec20 0153 completes the 11-member family;
+         a characteristics table (RMSE train/val, active weights, iterations, corpus sizes) is the deliverable.

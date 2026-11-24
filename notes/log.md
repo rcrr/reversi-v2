@@ -357,3 +357,30 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
  - Overview updated (user-approved): the ENDGAME-SOLVER + MULTI-PLY campaign entries left the Next steps (both complete)
    — a single composed 3-line entry joined them in the Current state. (D-677)
 
+## 2026-11-23 — session 132 (the 0153 series — the best-performer feature set across ec 19..10)
+
+- The user's request: model 0153 (the book §17.5 series reference — RMSE val 6.50, 711,853 active weights, the best
+  performer) is re-built as a series "always 0153" at ec = 19..10: 10 new models with the 0153 feature set held FIXED
+  (2X6COR, CASTLE, 3X4COR, R4, BARBEL, DIAG7, DIAG6, DIAG5, R2, R3 + OptMob), only the empty count varying — the
+  original ec20 0153 included, the family is 11; a table of their characteristics is the deliverable.
+- Environment check: the local REGAB DB (`tst_regab@localhost`) is up and its (`batch_id`, `empty_count`, `status`)
+  index serves the per-level counts — batches 3/9/12 (train) and 6 (val) carry ~2M/4M/8M and ~200K positions per ec
+  level 10..20 (the full corpus is there for every level); 8 cores, ~100 GB RAM free; the reference ec20/0153 full run
+  took 16.5 min, so the 10 serial runs budget at ~2h45.
+- The 10 configs `models/lm/ec{19..10}/0153/lm_ec{XX}_0153.json` generated from the 0153 template by literal
+  substitution of the 7 ec-specific fields (name, `empty_count`, description, `base_dir`, output, `log_file_name`, the
+  header file name — the feature set / `stat_model` / `optimization` sections byte-identical), each re-parsed and
+  field-asserted; the user then named the series after the reference — all 10 carry ID 0153 at their level (not the
+  next-sequential 0109): files, registry rows, and build dirs renamed accordingly, no pipeline re-run. The 10 registry
+  `index.md` files gain their 0153 row. The first run attempt failed at CONFIG (the base dir must pre-exist) — the 10
+  `build/lm/ec{XX}/0153` dirs created, the runs proceed serially ec 19 → 10.
+- The `localhost` REGAB DB is an SSH tunnel to the remote server: the 14M-position extraction that took 60 s in the
+  reference ec20/0153 run takes ~8 min through the tunnel, so the series budget is ~24 min/run (~3.5 h for the 10). The
+  ec19 run completed clean in 24 min: RMSE train 6.23 / val 6.50 (the SAME validation RMSE as the ec20 0153), W 715,129,
+  1,021 iterations (`CONVERGED_MIN_GRAD`), 13,245,762 train / 189,117 val positions. The remaining nine (ec 18..10) run
+  serially in the background.
+- The 0153 series completed: all 10 runs clean (18/18 steps, client check 0.000e+00). The validation RMSE is essentially
+  flat across the family — 6.43 (ec10) to 6.54 (ec13) against the 6.50 of the ec20 reference — while W rises 711,853 →
+  725,463 (ec12) → 722,940 (ec10); the training RMSE holds at 6.21–6.25 and the iterations at 950–1,037 (ec14/ec11/ec10
+  stop on `LOW_PROGRESS`, the rest on `MIN_GRAD`). The 11-member family is registered — all 0153 (the ec20 original +
+  ec 19..10).
