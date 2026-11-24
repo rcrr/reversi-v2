@@ -458,3 +458,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   [0..20] TUTTI"): 16 new config JSONs committed (the ec20 template, the `empty_count` + the name fields per member),
   the `test_fixtures.py` registry ECS now (20..0), the `TestFixtureConfigs` contract green on all 21 members (13
   tests, 0.4 s). The 16 pipeline builds run in the background (DB bid 6/5, ~200k positions per ec).
+- D-685: the coverage study pinned the true (a) gap — NOT the log guard (already covered by `test_array_log_raises`) but
+  the `check_ec` path of `minimax_solve` (line 458). The mirror `test_minimax_check_ec_gate` is added to
+  TestUnifiedSolveApi (the non-uniform batch raises at the boundary; the default solves the two lanes to [18, 18]).
+  Module coverage: 96/219 statements now uncovered, all njit bodies + the defensive pool error net.

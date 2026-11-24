@@ -697,3 +697,10 @@ D-684 | 2026-11-24 | The LM fixture family `rlm_fixture_simple_ec*` is extended 
          casistica generale". The `test_fixtures.py` registry ECS is now (20..0) and the `TestFixtureConfigs` contract
          (identity, output location, the fixture flags, the `rlm_04` inheritance) covers all 21 members automatically;
          the DB corpus is sufficient at every ec (~200k train positions per ec at bid 6, the ec0 the largest at 297k).
+
+D-685 | 2026-11-24 | `endgame_solver` coverage — the mirror `test_minimax_check_ec_gate` (TestUnifiedSolveApi): the
+         `check_ec=True` boundary guard of `minimax_solve` (the `uniform_empty_count` call) was the one genuinely
+         uncovered contract line of the module — the alphabeta twin was covered by `test_check_ec_gate`, and both log
+         guards by `test_array_log_raises` (the coverage study had misread line 458 as the log guard; it is the
+         `check_ec` line). The remaining uncovered lines (the 403-404 / 412 worker-pool error net) are left as-is by
+         design: a defensive path not triggerable with valid positions (the bit arithmetic raises nothing).

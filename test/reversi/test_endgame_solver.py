@@ -742,3 +742,16 @@ class TestUnifiedSolveApi(unittest.TestCase):
         # are exact).
         r = minimax_solve(self.gps10)
         self.assertEqual(r.game_values.tolist(), [row[3] for row in self.ROWS_10])
+
+    def test_minimax_check_ec_gate(self):
+        # The minimax check_ec gate (the alphabeta twin of test_check_ec_gate): the non-uniform
+        # batch raises at the boundary; the default (False) skips the check and solves.
+        p8 = self.db.find('ffo-01-simplified-8').position
+        p12 = self.db.find('ffo-01-simplified-12').position
+        mixed = make_game_position(np.array([p8['mover'], p12['mover']], dtype=np.uint64),
+                                   np.array([p8['opponent'], p12['opponent']], dtype=np.uint64),
+                                   np.array([p8['player'], p12['player']], dtype=np.uint8))
+        with self.assertRaises(ValueError):
+            minimax_solve(mixed, check_ec=True)
+        r = minimax_solve(mixed)
+        self.assertEqual([int(v) for v in r.game_values], [18, 18])
