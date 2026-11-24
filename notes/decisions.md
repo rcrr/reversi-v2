@@ -688,3 +688,12 @@ D-683 | 2026-11-24 | Multi-ply EF suite compile time (the fast-tier budget): `_s
          Fix in the source (no test change, no coverage loss): `cache=True` on `_search_prange` — the compilation is now
          a one-time cost per source change, subsequent processes load the cached code. Warm cache: both tests under 0.5
          s, the 1k d5/d6 values bit-exact (1000/1000) vs the pre-change baseline, 1347 fast-tier tests green.
+
+D-684 | 2026-11-24 | The LM fixture family `rlm_fixture_simple_ec*` is extended from ec16-20 to the FULL ec0-20 ladder
+         (16 new committed config JSONs; the .dat artifacts stay git-ignored, rebuilt on demand via
+         `python -m test.reversi.fixtures create <name>` as before). Rationale: the multi-ply EF branch tests (the
+         in-search terminal, the internal pass) and the deep-search equivalence battery need small-ec models (horizon >=
+         60 stones); the user: "estendiamo, generiamo da [0..20] TUTTI ... anche lo 0 che non si usa ... ma tanto per
+         casistica generale". The `test_fixtures.py` registry ECS is now (20..0) and the `TestFixtureConfigs` contract
+         (identity, output location, the fixture flags, the `rlm_04` inheritance) covers all 21 members automatically;
+         the DB corpus is sufficient at every ec (~200k train positions per ec at bid 6, the ec0 the largest at 297k).

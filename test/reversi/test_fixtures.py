@@ -40,9 +40,10 @@ from unittest import mock
 
 from test.reversi import fixtures
 
-#: The fixture set: the multi-ply EF depth ladder (positions at A = ec20 over models at
-#: B = ec20...ec16 -> depths 0...4).
-ECS = (20, 19, 18, 17, 16)
+#: The fixture set: the multi-ply EF family, the full ec20...ec0 ladder (the depth-ladder
+#: member set A = ec20 over B = ec20...ec16 -> depths 0...4 plus the deep-search members
+#: ec15...ec0, for the in-search terminal / pass-branch tests).
+ECS = (20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 FIXTURES = {ec: f'rlm_fixture_simple_ec{ec}' for ec in ECS}
 FIXTURE = FIXTURES[20]  # the gate / idempotency tests run on the ec20 member
 

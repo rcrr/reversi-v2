@@ -454,3 +454,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   triggers a second `_search_prange` overload (the TRIVIAL model's `horizon_stones` is int64, the fixture models'
   uint32). Fix in the source (no test change, no coverage loss): `cache=True` on `_search_prange`. Warm cache: both
   tests under 0.5 s, the 1k d5/d6 values bit-exact (1000/1000) vs the pre-change baseline, 1347 fast-tier tests green.
+- D-684: the `rlm_fixture_simple_ec*` family is extended to the full ec0-20 ladder (the user: "estendiamo, generiamo da
+  [0..20] TUTTI"): 16 new config JSONs committed (the ec20 template, the `empty_count` + the name fields per member),
+  the `test_fixtures.py` registry ECS now (20..0), the `TestFixtureConfigs` contract green on all 21 members (13
+  tests, 0.4 s). The 16 pipeline builds run in the background (DB bid 6/5, ~200k positions per ec).
