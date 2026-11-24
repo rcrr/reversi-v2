@@ -717,3 +717,14 @@ D-686 | 2026-11-24 | `multi_ply_ef` deep-branch tests (the `TestMultiPlyEfDeepBr
          delta 1e-4 in the test (the house TRIVIAL idiom). Both positions from the committed sample DB
          (gpdb-sample-games.txt); the pass test pins its precondition (the internal pass must exist) so the test keeps
          testing what it claims.
+
+D-687 | 2026-11-24 | `multi_ply_ef` exact-identity battery (the `TestMultiPlyEfExactBattery` class, the user's (b)): the
+         17 wipe-out corpus positions (one side at zero stones — the double-pass terminal, the value the full +/-64, the
+         ec5...ec25 spread; the batch 3/6/9/12 CMS rows + the CMR sign mirrors, extracted from the regab corpus
+         2026-11-24, pinned in ROWS) over the ec4 fixture. The multi-ply EF value is asserted IDENTICAL (as float) to
+         the exact integer, recomputed by the independent exact engine ( `alphabeta_solve` ) and pinned in ROWS. The
+         wipe-out class is the corpus class where the identity is guaranteed by construction: the double-pass node
+         returns the exact WOF, the model-estimate leaf (the horizon contract) is never reached. The battery premise was
+         validated empirically first: a 1000-position scan of the generic ec4 CMS corpus showed 0/1000 exact (the
+         deviation std ~9.8 = the ec4 model RMSE, the estimate by design) and 0 root double-passes — the generic
+         positions CANNOT pin the identity, only the decided class can.

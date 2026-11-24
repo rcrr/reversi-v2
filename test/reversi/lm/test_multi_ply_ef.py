@@ -42,7 +42,7 @@ from scipy.special import expit
 
 from reversi.board import (Bitboard, bitboard_count, flips_of_move, final_value_of,
                            initial_game_position, legal_moves_of, make_position)
-from reversi.endgame_solver import alphabeta_solve
+from reversi.endgame_solver import alphabeta_solve, make_game_position
 from reversi.feature import Feature, FeatureSet
 from reversi.game_position_database import load_game_position_database
 from reversi.lm.client import make_evaluation_function_array
@@ -523,6 +523,62 @@ class TestMultiPlyEfDeepBranches(unittest.TestCase):
         got = float(make_evaluation_function(self.mw1)(
             np.array([[m, o]], dtype=np.uint64))[0])
         self.assertAlmostEqual(got, ref, delta=1e-4)
+
+
+class TestMultiPlyEfExactBattery(unittest.TestCase):
+    """
+    The exact-identity battery: the 17 wipe-out corpus positions (one side at zero stones —
+    the double-pass terminal, the value the full +/-64, the ec5...ec25 spread) over the ec4
+    fixture. The multi-ply EF value is asserted IDENTICAL (as float) to the exact integer:
+    the integer pinned in ROWS and recomputed by the independent exact engine
+    (alphabeta_solve). The wipe-out positions are the corpus class where the identity is
+    guaranteed by construction: the double-pass node returns the exact WOF, the
+    model-estimate leaf is never reached, the search value is the exact endgame value.
+    """
+
+    # (mover, opponent, player, game_value) — the regab corpus wipe-outs (the batch 3/6/9/12
+    # CMS rows + the CMR sign mirrors), extracted 2026-11-24.
+    ROWS = (
+        (0, -33927, 0, -64),
+        (-33927, 0, 1, 64),
+        (0, -4647715365202215042, 1, -64),
+        (-4647715365202215042, 0, 0, 64),
+        (0, -72902036147932676, 1, -64),
+        (-72902036147932676, 0, 0, 64),
+        (0, 4250553610422648830, 0, -64),
+        (4250553610422648830, 0, 1, 64),
+        (0, 1267480720616456191, 1, -64),
+        (0, 3098242621458333695, 1, -64),
+        (0, -505250894615517538, 1, -64),
+        (0, -1369957418393461185, 0, -64),
+        (0, 9187200850921933892, 0, -64),
+        (0, 25753847955259386, 1, -64),
+        (0, 37272616318271359, 1, -64),
+        (0, 8583335366303263, 0, -64),
+        (0, 38843546781529618, 1, -64),
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mw = model_weights_read_file(require_lm_fixture('rlm_fixture_simple_ec4'))
+        cls.gps3 = make_game_position(
+            np.array([r[0] for r in cls.ROWS], dtype=np.int64).astype(np.uint64),
+            np.array([r[1] for r in cls.ROWS], dtype=np.int64).astype(np.uint64),
+            np.array([r[2] for r in cls.ROWS], dtype=np.uint8))
+
+    def test_exact_engine_recomputes_the_pinned_values(self):
+        """The pin of the ROWS: the independent exact engine gives the pinned integers."""
+        r = alphabeta_solve(self.gps3)
+        self.assertEqual([int(v) for v in r.game_values], [row[3] for row in self.ROWS])
+
+    def test_ef_identical_as_float_to_the_exact_integer(self):
+        """The (b) contract: the multi-ply EF value identical (as float) to the exact
+        integer, on every lane of the battery."""
+        got = make_evaluation_function(self.mw)(make_position(
+            np.array([r[0] for r in self.ROWS], dtype=np.int64).astype(np.uint64),
+            np.array([r[1] for r in self.ROWS], dtype=np.int64).astype(np.uint64)))
+        for g, row in zip(got, self.ROWS):
+            self.assertEqual(float(g), float(row[3]))
 
 
 if __name__ == '__main__':

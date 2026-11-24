@@ -469,3 +469,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   first showed why the real fixture cannot pin the pass exactly: at the 64-stone horizon the leaf is the model ESTIMATE
   (the contract: horizon -> EF leaf), so only the double-pass terminal (above the horizon) is exact — the TRIVIAL
   constant-leaf model is the exact oracle for the pass branch.
+- D-687: the exact-identity battery (the user's (b), "partendo da ec=4 ... identico come float a quello intero calcolato
+  da `alpha_beta`"): first the empirical scan settled the premise — 1000 generic ec4 CMS positions: 0/1000 exact
+  (deviation std ~9.8, the ec4 model RMSE; the horizon leaf is the model ESTIMATE by contract), 0 root double-passes.
+  The identity is guaranteed only for the DECIDED class (the wipe-outs: the double-pass terminal, the exact WOF, the
+  model leaf never reached) — 17 corpus wipe-outs (the batch 3/6/9/12 CMS rows + the CMR sign mirrors, ec5...ec25, the
+  value the full +/-64) pinned in ROWS over the ec4 fixture: the EF value identical (as float) to the exact integer, the
+  integer recomputed by `alphabeta_solve`. 1351 fast-tier tests green.
