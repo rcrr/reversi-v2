@@ -383,12 +383,13 @@ def _ab_eval(mover, opponent, state,
     return best
 
 
-def _search_pool(positions, ecs, mw, plan, client_ef, window, horizon_stones):
+def _search_pool(positions, ecs, mw, plan, window, horizon_stones):
     """
-    The worker-pool batch search: one thread per CPU (capped at the lane count), a queue of
-    lane indices, dynamic dispatch, the per-lane fast path calling the compiled search
-    directly (it releases the GIL), the A == B lanes delegated to the client
-    EF (the bit-exact depth-0 anchor), the lane errors surfaced at the boundary.
+    The worker-pool batch search over the lanes STRICTLY ABOVE the horizon (the A == B lanes
+    are evaluated by the factory in a single batched client-EF call): one thread per CPU
+    (capped at the lane count), a queue of lane indices, dynamic dispatch, the per-lane fast
+    path calling the compiled search directly (it releases the GIL), the lane errors surfaced
+    at the boundary.
 
     Returns:
         The (positions.shape,) float32 value array.
@@ -417,25 +418,21 @@ def _search_pool(positions, ecs, mw, plan, client_ef, window, horizon_stones):
                 return
             try:
                 p = positions[i]
-                if int(ecs[i]) == mw.ec:
-                    # The depth-0 lane: the client EF itself (the bit-exact anchor).
-                    out[i] = client_ef(positions[i:i + 1])[0]
-                else:
-                    # The window state is F64 (the f32 values are exact in it — the int64 state
-                    # of the endgame solver fits there because the game values are integers;
-                    # here an f32 window stored in int64 would TRUNCATE and break the
-                    # zero-window tightening).
-                    st = np.zeros(2, dtype=np.float64)
-                    st[0], st[1] = -window, window  # the root window [-R, +R] (alpha, beta)
-                    out[i] = _ab_eval(p['mover'], p['opponent'], st,
-                                      mw.w_dense, expanded_offsets, a1, b1,
-                                      has_intercept,
-                                      mob_masks, mob_sides,
-                                      n_squares_arr, bit_shifts_matrix, powers_3,
-                                      n_groups_arr, group_size_arr, idx_sort_matrix,
-                                      current_col, col_offsets,
-                                      num_planes_arr, pack_masks_3d, pack_shifts_3d,
-                                      horizon_stones)
+                # The window state is F64 (the f32 values are exact in it — the int64 state
+                # of the endgame solver fits there because the game values are integers;
+                # here an f32 window stored in int64 would TRUNCATE and break the
+                # zero-window tightening).
+                st = np.zeros(2, dtype=np.float64)
+                st[0], st[1] = -window, window  # the root window [-R, +R] (alpha, beta)
+                out[i] = _ab_eval(p['mover'], p['opponent'], st,
+                                  mw.w_dense, expanded_offsets, a1, b1,
+                                  has_intercept,
+                                  mob_masks, mob_sides,
+                                  n_squares_arr, bit_shifts_matrix, powers_3,
+                                  n_groups_arr, group_size_arr, idx_sort_matrix,
+                                  current_col, col_offsets,
+                                  num_planes_arr, pack_masks_3d, pack_shifts_3d,
+                                  horizon_stones)
             except BaseException as exc:  # surfaced at the boundary
                 errors.append((i, exc))
             finally:
@@ -464,11 +461,12 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[npt.NDArray], npt.ND
     Position or bare lists raise the Pydantic `ValidationError`.
 
     The search contract: every position's empty count A must be >= the model's horizon
-    B = `mw.ec` (a `ValueError` naming the offending count otherwise). A position with A == B
-    is evaluated by the CLIENT EF itself (the bit-exact depth-0 anchor — the pure EF); a
-    position with A > B is searched (the float32 alpha-beta, the static bsf order, the zero
-    window) down to the horizon, where the leaf value is the compiled EF. The batch runs on
-    the worker pool (the compiled search releases the GIL).
+    B = `mw.ec` (a `ValueError` naming the offending count otherwise). The batch is split
+    first: the A == B lanes (the bit-exact depth-0 anchor) go to the CLIENT EF itself in a
+    SINGLE batched call (the EF is per-position, so the batched values are the individual
+    ones); only the A > B lanes run on the worker pool (the float32 alpha-beta, the static
+    bsf order, the zero window, down to the horizon, where the leaf value is the compiled
+    EF — the compiled search releases the GIL).
 
     The Y output range contract applies: NO clip anywhere; the root window is
     derived from the clipping: R = ceil(64/(1-2c)) + 1 (67 for c = 0.01 — it strictly
@@ -490,7 +488,16 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[npt.NDArray], npt.ND
                 f'every position empty count must be >= the model empty count '
                 f'{mw.ec} (the search horizon): found {bad}')
         flat = positions.ravel()
-        out = _search_pool(flat, ecs.ravel(), mw, plan, client_ef, window, horizon_stones)
+        ecs_flat = ecs.ravel()
+        out = np.empty(flat.shape, dtype=np.float32)
+        horizon = ecs_flat == mw.ec
+        if horizon.any():
+            # The depth-0 lanes: the client EF itself, one batched call (the bit-exact anchor).
+            out[horizon] = client_ef(flat[horizon])
+        above = ~horizon
+        if above.any():
+            out[above] = _search_pool(flat[above], ecs_flat[above], mw, plan,
+                                       window, horizon_stones)
         return out.reshape(positions.shape)
 
     return ef

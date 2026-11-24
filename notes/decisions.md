@@ -634,3 +634,11 @@ D-678 | 2026-11-23 | The 0153 series: the book §17.5 reference model 0153 (the 
          are generated from the 0153 template by literal substitution of the 7 ec-specific fields (the feature set
          byte-identical); the 10 registry indexes gain their row. The original ec20 0153 completes the 11-member family;
          a characteristics table (RMSE train/val, active weights, iterations, corpus sizes) is the deliverable.
+
+D-679 | 2026-11-24 | Multi-ply EF performance: the batch is split BEFORE dispatch — the A == B (horizon) lanes are
+         evaluated in a SINGLE batched client-EF call (the EF is per-position, so the batched values are the individual
+         ones — the bit-exact depth-0 anchor is preserved), and only the A > B lanes run on the worker pool. The
+         per-lane pool delegation (the pydantic-wrapped `client_ef` called one position at a time) was the bottleneck at
+         batch scale: the 189,721-position ply-0 anchor check ran in ~7 min; with the split the same check runs in 3.9 s
+         (the 1.7 s DB extraction + two batched EF calls), same result (6.5035 = the 6.50 of the 0153 ec20 validation).
+         18 tests green (fast tier).

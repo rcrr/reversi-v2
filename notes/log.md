@@ -384,3 +384,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   725,463 (ec12) → 722,940 (ec10); the training RMSE holds at 6.21–6.25 and the iterations at 950–1,037 (ec14/ec11/ec10
   stop on `LOW_PROGRESS`, the rest on `MIN_GRAD`). The 11-member family is registered — all 0153 (the ec20 original +
   ec 19..10).
+## 2026-11-24 — session 133 (multi-ply EF — the ply-0 anchor check + the batched horizon delegation)
+
+- The ply-0 anchor check (`scratch/multi_ply_ply0_check.py`): extracted the batch-6 / ec-20 / CMS+CMR positions from the
+  local REGAB DB (199,932 rows, 1.7 s) into `scratch/regab_ec20_bid_6/` (the raw + the pipeline-deduplicated frame as
+  npz), loaded the 0153 ec20 model, evaluated with the multi-ply EF (A == B → the client EF): RMSE(y) 6.5035 on the
+  189,721 deduplicated positions — the 6.50 of the pipeline validation, the depth-0 anchor confirmed at corpus scale.
+- The first run took 7 min 05 s: the DB extraction was only 1.7 s, the rest was the PER-LANE `client_ef` delegation in
+  `_search_pool` (189,721 pydantic-wrapped one-position calls). The fix splits the batch in the factory: the A == B
+  lanes go to the client EF in a SINGLE batched call (the EF is per-position, so the values are the individual ones —
+  the bit-exact anchor is preserved), only the A > B lanes enter the pool. Re-run: 3.9 s total, the same 6.5035. 18
+  tests green (fast tier). (D-679)

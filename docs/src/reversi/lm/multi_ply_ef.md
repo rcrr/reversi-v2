@@ -3,15 +3,15 @@ The multi-ply evaluation function (D-674: the compiled EF leaf kernel + the per-
 plan; D-675: the float32 alpha-beta search + the public `make_evaluation_function` factory).
 The search-based evaluation over a `ModelWeights`: the search descends from the position's
 empty count A to the model's horizon B = `mw.ec` (A < B is a contract `ValueError`; A == B
-is the pure EF — the factory delegates to the client EF, so the depth-0 anchor is bit-exact
-by construction); a horizon leaf value is the EF of that position computed by the COMPILED
-leaf.
+is the pure EF — the factory delegates the horizon lanes to the client EF in a SINGLE
+batched call, so the depth-0 anchor is bit-exact by construction); a horizon leaf value is
+the EF of that position computed by the COMPILED leaf.
 
 ## API
 
 | name | contract |
 |---|---|
-| `make_evaluation_function(mw: ModelWeights) -> Callable[[PositionArray], NDArray[f32]]` | the public factory — the returned `ef` is STRICT ARRAY (the client array-EF contract: a structured PositionArray of any shape in, same-shape float32 out; a (N, 2) uint64 batch is coerced to 1-D by the PositionArray validator; a scalar Position or bare lists raise the Pydantic `ValidationError`). Every position's empty count A must be >= the model horizon B = `mw.ec` (a `ValueError` naming the offending count); the A == B lanes are evaluated by the CLIENT EF itself (the bit-exact depth-0 anchor), the A > B lanes by the alpha-beta search to the horizon; the batch runs on the worker pool (the D-669 idiom: the compiled search releases the GIL) |
+| `make_evaluation_function(mw: ModelWeights) -> Callable[[PositionArray], NDArray[f32]]` | the public factory — the returned `ef` is STRICT ARRAY (the client array-EF contract: a structured PositionArray of any shape in, same-shape float32 out; a (N, 2) uint64 batch is coerced to 1-D by the PositionArray validator; a scalar Position or bare lists raise the Pydantic `ValidationError`). Every position's empty count A must be >= the model horizon B = `mw.ec` (a `ValueError` naming the offending count); the batch is split first: the A == B lanes go to the CLIENT EF itself in a SINGLE batched call (the bit-exact depth-0 anchor — the EF is per-position, so the batched values are the individual ones), only the A > B lanes run on the worker pool in the alpha-beta search to the horizon (the D-669 idiom: the compiled search releases the GIL) |
 | `prepare_multi_ply_plan(mw: ModelWeights) -> tuple` | `@validate_call` — the per-model prepared data of the compiled EF leaf (computed ONCE, closed over by the factory): the 17-tuple (the client's `expanded_offsets` + the z2y affine `a1`/`b1` (the EXACT hlp_zed formula) + the intercept flag + the mobility masks/sides + the pattern-block arrays the leaf needs) |
 | `_ef_leaf_indexes(mover, opponent, <plan[3:]>)` | private njit — the compiled index pipeline of a single position: the SERIAL transcription of the client's njit kernels (the anti-transformation scalar impls of board.py, the mobility loop of mobility.py, the pack/base-3/coset-min pipeline of pattern.py) — bit-exact with `FeatureSet.compute_indexes` |
 | `_ef_leaf_value(mover, opponent, w_dense, <plan>)` | private njit — the full compiled EF leaf: the index row + the f32 gather + the SEQUENTIAL f32 sum + the piecewise f32 expit (the scipy form) + the z2y affine; deterministic, within the measured bound of the client EF |
@@ -46,7 +46,8 @@ seeded playout positions; the full 100-position scale in the LONG tier):
 - Leaf value within the measured bound: |leaf − client EF| ≤ 0.05 in Y (a drift detector,
   6000× the D-674 measurement: max 8e-6, 85/100 positions bit-equal); deterministic (two
   calls, the same f32 bits); plan dtypes the house contracts.
-- Depth-0 anchor BIT-EXACT: the A == B batch equals the client EF bit-exactly (delegation).
+- Depth-0 anchor BIT-EXACT: the A == B batch equals the client EF bit-exactly (the single
+  batched delegation call).
 - Depth 1-2 vs the INDEPENDENT full-width minimax oracle (pure Python, no pruning, its own
   move enumeration — the oracle's independence is in the search logic; the horizon leaves
   use the compiled leaf, a separately pinned concern): `assert_allclose` rtol/atol 1e-3.
@@ -66,6 +67,8 @@ seeded playout positions; the full 100-position scale in the LONG tier):
   game-value range).
 - v1 is VALUE-ONLY (no root best move) — the move-ordering / best-move stage is deferred
   (the user: "per ora NON facciamo un dynamic ordering").
-- The compiled search releases the GIL: the batch runs on the worker pool (one thread per
-  CPU, capped at the lane count, a queue of lane indices, the lane errors surfaced at the
-  boundary — the D-669 `_solve_pool` idiom).
+- The compiled search releases the GIL: the A > B lanes run on the worker pool (one thread
+  per CPU, capped at the lane count, a queue of lane indices, the lane errors surfaced at
+  the boundary — the D-669 `_solve_pool` idiom); the A == B lanes never enter the pool (one
+  batched client-EF call — the per-lane pool delegation was the batch-overhead bottleneck at
+  scale: 189,721 one-position calls took ~6.5 min, the single batched call ~1 s).
