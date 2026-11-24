@@ -728,3 +728,19 @@ D-687 | 2026-11-24 | `multi_ply_ef` exact-identity battery (the `TestMultiPlyEfE
          validated empirically first: a 1000-position scan of the generic ec4 CMS corpus showed 0/1000 exact (the
          deviation std ~9.8 = the ec4 model RMSE, the estimate by design) and 0 root double-passes — the generic
          positions CANNOT pin the identity, only the decided class can.
+
+D-688 | 2026-11-24 | `multi_ply_ef` — the `verify_end_game` factory parameter (default False): when True, a
+         horizon-or-above node with NO legal move for either side (the game over) returns the exact WOF value instead of
+         the EF leaf estimate — the horizon check no longer shadows the double pass (the per-node terminal check already
+         existed BELOW the horizon; the flag extends it to the horizon leaves). With the ec0 model (the horizon the
+         64-stone board) every leaf is then a true terminal and the search value is the exact endgame value: the EF
+         coincides with the exact endgame solver on EVERY position (the model is never consulted). Cost: two
+         `legal_moves_of` calls per horizon leaf, paid only when the flag is on — measured on the 15-position ec4/ec0
+         battery: flag on ~6-8 ms vs flag off ~6-7 ms (negligible at this scale; the LMC/ALMC feature-piggyback
+         optimization that would make the check free for both-mobility feature sets is deferred as not worth it). The
+         user's design (the parameter, the default-NO semantics, the in-search placement). Test:
+         TestMultiPlyEfVerifyEndGame — the 15 GENERIC ec4 corpus positions (the batch-4 CMS rows, the value
+         spread -52..+58, both signs) over the ec0 fixture, flag on: the EF value identical (as float) to the exact
+         integer recomputed by `alphabeta_solve` and pinned in ROWS. The D-687 wipe-out battery is kept (it pins the
+         default-off contract on the decided class). The D-682 window-invariance test's direct `_ab_eval` calls gained
+         the trailing False (the original contract).

@@ -383,9 +383,9 @@ class TestMultiPlyEfGroupOrder(unittest.TestCase):
             st_ground = np.array([-float(R), float(R)])
             st_wide = np.array([-1e30, 1e30])
             v_ground = _ab_eval(p['mover'], p['opponent'], st_ground,
-                                self.mw.w_dense, *self.plan, horizon)
+                                self.mw.w_dense, *self.plan, horizon, False)
             v_wide = _ab_eval(p['mover'], p['opponent'], st_wide,
-                              self.mw.w_dense, *self.plan, horizon)
+                              self.mw.w_dense, *self.plan, horizon, False)
             self.assertEqual(v_ground, v_wide)
 
 
@@ -575,6 +575,60 @@ class TestMultiPlyEfExactBattery(unittest.TestCase):
         """The (b) contract: the multi-ply EF value identical (as float) to the exact
         integer, on every lane of the battery."""
         got = make_evaluation_function(self.mw)(make_position(
+            np.array([r[0] for r in self.ROWS], dtype=np.int64).astype(np.uint64),
+            np.array([r[1] for r in self.ROWS], dtype=np.int64).astype(np.uint64)))
+        for g, row in zip(got, self.ROWS):
+            self.assertEqual(float(g), float(row[3]))
+
+
+class TestMultiPlyEfVerifyEndGame(unittest.TestCase):
+    """
+    The verify_end_game contract (the horizon terminal check): the 15 GENERIC ec4 corpus
+    positions (the batch-4 CMS rows, the value spread -52..+58) over the ec0 fixture (the
+    horizon the 64-stone board) with verify_end_game=True — every 64-stone leaf is a true
+    terminal (the double pass), the search value is the exact endgame value, and the EF is
+    asserted IDENTICAL (as float) to the exact integer recomputed by the independent exact
+    engine (alphabeta_solve) and pinned in ROWS. With the flag off the same positions give
+    the model estimate (the original contract): the flag is the exact-regime switch.
+    """
+
+    # (mover, opponent, player, game_value) — the regab corpus GENERIC ec4 CMS positions
+    # (batch 4), extracted 2026-11-24: 8 negative + 7 positive, the value spread -52..+58.
+    ROWS = (
+        (225193278861520960, -225193278863634657, 0, -52),
+        (9099705752508544, -225272487866333313, 0, -44),
+        (2254184227026952, -2254184243804239, 0, -40),
+        (35843303160216576, -107900897214921921, 0, -38),
+        (-7179663585553416192, 2522871202108145663, 0, -34),
+        (1063975843258318848, -1136877866521346049, 0, -32),
+        (4348432994023733884, -8969126211714251517, 0, -30),
+        (2307050506726940768, -6927743724409086065, 0, -28),
+        (-63288202639637889, 63147465151281152, 0, 58),
+        (-72944994771255425, 324442173194368, 0, 46),
+        (-9151687194643544177, 8935513313018132576, 0, 44),
+        (1139145856919536671, -3445129603621586112, 0, 42),
+        (-36170474246533120, 36170474238144380, 1, 40),
+        (3602893112585205631, 5260190954071541888, 0, 38),
+        (-8086791878459465478, 5780948869245640196, 0, 36),
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mw0 = model_weights_read_file(require_lm_fixture('rlm_fixture_simple_ec0'))
+        cls.gps3 = make_game_position(
+            np.array([r[0] for r in cls.ROWS], dtype=np.int64).astype(np.uint64),
+            np.array([r[1] for r in cls.ROWS], dtype=np.int64).astype(np.uint64),
+            np.array([r[2] for r in cls.ROWS], dtype=np.uint8))
+
+    def test_exact_engine_recomputes_the_pinned_values(self):
+        """The pin of the ROWS: the independent exact engine gives the pinned integers."""
+        r = alphabeta_solve(self.gps3)
+        self.assertEqual([int(v) for v in r.game_values], [row[3] for row in self.ROWS])
+
+    def test_verify_end_game_identical_as_float_to_the_exact_integer(self):
+        """The verify_end_game contract: with the flag on (the ec0 horizon), the EF value
+        is identical (as float) to the exact endgame integer, on every lane."""
+        got = make_evaluation_function(self.mw0, verify_end_game=True)(make_position(
             np.array([r[0] for r in self.ROWS], dtype=np.int64).astype(np.uint64),
             np.array([r[1] for r in self.ROWS], dtype=np.int64).astype(np.uint64)))
         for g, row in zip(got, self.ROWS):

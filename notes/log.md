@@ -476,3 +476,12 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   model leaf never reached) — 17 corpus wipe-outs (the batch 3/6/9/12 CMS rows + the CMR sign mirrors, ec5...ec25, the
   value the full +/-64) pinned in ROWS over the ec4 fixture: the EF value identical (as float) to the exact integer, the
   integer recomputed by `alphabeta_solve`. 1351 fast-tier tests green.
+- D-688: the `verify_end_game` parameter (the user's design: "aggiungiamo il controllo con parametro negli argomenti,
+  default NO"): the horizon terminal check — a horizon-or-above node with no legal move for either side returns the
+  exact WOF instead of the EF estimate (the check already existed below the horizon; the flag extends it to the horizon
+  leaves). With the ec0 model every leaf is a true terminal: the EF becomes the exact endgame value on every position.
+  The first (b) battery (the 17 wipe-outs) was NOT what the user meant — those are root-terminal positions the current
+  code already handles; the real (b) is now: the 15 GENERIC ec4 corpus positions over the ec0 fixture, flag on, the EF
+  identical (as float) to the `alphabeta_solve` integer, pinned in ROWS. Cost measured: flag on ~6-8 ms vs off ~6-7 ms
+  on the battery (the two `legal_moves_of` per horizon leaf are negligible at this scale — the LMC/ALMC piggyback
+  optimization deferred).
