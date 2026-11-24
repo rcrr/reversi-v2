@@ -383,9 +383,9 @@ class TestMultiPlyEfGroupOrder(unittest.TestCase):
             st_ground = np.array([-float(R), float(R)])
             st_wide = np.array([-1e30, 1e30])
             v_ground = _ab_eval(p['mover'], p['opponent'], st_ground,
-                                self.mw.w_dense, *self.plan, horizon, False)
+                                self.mw.w_dense, *self.plan, horizon)
             v_wide = _ab_eval(p['mover'], p['opponent'], st_wide,
-                              self.mw.w_dense, *self.plan, horizon, False)
+                              self.mw.w_dense, *self.plan, horizon)
             self.assertEqual(v_ground, v_wide)
 
 
@@ -583,13 +583,12 @@ class TestMultiPlyEfExactBattery(unittest.TestCase):
 
 class TestMultiPlyEfVerifyEndGame(unittest.TestCase):
     """
-    The verify_end_game contract (the horizon terminal check): the 15 GENERIC ec4 corpus
-    positions (the batch-4 CMS rows, the value spread -52..+58) over the ec0 fixture (the
-    horizon the 64-stone board) with verify_end_game=True — every 64-stone leaf is a true
-    terminal (the double pass), the search value is the exact endgame value, and the EF is
-    asserted IDENTICAL (as float) to the exact integer recomputed by the independent exact
-    engine (alphabeta_solve) and pinned in ROWS. With the flag off the same positions give
-    the model estimate (the original contract): the flag is the exact-regime switch.
+    The horizon terminal contract: the 15 GENERIC ec4 corpus positions (the batch-4 CMS
+    rows, the value spread -52..+58) over the ec0 fixture (the horizon the 64-stone
+    board) — every 64-stone leaf is a true terminal (the double pass, the exact WOF),
+    the search value is the exact endgame value, and the EF is asserted IDENTICAL (as
+    float) to the exact integer recomputed by the independent exact engine
+    (alphabeta_solve) and pinned in ROWS.
     """
 
     # (mover, opponent, player, game_value) — the regab corpus GENERIC ec4 CMS positions
@@ -626,9 +625,9 @@ class TestMultiPlyEfVerifyEndGame(unittest.TestCase):
         self.assertEqual([int(v) for v in r.game_values], [row[3] for row in self.ROWS])
 
     def test_verify_end_game_identical_as_float_to_the_exact_integer(self):
-        """The verify_end_game contract: with the flag on (the ec0 horizon), the EF value
-        is identical (as float) to the exact endgame integer, on every lane."""
-        got = make_evaluation_function(self.mw0, verify_end_game=True)(make_position(
+        """The horizon terminal contract: with the ec0 horizon, the EF value is identical
+        (as float) to the exact endgame integer, on every lane."""
+        got = make_evaluation_function(self.mw0)(make_position(
             np.array([r[0] for r in self.ROWS], dtype=np.int64).astype(np.uint64),
             np.array([r[1] for r in self.ROWS], dtype=np.int64).astype(np.uint64)))
         for g, row in zip(got, self.ROWS):

@@ -333,14 +333,17 @@ def _ab_eval(mover, opponent, state,
              n_groups_arr, group_size_arr, idx_sort_matrix,
              current_col, col_offsets,
              num_planes_arr, pack_masks_3d, pack_shifts_3d,
-             horizon_stones, verify_end_game):
+             horizon_stones):
     """
     The float32 alpha-beta of the multi-ply EF (the endgame-solver discipline, the value-only
     variant): the node value is seen from the point of view of the mover at that node (the
-    child values are negated at each ply); the horizon node is the EF leaf (the contract: at
-    the horizon, the value is the EF — no pass-through); the terminal node is the exact WOF
-    (`final_value_of`, the mover's point of view) cast to f32; a no-move node above the
-    horizon passes (the sides swap, the value is negated). The move loop is the fixed
+    child values are negated at each ply); the horizon node is the EF leaf — EXCEPT the
+    terminal: a horizon-or-above node with no legal move for EITHER side (the game over)
+    returns the exact WOF (`final_value_of`, the mover's point of view) cast to f32, the
+    horizon check no longer shadowing the double pass (with the model's horizon at the
+    64-stone board — ec0 — every leaf is then a true terminal and the search value is the
+    exact endgame value, the model never consulted); a no-move node above the horizon
+    passes (the sides swap, the value is negated). The move loop is the fixed
     best-first group order (the `GROUP_MASKS` table: `legal` masked with the groups in
     priority order, each group's legal bits scanned BSR-first), the zero-window
     propagation (the child window is the negated parent window), the cutoff at value >=
@@ -348,23 +351,15 @@ def _ab_eval(mover, opponent, state,
     array: state[0] / state[1] the node's (alpha, beta) window (the numba 0.68 state-array
     idiom).
 
-    `verify_end_game` (the factory parameter, default False): when True, a horizon-or-above
-    node is first tested for the double pass (no legal move for EITHER side — the game over)
-    and returns the exact WOF instead of the EF leaf estimate; with the model's horizon at
-    the 64-stone board (ec0) every leaf is then a true terminal and the search value is the
-    exact endgame value (the model is never consulted). The cost: the two `legal_moves_of`
-    calls per horizon leaf, paid only when the flag is on.
-
     Returns:
         The f32 value of the position, from the mover's point of view.
     """
-    # The horizon: the EF leaf (the stones only grow, so >= is the exact horizon test).
-    # `_popcount` is the njit kernel (the bitboard_count public wrapper is Python).
+    # The horizon: the EF leaf (the stones only grow, so >= is the exact horizon test) —
+    # the terminal excepted: the double pass returns the exact WOF. `_popcount` is the
+    # njit kernel (the bitboard_count public wrapper is Python).
     if _popcount(mover | opponent) >= horizon_stones:
-        if verify_end_game and not legal_moves_of(mover, opponent) \
-                and not legal_moves_of(opponent, mover):
-            # The terminal at/above the horizon: the exact WOF (the verify_end_game
-            # contract — the horizon check no longer shadows the double pass).
+        if not legal_moves_of(mover, opponent) and not legal_moves_of(opponent, mover):
+            # The terminal at/above the horizon: the exact WOF (the game over).
             return np.float32(final_value_of(mover, opponent))
         return _ef_leaf_value(mover, opponent, w_dense, expanded_offsets, a1, b1,
                               has_intercept,
@@ -389,7 +384,7 @@ def _ab_eval(mover, opponent, state,
                          n_groups_arr, group_size_arr, idx_sort_matrix,
                          current_col, col_offsets,
                          num_planes_arr, pack_masks_3d, pack_shifts_3d,
-                         horizon_stones, verify_end_game)
+                         horizon_stones)
         state[0], state[1] = saved_a, saved_b
         return -value
     alpha = state[0]
@@ -412,7 +407,7 @@ def _ab_eval(mover, opponent, state,
                              n_groups_arr, group_size_arr, idx_sort_matrix,
                              current_col, col_offsets,
                              num_planes_arr, pack_masks_3d, pack_shifts_3d,
-                             horizon_stones, verify_end_game)
+                             horizon_stones)
             state[0], state[1] = saved_a, saved_b
             value = -value
             if value > best:
@@ -434,7 +429,7 @@ def _search_prange(movers, opponents, out,
                    n_groups_arr, group_size_arr, idx_sort_matrix,
                    current_col, col_offsets,
                    num_planes_arr, pack_masks_3d, pack_shifts_3d,
-                   horizon_stones, window, verify_end_game):
+                   horizon_stones, window):
     """
     The batch search over the lanes STRICTLY ABOVE the horizon, as a single njit call: the
     lanes loop on numba's workqueue (`prange` — the C-level dynamic dispatch that balances
@@ -442,7 +437,6 @@ def _search_prange(movers, opponents, out,
     The per-lane values are bit-exact with the former worker-pool form (the search is
     per-lane independent; the window state is F64 — the f32 values are exact in it, where
     an f32 window stored in int64 would TRUNCATE and break the zero-window tightening).
-    `verify_end_game` is passed through to `_ab_eval` (the horizon terminal check).
     """
     n = movers.shape[0]
     for i in nb.prange(n):
@@ -456,18 +450,16 @@ def _search_prange(movers, opponents, out,
                           n_groups_arr, group_size_arr, idx_sort_matrix,
                           current_col, col_offsets,
                           num_planes_arr, pack_masks_3d, pack_shifts_3d,
-                          horizon_stones, verify_end_game)
+                          horizon_stones)
     return out
 
 
-def _search_pool(positions, ecs, mw, plan, window, horizon_stones,
-                 verify_end_game=False):
+def _search_pool(positions, ecs, mw, plan, window, horizon_stones):
     """
     The batch search over the lanes strictly above the horizon (the A == B lanes are
     evaluated by the factory in a single batched client-EF call): one njit call, the lanes
     on numba's workqueue (the `_search_prange` above) — the GIL is released for the whole
-    call, the per-lane values are the individual ones. `verify_end_game` is the factory's
-    horizon terminal check (default False: the horizon leaf is always the EF estimate).
+    call, the per-lane values are the individual ones.
 
     Returns:
         The (positions.shape,) float32 value array.
@@ -490,13 +482,11 @@ def _search_pool(positions, ecs, mw, plan, window, horizon_stones,
                           n_groups_arr, group_size_arr, idx_sort_matrix,
                           current_col, col_offsets,
                           num_planes_arr, pack_masks_3d, pack_shifts_3d,
-                          horizon_stones, window, verify_end_game)
+                          horizon_stones, window)
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def make_evaluation_function(mw: ModelWeights,
-                             verify_end_game: bool = False
-                             ) -> Callable[[npt.NDArray], npt.NDArray[np.float32]]:
+def make_evaluation_function(mw: ModelWeights) -> Callable[[npt.NDArray], npt.NDArray[np.float32]]:
     """
     The multi-ply evaluation-function factory: the search-based evaluation over the model.
 
@@ -511,7 +501,11 @@ def make_evaluation_function(mw: ModelWeights,
     SINGLE batched call (the EF is per-position, so the batched values are the individual
     ones); only the A > B lanes run the float32 alpha-beta — a single njit call over the
     lanes on numba's workqueue (the fixed best-first group order, the zero window, down to
-    the horizon, where the leaf value is the compiled EF).
+    the horizon, where the leaf value is the compiled EF — EXCEPT the terminal: a
+    horizon-or-above node with no legal move for either side, the game over, returns the
+    exact WOF value, the horizon check no longer shadowing the double pass; with the model's
+    horizon at the 64-stone board — ec0 — every leaf is then a true terminal and the search
+    value is the exact endgame value, the EF coinciding with the exact endgame solver).
 
     The Y output range contract applies: NO clip anywhere; the root window is
     derived from the clipping: R = ceil(64/(1-2c)) + 1 (67 for c = 0.01 — it strictly
@@ -520,14 +514,6 @@ def make_evaluation_function(mw: ModelWeights,
 
     Args:
         mw: the model weights (the feature set + the weights + the ec horizon).
-        verify_end_game: when True, a horizon-or-above node with NO legal move for either
-            side (the game over) returns the exact WOF value instead of the EF leaf
-            estimate (the horizon check no longer shadows the double pass). With the model's
-            horizon at the 64-stone board (ec0) every leaf is then a true terminal and the
-            search value is the exact endgame value (the model is never consulted): the EF
-            coincides with the exact endgame solver. The cost is the two `legal_moves_of`
-            calls per horizon leaf, paid only when the flag is on. Default False: the
-            horizon leaf is always the EF estimate (the original contract).
     """
     plan = prepare_multi_ply_plan(mw)
     horizon_stones = 64 - mw.ec
@@ -553,7 +539,7 @@ def make_evaluation_function(mw: ModelWeights,
         above = ~horizon
         if above.any():
             out[above] = _search_pool(flat[above], ecs_flat[above], mw, plan,
-                                       window, horizon_stones, verify_end_game)
+                                       window, horizon_stones)
         return out.reshape(positions.shape)
 
     return ef

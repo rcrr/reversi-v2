@@ -744,3 +744,17 @@ D-688 | 2026-11-24 | `multi_ply_ef` — the `verify_end_game` factory parameter 
          integer recomputed by `alphabeta_solve` and pinned in ROWS. The D-687 wipe-out battery is kept (it pins the
          default-off contract on the decided class). The D-682 window-invariance test's direct `_ab_eval` calls gained
          the trailing False (the original contract).
+
+D-689 | 2026-11-24 | `multi_ply_ef` — the `verify_end_game` parameter REMOVED, the horizon terminal check is now
+         unconditional: a horizon-or-above node with no legal move for either side (the game over) always returns the
+         exact WOF value, the EF leaf estimate otherwise. Rationale: the measured penalty of the two `legal_moves_of`
+         calls per horizon leaf is negligible (the 15-position ec4/ec0 battery: ~6-8 ms with the check vs ~6-7 ms
+         without; the LMC/ALMC feature-piggyback optimization that would make the check free is therefore not worth the
+         complexity), so the parameter only added surface for no gain — the user's call. The contract simplifies: the
+         horizon check no longer shadows the double pass, in ANY regime. Impact verified: on a 1000-position ec25 batch
+         (the d5 ladder form, the leaves at the 44-stone horizon), an independent njit count found ZERO double-pass
+         nodes at/above the horizon — the production ladder values are mathematically guaranteed bit-identical to
+         the D-688 flag-off values (the 1628 ms wall of the batch is unchanged in character). The D-688 battery (the 15
+         generic ec4 positions over the ec0 fixture) now holds with the plain factory call (no flag): the EF identical
+         (as float) to the `alphabeta_solve` integer on every lane. The D-682 window-invariance test's direct `_ab_eval`
+         calls lost the trailing False.

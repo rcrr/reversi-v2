@@ -485,3 +485,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   identical (as float) to the `alphabeta_solve` integer, pinned in ROWS. Cost measured: flag on ~6-8 ms vs off ~6-7 ms
   on the battery (the two `legal_moves_of` per horizon leaf are negligible at this scale — the LMC/ALMC piggyback
   optimization deferred).
+- D-689: simplified per the user ("se non c'è penalità nel check ... allora semplifichiamo"): the `verify_end_game`
+  parameter is REMOVED from `make_evaluation_function` and the whole call chain (`_search_pool`, `_search_prange`,
+  `_ab_eval` and its two recursive sites) — the horizon terminal check (double pass -> the exact WOF) is now
+  UNCONDITIONAL. The penalty was measured negligible (battery: ~6-8 ms vs ~6-7 ms; 1k ladder batch: 1.6 s, and an
+  independent njit count proved ZERO double-pass nodes at/above the 44-stone horizon over 1000 d5 trees — the ladder
+  values are guaranteed unchanged). The D-688 15-position ec4/ec0 exactness battery now passes with the plain factory
+  call.
