@@ -395,3 +395,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   lanes go to the client EF in a SINGLE batched call (the EF is per-position, so the values are the individual ones —
   the bit-exact anchor is preserved), only the A > B lanes enter the pool. Re-run: 3.9 s total, the same 6.5035. 18
   tests green (fast tier). (D-679)
+- The ply-1 search check on the 189,721 batch-6 / ec-20 positions (`scratch/multi_ply_ply1_check.py`): the 0153 ec19
+  model with the 1-ply multi-ply search scores RMSE(y) 5.8662 — 1.39 below the same model evaluated WITHOUT search
+  (7.2600) and 0.64 below the 0153 ec20 direct evaluation (the ply-0 baseline 6.5035): the 1-ply search BEATS the direct
+  ec20 model. Cost: 8.4 s for the whole batch on 8 threads (~45 us/position).
+- The depth ladder extended to 8 on a nested 1,000-position sample (seed 42, drawn from the 10k): RMSE 6.2546 (d0)
+  → 5.6223 → 5.1580 → 4.8648 → 4.5339 → 4.2302 → 4.0941 → 3.9164 → 3.7164 (d8) — PERFECTLY monotone over all nine steps,
+  tracking the 10k ladder within the expected sampling noise (max delta 0.20 at d0/d1, 0.02–0.07 at d4–d7; the 1k RMSE
+  standard error is ~0.13). The deep per-step gains (0.14/0.18/0.20 at d6–d8) sit at the 1k noise level — significant as
+  a trend (the cumulative d5→d8 drop of 0.51 is ~4 sigma), not as decimals. The per-ply wall-time growth stays
+  at 4.4–4.9x (against the user's expected 3.0–3.3x — the I-024 alpha-beta / dispatching investigation is confirmed
+  worthwhile).

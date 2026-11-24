@@ -642,3 +642,12 @@ D-679 | 2026-11-24 | Multi-ply EF performance: the batch is split BEFORE dispatc
          batch scale: the 189,721-position ply-0 anchor check ran in ~7 min; with the split the same check runs in 3.9 s
          (the 1.7 s DB extraction + two batched EF calls), same result (6.5035 = the 6.50 of the 0153 ec20 validation).
          18 tests green (fast tier).
+
+D-680 | 2026-11-24 | The 0153 multi-ply depth ladder: the search-based evaluation of the 0153 family is validated on the
+         batch-6 / ec-20 corpus (the 189,721 deduplicated positions + the nested 10k / 1k deterministic samples): the
+         RMSE(y) is monotonically decreasing over all nine rungs — 6.2546 (depth 0, the 0153 ec20 direct) → 5.6223
+         → 5.1580 → 4.8648 → 4.5339 → 4.2302 → 4.0941 → 3.9164 → 3.7164 (depth 8, the 0153 ec12) — with diminishing
+         per-ply gains (0.63, 0.46, 0.29, 0.33, 0.30, 0.14, 0.18, 0.20), the 1k ladder tracking the 10k / full-batch
+         ladders within the sampling noise. The 1-ply search already beats the direct ec20 evaluation by 0.64 RMSE. The
+         per-ply wall-time growth is 4.4–4.9x against the expected 3.0–3.3x (the I-024 alpha-beta / dispatching
+         investigation is the next step). The ladder is parked at depth 8 (the user's call).
