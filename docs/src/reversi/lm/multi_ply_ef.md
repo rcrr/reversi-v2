@@ -11,18 +11,20 @@ the EF of that position computed by the COMPILED leaf.
 
 | name | contract |
 |---|---|
-| `make_evaluation_function(mw: ModelWeights) -> Callable[[PositionArray], NDArray[f32]]` | the public factory — the returned `ef` is STRICT ARRAY (the client array-EF contract: a structured PositionArray of any shape in, same-shape float32 out; a (N, 2) uint64 batch is coerced to 1-D by the PositionArray validator; a scalar Position or bare lists raise the Pydantic `ValidationError`). Every position's empty count A must be >= the model horizon B = `mw.ec` (a `ValueError` naming the offending count); the batch is split first: the A == B lanes go to the CLIENT EF itself in a SINGLE batched call (the bit-exact depth-0 anchor — the EF is per-position, so the batched values are the individual ones), only the A > B lanes run on the worker pool in the alpha-beta search to the horizon (the D-669 idiom: the compiled search releases the GIL) |
+| `make_evaluation_function(mw: ModelWeights) -> Callable[[PositionArray], NDArray[f32]]` | the public factory — the returned `ef` is STRICT ARRAY (the client array-EF contract: a structured PositionArray of any shape in, same-shape float32 out; a (N, 2) uint64 batch is coerced to 1-D by the PositionArray validator; a scalar Position or bare lists raise the Pydantic `ValidationError`). Every position's empty count A must be >= the model horizon B = `mw.ec` (a `ValueError` naming the offending count); the batch is split first: the A == B lanes go to the CLIENT EF itself in a SINGLE batched call (the bit-exact depth-0 anchor — the EF is per-position, so the batched values are the individual ones), only the A > B lanes run the alpha-beta search to the horizon — a SINGLE njit call over the lanes on numba's workqueue (the `prange` of D-681; the GIL is released for the whole call) |
 | `prepare_multi_ply_plan(mw: ModelWeights) -> tuple` | `@validate_call` — the per-model prepared data of the compiled EF leaf (computed ONCE, closed over by the factory): the 17-tuple (the client's `expanded_offsets` + the z2y affine `a1`/`b1` (the EXACT hlp_zed formula) + the intercept flag + the mobility masks/sides + the pattern-block arrays the leaf needs) |
 | `_ef_leaf_indexes(mover, opponent, <plan[3:]>)` | private njit — the compiled index pipeline of a single position: the SERIAL transcription of the client's njit kernels (the anti-transformation scalar impls of board.py, the mobility loop of mobility.py, the pack/base-3/coset-min pipeline of pattern.py) — bit-exact with `FeatureSet.compute_indexes` |
 | `_ef_leaf_value(mover, opponent, w_dense, <plan>)` | private njit — the full compiled EF leaf: the index row + the f32 gather + the SEQUENTIAL f32 sum + the piecewise f32 expit (the scipy form) + the z2y affine; deterministic, within the measured bound of the client EF |
 | `_ab_eval(mover, opponent, state, w_dense, <plan>, horizon_stones)` | private njit — the float32 alpha-beta (the endgame-solver discipline, value-only): the horizon node is the EF leaf, the terminal the exact WOF as f32, the no-move node passes (sides swap, value negated); the static bsf move order, the zero-window propagation (the child window is the negated parent window), the cutoff at value >= beta, the strict > alpha rise; `state` is the 2-element F64 (alpha, beta) array (the f32 windows are exact in f64 — the int64 state of the endgame solver fits there only because the game values are integers) |
+| `_search_prange(movers, opponents, out, w_dense, <plan>, horizon_stones, window)` | private njit `parallel=True` — the batch search over the above-horizon lanes (D-681): the lanes loop on numba's workqueue (`prange`, the C-level dynamic dispatch that balances the lane-cost tail), each lane the compiled `_ab_eval` with the root window [−R, +R]; the per-lane values are bit-exact with the former worker-pool form |
 
 ## Architecture
 
 - No-drift principle (client.md): the leaf inlines the BODIES of the pipeline's own njit
   kernels in their single-position form, and uses the client's own `_prepare_weights` for
   the dense offsets. The batch `parallel=True` kernels are NOT called: they cannot run from
-  the worker-pool threads (the LLVM `allocate_sched` crash) — and the serial transcription
+  the search's parallel region (nested parallel calls; the old worker-pool threads crashed
+  with the LLVM `allocate_sched` bug) — and the serial transcription
   is 170-190x FASTER at N=1 (the batch forms pay a large fixed prange/scheduler overhead per
   call). The index-parity test pins the bit-exact agreement with the client's
   `compute_indexes`, so a drift in one of the two transcriptions turns the suite red.
@@ -67,8 +69,12 @@ seeded playout positions; the full 100-position scale in the LONG tier):
   game-value range).
 - v1 is VALUE-ONLY (no root best move) — the move-ordering / best-move stage is deferred
   (the user: "per ora NON facciamo un dynamic ordering").
-- The compiled search releases the GIL: the A > B lanes run on the worker pool (one thread
-  per CPU, capped at the lane count, a queue of lane indices, the lane errors surfaced at
-  the boundary — the D-669 `_solve_pool` idiom); the A == B lanes never enter the pool (one
-  batched client-EF call — the per-lane pool delegation was the batch-overhead bottleneck at
-  scale: 189,721 one-position calls took ~6.5 min, the single batched call ~1 s).
+- The compiled search releases the GIL for the WHOLE batch call: the A > B lanes run on
+  numba's workqueue — a single njit `prange` over the lanes (D-681) — where the C-level
+  dynamic dispatch balances the lane-cost tail; the per-lane values are bit-exact with the
+  former worker-pool form, which plateaued at ~2 cores in this numba × CPython environment
+  (8 Python threads over njit calls scale to ~2x, measured; numba's own threadpool scales
+  to all cores: 101 ms/lane pool → 18-26 ms/lane prange on the depth-6 / 1k test case).
+  The A == B lanes never enter the search (one batched client-EF call — the per-lane
+  delegation was the batch-overhead bottleneck at scale: 189,721 one-position calls took
+  ~6.5 min, the single batched call ~1 s).

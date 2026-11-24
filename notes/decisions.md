@@ -651,3 +651,15 @@ D-680 | 2026-11-24 | The 0153 multi-ply depth ladder: the search-based evaluatio
          ladders within the sampling noise. The 1-ply search already beats the direct ec20 evaluation by 0.64 RMSE. The
          per-ply wall-time growth is 4.4–4.9x against the expected 3.0–3.3x (the I-024 alpha-beta / dispatching
          investigation is the next step). The ladder is parked at depth 8 (the user's call).
+
+D-681 | 2026-11-24 | Multi-ply EF parallelism (I-024, first of the two fixes): the batch search over the above-horizon
+         lanes is a SINGLE njit call on numba's workqueue (a `prange` over the lanes, the new `_search_prange`) instead
+         of the Python worker pool (one thread per core pulling lane indices from a queue). Rationale (the I-024 phase-1
+         diagnosis): in this numba 0.68 x CPython 3.14 environment the GIL IS released per njit call (a 2-thread busy
+         probe scales 2.20x) but 8 Python threads over njit calls stall at 2.18x — the pool ran the depth-6 / 1k test
+         case at ~1-2 cores (the user's htop: per-core 10-37%, load average 0.89; user-time ~ wall-time), while numba's
+         own threadpool scales (the same test: 101 ms/lane pool -> 18-26 ms/lane prange, flat from 100 to 1000 lanes).
+         The per-lane values are BIT-EXACT with the pool form (0/1000 lanes differ at depths 3 and 6, the search is
+         per-lane independent). 1342 fast-tier tests green. The second I-024 fix (the move ordering, the 4.91x/ply node
+         growth against the ideal sqrt(b) = 3.11x) is deliberately SEPARATE: it will be measured single-thread vs
+         single-thread first, and only then combined with the parallel form (the user's call).

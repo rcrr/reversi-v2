@@ -42,16 +42,21 @@ linear predictor).
 
 The leaf is a SERIAL transcription of the client's kernels (the no-drift principle of
 client.md, the single-position form): the batch `parallel=True` kernels cannot be called
-from the worker-pool threads (the LLVM `allocate_sched` crash), so the leaf inlines the
-kernel BODIES — the anti-transformation scalar impls of board.py, the mobility loop of
-mobility.py, the pack/base-3/coset-min pipeline of pattern.py — and the client's own
+from the search's parallel region (nested parallel calls are forbidden — and the old
+worker-pool threads crashed them with the LLVM `allocate_sched` bug), so the leaf inlines
+the kernel BODIES — the anti-transformation scalar impls of board.py, the mobility loop
+of mobility.py, the pack/base-3/coset-min pipeline of pattern.py — and the client's own
 `_prepare_weights` for the dense offsets. The index-parity test pins the bit-exact
 agreement with the client's `compute_indexes`.
+
+The batch search is a SINGLE njit call over the lanes on numba's workqueue (`prange`):
+the per-lane search is independent, the workqueue balances the lane-cost tail at the C
+level, and the whole call runs with the GIL released. (The earlier Python worker pool —
+a lane-index queue pulled by one thread per core — plateaued at ~2 cores in this numba x
+CPython environment: the GIL is released per call, but 8 Python threads over njit calls
+do not scale past ~2; numba's own threadpool does.)
 """
 
-import os
-import queue
-from threading import Thread
 from typing import Callable
 
 import numba as nb
@@ -177,8 +182,9 @@ def _ef_leaf_indexes(mover, opponent,
                     num_planes_arr, pack_masks_3d, pack_shifts_3d):
     """
     The compiled index pipeline of a SINGLE position — the SERIAL transcription of the client's
-    njit kernels (the batch `parallel=True` forms cannot be called from the worker-pool threads
-    — the LLVM `allocate_sched` crash): the same per-element math, bit-exact with
+    njit kernels (the batch `parallel=True` forms cannot be called from the search's parallel
+    region — nested parallel calls, and the old worker-pool threads, crash with the LLVM
+    `allocate_sched` bug): the same per-element math, bit-exact with
     `FeatureSet.compute_indexes`.
 
     Returns:
@@ -383,13 +389,46 @@ def _ab_eval(mover, opponent, state,
     return best
 
 
+@nb.njit(parallel=True)
+def _search_prange(movers, opponents, out,
+                   w_dense, expanded_offsets, a1, b1,
+                   has_intercept,
+                   mob_masks, mob_sides,
+                   n_squares_arr, bit_shifts_matrix, powers_3,
+                   n_groups_arr, group_size_arr, idx_sort_matrix,
+                   current_col, col_offsets,
+                   num_planes_arr, pack_masks_3d, pack_shifts_3d,
+                   horizon_stones, window):
+    """
+    The batch search over the lanes STRICTLY ABOVE the horizon, as a single njit call: the
+    lanes loop on numba's workqueue (`prange` — the C-level dynamic dispatch that balances
+    the lane-cost tail), each lane the compiled `_ab_eval` with the root window [-R, +R].
+    The per-lane values are bit-exact with the former worker-pool form (the search is
+    per-lane independent; the window state is F64 — the f32 values are exact in it, where
+    an f32 window stored in int64 would TRUNCATE and break the zero-window tightening).
+    """
+    n = movers.shape[0]
+    for i in nb.prange(n):
+        st = np.zeros(2, dtype=np.float64)
+        st[0], st[1] = -window, window  # the root window [-R, +R] (alpha, beta)
+        out[i] = _ab_eval(movers[i], opponents[i], st,
+                          w_dense, expanded_offsets, a1, b1,
+                          has_intercept,
+                          mob_masks, mob_sides,
+                          n_squares_arr, bit_shifts_matrix, powers_3,
+                          n_groups_arr, group_size_arr, idx_sort_matrix,
+                          current_col, col_offsets,
+                          num_planes_arr, pack_masks_3d, pack_shifts_3d,
+                          horizon_stones)
+    return out
+
+
 def _search_pool(positions, ecs, mw, plan, window, horizon_stones):
     """
-    The worker-pool batch search over the lanes STRICTLY ABOVE the horizon (the A == B lanes
-    are evaluated by the factory in a single batched client-EF call): one thread per CPU
-    (capped at the lane count), a queue of lane indices, dynamic dispatch, the per-lane fast
-    path calling the compiled search directly (it releases the GIL), the lane errors surfaced
-    at the boundary.
+    The batch search over the lanes strictly above the horizon (the A == B lanes are
+    evaluated by the factory in a single batched client-EF call): one njit call, the lanes
+    on numba's workqueue (the `_search_prange` above) — the GIL is released for the whole
+    call, the per-lane values are the individual ones.
 
     Returns:
         The (positions.shape,) float32 value array.
@@ -404,50 +443,15 @@ def _search_pool(positions, ecs, mw, plan, window, horizon_stones):
      n_groups_arr, group_size_arr, idx_sort_matrix,
      current_col, col_offsets,
      num_planes_arr, pack_masks_3d, pack_shifts_3d) = plan
-
-    q: 'queue.Queue' = queue.Queue()
-    for i in range(n):
-        q.put(i)
-    errors = []
-
-    def worker():
-        while True:
-            try:
-                i = q.get_nowait()
-            except queue.Empty:
-                return
-            try:
-                p = positions[i]
-                # The window state is F64 (the f32 values are exact in it — the int64 state
-                # of the endgame solver fits there because the game values are integers;
-                # here an f32 window stored in int64 would TRUNCATE and break the
-                # zero-window tightening).
-                st = np.zeros(2, dtype=np.float64)
-                st[0], st[1] = -window, window  # the root window [-R, +R] (alpha, beta)
-                out[i] = _ab_eval(p['mover'], p['opponent'], st,
-                                  mw.w_dense, expanded_offsets, a1, b1,
-                                  has_intercept,
-                                  mob_masks, mob_sides,
-                                  n_squares_arr, bit_shifts_matrix, powers_3,
-                                  n_groups_arr, group_size_arr, idx_sort_matrix,
-                                  current_col, col_offsets,
-                                  num_planes_arr, pack_masks_3d, pack_shifts_3d,
-                                  horizon_stones)
-            except BaseException as exc:  # surfaced at the boundary
-                errors.append((i, exc))
-            finally:
-                q.task_done()
-
-    n_threads = min(os.cpu_count() or 1, n)
-    threads = [Thread(target=worker) for _ in range(n_threads)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    if errors:
-        i, exc = errors[0]
-        raise type(exc)(f'lane {i} failed: {exc}') from exc
-    return out
+    return _search_prange(positions['mover'], positions['opponent'], out,
+                          mw.w_dense, expanded_offsets, a1, b1,
+                          has_intercept,
+                          mob_masks, mob_sides,
+                          n_squares_arr, bit_shifts_matrix, powers_3,
+                          n_groups_arr, group_size_arr, idx_sort_matrix,
+                          current_col, col_offsets,
+                          num_planes_arr, pack_masks_3d, pack_shifts_3d,
+                          horizon_stones, window)
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -464,9 +468,9 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[npt.NDArray], npt.ND
     B = `mw.ec` (a `ValueError` naming the offending count otherwise). The batch is split
     first: the A == B lanes (the bit-exact depth-0 anchor) go to the CLIENT EF itself in a
     SINGLE batched call (the EF is per-position, so the batched values are the individual
-    ones); only the A > B lanes run on the worker pool (the float32 alpha-beta, the static
-    bsf order, the zero window, down to the horizon, where the leaf value is the compiled
-    EF — the compiled search releases the GIL).
+    ones); only the A > B lanes run the float32 alpha-beta — a single njit call over the
+    lanes on numba's workqueue (the static bsf order, the zero window, down to the horizon,
+    where the leaf value is the compiled EF).
 
     The Y output range contract applies: NO clip anywhere; the root window is
     derived from the clipping: R = ceil(64/(1-2c)) + 1 (67 for c = 0.01 — it strictly

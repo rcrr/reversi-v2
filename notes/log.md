@@ -406,3 +406,25 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   a trend (the cumulative d5→d8 drop of 0.51 is ~4 sigma), not as decimals. The per-ply wall-time growth stays
   at 4.4–4.9x (against the user's expected 3.0–3.3x — the I-024 alpha-beta / dispatching investigation is confirmed
   worthwhile).
+- I-024 phase 1 (the diagnosis; the instrumented scratch copy — the production source untouched): TWO bottlenecks, both
+  confirmed. (1) The worker pool runs at ~1-2 CORES, not 8: the user's htop (per-core 10-37%, load average 0.89) and the
+  run's user-time ~ wall-time (106 s CPU over 103 s wall) are the ground truth — my first bracket-based "100%
+  efficiency" reading was an ARTIFACT (the per-lane wall brackets overlap because the threads wait inside the bracket;
+  the bracket sum counts the waits, not the work). A decisive 2/8-thread busy-njit probe: 2 threads scale (2.20x) — the
+  GIL IS released by numba — but 8 threads stall at 2.18x: Python-thread parallelism over njit calls is capped at ~2
+  cores in this numba 0.68 x CPython 3.14 environment. Numba's OWN threadpool scales: the batch search written as a
+  single njit prange over the lanes runs the REAL `_ab_eval` at 18.2 ms/lane (flat from 100 to 1000 lanes) vs 101
+  ms/lane for the pool — 5.5x faster, and BIT-EXACT (0/1000 lanes differ from the production ef at the production window
+  93; an apparent 1-lane difference was the scratch test's own wrong window 67). (2) The pruning is weak: 345 / 1,646 /
+  8,551 / 40,210 nodes per lane at depths 3/4/5/6 — a 4.91x per-ply growth against the ideal sqrt(b) = 3.11x (root
+  branching 9.66 mean legal moves): 1.58x too many nodes — the static bsf move ordering is the lever; the C solver's
+  fixed square ordering (corners first, the central four excluded) is the candidate phase-2 fix. The two fixes are
+  independent and multiplicative.
+- D-681 (the first I-024 fix, on the user's explicit request — "Fai solo il primo, fermati"): the multi-ply batch search
+  is now a single njit `prange` over the lanes on numba's workqueue (the new `_search_prange`; the Python worker pool —
+  queue + one thread per core — is gone from `multi_ply_ef.py`, with it the `os` / `queue` / `threading` imports).
+  Verified: BIT-EXACT with the pool form (0/1000 lanes at depth 3 and depth 6 on the 1k sample, against the saved pool
+  references), the depth-6 / 1k test case 97.4 s -> 25.8 s in the first post-change run, 1342 fast-tier tests green. The
+  user will re-take the times under htop before the second fix (the move ordering) is attempted — and the ordering will
+  be measured single-thread vs single-thread first (the user's methodology: no parallelism confounding the node-count /
+  time comparison).
