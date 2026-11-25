@@ -492,3 +492,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   independent njit count proved ZERO double-pass nodes at/above the 44-stone horizon over 1000 d5 trees — the ladder
   values are guaranteed unchanged). The D-688 15-position ec4/ec0 exactness battery now passes with the plain factory
   call.
+- Overnight 0153 ladder extension (the user's call before sleeping): the ladder of the 0153 model family over the fixed
+  1000-position ec20 corpus (regab batch 6, CMS) extended from depth 9 to depth 12. The family was missing the ec9 and
+  ec8 0153 models: the configs were created as clones of the ec10 template (`models/lm/ec9/0153/lm_ec9_0153.json`,
+  `models/lm/ec8/0153/lm_ec8_0153.json` — the `empty_count` and the description needed the explicit fix, the `ec10` text
+  replace does not touch the bare number), the `index.md` registries gained the 0153 rows, and both models were trained
+  with the standard pipeline (`python -m reversi.lm.logistic_model`): ec9 converged in 1,059 iters (validation
+  RMSE(y) 6.42, `CLIENT_CHECK` passed), ec8 in 1,051 iters (RMSE(y) 6.34, `CLIENT_CHECK` passed). The full d0..d12
+  ladder runs overnight on `build/tmp/ladder_0153.py` (the unbuffered form); the complete table is the morning
+  deliverable. The configs and registry rows await the user's commit OK.
+- The overnight 0153 ladder completed at 08:58: the full d0..d12 table over the fixed 1000-position ec20 corpus (regab
+  batch 6, CMS). The new rows: d10 (ec10 model) RMSE 3.256 in 34.3 min, d11 (ec9) RMSE 3.199 in 1 h 50 m, d12 (ec8)
+  RMSE 2.890 in 6 h 33 m (23,750 s — the ×3.6 ply growth held). The RMSE curve: 6.829 (d0) down to 2.890 (d12), a 57.7%
+  total reduction; the per-ply deltas keep shrinking (the d11 step was the smallest, -0.06, then d12 recovered to -0.31
+  — the ec8 model's deeper horizon picks up a visible chunk). The economic knee remains at d4-d5: beyond that each depth
+  costs ~3.5x more for a fraction of the remaining RMSE. The ladder script lives at `build/tmp/ladder_0153.py` (the
+  unbuffered form).
