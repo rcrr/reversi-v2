@@ -511,7 +511,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 
 ## 2026-11-25 — session 134 (LATEX book — the documentation session)
 
-- D-692: renamed the chapter 300 slug `reversi_300_pattern_pi_grandi` → `reversi_300_pattern_piu_grandi` (the user's first
-  request of the documentation session): `git mv` (history preserved), the `\include` in `latex/main.tex` and the chapter's
-  GPL-header FILE_NAME line updated in the same commit (the R-595 guard); the Makefile's `CH=NNN` glob is name-agnostic.
-  Verified: `make spell` green, `make latex CH=300` compiles (the build log references only the new base name).
+- D-692: renamed the chapter 300 slug `reversi_300_pattern_pi_grandi` → `reversi_300_pattern_piu_grandi` (the user's
+  first request of the documentation session): `git mv` (history preserved), the `\include` in `latex/main.tex` and the
+  chapter's GPL-header `FILE_NAME` line updated in the same commit (the R-595 guard); the Makefile's `CH=NNN` glob is
+  name-agnostic. Verified: `make spell` green, `make latex CH=300` compiles (the build log references only the new base
+  name).

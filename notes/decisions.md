@@ -778,8 +778,9 @@ D-691 | 2026-11-25 | The 0153 depth-ladder campaign documented for the book: the
          is the curve's one anomaly (-0.31 after the series-minimum -0.06 at d11). The overnight journal entries (the
          model creation, the ladder extension, the final result) are committed with this documentation decision.
 
-D-692 | 2026-11-25 | Book chapter 300 slug renamed: `reversi_300_pattern_pi_grandi.tex` → `reversi_300_pattern_piu_grandi.tex`
-         (the "pi" was a typo for "piu", "more" in Italian). The rename is a `git mv` (history preserved); the `\include` in
-         `latex/main.tex` and the FILE_NAME line of the chapter's GPL header (the R-595 guard checks it) moved with it in the
-         same commit. The Makefile's `CH=NNN` glob resolution is name-agnostic — no build-system change. Verified: `make
-         spell` green and `make latex CH=300` compiles the renamed chapter (the build log references only the new base name).
+D-692 | 2026-11-25 | Book chapter 300 slug renamed: `reversi_300_pattern_pi_grandi.tex` →
+         `reversi_300_pattern_piu_grandi.tex` (the "pi" was a typo for "piu", "more" in Italian). The rename is a
+         `git mv` (history preserved); the `\include` in `latex/main.tex` and the `FILE_NAME` line of the chapter's GPL
+         header (the R-595 guard checks it) moved with it in the same commit. The Makefile's `CH=NNN` glob resolution is
+         name-agnostic — no build-system change. Verified: `make spell` green and `make latex CH=300` compiles the
+         renamed chapter (the build log references only the new base name).
