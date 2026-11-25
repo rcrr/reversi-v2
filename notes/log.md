@@ -519,3 +519,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-693: the pre-checkin spell gate (G8) was red on two PRE-EXISTING words of `reversi_080_evaluation_function.tex`
   (untouched by the rename): "bounded" (an English word in Italian prose) → "delimitato"; "clippa" (the technical jargon
   verb "clippare") → added to `latex/dict.txt` (which already carried "clipping"). The gate is green again.
+- D-694: `notes/naming.md` gained the `GamePosition` and `GameValue` definitions (the user's documentation-session
+  request), inserted after the `Position` section: `GamePosition` — the 17-byte structured dtype (the `Position` fields
+  and the `player` field; `board.py:221`); `GameValue` — the np.int8 solved value on the full [-64, +64] WOF scale, from
+  the mover's point of view (`endgame_solver.py:137`), with the `GameValueArray` strict-dtype form and the -66 sentinel.
+  Factual, dry, exhaustive — every statement source-anchored.

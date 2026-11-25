@@ -23,6 +23,23 @@ follow it.
 - `Position` = a numpy structured dtype `[('mover', Bitboard), ('opponent', Bitboard)]` — each field a `Bitboard` (the
   numpy.uint64 alias above).
 
+## GamePosition
+A `GamePosition` is a `Position` (mover / opponent) plus the player to move: the structured native NumPy dtype built
+from `Position`'s own field list with the `player` field appended (`board.py`:
+`GamePosition = np.dtype(list(Position.descr) + [('player', Player)])`).
+- The element is 17 bytes: the 16 `Position` bytes (the two `Bitboard` fields) + the 1 `Player` byte (NumPy applies no
+  end-of-struct padding, unlike the C struct); the first 16 bytes of every element are exactly a `Position`.
+- The `player` field is a `Player` (the np.uint8 alias), the player to move at the position.
+
+## GameValue
+A `GameValue` is the exact value of a solved game position, seen from the point of view of the player to move: a
+`np.int8` scalar (`endgame_solver.py`: `GameValue: TypeAlias = np.int8`).
+- The value is the WOF final score on the full [-64, +64] scale: the disk difference, the empty squares assigned to the
+  player having most discs, a draw is 0 (the `final_value_of` primitive) — +64 a full win for the mover, -64 a full
+  loss.
+- `GameValueArray` is the strict int8 ndarray form (a dtype validator rejects any other dtype);
+  `OUT_OF_RANGE_DEFEAT_SCORE` (-66) is the just-out-of-range sentinel of the best-value accumulation.
+
 ## Index
 - `Index` = a numpy uint32 alias — used to identify feature configurations (base-3 in particular for patterns).
 - `ExtendedIndex` = a numpy int64 alias — the same index space as `Index`, plus the negative values (-1, -2, ...), which

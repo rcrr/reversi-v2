@@ -790,3 +790,12 @@ D-693 | 2026-11-25 | The pre-checkin spell gate (G8) was red on two pre-existing
          Italian prose — was replaced by "delimitato" (meaning preserved, the line re-wrapped); "clippa" — the book's
          technical jargon (the verb "clippare"; the sentence states the inference chain never clips) — was added to the
          personal dictionary `latex/dict.txt`, which already carried "clipping". The gate is green again.
+
+D-694 | 2026-11-25 | notes/naming.md gained the two core game-data types: `GamePosition` and `GameValue`, inserted after
+         the `Position` section (the user's documentation-session request). `GamePosition` (`board.py:221`): the
+         structured native NumPy dtype of a `Position` (mover / opponent) plus the `player` field (the `Player` np.uint8
+         alias) — the 17-byte element, the first 16 bytes exactly a `Position`, no end-of-struct padding. `GameValue`
+         (`endgame_solver.py:137`): the exact value of a solved position from the mover's point of view, a np.int8
+         scalar on the full [-64, +64] WOF scale (the `final_value_of` semantics), with the `GameValueArray`
+         strict-dtype form and the `OUT_OF_RANGE_DEFEAT_SCORE` (-66) sentinel. Factual, dry, exhaustive: every statement
+         is anchored to its source line.
