@@ -68,6 +68,7 @@ citecolor
 clamped
 classification
 client
+clippa
 clipping
 clllc
 clojure

@@ -784,3 +784,9 @@ D-692 | 2026-11-25 | Book chapter 300 slug renamed: `reversi_300_pattern_pi_gran
          header (the R-595 guard checks it) moved with it in the same commit. The Makefile's `CH=NNN` glob resolution is
          name-agnostic — no build-system change. Verified: `make spell` green and `make latex CH=300` compiles the
          renamed chapter (the build log references only the new base name).
+
+D-693 | 2026-11-25 | The pre-checkin spell gate (G8) was red on two pre-existing words in
+         `reversi_080_evaluation_function.tex`, unrelated to the D-692 rename: "bounded" — an English word sitting in
+         Italian prose — was replaced by "delimitato" (meaning preserved, the line re-wrapped); "clippa" — the book's
+         technical jargon (the verb "clippare"; the sentence states the inference chain never clips) — was added to the
+         personal dictionary `latex/dict.txt`, which already carried "clipping". The gate is green again.

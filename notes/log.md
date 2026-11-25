@@ -516,3 +516,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   chapter's GPL-header `FILE_NAME` line updated in the same commit (the R-595 guard); the Makefile's `CH=NNN` glob is
   name-agnostic. Verified: `make spell` green, `make latex CH=300` compiles (the build log references only the new base
   name).
+- D-693: the pre-checkin spell gate (G8) was red on two PRE-EXISTING words of `reversi_080_evaluation_function.tex`
+  (untouched by the rename): "bounded" (an English word in Italian prose) → "delimitato"; "clippa" (the technical jargon
+  verb "clippare") → added to `latex/dict.txt` (which already carried "clipping"). The gate is green again.

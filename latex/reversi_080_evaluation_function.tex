@@ -61,8 +61,8 @@ essendo immagine affina dei valori interi $[-64, 64]$). Ri-mappato con l'inversa
 $[-\frac{64}{1-2\alpha},\, +\frac{64}{1-2\alpha}]$: i valori oltre $\pm 64$ non sono un
 errore, ma l'\emph{eccesso di confidenza} — la misura di quanto il modello è certo oltre il
 massimo punteggio raggiungibile (con $\alpha = 0.01$ la fascia è $\pm 65.31$, con
-$\alpha = 0.1$ è $\pm 80$). Un consumatore che richieda un punteggio bounded applica il
-clip al proprio confine, a sua conoscenza: la catena di inference non clippa mai.
+$\alpha = 0.1$ è $\pm 80$). Un consumatore che richieda un punteggio delimitato applica
+il clip al proprio confine, a sua conoscenza: la catena di inference non clippa mai.
 
 \section{Definizione del Target della Minimizzazione}
 
