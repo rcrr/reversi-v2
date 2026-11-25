@@ -770,11 +770,10 @@ D-690 | 2026-11-25 | 0153 model family — the depth-ladder extension created th
          brought the measured per-ply wall growth back to the expected alpha-beta regime — the overnight d0..d12 ladder
          measured 3.2–3.6× per ply (the worker-pool era had measured 5.5×).
 
-D-691 | 2026-11-25 | The 0153 depth-ladder campaign documented for the book: the full overnight run (d0..d12
-         over the fixed 1000-position ec20 corpus, regab batch 6 CMS) is captured in the campaign document
-         `scratch/Multi_ply_ef_campaign.md` (the git-ignored scratch home — source material for the book's
-         multi-ply EF paragraph, to be written in a dedicated session). The result: the RMSE falls monotonically
-         6.829 (d0) → 2.890 (d12), a 57.7% reduction, while the per-ply wall grows 3.2–3.6×; the economic knee
-         sits at d4-d5; the d12 step is the curve's one anomaly (-0.31 after the series-minimum -0.06 at d11).
-         The overnight journal entries (the model creation, the ladder extension, the final result) are committed
-         with this documentation decision.
+D-691 | 2026-11-25 | The 0153 depth-ladder campaign documented for the book: the full overnight run (d0..d12 over the
+         fixed 1000-position ec20 corpus, regab batch 6 CMS) is captured in the campaign document
+         `scratch/Multi_ply_ef_campaign.md` (the git-ignored scratch home — source material for the book's multi-ply EF
+         paragraph, to be written in a dedicated session). The result: the RMSE falls monotonically 6.829 (d0) → 2.890
+         (d12), a 57.7% reduction, while the per-ply wall grows 3.2–3.6×; the economic knee sits at d4-d5; the d12 step
+         is the curve's one anomaly (-0.31 after the series-minimum -0.06 at d11). The overnight journal entries (the
+         model creation, the ladder extension, the final result) are committed with this documentation decision.
