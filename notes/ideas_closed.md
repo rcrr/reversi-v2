@@ -133,3 +133,10 @@ I-020 | done | The DOUBLE `fset.compute_indexes` per wave (raised 2026-09-23, se
          feed `fset.compute_indexes(pos)`; the D-296 position language stops at the loop boundary (the accumulators
          speak the derived index matrix, the A10 invariant intact). The 1e7 tables stay bit-identical + the statistics
          byte-identical (the index matrix is a pure function of the harvested lanes; the rlmwf\_03 caches stay valid).
+
+I-024 | done | Multi-ply search performance (the worker-pool era observations: ~5.5x per-ply wall growth against the
+         expected 3.0-3.3x, and the 8 cores at only ~30% utilization) - resolved by the Campaign B parallelization: the
+         `prange` workqueue dispatch (D-681) replaced the worker pool, the fixed best-first group order (D-682) restored
+         the alpha-beta pruning, `cache=True` (D-683). The overnight 0153 ladder (2026-11-25, d0..d12 over the fixed
+         1000-position ec20 corpus) measured the per-ply wall growth back at 3.2-3.6x - the expected alpha-beta regime
+         (the campaign document: `scratch/Multi_ply_ef_campaign.md`).

@@ -758,3 +758,14 @@ D-689 | 2026-11-24 | `multi_ply_ef` — the `verify_end_game` parameter REMOVED,
          generic ec4 positions over the ec0 fixture) now holds with the plain factory call (no flag): the EF identical
          (as float) to the `alphabeta_solve` integer on every lane. The D-682 window-invariance test's direct `_ab_eval`
          calls lost the trailing False.
+
+D-690 | 2026-11-25 | 0153 model family — the depth-ladder extension created the two missing family members: the ec9 and
+         ec8 0153 models. The configs `models/lm/ec9/0153/lm_ec9_0153.json` and `models/lm/ec8/0153/lm_ec8_0153.json`
+         are clones of the ec10 template with the `empty_count` and the description fixed explicitly (the `ec10` text
+         replace does not touch the bare number — the first training launch failed on the missing `build/` base dir, a
+         pipeline precondition). Trained with the standard pipeline: ec9 converged in 1,059 iters (validation
+         RMSE(y) 6.42, `CLIENT_CHECK` passed bit-exact), ec8 in 1,051 (RMSE(y) 6.34, `CLIENT_CHECK` passed). The
+         `index.md` registries of the two levels gained the 0153 rows. This also CLOSES I-024 (the multi-ply performance
+         observations): the Campaign B parallelization (D-681 `prange` dispatch, D-682 group ordering, D-683 `cache`)
+         brought the measured per-ply wall growth back to the expected alpha-beta regime — the overnight d0..d12 ladder
+         measured 3.2–3.6× per ply (the worker-pool era had measured 5.5×).

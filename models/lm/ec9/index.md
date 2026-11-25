@@ -8,3 +8,4 @@ without opening each file. The model's name lives in the config file itself.
 | ID | config | description |
 | --- | --- | --- |
 | 0108 | [lm_ec9_0108.json](0108/lm_ec9_0108.json) | The intercept plus the 2X5COR, XEDGE, CORNER, R4, DIAG8, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, empty count 9 - trained on batches 3, 9 and 12, validated on batch 6. |
+| 0153 | [lm_ec9_0153.json](0153/lm_ec9_0153.json) | The intercept plus the 2X6COR, CASTLE, 3X4COR, R4, BARBEL, DIAG7, DIAG6, DIAG5, R2 and R3 patterns and the OptMob mobility, empty count 9 - trained on batches 3, 9 and 12, validated on batch 6. |

@@ -25,11 +25,3 @@ I-023 | idea | The frontier-vectorized endgame search core (the "engine A" parke
          batched frontier design is the standard high-performance formulation for the 1M–10M-position endgame datasets —
          run in 1k–10k-lane batches, the batches parallelized worker-pool style. Revisit when the Rust port starts (or
          if a numba prototype ever measures clearly above the pool baseline).
-
-I-024 | idea | Multi-ply search performance (two observations from the 0153 depth-ladder runs, 189,721 positions): (1)
-         the measured per-ply wall-time growth is ~5.5x (depth 2 → 3: 32 s → 175 s) while the user's experience
-         expects 3.0–3.3x — the suspicion is that the alpha-beta is not pruning as well as it should (investigate the
-         move ordering and the window management of the compiled search); (2) during the batch search the 8 cores run at
-         only ~30% utilization (htop) — the worker-pool dynamic dispatch (one shared queue of lane indices) is not
-         load-balancing well (candidates: the per-lane workload variance at depth, the queue granularity, GIL contention
-         on the lane bookkeeping); find the cause and fix the balancing.
