@@ -124,10 +124,23 @@ horizon): with `check_ec=True` the `uniform_empty_count` check runs up front and
 batch raises, by default (False) the check is skipped and the precondition is the caller's. The
 `SolverResultArray` is the parallel arrays (the per-lane game values, final game positions, node
 / leaf counts), each lane exactly the result of the scalar solve of that lane.
+
+The command line
+----------------
+
+The module runs as a command (the Python replacement of the C `endgame_solver` binary):
+
+    python -m reversi.endgame_solver -s es -g ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+
+`-s` selects the solver (`minimax`, `alphabeta`, `es`) and `-g` the 64-character game position
+string; the output mirrors the C binary (the position, the node / leaf counts, the final
+outcome: the best move and the position value).
 """
 
+import argparse
 import os
 import queue
+import sys
 from dataclasses import dataclass
 from threading import Thread
 from typing import Any, Annotated, Callable, TypeAlias, Union
@@ -140,8 +153,9 @@ from pydantic import BeforeValidator, ConfigDict, validate_call
 
 from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePositionArray,
                            GamePositionField, Move, Player, _popcount, bitboard_bsf,
-                           bitboard_count, final_value_of, flips_of_move, legal_moves_of,
-                           make_game_position, other_player)
+                           bitboard_count, final_value_of, flips_of_move, game_position_from_str,
+                           game_position_print, legal_moves_of, make_game_position, move_to_str,
+                           other_player)
 
 
 __all__ = ['OUT_OF_RANGE_DEFEAT_SCORE', 'GameValue', 'GameValueArray', 'NodeRecord',
@@ -192,9 +206,12 @@ class NodeRecord:
 class SolverResult:
     """
     The result of an endgame solve: the game value seen from the point of view of the player to
-    move at the root, the terminal game position of the best line, and the search counters.
+    move at the root, the best move of the root (the move that achieves the value, in the
+    search's own move order), the terminal game position of the best line, and the search
+    counters.
     """
     game_value: GameValue
+    best_move: Move
     final_game_position: GamePositionField
     nodes: int
     leafs: int
@@ -204,10 +221,11 @@ class SolverResult:
 class SolverResultArray:
     """
     The result of an array endgame solve: one entry per lane, as parallel arrays (the natural
-    vectorized shape): the game values, the terminal game positions of the best lines, and the
-    search counters.
+    vectorized shape): the game values, the best moves, the terminal game positions of the best
+    lines, and the search counters.
     """
     game_values: GameValueArray
+    best_moves: npt.NDArray[np.uint8]
     final_game_positions: GamePositionArray
     nodes: npt.NDArray[np.int64]
     leafs: npt.NDArray[np.int64]
@@ -230,7 +248,8 @@ def _search(mover, opponent, player, level, records, state):
     value at the node entry, the C convention), state[1] the current parent_move.
 
     Returns:
-        The (value, final_mover, final_opponent, final_player, nodes, leafs) of the subtree.
+        The (value, best_move, final_mover, final_opponent, final_player, nodes, leafs) of the
+        subtree.
     """
     state[0] += 1
     call_id = state[0]
@@ -240,16 +259,16 @@ def _search(mover, opponent, player, level, records, state):
             value = final_value_of(mover, opponent)
             if records is not None:
                 records.append((call_id, level, player, state[1], MOVE_NA, value))
-            return value, mover, opponent, player, 1, 1
+            return value, MOVE_NA, mover, opponent, player, 1, 1
         saved = state[1]
         state[1] = MOVE_PA
-        value, fm, fo, fp, nodes, leafs = _search(opponent, mover, other_player(player), level + 1,
+        value, bmv, fm, fo, fp, nodes, leafs = _search(opponent, mover, other_player(player), level + 1,
                                                   records, state)
         state[1] = saved
         value = -value
         if records is not None:
             records.append((call_id, level, player, state[1], MOVE_PA, value))
-        return value, fm, fo, fp, nodes + 1, leafs
+        return value, MOVE_PA, fm, fo, fp, nodes + 1, leafs
     best_value = OUT_OF_RANGE_DEFEAT_SCORE
     best_move = MOVE_NA
     best_fm, best_fo, best_fp = mover, opponent, player
@@ -263,7 +282,7 @@ def _search(mover, opponent, player, level, records, state):
         flips = flips_of_move(mover, opponent, m)
         saved = state[1]
         state[1] = sq
-        value, fm, fo, fp, n, l = _search(opponent ^ flips, (mover ^ flips) | m,
+        value, bmv, fm, fo, fp, n, l = _search(opponent ^ flips, (mover ^ flips) | m,
                                           other_player(player), level + 1, records, state)
         state[1] = saved
         value = -value
@@ -273,7 +292,7 @@ def _search(mover, opponent, player, level, records, state):
             best_value, best_move, best_fm, best_fo, best_fp = value, sq, fm, fo, fp
     if records is not None:
         records.append((call_id, level, player, state[1], best_move, best_value))
-    return best_value, best_fm, best_fo, best_fp, nodes, leafs
+    return best_value, best_move, best_fm, best_fo, best_fp, nodes, leafs
 
 
 # The 4-element `state` array: state[0] the entry-order node counter, state[1] the current
@@ -291,7 +310,8 @@ def _ab_search(mover, opponent, player, level, records, state):
     window alpha and `MOVE_NA`, a cutoff node with the bound that triggered it.
 
     Returns:
-        The (value, final_mover, final_opponent, final_player, nodes, leafs) of the subtree.
+        The (value, best_move, final_mover, final_opponent, final_player, nodes, leafs) of the
+        subtree.
     """
     state[0] += 1
     call_id = state[0]
@@ -303,11 +323,11 @@ def _ab_search(mover, opponent, player, level, records, state):
             value = final_value_of(mover, opponent)
             if records is not None:
                 records.append((call_id, level, player, state[1], MOVE_NA, value))
-            return value, mover, opponent, player, 1, 1
+            return value, MOVE_NA, mover, opponent, player, 1, 1
         saved_pm, saved_a, saved_b = state[1], state[2], state[3]
         state[1] = MOVE_PA
         state[2], state[3] = -beta, -alpha
-        value, fm, fo, fp, nodes, leafs = _ab_search(opponent, mover, other_player(player), level + 1,
+        value, bmv, fm, fo, fp, nodes, leafs = _ab_search(opponent, mover, other_player(player), level + 1,
                                                      records, state)
         state[1], state[2], state[3] = saved_pm, saved_a, saved_b
         value = -value
@@ -320,7 +340,7 @@ def _ab_search(mover, opponent, player, level, records, state):
             best = MOVE_PA
         if records is not None:
             records.append((call_id, level, player, state[1], best, value))
-        return value, fm, fo, fp, nodes + 1, leafs
+        return value, MOVE_PA, fm, fo, fp, nodes + 1, leafs
     best_value = alpha
     best_move = MOVE_NA
     best_fm, best_fo, best_fp = mover, opponent, player
@@ -335,7 +355,7 @@ def _ab_search(mover, opponent, player, level, records, state):
         saved_pm, saved_a, saved_b = state[1], state[2], state[3]
         state[1] = sq
         state[2], state[3] = -beta, -alpha
-        value, fm, fo, fp, n, l = _ab_search(opponent ^ flips, (mover ^ flips) | m,
+        value, bmv, fm, fo, fp, n, l = _ab_search(opponent ^ flips, (mover ^ flips) | m,
                                              other_player(player), level + 1, records, state)
         state[1], state[2], state[3] = saved_pm, saved_a, saved_b
         value = -value
@@ -349,10 +369,10 @@ def _ab_search(mover, opponent, player, level, records, state):
             if value >= beta:
                 if records is not None:
                     records.append((call_id, level, player, state[1], best_move, best_value))
-                return best_value, best_fm, best_fo, best_fp, nodes, leafs
+                return best_value, best_move, best_fm, best_fo, best_fp, nodes, leafs
     if records is not None:
         records.append((call_id, level, player, state[1], best_move, best_value))
-    return best_value, best_fm, best_fo, best_fp, nodes, leafs
+    return best_value, best_move, best_fm, best_fo, best_fp, nodes, leafs
 
 
 def _mm_state():
@@ -383,18 +403,19 @@ def _solve_pool(gps, search, make_state, lane_setup=None):
     per-lane result slots. The njit search releases the GIL while running, so the wall time is
     the batch work over the worker count. `lane_setup` (optional) is a Python callable invoked
     as `lane_setup(state, i)` right after the per-lane state factory, for the solvers whose
-    state carries a per-lane datum (the es root move set). Returns the six result arrays (the
-    values, the final mover / opponent / player, the node / leaf counts).
+    state carries a per-lane datum (the es root move set). Returns the seven result arrays (the
+    values, the best moves, the final mover / opponent / player, the node / leaf counts).
     """
     n = gps.shape[0]
     values = np.empty(n, dtype=GameValue)
+    best_moves = np.empty(n, dtype=Move)
     fm = np.empty(n, dtype=Bitboard)
     fo = np.empty(n, dtype=Bitboard)
     fp = np.empty(n, dtype=Player)
     nodes = np.empty(n, dtype=np.int64)
     leafs = np.empty(n, dtype=np.int64)
     if not n:
-        return values, fm, fo, fp, nodes, leafs
+        return values, best_moves, fm, fo, fp, nodes, leafs
     movers = gps['mover']
     opponents = gps['opponent']
     players = gps['player']
@@ -404,8 +425,9 @@ def _solve_pool(gps, search, make_state, lane_setup=None):
         state = make_state()
         if lane_setup is not None:
             lane_setup(state, i)
-        v, f_m, f_o, f_p, nd, lf = search(movers[i], opponents[i], players[i], 1, None, state)
+        v, bmv, f_m, f_o, f_p, nd, lf = search(movers[i], opponents[i], players[i], 1, None, state)
         values[i] = GameValue(v)
+        best_moves[i] = bmv
         fm[i] = f_m
         fo[i] = f_o
         fp[i] = f_p
@@ -435,7 +457,7 @@ def _solve_pool(gps, search, make_state, lane_setup=None):
         t.join()
     if errors:
         raise errors[0]
-    return values, fm, fo, fp, nodes, leafs
+    return values, best_moves, fm, fo, fp, nodes, leafs
 
 
 # The 10 D8 priority-cluster masks of the C es move ordering (the exact `legal_moves_priority_mask`
@@ -522,7 +544,8 @@ def _es_search(mover, opponent, player, level, records, state):
     array with the same save/restore stack discipline as `_ab_search`.
 
     Returns:
-        The (value, final_mover, final_opponent, final_player, nodes, leafs) of the subtree.
+        The (value, best_move, final_mover, final_opponent, final_player, nodes, leafs) of the
+        subtree.
     """
     state[0] += 1
     call_id = state[0]
@@ -534,20 +557,20 @@ def _es_search(mover, opponent, player, level, records, state):
             value = final_value_of(mover, opponent)
             if records is not None:
                 records.append((call_id, level, player, state[1], MOVE_NA, value))
-            return value, mover, opponent, player, 1, 1
+            return value, MOVE_NA, mover, opponent, player, 1, 1
         # The pass node: the single pseudo-move, the child window the negated parent window.
         state[4] = int(legal_moves_of(opponent, mover))
         state[5] = 0
         saved_pm, saved_a, saved_b = state[1], state[2], state[3]
         state[1] = MOVE_PA
         state[2], state[3] = -state[3], -state[2]
-        value, fm, fo, fp, nodes, leafs = _es_search(opponent, mover, other_player(player),
+        value, bmv, fm, fo, fp, nodes, leafs = _es_search(opponent, mover, other_player(player),
                                                      level + 1, records, state)
         state[1], state[2], state[3] = saved_pm, saved_a, saved_b
         value = -value
         if records is not None:
             records.append((call_id, level, player, state[1], MOVE_PA, value))
-        return value, fm, fo, fp, nodes + 1, leafs
+        return value, MOVE_PA, fm, fo, fp, nodes + 1, leafs
     # The ordering look-ahead: the candidate moves generated in the priority-cluster order
     # (the ascending square order within a cluster), each one with its child position and the
     # child's legal-move set (the opponent's resulting mobility) — the scratch in the state
@@ -599,7 +622,7 @@ def _es_search(mover, opponent, player, level, records, state):
         state[4] = state[sqo + _ES_RES_BASE + i]
         state[5] = int(own)
         state[2], state[3] = -beta, -alpha
-        value, fm, fo, fp, nd, lf = _es_search(np.uint64(state[sqo + _ES_CM_BASE + i]),
+        value, bmv, fm, fo, fp, nd, lf = _es_search(np.uint64(state[sqo + _ES_CM_BASE + i]),
                                                np.uint64(state[sqo + _ES_CO_BASE + i]),
                                                other_player(player), level + 1, records, state)
         state[1], state[2], state[3] = saved_pm, saved_a, saved_b
@@ -615,10 +638,10 @@ def _es_search(mover, opponent, player, level, records, state):
             if value >= beta:
                 if records is not None:
                     records.append((call_id, level, player, state[1], best_move, best_value))
-                return best_value, best_fm, best_fo, best_fp, nodes, leafs
+                return best_value, best_move, best_fm, best_fo, best_fp, nodes, leafs
     if records is not None:
         records.append((call_id, level, player, state[1], best_move, best_value))
-    return best_value, best_fm, best_fo, best_fp, nodes, leafs
+    return best_value, best_move, best_fm, best_fo, best_fp, nodes, leafs
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -646,17 +669,18 @@ def minimax_solve(gp: Union[GamePositionField, GamePositionArray],
     if isinstance(gp, np.void):
         state = _mm_state()
         if log is None:
-            value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
+            value, bmv, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
                                                       1, None, state)
         else:
             # The trace sink: the typed list of the 6-int node records, filled by the compiled
             # search at each node exit, replayed to the callback when the search completes.
             records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
-            value, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
+            value, bmv, fm, fo, fp, nodes, leafs = _search(gp['mover'], gp['opponent'], gp['player'],
                                                       1, records, state)
             for rec in records:
                 log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
         return SolverResult(game_value=GameValue(value),
+                            best_move=Move(bmv),
                             final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
                                                                    Player(fp)),
                             nodes=nodes, leafs=leafs)
@@ -664,8 +688,9 @@ def minimax_solve(gp: Union[GamePositionField, GamePositionArray],
         raise ValueError('The log callback is the scalar form only (one trace per solve).')
     if check_ec:
         uniform_empty_count(gp)
-    values, fm, fo, fp, nodes, leafs = _solve_pool(gp, _search, _mm_state)
+    values, best_moves, fm, fo, fp, nodes, leafs = _solve_pool(gp, _search, _mm_state)
     return SolverResultArray(game_values=values,
+                             best_moves=best_moves,
                              final_game_positions=make_game_position(fm, fo, fp),
                              nodes=nodes, leafs=leafs)
 
@@ -698,17 +723,18 @@ def alphabeta_solve(gp: Union[GamePositionField, GamePositionArray],
     if isinstance(gp, np.void):
         state = _ab_state()
         if log is None:
-            value, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
+            value, bmv, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
                                                          1, None, state)
         else:
             # The trace sink: the typed list of the 6-int node records, filled by the compiled
             # search at each node exit, replayed to the callback when the search completes.
             records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
-            value, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
+            value, bmv, fm, fo, fp, nodes, leafs = _ab_search(gp['mover'], gp['opponent'], gp['player'],
                                                          1, records, state)
             for rec in records:
                 log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
         return SolverResult(game_value=GameValue(value),
+                            best_move=Move(bmv),
                             final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
                                                                    Player(fp)),
                             nodes=nodes, leafs=leafs)
@@ -716,8 +742,9 @@ def alphabeta_solve(gp: Union[GamePositionField, GamePositionArray],
         raise ValueError('The log callback is the scalar form only (one trace per solve).')
     if check_ec:
         uniform_empty_count(gp)
-    values, fm, fo, fp, nodes, leafs = _solve_pool(gp, _ab_search, _ab_state)
+    values, best_moves, fm, fo, fp, nodes, leafs = _solve_pool(gp, _ab_search, _ab_state)
     return SolverResultArray(game_values=values,
+                             best_moves=best_moves,
                              final_game_positions=make_game_position(fm, fo, fp),
                              nodes=nodes, leafs=leafs)
 
@@ -751,17 +778,18 @@ def es_solve(gp: Union[GamePositionField, GamePositionArray],
     if isinstance(gp, np.void):
         state = _es_state(legal_moves_of(gp['mover'], gp['opponent']))
         if log is None:
-            value, fm, fo, fp, nodes, leafs = _es_search(gp['mover'], gp['opponent'], gp['player'],
+            value, bmv, fm, fo, fp, nodes, leafs = _es_search(gp['mover'], gp['opponent'], gp['player'],
                                                          1, None, state)
         else:
             # The trace sink: the typed list of the 6-int node records, filled by the compiled
             # search at each node exit, replayed to the callback when the search completes.
             records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
-            value, fm, fo, fp, nodes, leafs = _es_search(gp['mover'], gp['opponent'], gp['player'],
+            value, bmv, fm, fo, fp, nodes, leafs = _es_search(gp['mover'], gp['opponent'], gp['player'],
                                                          1, records, state)
             for rec in records:
                 log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
         return SolverResult(game_value=GameValue(value),
+                            best_move=Move(bmv),
                             final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
                                                                    Player(fp)),
                             nodes=nodes, leafs=leafs)
@@ -778,8 +806,9 @@ def es_solve(gp: Union[GamePositionField, GamePositionArray],
         # as _es_state: the high-bit set would overflow the int64 store).
         state[4] = np.uint64(legal_moves_of(movers[i], opponents[i])).astype(np.int64)
 
-    values, fm, fo, fp, nodes, leafs = _solve_pool(gp, _es_search, _es_pool_state, lane_setup)
+    values, best_moves, fm, fo, fp, nodes, leafs = _solve_pool(gp, _es_search, _es_pool_state, lane_setup)
     return SolverResultArray(game_values=values,
+                             best_moves=best_moves,
                              final_game_positions=make_game_position(fm, fo, fp),
                              nodes=nodes, leafs=leafs)
 
@@ -808,3 +837,43 @@ def uniform_empty_count(gps: GamePositionArray) -> int:
         detail = ", ".join(f"ec={u} on {c} lane(s)" for u, c in zip(unique, counts))
         raise ValueError(f"Non-uniform empty counts: {detail}.")
     return int(ecs[0])
+
+
+def main(argv=None):
+    """
+    The command line form (the Python replacement of the C `endgame_solver` binary):
+
+        python -m reversi.endgame_solver -s es -g ..bw.bw....wwww...wwwwb...
+
+    `-s` selects the solver (`minimax`, `alphabeta`, `es`), `-g` the 64-character game position
+    string. The output mirrors the C binary: the position, the node / leaf counts, the final
+    outcome (the best move and the position value).
+
+    Args:
+        argv: the argument list (default: the process command line).
+    """
+    parser = argparse.ArgumentParser(
+        prog='python -m reversi.endgame_solver',
+        description='Solve a Reversi endgame from a 64-character position string.')
+    parser.add_argument('-s', '--solver', required=True, choices=('minimax', 'alphabeta', 'es'),
+                        help='the solver to run')
+    parser.add_argument('-g', '--game-position', required=True, dest='game_position',
+                        help='the 64-character game position string')
+    args = parser.parse_args(argv)
+
+    solvers = {'minimax': minimax_solve, 'alphabeta': alphabeta_solve, 'es': es_solve}
+    gp = game_position_from_str(args.game_position)
+    r = solvers[args.solver](gp)
+    # The C output: the position printed by game_position_print (the C game_position_x_print
+    # replica), the blank line the C fprintf("%s\n") of the trailing-newline buffer leaves,
+    # then the counts and the final outcome.
+    # The output=sys.stdout at call time (the default argument is the stdout of the definition
+    # time, invisible to the test's redirect_stdout).
+    game_position_print(gp, output=sys.stdout)
+    print()
+    print(f"[node_count={r.nodes}, leaf_count={r.leafs}]")
+    print(f"Final outcome: best move={move_to_str(r.best_move)}, position value={int(r.game_value)}")
+
+
+if __name__ == '__main__':
+    main()

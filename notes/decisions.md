@@ -815,3 +815,22 @@ D-695 | 2026-11-26 | `endgame_solver.py` gained `es_solve`: the port of the C ex
          Performance: 6.55s vs the C 3.7s (the 1.75x numba per-node codegen gap); the micro-tuning ceiling reached (the
          fast popcount +1.5%, the index sort 0%) — the user kept the simple form. `alphabeta_solve` is unchanged (the C
          `ab` natural-order twin). 21 new tests (micro, fixture, trace, book-position LONG tier, array).
+
+D-696 | 2026-11-26 | The Python command line for the endgame solvers (the replacement of the C `endgame_solver` binary)
+         and the C-faithful position printing. `endgame_solver.py` gained `main()`
+         (`python -m reversi.endgame_solver -s {minimax,alphabeta,es} -g <64-char string>`): the output mirrors the C
+         `exact_solution_to_stream` (the game position grid, the blank line, the `[node_count=..., leaf_count=...]`
+         line, the `Final outcome: best move=..., position value=...` line). To make the best move available without a
+         trace, the three compiled kernels now return the 7-tuple (value, `best_move`, final mover / opponent / player,
+         nodes, leafs) — the best move was already computed at every node, it was just not propagated — and
+         `SolverResult` / `SolverResultArray` gained the `best_move` / `best_moves` fields. `board.py` gained
+         `game_position_print` (the exact replica of the C `game_position_x_print`: the board grid and the
+         `Player to move: BLACK | WHITE` line, the trailing newline included) over the new common internal
+         `_board_grid_str` generation, which `position_print` was refactored onto (no duplicated board generation; the
+         `position_print` output is now the C-format grid). The `output` annotation moved from `Union[IO, io.StringIO]`
+         to `io.TextIOBase` on both print functions (the old union rejected an explicit `sys.stdout`: a TextIOWrapper is
+         not an instance of typing.IO, the default path only passing because pydantic does not validate defaults).
+         Tests: the four `position_print` tests updated to the C format, the new TestGamePositionPrint (the C binary's
+         output on the book position as the golden, the WHITE player, the shared-grid identity), the new
+         TestEndgameSolverCLI (dispatch, the C-mirroring output, the invalid solver exit), the two SolverResult
+         dataclass constructions updated to the new field.

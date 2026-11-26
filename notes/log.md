@@ -540,3 +540,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   navigation identity exact on all six reference positions (record by record on the five small, the 45.8M-node count at
   scale), 6.55s on the book position (1.75x the C: the numba per-node codegen gap), 81-test suite green + the LONG book
   test.
+- D-696: the Python command line for the endgame solvers + the C-faithful position printing. The user asked for the
+  `python -m reversi.endgame_solver -s es -g <string>` replacement of the C binary. The C `exact_solution_to_stream`
+  output study showed the gap: `SolverResult` carried no best move (trace-only, unusable at the 45.8M-node scale) — the
+  three kernels extended to the 7-tuple return (`best_move` was already computed at every node), the result dataclasses
+  gained `best_move` / `best_moves`, the pool and the wrappers updated. Then the user pointed at the C board printing:
+  `game_position_print` written as the exact `game_position_x_print` replica (grid + Player to move line) over the new
+  common `_board_grid_str`, `position_print` refactored onto it (no duplication; its output is now the C-format grid,
+  the four tests updated). The CLI prints the board + the C blank line + the counts + the final outcome — byte-identical
+  to the C binary on the book position. The pydantic `Union[IO, io.StringIO]` annotation rejected an explicit
+  `sys.stdout` (TextIOWrapper is not a typing.IO instance): both print functions moved to `io.TextIOBase`. 437-test
+  board + solver suite green.

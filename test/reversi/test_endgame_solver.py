@@ -38,7 +38,9 @@
 # time PERF=0 python3 -m unittest test.reversi.test_endgame_solver
 #
 
+import contextlib
 import dataclasses
+import io
 import os
 import time
 import unittest
@@ -61,15 +63,18 @@ class TestSolverResult(unittest.TestCase):
 
     def test_fields(self):
         gp = game_position_from_str('b' * 64 + 'b')
-        r = SolverResult(game_value=np.int8(3), final_game_position=gp, nodes=10, leafs=3)
+        r = SolverResult(game_value=np.int8(3), best_move=Move(28), final_game_position=gp, nodes=10,
+                         leafs=3)
         self.assertIsInstance(r.game_value, np.int8)
         self.assertEqual(int(r.game_value), 3)
+        self.assertEqual(int(r.best_move), 28)
         self.assertEqual(r.nodes, 10)
         self.assertEqual(r.leafs, 3)
         self.assertEqual(game_position_to_str(r.final_game_position), game_position_to_str(gp))
 
     def test_frozen(self):
-        r = SolverResult(game_value=np.int8(0), final_game_position=game_position_from_str('b' * 64 + 'b'),
+        r = SolverResult(game_value=np.int8(0), best_move=Move(0),
+                         final_game_position=game_position_from_str('b' * 64 + 'b'),
                          nodes=1, leafs=1)
         with self.assertRaises(dataclasses.FrozenInstanceError):
             r.nodes = 2
@@ -994,3 +999,47 @@ class TestEsSolveArray(unittest.TestCase):
             es_solve(mixed, check_ec=True)
         r = es_solve(mixed)
         self.assertEqual([int(v) for v in r.game_values], [18, 18])
+
+
+class TestEndgameSolverCLI(unittest.TestCase):
+    """
+    The `python -m reversi.endgame_solver` command line (the Python replacement of the C
+    `endgame_solver` binary): the solver dispatch and the C-mirroring output (the position, the
+    node / leaf counts, the final outcome with the best move).
+    """
+
+    def test_es_output(self):
+        from reversi.endgame_solver import main
+        s = '..bbbbb.wwbwbb.wwwwwbbwwwwwbbbbwwbwwbwbwwbbwwbwwwbbwwwbwbbbbbbbbb'
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            main(['-s', 'es', '-g', s])
+        out = buf.getvalue().splitlines()
+        # The C output: the 9-line board grid (the game_position_print replica), the Player to
+        # move line, the blank line, the counts, the final outcome.
+        self.assertEqual(len(out), 13)
+        self.assertEqual(out[0], '    a b c d e f g h ')
+        self.assertEqual(out[9], 'Player to move: BLACK')
+        self.assertEqual(out[10], '')
+        self.assertEqual(out[11], '[node_count=45, leaf_count=11]')
+        self.assertEqual(out[12], 'Final outcome: best move=A1, position value=18')
+
+    def test_minimax_output(self):
+        from reversi.endgame_solver import main
+        s = 'b' * 64 + 'b'  # the terminal: one node, the WOF value
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            main(['-s', 'minimax', '-g', s])
+        out = buf.getvalue().splitlines()
+        self.assertEqual(len(out), 13)
+        self.assertEqual(out[0], '    a b c d e f g h ')
+        self.assertEqual(out[1], ' 1  @ @ @ @ @ @ @ @ ')
+        self.assertEqual(out[9], 'Player to move: BLACK')
+        self.assertEqual(out[10], '')
+        self.assertEqual(out[11], '[node_count=1, leaf_count=1]')
+        self.assertEqual(out[12], 'Final outcome: best move=NA, position value=64')
+
+    def test_invalid_solver_exits(self):
+        from reversi.endgame_solver import main
+        with self.assertRaises(SystemExit):
+            main(['-s', 'nope', '-g', 'b' * 64 + 'b'])

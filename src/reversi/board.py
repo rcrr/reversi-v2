@@ -93,7 +93,7 @@ __all__ = ['Square', 'SquareArray',
            'GamePosition', 'GamePositionField', 'GamePositionArray',
            'make_game_position', 'make_game_position_from_position',
            'game_position_blacks', 'game_position_whites',
-           'game_position_from_str', 'game_position_to_str',
+           'game_position_from_str', 'game_position_to_str', 'game_position_print',
            'game_position_make_move', 'game_position_legal_moves', 'game_position_final_value',
            'position_print', 'position_empties',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
@@ -1297,32 +1297,42 @@ def position_eq(pos_a: PositionField | PositionArray, pos_b: PositionField | Pos
     """
     return np.array_equal(pos_a, pos_b)
 
-@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def position_print(p: PositionField, output: Union[IO, io.StringIO] = sys.stdout) -> None:
+def _board_grid_str(mover: Bitboard, opponent: Bitboard) -> str:
     """
-    Print a 2-D text representation of the position to the given output.
+    The C `game_position_x_print` board grid (the 4-space header line and the 8 row lines, each
+    one ending in the trailing space, the grid without the final newline): the common generation
+    of `position_print` and `game_position_print`. Row 1 on top, column a on the left; '@' marks
+    a mover square, 'O' an opponent square, '.' an empty one. A square held by both players
+    prints '@' (the mover is checked first).
+    """
+    lines = ['    a b c d e f g h ']
+    sq = Bitboard(1)
+    for row in range(8):
+        cells = []
+        for col in range(8):
+            if sq & mover:
+                cells.append('@')
+            elif sq & opponent:
+                cells.append('O')
+            else:
+                cells.append('.')
+            sq <<= 1
+        lines.append(f' {row + 1}  ' + ' '.join(cells) + ' ')
+    return '\n'.join(lines)
 
-    Row 1 on top, column a on the left; '@' marks a mover square, 'O' an opponent square, '.' an
-    empty one. A square held by both players prints '@' (the mover is checked first).
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_print(p: PositionField, output: io.TextIOBase = sys.stdout) -> None:
+    """
+    Print a 2-D text representation of the position to the given output, in the C
+    `game_position_x_print` grid format (the shared `_board_grid_str` generation of
+    `game_position_print`).
 
     Args:
         p: the position (scalar only).
         output: the text stream to write to (default stdout).
     """
-    sq = Bitboard(1)
-    print('  a b c d e f g h', file=output)
-    for row in range(0,8):
-        print(row + 1, end='', file=output)
-        for col in range(0,8):
-            if sq & p['mover'] != 0:
-                c = '@'
-            elif sq & p['opponent'] != 0:
-                c = 'O'
-            else:
-                c = '.'
-            print(' ' + c, end='', file=output)
-            sq <<= 1
-        print(file=output)
+    print(_board_grid_str(p['mover'], p['opponent']), file=output)
     return
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -2357,6 +2367,21 @@ def game_position_to_str(gp: GamePositionField) -> str:
         sq <<= 1
     chars.append('b' if gp['player'] == PLAYER_BLACK else 'w')
     return ''.join(chars)
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_print(gp: GamePositionField, output: io.TextIOBase = sys.stdout) -> None:
+    """
+    Print the game position to the given output, replicating the C `game_position_x_print`
+    exactly: the board grid (the shared `_board_grid_str` generation of `position_print`) and
+    the `Player to move: BLACK | WHITE` line, the trailing newline included.
+
+    Args:
+        gp: the game position (scalar only).
+        output: the text stream to write to (default stdout).
+    """
+    name = 'BLACK' if gp['player'] == PLAYER_BLACK else 'WHITE'
+    output.write(_board_grid_str(gp['mover'], gp['opponent']) + f'\nPlayer to move: {name}\n')
 
 
 # The GamePosition-level game-tree operations: the per-lane work composes the PUBLIC bitboard
