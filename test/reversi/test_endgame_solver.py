@@ -755,3 +755,242 @@ class TestUnifiedSolveApi(unittest.TestCase):
             minimax_solve(mixed, check_ec=True)
         r = minimax_solve(mixed)
         self.assertEqual([int(v) for v in r.game_values], [18, 18])
+
+
+class TestEsSolveMicro(unittest.TestCase):
+    """
+    es_solve on small hand-built terminal endgames: the game value and the node / leaf counts,
+    all pinned (the es navigation of a terminal position is the single node: the terminal check
+    precedes the ordering look-ahead).
+    """
+
+    def test_full_board_black_to_move(self):
+        r = es_solve(game_position_from_str('bbbbbbbb' * 5 + 'wwwwwwww' * 3 + 'b'))
+        self.assertEqual(int(r.game_value), 16)
+        self.assertEqual(r.nodes, 1)
+        self.assertEqual(r.leafs, 1)
+
+    def test_full_board_white_to_move(self):
+        r = es_solve(game_position_from_str('bbbbbbbb' * 5 + 'wwwwwwww' * 3 + 'w'))
+        self.assertEqual(int(r.game_value), -16)
+        self.assertEqual(r.nodes, 1)
+        self.assertEqual(r.leafs, 1)
+
+    def test_full_board_draw(self):
+        r = es_solve(game_position_from_str('bbbbbbbb' * 4 + 'wwwwwwww' * 4 + 'b'))
+        self.assertEqual(int(r.game_value), 0)
+        self.assertEqual(r.nodes, 1)
+        self.assertEqual(r.leafs, 1)
+
+
+class TestEsSolveFixture(unittest.TestCase):
+    """
+    es_solve on the ffo-01-simplified series of the gpdb-sample-games.txt corpus: each case
+    reproduces the C exact solver (`-s es`, the plain run, the root window [-64, +64])
+    navigation exactly — the game value, the node / leaf counts, the final position, and the
+    root best move (the C reference of the plain es run).
+    """
+
+    DB_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
+
+    # The series final position (the same of the alpha-beta fixture: the exact outcome of the
+    # game, independent of the search strategy).
+    FINAL = 'bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb' + 'b'
+
+    # The case -> the expected C es result: the game value, the node count, the leaf count, the
+    # root best move.
+    CASES = {
+        4: (18, 1084, 208, 'B6'),
+        5: (-18, 490, 95, 'A2'),
+        6: (18, 197, 40, 'H8'),
+        7: (-18, 78, 17, 'A3'),
+        8: (18, 45, 11, 'A1'),
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db, _ = load_game_position_database(cls.DB_FILE)
+
+    def _solve_case(self, n):
+        value, nodes, leafs, best = self.CASES[n]
+        entry = self.db.find(f'ffo-01-simplified-{n}')
+        self.assertIsNotNone(entry)
+        records = []
+        r = es_solve(entry.position, log=records.append)
+        self.assertEqual(int(r.game_value), value)
+        self.assertEqual(r.nodes, nodes)
+        self.assertEqual(r.leafs, leafs)
+        # The final board (the 64 square characters): the es best line may reach a
+        # same-value terminal with a different to-move player than the alpha-beta line
+        # (the tie-break follows the search order), the board is the game outcome.
+        self.assertEqual(game_position_to_str(r.final_game_position)[:64], self.FINAL[:64])
+        # The trace has one record per visited node, the root record carries the best move.
+        self.assertEqual(len(records), nodes)
+        root = [rec for rec in records if rec.level == 1]
+        self.assertEqual(len(root), 1)
+        self.assertEqual(move_to_str(root[0].best_move), best)
+
+    def test_ffo_01_simplified_4(self):
+        self._solve_case(4)
+
+    def test_ffo_01_simplified_5(self):
+        self._solve_case(5)
+
+    def test_ffo_01_simplified_6(self):
+        self._solve_case(6)
+
+    def test_ffo_01_simplified_7(self):
+        self._solve_case(7)
+
+    def test_ffo_01_simplified_8(self):
+        self._solve_case(8)
+
+    def test_es_minimax_parity(self):
+        # The es and the minimax agree on the value and the final position of every case (all
+        # the searches are exact: the ordering and the pruning only skip the irrelevant
+        # subtrees).
+        for n in (1, 2, 3, 4, 5, 6, 7, 8):
+            name = f'ffo-01-simplified-{n}'
+            entry = self.db.find(name)
+            self.assertIsNotNone(entry)
+            es = es_solve(entry.position)
+            mm = minimax_solve(entry.position)
+            self.assertEqual(int(es.game_value), int(mm.game_value), name)
+            # The final board (the 64 square characters): the best line of the two orderings
+            # may reach a same-value terminal with a different to-move player.
+            self.assertEqual(game_position_to_str(es.final_game_position)[:64],
+                             game_position_to_str(mm.final_game_position)[:64], name)
+
+
+class TestEsSolveTrace(unittest.TestCase):
+    """
+    The es search trace reproduces the C exact-solver game-tree log record by record, on the
+    five comparable columns (the call id, the level, the player, the parent move, the value).
+
+    Trace note: the v2 record is MOVE_NA at a non-improving (fail-low) node, the only value
+    consistent with the search (the C log carries there the first move of the sorted list —
+    the node struct initialization, not a search decision): the comparison skips the
+    best-move column where the v2 record is MOVE_NA, as the alpha-beta trace test.
+    """
+
+    DB_FILE = WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt'
+    LOG_DIR = WORKSPACE_ROOT / 'test' / 'reversi' / 'data'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db, _ = load_game_position_database(cls.DB_FILE)
+
+    def _trace_case(self, n):
+        entry = self.db.find(f'ffo-01-simplified-{n}')
+        self.assertIsNotNone(entry)
+        records = []
+        es_solve(entry.position, log=records.append)
+        records.sort(key=lambda r: r.call_id)
+
+        log_file = self.LOG_DIR / f'es_plain_log_ffo-01-simplified-{n}.csv'
+        lines = [l for l in log_file.read_text().splitlines() if l.strip()]
+        col = {name: i for i, name in enumerate(lines[0].split(';'))}
+        c_rows = sorted((l.split(';') for l in lines[1:]), key=lambda r: int(r[col['CALL_ID']]))
+
+        self.assertEqual(len(records), len(c_rows))
+        for rec, row in zip(records, c_rows):
+            got = (rec.call_id, rec.level, int(rec.player),
+                   '--' if rec.parent_move == MOVE_PA else move_to_str(rec.parent_move),
+                   rec.value)
+            exp = (int(row[col['CALL_ID']]), int(row[col['CALL_LEVEL']]), int(row[col['PLAYER']]),
+                   row[col['PARENT_MOVE']], int(row[col['T_ALPHA']]))
+            self.assertEqual(got, exp, f"node {rec.call_id}")
+            if rec.best_move != MOVE_NA:
+                self.assertEqual('--' if rec.best_move == MOVE_PA else move_to_str(rec.best_move),
+                                 row[col['T_BEST_MOVE']], f"node {rec.call_id} best move")
+
+    def test_ffo_01_simplified_4_trace(self):
+        self._trace_case(4)
+
+    def test_ffo_01_simplified_5_trace(self):
+        self._trace_case(5)
+
+    def test_ffo_01_simplified_6_trace(self):
+        self._trace_case(6)
+
+    def test_ffo_01_simplified_7_trace(self):
+        self._trace_case(7)
+
+    def test_ffo_01_simplified_8_trace(self):
+        self._trace_case(8)
+
+
+class TestEsSolveBookPosition(unittest.TestCase):
+    """
+    The navigation identity at the scale: the book position (the REGAB seq 68230056 of the
+    board chapter) — the es navigation reproduces the C exact solver exactly (the 45.8M nodes,
+    the 8.3M leaves, the value +10, the best move F8).
+    """
+
+    POS = '..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb'
+
+    @unittest.skipUnless(tier_long(), "Skipping the LONG-tier test (set LONG=1 to run)")
+    def test_navigation_identity(self):
+        # The untraced solve: the 45.8M-node trace would be a multi-GB record list. The root
+        # best move (F8) is pinned by the fixture classes on the small series cases.
+        r = es_solve(game_position_from_str(self.POS))
+        self.assertEqual(int(r.game_value), 10)
+        self.assertEqual(r.nodes, 45798972)
+        self.assertEqual(r.leafs, 8265202)
+
+
+class TestEsSolveArray(unittest.TestCase):
+    """
+    The array form of es_solve (the worker-pool engine): every lane is exactly the result of
+    the scalar es_solve of that lane (the engine runs the same compiled search, the per-lane
+    root move set filled by the lane setup), the batch values are checked against the
+    independent DB goldens, the log callback is the scalar form only, and the batch
+    precondition (the uniform empty count) is enforced by the opt-in check.
+    """
+
+    ROWS_10 = TestAlphaBetaSolveArray.ROWS_10
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db, _ = load_game_position_database(
+            WORKSPACE_ROOT / 'test' / 'reversi' / 'data' / 'gpdb-sample-games.txt')
+        cls.gps10 = make_game_position(
+            np.array([r[0] for r in cls.ROWS_10], dtype=np.int64).astype(np.uint64),
+            np.array([r[1] for r in cls.ROWS_10], dtype=np.int64).astype(np.uint64),
+            np.array([r[2] for r in cls.ROWS_10], dtype=np.uint8))
+
+    def test_ten_db_golden_values(self):
+        # The batch values are the independent DB goldens.
+        r = es_solve(self.gps10)
+        self.assertEqual(r.game_values.tolist(), [row[3] for row in self.ROWS_10])
+
+    def test_ten_parity_scalar(self):
+        # Every lane is exactly the result of the scalar solve of that lane (value, final,
+        # node / leaf counts).
+        r = es_solve(self.gps10)
+        for i in range(10):
+            s = es_solve(self.gps10[i])
+            self.assertEqual(int(r.game_values[i]), int(s.game_value))
+            self.assertEqual(game_position_to_str(r.final_game_positions[i]),
+                             game_position_to_str(s.final_game_position))
+            self.assertEqual(r.nodes[i], s.nodes)
+            self.assertEqual(r.leafs[i], s.leafs)
+
+    def test_array_log_raises(self):
+        def log(rec):
+            pass
+        with self.assertRaises(ValueError):
+            es_solve(self.gps10, log=log)
+
+    def test_check_ec_gate(self):
+        # check_ec=True on a non-uniform batch raises at the boundary; the default (False)
+        # skips the check and solves the lanes anyway.
+        p8 = self.db.find('ffo-01-simplified-8').position
+        p12 = self.db.find('ffo-01-simplified-12').position
+        mixed = make_game_position(np.array([p8['mover'], p12['mover']], dtype=np.uint64),
+                                   np.array([p8['opponent'], p12['opponent']], dtype=np.uint64),
+                                   np.array([p8['player'], p12['player']], dtype=np.uint8))
+        with self.assertRaises(ValueError):
+            es_solve(mixed, check_ec=True)
+        r = es_solve(mixed)
+        self.assertEqual([int(v) for v in r.game_values], [18, 18])

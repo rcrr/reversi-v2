@@ -524,3 +524,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   and the `player` field; `board.py:221`); `GameValue` — the np.int8 solved value on the full [-64, +64] WOF scale, from
   the mover's point of view (`endgame_solver.py:137`), with the `GameValueArray` strict-dtype form and the -66 sentinel.
   Factual, dry, exhaustive — every statement source-anchored.
+- D-695: `endgame_solver.py` gained `es_solve` — the port of the C exact solver's navigation (the zero-window alpha-beta
+  with the mobility-ordered moves: the 10 D8 priority clusters, the stable ascending sort on the look-ahead opponent
+  legal-move count, the root window [-64, +64]). The session: the user reported the Python search running 17+ min where
+  the C does 3.7s — the diagnosis separated the per-node speed (Python 13.6M nodes/s, FASTER than the C 12.4M) from the
+  node count (117B vs 45.8M: the natural-order zero-window without the mobility ordering is the worst-case pruning). The
+  C `exact_solver.c` was studied in detail (the priority masks, the stable sort, the recursive-call window setup, the
+  pass / terminal convention, the root window — the pre-existing fixture es logs turned out to be the pv-full-recording
+  mode, so fresh plain-es references were generated with the C binary: the node / leaf counts and the game-tree logs).
+  The implementation path: `_es_search` (the 6-parameter kernel, the state-threaded move sets, the per-level scratch) +
+  `es_solve` (scalar / array / trace), then the bug gauntlet — the per-node np.empty malloc storm (265s) → the scratch
+  in the state array → the shared scratch clobbered by the children (the broken navigation) → the per-level slices → the
+  high-bit bitboard OverflowError (the astype reinterpretation) → the scalar-only `legal_moves_of` in the pool (the
+  per-lane set at the boundary). Final state (the user's call: the simple form, no marginal micro-optimizations): the
+  navigation identity exact on all six reference positions (record by record on the five small, the 45.8M-node count at
+  scale), 6.55s on the book position (1.75x the C: the numba per-node codegen gap), 81-test suite green + the LONG book
+  test.

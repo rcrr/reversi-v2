@@ -91,6 +91,22 @@ stack slot. The v2 trace records `MOVE_NA` at such nodes, the only value consist
 search; a node-by-node comparison against the C log therefore skips `best_move` where the v2
 record is `MOVE_NA`.
 
+The es search (the C exact-solver strategy)
+-------------------------------------------
+
+`es_solve` ports the navigation of the C exact solver (`game_position_es_solve`): the
+zero-window alpha-beta with the moves of every node ordered by the opponent's resulting
+mobility. The candidate moves of a node are generated in the 10 D8 priority clusters (the
+centre, the corners, then the rings outwards; the ascending square order within a cluster),
+each one look-aheads the child's legal-move set, and the stable ascending insertion sort on
+that count puts first the move leaving the opponent the fewest moves (the ties keep the
+generation order). The root window is the C ground-node [-64, +64]. The node's own move set
+is threaded through the state array (precomputed by the parent's look-ahead, so no
+legal-move recomputation at the node entry — the C convention), the compiled twin
+`_es_search` keeping the 6-parameter signature of the other kernels. The contract is the
+game-tree identity with the C exact solver: the same nodes visited, in the same order — the
+node / leaf counts and the per-node trace match the C game-tree log record by record.
+
 The unified scalar / array API (the worker pool)
 ------------------------------------------------
 
@@ -123,14 +139,14 @@ from numba.typed import List
 from pydantic import BeforeValidator, ConfigDict, validate_call
 
 from reversi.board import (MOVE_NA, MOVE_PA, MOVE_UN, Bitboard, GamePositionArray,
-                           GamePositionField, Move, Player, bitboard_bsf, bitboard_count,
-                           final_value_of, flips_of_move, legal_moves_of, make_game_position,
-                           other_player)
+                           GamePositionField, Move, Player, _popcount, bitboard_bsf,
+                           bitboard_count, final_value_of, flips_of_move, legal_moves_of,
+                           make_game_position, other_player)
 
 
 __all__ = ['OUT_OF_RANGE_DEFEAT_SCORE', 'GameValue', 'GameValueArray', 'NodeRecord',
            'SolverResult', 'SolverResultArray', 'minimax_solve', 'alphabeta_solve',
-           'uniform_empty_count']
+           'es_solve', 'uniform_empty_count']
 
 
 #: Represents a reversi game value from -64 to +64 as an numpy.int8 scalar.
@@ -149,6 +165,11 @@ GameValueArray = Annotated[npt.NDArray[GameValue], BeforeValidator(_validate_gam
 #: outside the game-value range [-64, 64], so the first child value always wins the strict
 #: comparison and the no-move-yet state needs no test.
 OUT_OF_RANGE_DEFEAT_SCORE = -66
+
+#: The C es root window half (the C worst_score / best_score): the game-value range itself,
+#: the ground-node initialization of the C exact solver (unlike the out-of-range sentinels of
+#: the natural-order alpha-beta).
+ES_ROOT_WINDOW = 64
 
 
 @dataclass(frozen=True)
@@ -353,15 +374,17 @@ def _ab_state():
     return state
 
 
-def _solve_pool(gps, search, make_state):
+def _solve_pool(gps, search, make_state, lane_setup=None):
     """
     The worker-pool array engine shared by the public solvers: one thread per available CPU pulls
     the next unsolved lane from the work queue (the dynamic dispatch, optimal for the solve-cost
     variance between endgames) and runs the compiled `search` on it — the per-lane pydantic
     validation skipped, the batch boundary the only checked one — filling the pre-allocated
     per-lane result slots. The njit search releases the GIL while running, so the wall time is
-    the batch work over the worker count. Returns the six result arrays (the values, the final
-    mover / opponent / player, the node / leaf counts).
+    the batch work over the worker count. `lane_setup` (optional) is a Python callable invoked
+    as `lane_setup(state, i)` right after the per-lane state factory, for the solvers whose
+    state carries a per-lane datum (the es root move set). Returns the six result arrays (the
+    values, the final mover / opponent / player, the node / leaf counts).
     """
     n = gps.shape[0]
     values = np.empty(n, dtype=GameValue)
@@ -379,6 +402,8 @@ def _solve_pool(gps, search, make_state):
     def solve_lane(i):
         # The fast path: the compiled search directly (no per-lane pydantic).
         state = make_state()
+        if lane_setup is not None:
+            lane_setup(state, i)
         v, f_m, f_o, f_p, nd, lf = search(movers[i], opponents[i], players[i], 1, None, state)
         values[i] = GameValue(v)
         fm[i] = f_m
@@ -411,6 +436,189 @@ def _solve_pool(gps, search, make_state):
     if errors:
         raise errors[0]
     return values, fm, fo, fp, nodes, leafs
+
+
+# The 10 D8 priority-cluster masks of the C es move ordering (the exact `legal_moves_priority_mask`
+# of the C exact solver): the board partitioned in the D8 rings (the centre, the corners, then the
+# rings outwards). The candidate moves of a node are generated cluster by cluster, in the
+# ascending square order within a cluster, before the stable sort on the look-ahead count.
+_ES_PRIORITY_MASKS = np.array([
+    0x0000001818000000,  # 0: D4, E4, E5, D5 (the centre)
+    0x8100000000000081,  # 1: A1, H1, H8, A8 (the corners)
+    0x2400810000810024,  # 2: C1, F1, F8, C8, A3, H3, H6, A6
+    0x0000240000240000,  # 3: C3, F3, F6, C6
+    0x1800008181000018,  # 4: D1, E1, E8, D8, A4, H4, H5, A5
+    0x0000182424180000,  # 5: D3, E3, E6, D6, C4, F4, F5, C5
+    0x0018004242001800,  # 6: D2, E2, E7, D7, B4, G4, G5, B5
+    0x0024420000422400,  # 7: C2, F2, F7, C7, B3, G3, G6, B6
+    0x4281000000008142,  # 8: B1, G1, G8, B8, A2, H2, H7, A7
+    0x0042000000004200,  # 9: B2, G2, G7, B7
+], dtype=np.uint64)
+
+
+# The es `state` array layout: the 7-element header (the entry-order node counter and the
+# current parent move, the alpha / beta window, and the move-set pair — the node's own legal
+# moves, precomputed by its parent's ordering look-ahead, and its parent's: the pair
+# distinguishes the pass node from the terminal one, the C `adjusted_move_count` convention)
+# plus the per-level ordering scratch (the candidate move squares, the child mover / opponent
+# bitboards, the child move sets, the look-ahead counts: 5 x 64 int64 slots PER LEVEL — the
+# scratch of a node must survive its children's recursion, the C stack per-depth move lists:
+# a single shared scratch region is clobbered by the first child). The scratch lives in the
+# state array (allocated once at the root, threaded through the recursion — the C stack
+# preallocation: a per-node np.empty would be a malloc storm on a 45M-node search).
+# The 6-parameter signature is kept (the 7th scalar parameter is the numba 0.68 cache-loader
+# segfault trigger, D-662).
+_ES_STATE_HEADER = 7
+# The per-level scratch field bases (within the 320-slot level slice): the candidate squares,
+# the child mover / opponent bitboards, the child move sets, the look-ahead counts.
+_ES_SQ_BASE = 0
+_ES_CM_BASE = 64
+_ES_CO_BASE = 128
+_ES_RES_BASE = 192
+_ES_CNT_BASE = 256
+_ES_SCRATCH_STRIDE = 320
+# The level bound: a game is at most 64 moves plus one pass before each (the second
+# consecutive pass is the terminal) — 129 plies, the margin to 160.
+_ES_MAX_LEVEL = 160
+_ES_STATE_SIZE = _ES_STATE_HEADER + _ES_MAX_LEVEL * _ES_SCRATCH_STRIDE
+
+
+def _es_state(root_move_set):
+    """
+    The es state array with the C es root window [-64, +64] (the C worst_score / best_score:
+    the game-value range itself): the header (the counter, the root's parent move (MOVE_UN),
+    the window, the move-set pair — the caller's root move set, no parent) and the zeroed
+    per-level ordering scratch.
+    """
+    state = np.zeros(_ES_STATE_SIZE, dtype=np.int64)
+    state[1] = MOVE_UN
+    state[2] = -ES_ROOT_WINDOW
+    state[3] = ES_ROOT_WINDOW
+    # The astype reinterpretation (not the Python int round-trip, not the np.int64 constructor:
+    # the bitboard with the high bit set overflows both into the int64 store): the uint64 bit
+    # pattern re-read as int64 (two's complement).
+    state[4] = np.uint64(root_move_set).astype(np.int64)
+    return state
+
+
+def _es_pool_state():
+    """The es pool state factory: the root move set is filled per lane by the lane setup."""
+    return _es_state(0)
+
+
+@nb.njit(cache=True)
+def _es_search(mover, opponent, player, level, records, state):
+    """
+    The numba-compiled exact-solver search, the port of the C `game_position_es_solve`
+    navigation: the zero-window alpha-beta with the moves of every node ordered by the
+    opponent's resulting mobility (the 10 D8 priority clusters, the stable ascending sort on
+    the look-ahead legal-move count) — the deterministic visit of exactly the same nodes as
+    the C exact solver (the game-tree identity: the node / leaf counts and the per-node trace
+    match the C game-tree log record by record). The node's own move set is threaded through
+    the state array (precomputed by the parent's ordering look-ahead: no legal-move
+    recomputation at the node entry, the C convention), its parent's alongside it (the pass /
+    terminal distinction). The per-node data (the entry-order counter, the parent move, the
+    alpha / beta window, the move-set pair) is threaded through the 7-element shared state
+    array with the same save/restore stack discipline as `_ab_search`.
+
+    Returns:
+        The (value, final_mover, final_opponent, final_player, nodes, leafs) of the subtree.
+    """
+    state[0] += 1
+    call_id = state[0]
+    own = np.uint64(state[4])
+    if not own:
+        if not state[5]:
+            # The terminal: neither the node nor its parent has a legal move (the C
+            # adjusted_move_count == 0): one node, the WOF value.
+            value = final_value_of(mover, opponent)
+            if records is not None:
+                records.append((call_id, level, player, state[1], MOVE_NA, value))
+            return value, mover, opponent, player, 1, 1
+        # The pass node: the single pseudo-move, the child window the negated parent window.
+        state[4] = int(legal_moves_of(opponent, mover))
+        state[5] = 0
+        saved_pm, saved_a, saved_b = state[1], state[2], state[3]
+        state[1] = MOVE_PA
+        state[2], state[3] = -state[3], -state[2]
+        value, fm, fo, fp, nodes, leafs = _es_search(opponent, mover, other_player(player),
+                                                     level + 1, records, state)
+        state[1], state[2], state[3] = saved_pm, saved_a, saved_b
+        value = -value
+        if records is not None:
+            records.append((call_id, level, player, state[1], MOVE_PA, value))
+        return value, fm, fo, fp, nodes + 1, leafs
+    # The ordering look-ahead: the candidate moves generated in the priority-cluster order
+    # (the ascending square order within a cluster), each one with its child position and the
+    # child's legal-move set (the opponent's resulting mobility) — the scratch in the state
+    # array, in the node's own level slice (the C stack per-depth move lists: it must survive
+    # the children's recursion), no per-node allocation.
+    sqo = _ES_STATE_HEADER + (level - 1) * _ES_SCRATCH_STRIDE
+    n = 0
+    for i in range(10):
+        to_search = own & _ES_PRIORITY_MASKS[i]
+        while to_search:
+            s = bitboard_bsf(to_search)
+            to_search = to_search & (to_search - Bitboard(1))
+            m = Bitboard(1) << Bitboard(s)
+            fl = flips_of_move(mover, opponent, m)
+            state[sqo + _ES_CM_BASE + n] = int(opponent ^ fl)
+            state[sqo + _ES_CO_BASE + n] = int((mover ^ fl) | m)
+            r = legal_moves_of(np.uint64(state[sqo + _ES_CM_BASE + n]),
+                               np.uint64(state[sqo + _ES_CO_BASE + n]))
+            state[sqo + _ES_RES_BASE + n] = int(r)
+            state[sqo + _ES_CNT_BASE + n] = _popcount(r)
+            state[sqo + n] = s
+            n += 1
+    # The stable insertion sort on the look-ahead count (ascending: the move leaving the
+    # opponent the fewest moves first; the ties keep the generation order, the C contract).
+    for i in range(1, n):
+        j = i
+        while j > 0 and state[sqo + _ES_CNT_BASE + j - 1] > state[sqo + _ES_CNT_BASE + j]:
+            a = sqo + j - 1; b = sqo + j
+            t = state[a]; state[a] = state[b]; state[b] = t
+            a = sqo + _ES_CM_BASE + j - 1; b = sqo + _ES_CM_BASE + j
+            t = state[a]; state[a] = state[b]; state[b] = t
+            a = sqo + _ES_CO_BASE + j - 1; b = sqo + _ES_CO_BASE + j
+            t = state[a]; state[a] = state[b]; state[b] = t
+            a = sqo + _ES_RES_BASE + j - 1; b = sqo + _ES_RES_BASE + j
+            t = state[a]; state[a] = state[b]; state[b] = t
+            a = sqo + _ES_CNT_BASE + j - 1; b = sqo + _ES_CNT_BASE + j
+            t = state[a]; state[a] = state[b]; state[b] = t
+            j -= 1
+    alpha = state[2]
+    beta = state[3]
+    best_value = alpha
+    best_move = MOVE_NA
+    best_fm, best_fo, best_fp = mover, opponent, player
+    nodes = 1
+    leafs = 0
+    for i in range(n):
+        saved_pm, saved_a, saved_b = state[1], state[2], state[3]
+        state[1] = state[sqo + i]
+        state[4] = state[sqo + _ES_RES_BASE + i]
+        state[5] = int(own)
+        state[2], state[3] = -beta, -alpha
+        value, fm, fo, fp, nd, lf = _es_search(np.uint64(state[sqo + _ES_CM_BASE + i]),
+                                               np.uint64(state[sqo + _ES_CO_BASE + i]),
+                                               other_player(player), level + 1, records, state)
+        state[1], state[2], state[3] = saved_pm, saved_a, saved_b
+        value = -value
+        nodes += nd
+        leafs += lf
+        if value > best_value:
+            best_value, best_move, best_fm, best_fo, best_fp = (value, state[sqo + i],
+                                                                fm, fo, fp)
+            # The node's alpha rises with the best child: the NEXT sibling's window is derived
+            # from it (the zero-window tightening, the source of the pruning).
+            alpha = value
+            if value >= beta:
+                if records is not None:
+                    records.append((call_id, level, player, state[1], best_move, best_value))
+                return best_value, best_fm, best_fo, best_fp, nodes, leafs
+    if records is not None:
+        records.append((call_id, level, player, state[1], best_move, best_value))
+    return best_value, best_fm, best_fo, best_fp, nodes, leafs
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -509,6 +717,68 @@ def alphabeta_solve(gp: Union[GamePositionField, GamePositionArray],
     if check_ec:
         uniform_empty_count(gp)
     values, fm, fo, fp, nodes, leafs = _solve_pool(gp, _ab_search, _ab_state)
+    return SolverResultArray(game_values=values,
+                             final_game_positions=make_game_position(fm, fo, fp),
+                             nodes=nodes, leafs=leafs)
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def es_solve(gp: Union[GamePositionField, GamePositionArray],
+             log: Callable[[NodeRecord], None] | None = None,
+             check_ec: bool = False) -> Union[SolverResult, SolverResultArray]:
+    """
+    Solve the endgame(s) exactly with the C exact-solver strategy (see the "The es search
+    (the C exact-solver strategy)" section of the module docstring): the zero-window
+    alpha-beta with the moves of every node ordered by the opponent's resulting mobility (the
+    10 D8 priority clusters, the stable ascending sort on the look-ahead legal-move count),
+    the root window [-64, +64] — the deterministic navigation of exactly the same nodes as
+    the C `es` solver. A GamePosition scalar gives the SolverResult of the direct compiled
+    search (the `log` trace callback supported, one NodeRecord per visited node); a
+    GamePositionArray gives the SolverResultArray of the worker pool (the `log` callback is
+    the scalar form only and raises on the array form; the batch precondition, the uniform
+    empty count, as the other solvers, with the opt-in `check_ec` check).
+
+    Args:
+        gp: the game position (scalar) or the game position array (one endgame per lane) to solve.
+        log: optional callable, invoked with the `NodeRecord` of every visited node (in
+            completion order, replayed when the search completes). The scalar form only.
+        check_ec: array form only (the scalar form ignores it): verify the uniform-empty-count
+            batch precondition up front (default False).
+
+    Returns:
+        The SolverResult of the scalar solve, or the SolverResultArray of the batch.
+    """
+    if isinstance(gp, np.void):
+        state = _es_state(legal_moves_of(gp['mover'], gp['opponent']))
+        if log is None:
+            value, fm, fo, fp, nodes, leafs = _es_search(gp['mover'], gp['opponent'], gp['player'],
+                                                         1, None, state)
+        else:
+            # The trace sink: the typed list of the 6-int node records, filled by the compiled
+            # search at each node exit, replayed to the callback when the search completes.
+            records = List.empty_list(nb.types.UniTuple(nb.types.int64, 6))
+            value, fm, fo, fp, nodes, leafs = _es_search(gp['mover'], gp['opponent'], gp['player'],
+                                                         1, records, state)
+            for rec in records:
+                log(NodeRecord(rec[0], rec[1], Player(rec[2]), Move(rec[3]), Move(rec[4]), rec[5]))
+        return SolverResult(game_value=GameValue(value),
+                            final_game_position=make_game_position(Bitboard(fm), Bitboard(fo),
+                                                                   Player(fp)),
+                            nodes=nodes, leafs=leafs)
+    if log is not None:
+        raise ValueError('The log callback is the scalar form only (one trace per solve).')
+    if check_ec:
+        uniform_empty_count(gp)
+    movers = gp['mover']
+    opponents = gp['opponent']
+
+    def lane_setup(state, i):
+        # The per-lane root move set (legal_moves_of is the scalar njit per-lane primitive:
+        # the set is computed at the pool boundary, once per lane; the astype reinterpretation
+        # as _es_state: the high-bit set would overflow the int64 store).
+        state[4] = np.uint64(legal_moves_of(movers[i], opponents[i])).astype(np.int64)
+
+    values, fm, fo, fp, nodes, leafs = _solve_pool(gp, _es_search, _es_pool_state, lane_setup)
     return SolverResultArray(game_values=values,
                              final_game_positions=make_game_position(fm, fo, fp),
                              nodes=nodes, leafs=leafs)

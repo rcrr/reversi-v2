@@ -799,3 +799,19 @@ D-694 | 2026-11-25 | notes/naming.md gained the two core game-data types: `GameP
          scalar on the full [-64, +64] WOF scale (the `final_value_of` semantics), with the `GameValueArray`
          strict-dtype form and the `OUT_OF_RANGE_DEFEAT_SCORE` (-66) sentinel. Factual, dry, exhaustive: every statement
          is anchored to its source line.
+
+D-695 | 2026-11-26 | `endgame_solver.py` gained `es_solve`: the port of the C exact solver's (`game_position_es_solve`)
+         navigation — the zero-window alpha-beta with the moves of every node ordered by the opponent's resulting
+         mobility (the 10 D8 priority clusters, the stable ascending sort on the look-ahead legal-move count), the root
+         window [-64, +64] (the C worst / best score). The compiled twin `_es_search` keeps the 6-parameter signature,
+         threading the node's own move set (precomputed by the parent's look-ahead: no legal-move recomputation at the
+         node entry, the C convention) and its parent's (the pass / terminal distinction) through the state array, the
+         ordering scratch in a per-level 320-slot slice (160 levels: a shared scratch is clobbered by the first child, a
+         per-node np.empty is a malloc storm on a 45M-node search). The contract is the game-tree identity with the C
+         `es`: verified record by record against the new plain-es C game-tree log fixtures
+         (`es_plain_log_ffo-01-simplified-{4..8}.csv`, generated with the C binary) on the five series positions and at
+         the 45.8M-node scale (the book position: nodes 45,798,972, leafs 8,265,202, value 10 — exact). Where the
+         natural-order `alphabeta_solve` visits 117B nodes on that position (2555x), the ordering is the whole pruning.
+         Performance: 6.55s vs the C 3.7s (the 1.75x numba per-node codegen gap); the micro-tuning ceiling reached (the
+         fast popcount +1.5%, the index sort 0%) — the user kept the simple form. `alphabeta_solve` is unchanged (the C
+         `ab` natural-order twin). 21 new tests (micro, fixture, trace, book-position LONG tier, array).
