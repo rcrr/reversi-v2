@@ -426,6 +426,113 @@ e \texttt{game\_value}, i metadati della query (\texttt{bid}, \texttt{status},
 \texttt{game\_value} è un intero a 8 bit (\texttt{int8}), il che riflette
 proprio il suo range $[-64, +64]$.
 
+Ogni riga della tabella è una posizione \emph{risolta}: oltre al
+\texttt{game\_value} esatto dell'end-game, la colonna \texttt{best\_move}
+conserva la miglior mossa corrispondente. Le posizioni — generate con mosse
+legali scelte a caso a partire dalla posizione iniziale — sono state risolte
+in \emph{batch} dal solver di fine partita: la tabella ne contiene
+\emph{centinaia di milioni}. Il modulo \texttt{endgame\_solver} del
+programma offre tre strategie di ricerca esatte — \texttt{minimax},
+\texttt{alphabeta} e \texttt{es} — e la riga di comando
+\texttt{python -m reversi.endgame\_solver} le mette a disposizione a partire
+dalla stringa della posizione.
+
+Prendiamo in esame una riga di esempio, estraendola con una query:
+
+\begin{lstlisting}[language=sql, caption={Una riga di esempio di \texttt{regab\_prng\_gp} (una selezione libera, non l'estrazione del livello).}]
+SELECT seq, mover, opponent, empty_count, game_value, best_move
+FROM   regab_prng_gp
+WHERE  batch_id = 7 AND empty_count = 20 AND status = 'CMS'
+LIMIT  1;
+\end{lstlisting}
+
+\begin{lstlisting}[caption={La riga restituita.}]
+   seq    |        mover        |       opponent       | empty_count | game_value | best_move
+ ----------+---------------------+----------------------+-------------+------------+-----------
+  68230056 | 4611717676283199524 | -7855295674223658936 |          20 |         10 | F8
+ (1 row)
+\end{lstlisting}
+
+Dalla stessa riga il database offre due rappresentazioni leggibili della
+posizione. La vista 2D:
+
+\begin{lstlisting}[language=sql, caption={La vista 2D della posizione, dalla funzione \texttt{game\_position\_pp\_mop} del database.}]
+SELECT game_position_pp_mop(mover, opponent, player) AS pos_68230056
+FROM   regab_prng_gp
+WHERE  seq = 68230056;
+\end{lstlisting}
+
+\begin{lstlisting}[caption={La vista 2D restituita.}]
+     pos_68230056
+ -----------------------
+     a b c d e f g h   +
+  1  . . @ O . @ O .   +
+  2  . . . O O O O .   +
+  3  . . O O O O @ .   +
+  4  @ @ O @ O @ @ @   +
+  5  . @ O @ O O @ @   +
+  6  . O @ @ @ O O .   +
+  7  . . O O O O O O   +
+  8  . O . . O . @ O   +
+  Player to move: BLACK
+ (1 row)
+\end{lstlisting}
+
+dove \texttt{.} è una cella vuota, \texttt{@} un disco del
+\texttt{mover} e \texttt{O} un disco dell'\texttt{opponent}; la riga
+finale identifica il \texttt{player}, il giocatore che deve muovere (qui il
+nero). E la stringa di 65 caratteri:
+
+\begin{lstlisting}[language=sql, caption={La stringa della posizione, dalla funzione \texttt{game\_position\_to\_string} del database.}]
+SELECT game_position_to_string((mover, opponent, player)) AS pos_as_string_68230056
+FROM   regab_prng_gp
+WHERE  seq = 68230056;
+\end{lstlisting}
+
+\begin{lstlisting}[caption={La stringa restituita.}]
+                       pos_as_string_68230056
+ -------------------------------------------------------------------
+  ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+ (1 row)
+\end{lstlisting}
+
+Il carattere \texttt{.} è una cella vuota, \texttt{b} un disco nero e
+\texttt{w} un disco bianco: il carattere più a sinistra è la cella A1 (il
+bit 0 della board), si procede per righe fino al 64-esimo carattere, la
+cella H8 (il bit 63); l'ultimo, 65-esimo carattere, è il
+\texttt{player} (\texttt{b} se nero, \texttt{w} se bianco).
+
+Questa stringa è l'input della riga di comando del solver:
+
+\begin{lstlisting}[language=bash, caption={La risoluzione esatta della posizione, dalla riga di comando Python.}]
+python -m reversi.endgame_solver -s es -g ..bw.bw....wwww...wwwwb.bbwbwbbb.bwbwwbb.wbbbww...wwwwww.w..w.bwb
+\end{lstlisting}
+
+Il flag \texttt{-s} seleziona la strategia di ricerca (\texttt{minimax},
+\texttt{alphabeta} o \texttt{es}) e \texttt{-g} la posizione in stringa.
+L'output — la board, il conto dei nodi e delle foglie dell'albero di gioco
+navigato, l'esito finale — è il seguente:
+
+\begin{lstlisting}[caption={L'output della risoluzione.}]
+    a b c d e f g h
+ 1  . . @ O . @ O .
+ 2  . . . O O O O .
+ 3  . . O O O O @ .
+ 4  @ @ O @ O @ @ @
+ 5  . @ O @ O O @ @
+ 6  . O @ @ @ O O .
+ 7  . . O O O O O O
+ 8  . O . . O . @ O
+Player to move: BLACK
+
+[node_count=45798972, leaf_count=8265202]
+Final outcome: best move=F8, position value=10
+\end{lstlisting}
+
+Il solver ri-deriva dalla posizione il valore esatto 10 e la miglior mossa
+F8 — i medesimi valori conservati nella riga del database — navigando
+45.798.972 nodi dell'albero di gioco in pochi secondi.
+
 \subsection{La politica sulle duplicazioni}
 
 Nello stesso \emph{flusso di calcolo} (quello che popola la cache), subito

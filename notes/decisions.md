@@ -834,3 +834,20 @@ D-696 | 2026-11-26 | The Python command line for the endgame solvers (the replac
          output on the book position as the golden, the WHITE player, the shared-grid identity), the new
          TestEndgameSolverCLI (dispatch, the C-mirroring output, the invalid solver exit), the two SolverResult
          dataclass constructions updated to the new field.
+
+D-697 | 2026-11-26 | The board chapter rewrite, first landing. The new `reversi_040_board.tex` carries the rewritten
+         board chapter (`\chapter{La board}`): \S2.1 "La board" (the Square woven into the opening paragraph, the 64
+         cells, the bitboard layout) and \S2.2 "Le mosse" (the Move type, the `MOVE_PA` / `MOVE_NA` / `MOVE_UN` sentinel
+         codes 64 / 65 / 66). The previous chapter body is preserved as `reversi_042_board_old.tex`
+         (`\chapter{La board (old)}`; the rename itself landed in D-695), from which the old \S2 "Le posizioni (Game
+         Positions)" was now REMOVED: its content, rewritten consistently with the current Python, was appended to the
+         end of \S9.2.1 "La fonte: il database REGAB" of `reversi_140_corpus_analisi.tex` — the exact-solve semantics of
+         a row (the `game_value` and the `best_move`), the generation and the hundreds-of-millions scale, the three
+         exact search strategies of the `endgame_solver` module, the example row (seq 68230056, batch 7, ec 20, CMS)
+         with the two live-verified database views (`game_position_pp_mop` 2-D, `game_position_to_string` 65-character
+         string and their legends), and the Python command line `python -m reversi.endgame_solver -s es -g <string>`
+         with its real output (the 45,798,972-node navigation, the value 10, the best move F8). Per the user's
+         instruction the text carries no reference to the historical C code. The appended material repeats nothing the
+         existing \S9.2 / \S9.2.1 prose already states (the value range, the column types, the extraction query form
+         stay in the original text). `main.tex` includes both chapters; `dict.txt` gained the six words the new prose
+         needed. Verified: forced builds of chapters 140 and 042 clean, the full book build clean, `make spell` green.

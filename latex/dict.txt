@@ -21,6 +21,7 @@ array
 # aspell -d it would otherwise flag these as foreign/unknown; the Makefile `spell`
 at
 atomic
+available
 barbel
 baseline
 basicstyle
@@ -186,6 +187,7 @@ fingerprint
 fit
 fittato
 fitted
+flag
 float
 for
 format
@@ -198,6 +200,7 @@ function
 functions
 fvert
 game
+gameposition
 gap
 gate
 gather
@@ -370,6 +373,7 @@ of
 off
 official
 offsets
+old
 omitted
 ooooo
 ooox
@@ -529,6 +533,7 @@ stall
 starting
 stateless
 step
+stones
 # stored lowercase and matched case-insensitively, so one entry covers every casing.
 storey
 streaming
@@ -571,6 +576,7 @@ ulp
 uncertainty
 un'indicatore
 unique
+unknown
 unpack
 unsigned
 update

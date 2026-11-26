@@ -1,0 +1,248 @@
+%
+% reversi_040_board.tex
+%
+% This file is part of the reversi program
+% http://github.com/rcrr/reversi-v2
+%
+% Author Roberto Corradini mailto:rob_corradini@yahoo.it
+% Copyright 2026 Roberto Corradini. All rights reserved.
+%
+% License
+%
+% This program is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by the
+% Free Software Foundation; either version 3, or (at your option) any
+% later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+% or visit the site <http://www.gnu.org/licenses/>.
+%
+%-----------------------------------------------------------------------------
+% Capitolo: La board (nuova versione — riscrittura completa in corso).
+%
+% La versione precedente e' conservata in reversi_042_board_old.tex
+% (capitolo "La board (old)") finche' questa riscrittura non e' completata.
+%
+\part{Fondamenti}
+
+\chapter{La board}
+
+\section{Rappresentazione del dominio}
+
+La board di Reversi è composta da 64 celle, otto righe ed otto colonne, numerate da 0, in alto a sinistra (North-West, NW),
+a 63, in basso a destra (South-East, SE): una singola cella è un \texttt{Square}, l'alias di tipo \texttt{numpy.uint8}.
+
+Gli oggetti introdotti nel capitolo sono definiti nel modulo \texttt{reversi.board}. La posizione di gioco — nel
+vocabolario del codice, la \texttt{Position} — è rappresentata con due \texttt{Bitboard}, ciascuna un intero a 64 bit
+senza segno: \texttt{Bitboard} è l'alias di tipo \texttt{numpy.uint64}, e
+\texttt{Position} è il dtype strutturato nativo di NumPy con i due campi \texttt{mover} e \texttt{opponent}, ciascuno
+di tipo \texttt{Bitboard}
+(\texttt{Position = np.dtype([(\textquotesingle mover\textquotesingle, Bitboard), (\textquotesingle opponent\textquotesingle, Bitboard)])}).
+
+Ognuno dei 64 bit di una \texttt{Bitboard} è associato ad una cella: il bit meno significativo (il bit 0) è associato
+alla cella \texttt{A1}, il bit più significativo (il bit 63) alla cella \texttt{H8}, procedendo da sinistra verso
+destra per righe.
+
+A differenza della notazione classica usata nel ben più diffuso gioco degli scacchi, qui la convenzione fissata
+nel vocabolario del progetto vede la riga 1 in alto (\texttt{row\_1}, [A1, B1, C1, D1, E1, F1, G1, H1]) e la colonna a
+(\texttt{column\_a}, [A1, A2, A3, A4, A5, A6, A7, A8]) a sinistra.
+
+Il campo \texttt{mover} rappresenta le celle, anche dette pietre (stones) del giocatore che deve effettuare la mossa,
+il campo \texttt{opponent} le celle dell'avversario. La \texttt{Position} si costruisce con la funzione pubblica
+\texttt{make\_position(mover, opponent)} definita nel modulo \texttt{reversi.board}, al pari di tutti gli altri
+oggetti introdotti nel presente capitolo.
+
+Ad esempio la posizione iniziale di gioco, come mostrato in figura~\ref{fig:bitboard-bit-ordine} (a),
+viene costruita dalla chiamata \texttt{make\_position(p, o)} dove \texttt{p} = \texttt{Bitboard(0x0000000810000000)},
+e \texttt{o} = \texttt{Bitboard(0x0000001008000000)}.
+
+Unico vincolo, o invariante, della rappresentazione è la formula: \texttt{mover \& opponent == 0},
+che formalizza il divieto di avere sia un disco del giocatore che uno dell'avversario contemporaneamente nella stessa
+cella.
+
+Una cella è vuota quando il bit corrispondente è zero sia nel \texttt{mover} che nel \texttt{opponent}.
+
+Non va confusa la \texttt{Position} con la \texttt{GamePosition}: quest'ultima aggiunge alla \texttt{Position} il
+campo \texttt{player} — il giocatore che deve muovere — e si usa dove l'informazione su chi deve muovere deve essere
+esplicita. Il \texttt{Player} è definito come l'alias di tipo \texttt{numpy.uint8}, mentre il \texttt{GameValue} è
+l'alias di tipo \texttt{numpy.int8} per il valore esatto di una posizione risolta, sull'intervallo pieno
+$[-64, +64]$.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{2}{1}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{1}{2}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+      \end{othelloboard}
+    }
+    \caption{Initial game position.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow  {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small 00}
+        \posannotation{b1}{\small 01}
+        \posannotation{c1}{\small 02}
+        \posannotation{d1}{\small 03}
+        \posannotation{e1}{\small 04}
+        \posannotation{f1}{\small 05}
+        \posannotation{g1}{\small 06}
+        \posannotation{h1}{\small 07}
+        \posannotation{a2}{\small 08}
+        \posannotation{b2}{\small 09}
+        \posannotation{c2}{\small 10}
+        \posannotation{d2}{\small 11}
+        \posannotation{e2}{\small 12}
+        \posannotation{f2}{\small 13}
+        \posannotation{g2}{\small 14}
+        \posannotation{h2}{\small 15}
+        \posannotation{a3}{\small 16}
+        \posannotation{b3}{\small 17}
+        \posannotation{c3}{\small 18}
+        \posannotation{d3}{\small 19}
+        \posannotation{e3}{\small 20}
+        \posannotation{f3}{\small 21}
+        \posannotation{g3}{\small 22}
+        \posannotation{h3}{\small 23}
+        \posannotation{a4}{\small 24}
+        \posannotation{b4}{\small 25}
+        \posannotation{c4}{\small 26}
+        \posannotation{d4}{\small 27}
+        \posannotation{e4}{\small 28}
+        \posannotation{f4}{\small 29}
+        \posannotation{g4}{\small 30}
+        \posannotation{h4}{\small 31}
+        \posannotation{a5}{\small 32}
+        \posannotation{b5}{\small 33}
+        \posannotation{c5}{\small 34}
+        \posannotation{d5}{\small 35}
+        \posannotation{e5}{\small 36}
+        \posannotation{f5}{\small 37}
+        \posannotation{g5}{\small 38}
+        \posannotation{h5}{\small 39}
+        \posannotation{a6}{\small 40}
+        \posannotation{b6}{\small 41}
+        \posannotation{c6}{\small 42}
+        \posannotation{d6}{\small 43}
+        \posannotation{e6}{\small 44}
+        \posannotation{f6}{\small 45}
+        \posannotation{g6}{\small 46}
+        \posannotation{h6}{\small 47}
+        \posannotation{a7}{\small 48}
+        \posannotation{b7}{\small 49}
+        \posannotation{c7}{\small 50}
+        \posannotation{d7}{\small 51}
+        \posannotation{e7}{\small 52}
+        \posannotation{f7}{\small 53}
+        \posannotation{g7}{\small 54}
+        \posannotation{h7}{\small 55}
+        \posannotation{a8}{\small 56}
+        \posannotation{b8}{\small 57}
+        \posannotation{c8}{\small 58}
+        \posannotation{d8}{\small 59}
+        \posannotation{e8}{\small 60}
+        \posannotation{f8}{\small 61}
+        \posannotation{g8}{\small 62}
+        \posannotation{h8}{\small 63}
+      \end{othelloboard}
+    }
+    \caption{Rappresentazione della bitboard.}
+  \end{subfigure}
+
+
+  \vskip\baselineskip
+
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small A1}
+        \posannotation{b1}{\small B1}
+        \posannotation{c1}{\small C1}
+        \posannotation{d1}{\small D1}
+        \posannotation{e1}{\small E1}
+        \posannotation{f1}{\small F1}
+        \posannotation{g1}{\small G1}
+        \posannotation{h1}{\small H1}
+      \end{othelloboard}
+    }
+    \caption{Riga 1 (\texttt{row\_1}).}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \scalebox{0.7}{
+      \begin{othelloboard}{1}
+        \dotmarkings
+        \othelloarrayfirstrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysecondrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraythirdrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfourthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayfifthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarraysixthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayseventhrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        \othelloarrayeighthrow   {0}{0}{0}{0}{0}{0}{0}{0}
+        %
+        \posannotation{a1}{\small A1}
+        \posannotation{a2}{\small A2}
+        \posannotation{a3}{\small A3}
+        \posannotation{a4}{\small A4}
+        \posannotation{a5}{\small A5}
+        \posannotation{a6}{\small A6}
+        \posannotation{a7}{\small A7}
+        \posannotation{a8}{\small A8}
+      \end{othelloboard}
+    }
+    \caption{Colonna a (\texttt{column\_a}).}
+  \end{subfigure}
+
+  \caption{La posizione iniziale, l'ordine dei bit della bitboard, la riga 1 e la colonna a.}
+  \label{fig:bitboard-bit-ordine}
+\end{figure}
+
+\section{Le mosse}
+
+Una mossa di gioco è un \texttt{Move}: anch'esso l'alias di tipo \texttt{numpy.uint8}. I valori da 0 a 63 sono le 64
+celle — la mossa consiste nel riempire la cella con un disco — e sopra di essi stanno i tre codici non-cella:
+\texttt{MOVE\_PA} (64) per il pass, un'azione ben definita dalle regole del gioco; \texttt{MOVE\_NA} (65) per
+"not available", uno stato di flag del programma; \texttt{MOVE\_UN} (66) per "unknown", usato ad esempio quando è
+ignota la mossa genitore di una data posizione. Le tre costanti nominate sono la fonte unica di questi valori.

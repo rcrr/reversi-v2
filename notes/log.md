@@ -551,3 +551,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   to the C binary on the book position. The pydantic `Union[IO, io.StringIO]` annotation rejected an explicit
   `sys.stdout` (TextIOWrapper is not a typing.IO instance): both print functions moved to `io.TextIOBase`. 437-test
   board + solver suite green.
+- D-697: the board chapter rewrite landed. The new `reversi_040_board.tex` (\S2.1 "La board", \S2.2 "Le mosse") joins
+  the book next to the preserved `reversi_042_board_old.tex`; the old chapter's \S2 "Le posizioni (Game Positions)" was
+  removed and its content — rewritten consistently with the current Python (the `endgame_solver` module, the three exact
+  search strategies, the `python -m reversi.endgame_solver` command line with its real output, the hundreds-of-millions
+  scale, the mover / opponent / player vocabulary, the A1 / H8 cell names, no reference to the historical C code per the
+  user's instruction) — was appended to the end of \S9.2.1 "La fonte: il database REGAB" of the corpus chapter, with a
+  no-repetition check against the existing \S9.2 prose. `main.tex` includes both chapters, `dict.txt` gained six words.
+  Verified: forced chapter builds (140, 042) clean, full book build clean, `make spell` green.
